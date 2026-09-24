@@ -1,10 +1,11 @@
 :root {
-  --bg: #ffffff;
-  --fg: #111111;
-  --border: #d9d9d9;
-  --border-strong: #111111;
-  --muted: #6b6b6b;
-  --accent: #b3261e;
+  --bg: #fbfaf7;
+  --fg: #2a2622;
+  --border: #ded7ca;
+  --border-strong: #a89f8e;
+  --muted: #8a8175;
+  --accent: #9c4a3c;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
   color-scheme: light;
 }
 
@@ -17,32 +18,29 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--serif);
 }
 
 button {
   font: inherit;
-  color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--border-strong);
-  padding: 0.4rem 0.8rem;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  padding: 0.3rem 0.6rem;
   cursor: pointer;
 }
 
 button:hover {
-  background: var(--fg);
-  color: var(--bg);
+  color: var(--fg);
 }
 
 button[aria-pressed="true"] {
-  background: var(--accent);
-  color: #ffffff;
-  border-color: var(--accent);
+  color: var(--accent);
 }
 
-textarea {
+textarea,
+input {
   font: inherit;
   color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--border-strong);
+  background: transparent;
 }
