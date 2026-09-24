@@ -19,6 +19,7 @@ function App() {
         tracks={state.tracks}
         cells={state.cells}
         onSetCellText={actions.setCellText}
+        onToggleMerge={actions.toggleSyllableMerge}
       />
     </main>
   );

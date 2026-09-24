@@ -7,9 +7,10 @@ interface SongViewProps {
   tracks: TrackDef[];
   cells: CellsByTrack;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
+  onToggleMerge: (lineId: string, aId: string, bId: string) => void;
 }
 
-export function SongView({ song, merges, tracks, cells, onSetCellText }: SongViewProps) {
+export function SongView({ song, merges, tracks, cells, onSetCellText, onToggleMerge }: SongViewProps) {
   if (song.length === 0) {
     return <p className="empty-state">Pegá o escribí una letra arriba para empezar.</p>;
   }
@@ -24,6 +25,7 @@ export function SongView({ song, merges, tracks, cells, onSetCellText }: SongVie
           tracks={tracks}
           cells={cells}
           onSetCellText={onSetCellText}
+          onToggleMerge={onToggleMerge}
         />
       ))}
     </div>

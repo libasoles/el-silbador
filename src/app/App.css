@@ -80,18 +80,56 @@
 
 .syllable-row {
   font-size: 1.1rem;
-}
-
-.word {
-  display: inline-flex;
-  margin-right: 0.5ch;
+  align-items: flex-end;
 }
 
 .syllable {
   position: relative;
+  display: inline-block;
+  padding-bottom: 0.2rem;
+  border-bottom: 3px solid transparent;
+}
+
+.syllable--merged {
+  border-bottom-color: var(--accent);
 }
 
 .syllable-gap {
   display: inline-block;
-  width: 0;
+  width: 0.3em;
+  height: 1.4em;
+  padding: 0;
+  margin: 0 -1px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  vertical-align: bottom;
+  position: relative;
+  border-bottom: 3px solid transparent;
+}
+
+.syllable-gap--word-boundary {
+  width: 0.7em;
+}
+
+.syllable-gap--merged,
+.syllable-gap[aria-pressed="true"] {
+  background: transparent;
+  color: inherit;
+  border-color: transparent;
+  border-bottom-color: var(--accent);
+}
+
+.syllable-gap:hover {
+  background: var(--border);
+}
+
+.syllable-gap--merged:hover {
+  background: transparent;
+  opacity: 0.7;
+}
+
+.syllable-gap:focus-visible {
+  outline: 2px solid var(--border-strong);
+  outline-offset: 1px;
 }
