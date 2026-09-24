@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 
 interface TrackCellProps {
   value: string;
+  left?: number;
+  width?: number;
   onChange: (text: string) => void;
   onNavigate: (direction: "prev" | "next") => void;
   registerRef: (el: HTMLElement | null) => void;
@@ -25,6 +27,8 @@ interface TrackCellProps {
  */
 export function TrackCell({
   value,
+  left,
+  width,
   onChange,
   onNavigate,
   registerRef,
@@ -42,6 +46,8 @@ export function TrackCell({
 
   const dragClassName =
     (isDragging ? " track-cell--dragging" : "") + (isDropTarget ? " track-cell--drop-target" : "");
+  const style =
+    left !== undefined && width !== undefined ? { left: `${left}px`, width: `${width}px` } : undefined;
 
   function handleDragStart(event: React.DragEvent<HTMLElement>) {
     event.dataTransfer.effectAllowed = "move";
@@ -86,6 +92,7 @@ export function TrackCell({
       <button
         type="button"
         className={"track-cell track-cell--chip" + dragClassName}
+        style={style}
         ref={(el) => registerRef(el)}
         onClick={startEditing}
         onFocus={startEditing}
@@ -114,6 +121,7 @@ export function TrackCell({
   return (
     <input
       className={"track-cell track-cell--input" + dragClassName}
+      style={style}
       ref={(el) => {
         inputRef.current = el;
         registerRef(el);

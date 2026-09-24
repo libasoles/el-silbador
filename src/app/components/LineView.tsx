@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { getLineCellSlots, getLineUnits, mergeKey } from "../../core/model";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { endSlotId, getLineCellSlots, getLineUnits, mergeKey } from "../../core/model";
 import { createResyllabifyCoordinator } from "../../core/resyllabifyCoordinator";
 import type { CellsByTrack, Line, TrackDef, TrackId, Word } from "../../core/types";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
@@ -44,11 +44,20 @@ interface WordEditorProps {
   word: Word;
   merges: ReadonlySet<string>;
   mergedIds: ReadonlySet<string>;
+  registerSyllableRef: (syllableId: string, el: HTMLElement | null) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
   onResyllabify: (lineId: string, wordId: string, text: string) => void;
 }
 
-function WordEditor({ lineId, word, merges, mergedIds, onToggleMerge, onResyllabify }: WordEditorProps) {
+function WordEditor({
+  lineId,
+  word,
+  merges,
+  mergedIds,
+  registerSyllableRef,
+  onToggleMerge,
+  onResyllabify,
+}: WordEditorProps) {
   const [editing, setEditing] = useState(false);
 
   const originalText = word.syllables.map((s) => s.text).join("");
@@ -144,7 +153,10 @@ function WordEditor({ lineId, word, merges, mergedIds, onToggleMerge, onResyllab
                 onToggle={() => onToggleMerge(lineId, prev.id, syllable.id)}
               />
             ) : null}
-            <span className={"syllable" + (mergedIds.has(syllable.id) ? " syllable--merged" : "")}>
+            <span
+              ref={(el) => registerSyllableRef(syllable.id, el)}
+              className={"syllable" + (mergedIds.has(syllable.id) ? " syllable--merged" : "")}
+            >
               {syllable.text}
             </span>
           </Fragment>
@@ -165,13 +177,55 @@ export function LineView({
   onResyllabify,
 }: LineViewProps) {
   const slotIds = getLineCellSlots(line, merges);
+  const units = getLineUnits(line, merges);
 
   const mergedIds = new Set<string>();
-  for (const unit of getLineUnits(line, merges)) {
+  for (const unit of units) {
     if (unit.syllableIds.length > 1) {
       for (const id of unit.syllableIds) mergedIds.add(id);
     }
   }
+
+  const syllableEls = useRef(new Map<string, HTMLElement>());
+  const syllableRowRef = useRef<HTMLDivElement>(null);
+  const [slotRects, setSlotRects] = useState<Record<string, { left: number; width: number }>>({});
+
+  function registerSyllableRef(syllableId: string, el: HTMLElement | null) {
+    if (el) syllableEls.current.set(syllableId, el);
+    else syllableEls.current.delete(syllableId);
+  }
+
+  useLayoutEffect(() => {
+    function measure() {
+      const rowEl = syllableRowRef.current;
+      if (!rowEl) return;
+      // Track rows are unpadded `position: relative` boxes, so an absolutely positioned cell's
+      // `left: 0` lands flush with the row's own border edge — the same edge as this row's.
+      const rowsLeft = rowEl.getBoundingClientRect().left;
+
+      const next: Record<string, { left: number; width: number }> = {};
+      let lastRight = rowsLeft;
+      for (const unit of units) {
+        const firstEl = syllableEls.current.get(unit.syllableIds[0]);
+        const lastEl = syllableEls.current.get(unit.syllableIds[unit.syllableIds.length - 1]);
+        if (!firstEl || !lastEl) continue;
+        const a = firstEl.getBoundingClientRect();
+        const b = lastEl.getBoundingClientRect();
+        next[unit.slotId] = {
+          left: Math.round(a.left - rowsLeft),
+          width: Math.max(6, Math.round(b.right - a.left)),
+        };
+        lastRight = b.right;
+      }
+      next[endSlotId(line.id)] = { left: Math.round(lastRight - rowsLeft), width: 14 };
+      setSlotRects(next);
+    }
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [line, merges]);
 
   const [dragSource, setDragSource] = useState<{ trackId: TrackId; slotId: string } | null>(null);
   const [dropTarget, setDropTarget] = useState<{ trackId: TrackId; slotId: string } | null>(null);
@@ -225,13 +279,14 @@ export function LineView({
               trackId={track.id}
               label={track.label}
               slotIds={slotIds}
+              slotRects={slotRects}
               cells={cells}
               onSetCellText={onSetCellText}
               drag={drag}
             />
           );
         })}
-      <div className="syllable-row" role="row">
+      <div className="syllable-row" role="row" ref={syllableRowRef}>
         {line.words.map((word, wIndex) => {
           const firstSyllable = word.syllables[0];
           const prevWord = wIndex > 0 ? line.words[wIndex - 1] : null;
@@ -253,6 +308,7 @@ export function LineView({
                 word={word}
                 merges={merges}
                 mergedIds={mergedIds}
+                registerSyllableRef={registerSyllableRef}
                 onToggleMerge={onToggleMerge}
                 onResyllabify={onResyllabify}
               />
