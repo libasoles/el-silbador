@@ -6,12 +6,13 @@ silabeo todavía — es la base sobre la que corren todas las slices siguientes.
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
+**Agent:** claude
 
-- [ ] `npm run dev` levanta la app y se ve una pantalla en blanco y negro (sin color) con un título.
-- [ ] Existe una separación de carpetas `src/core` (lógica pura, sin imports de React/DOM) y `src/app`
+- [x] `npm run dev` levanta la app y se ve una pantalla en blanco y negro (sin color) con un título.
+- [x] Existe una separación de carpetas `src/core` (lógica pura, sin imports de React/DOM) y `src/app`
       (componentes React).
-- [ ] `src/core` exporta un módulo de estado inicial vacío (aunque no haga nada útil todavía) que ya sigue
+- [x] `src/core` exporta un módulo de estado inicial vacío (aunque no haga nada útil todavía) que ya sigue
       la forma reducer/acción prevista en el spec (`estado, acción → nuevo estado`).
-- [ ] Hay un script de build (`npm run build`) que corre sin errores de tipos.
-- [ ] No hay ninguna dependencia de color en el tema base; la paleta se limita a blanco/negro/grises.
+- [x] Hay un script de build (`npm run build`) que corre sin errores de tipos.
+- [x] No hay ninguna dependencia de color en el tema base; la paleta se limita a blanco/negro/grises.

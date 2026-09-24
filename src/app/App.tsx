@@ -1,0 +1,27 @@
+import "./App.css";
+import { LyricsInput } from "./components/LyricsInput";
+import { SongView } from "./components/SongView";
+import { useEditor } from "./useEditor";
+
+function App() {
+  const { state, actions } = useEditor();
+
+  return (
+    <main className="app">
+      <h1>Silabeo</h1>
+      <p className="subtitle">Editor de anotaciones sobre sílabas de canciones</p>
+
+      <LyricsInput onConfirm={actions.setLyricsText} />
+
+      <SongView
+        song={state.song}
+        merges={state.merges}
+        tracks={state.tracks}
+        cells={state.cells}
+        onSetCellText={actions.setCellText}
+      />
+    </main>
+  );
+}
+
+export default App;

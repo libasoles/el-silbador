@@ -1,0 +1,11 @@
+@import "./app/theme.css";
+
+body {
+  min-height: 100svh;
+}
+
+#root {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}

@@ -1,0 +1,97 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-top: -1rem;
+}
+
+.lyrics-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lyrics-input textarea {
+  width: 100%;
+  padding: 0.6rem;
+  resize: vertical;
+}
+
+.lyrics-input__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.empty-state {
+  color: var(--muted);
+}
+
+.song {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.line {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.track-row,
+.syllable-row {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.track-row {
+  gap: 0;
+}
+
+.track-cell {
+  min-width: 1.5rem;
+  padding: 0.1rem 0.3rem;
+  border: 1px dashed transparent;
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.track-cell--chip {
+  background: transparent;
+  border-color: var(--border);
+}
+
+.track-cell--chip:hover {
+  background: transparent;
+  color: var(--accent);
+  border-color: var(--border-strong);
+}
+
+.track-cell--input {
+  border-color: var(--border-strong);
+  outline: none;
+}
+
+.syllable-row {
+  font-size: 1.1rem;
+}
+
+.word {
+  display: inline-flex;
+  margin-right: 0.5ch;
+}
+
+.syllable {
+  position: relative;
+}
+
+.syllable-gap {
+  display: inline-block;
+  width: 0;
+}

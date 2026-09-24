@@ -7,17 +7,18 @@ poder cargar la letra de "Recuerdos de Ypacaraí" como fixture de demo.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
+**Agent:** claude
 
-- [ ] Hay un área de texto donde pegar/escribir la letra completa de una canción, con saltos de línea
+- [x] Hay un área de texto donde pegar/escribir la letra completa de una canción, con saltos de línea
       explícitos (Enter = nueva línea de la canción).
-- [ ] Al confirmar, cada palabra de cada línea se muestra descompuesta en sus sílabas (separación visual
+- [x] Al confirmar, cada palabra de cada línea se muestra descompuesta en sus sílabas (separación visual
       clara entre sílabas, ej. espacio o marca sutil), usando Hypher + `hyphenation.es`.
-- [ ] Las líneas de la letra se renderizan en el mismo orden y con los mismos saltos que el texto de
+- [x] Las líneas de la letra se renderizan en el mismo orden y con los mismos saltos que el texto de
       entrada — ninguna línea se reordena ni se fusiona con otra por ancho de pantalla.
-- [ ] Existe un botón o acción para cargar la letra de "Recuerdos de Ypacaraí" como ejemplo precargado, y al
+- [x] Existe un botón o acción para cargar la letra de "Recuerdos de Ypacaraí" como ejemplo precargado, y al
       cargarla se ve correctamente silabeada.
-- [ ] El módulo de silabeo vive en `src/core` y es invocable sin necesidad de renderizar ningún componente
+- [x] El módulo de silabeo vive en `src/core` y es invocable sin necesidad de renderizar ningún componente
       React (testeable de forma aislada).
-- [ ] Test: silabear un conjunto de palabras de la fixture de Ypacaraí (incluyendo "Ypacaraí", "renaciendo",
+- [x] Test: silabear un conjunto de palabras de la fixture de Ypacaraí (incluyendo "Ypacaraí", "renaciendo",
       "guaraní") produce las sílabas esperadas.
