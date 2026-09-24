@@ -34,6 +34,7 @@ function App() {
         onSetCellText={actions.setCellText}
         onToggleMerge={actions.toggleSyllableMerge}
         onMoveCellText={actions.moveCellText}
+        onResyllabify={actions.resyllabify}
       />
     </main>
   );
