@@ -2,7 +2,31 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { getLineCellSlots, getLineUnits, mergeKey } from "../../core/model";
 import { createResyllabifyCoordinator } from "../../core/resyllabifyCoordinator";
 import type { CellsByTrack, Line, TrackDef, TrackId, Word } from "../../core/types";
-import { TrackRow } from "./TrackRow";
+import { TrackRow, type CellDragHandlers } from "./TrackRow";
+
+interface SyllableGapButtonProps {
+  merged: boolean;
+  wordBoundary?: boolean;
+  fromText: string;
+  toText: string;
+  onToggle: () => void;
+}
+
+/** The clickable gap between two adjacent syllables that toggles a melisma merge. */
+function SyllableGapButton({ merged, wordBoundary = false, fromText, toText, onToggle }: SyllableGapButtonProps) {
+  return (
+    <button
+      type="button"
+      className={"syllable-gap" + (merged ? " syllable-gap--merged" : wordBoundary ? " syllable-gap--word-boundary" : "")}
+      aria-pressed={merged}
+      aria-label={merged ? `Separar sílabas "${fromText}" y "${toText}"` : `Unir sílabas "${fromText}" y "${toText}"`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+    />
+  );
+}
 
 interface LineViewProps {
   line: Line;
@@ -55,8 +79,7 @@ function WordEditor({ lineId, word, merges, mergedIds, onToggleMerge, onResyllab
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      const wordKey = `${lineId}:${word.id}`;
-      coordinator.notifyWordBoundary(wordKey);
+      coordinator.notifyWordBoundary();
       setEditing(false);
     } else if (event.key === "Escape") {
       setInputValue(originalText);
@@ -68,13 +91,11 @@ function WordEditor({ lineId, word, merges, mergedIds, onToggleMerge, onResyllab
     const val = event.target.value;
     if (val.endsWith(" ") || val.endsWith("\n")) {
       setInputValue(val.trim());
-      const wordKey = `${lineId}:${word.id}`;
-      coordinator.notifyWordBoundary(wordKey);
+      coordinator.notifyWordBoundary();
       setEditing(false);
     } else {
       setInputValue(val);
-      const wordKey = `${lineId}:${word.id}`;
-      coordinator.notifyKeystroke(wordKey);
+      coordinator.notifyKeystroke();
     }
   }
 
@@ -116,19 +137,11 @@ function WordEditor({ lineId, word, merges, mergedIds, onToggleMerge, onResyllab
         return (
           <Fragment key={syllable.id}>
             {prev ? (
-              <button
-                type="button"
-                className={"syllable-gap" + (merged ? " syllable-gap--merged" : "")}
-                aria-pressed={merged}
-                aria-label={
-                  merged
-                    ? `Separar sílabas "${prev.text}" y "${syllable.text}"`
-                    : `Unir sílabas "${prev.text}" y "${syllable.text}"`
-                }
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleMerge(lineId, prev.id, syllable.id);
-                }}
+              <SyllableGapButton
+                merged={merged}
+                fromText={prev.text}
+                toText={syllable.text}
+                onToggle={() => onToggleMerge(lineId, prev.id, syllable.id)}
               />
             ) : null}
             <span className={"syllable" + (mergedIds.has(syllable.id) ? " syllable--merged" : "")}>
@@ -196,23 +209,28 @@ export function LineView({
     <div className={"line" + (isDragging ? " line--dragging" : "")}>
       {tracks
         .filter((track) => track.visible)
-        .map((track) => (
-          <TrackRow
-            key={track.id}
-            trackId={track.id}
-            label={track.label}
-            slotIds={slotIds}
-            cells={cells}
-            onSetCellText={onSetCellText}
-            draggedSlotId={dragSource && dragSource.trackId === track.id ? dragSource.slotId : null}
-            dropTargetSlotId={dropTarget && dropTarget.trackId === track.id ? dropTarget.slotId : null}
-            onCellDragStart={(slotId) => handleDragStart(track.id, slotId)}
-            onCellDragEnd={handleDragEnd}
-            onCellDragEnter={(slotId) => handleDragEnterCell(track.id, slotId)}
-            onCellDragLeave={(slotId) => handleDragLeaveCell(track.id, slotId)}
-            onCellDrop={(slotId) => handleDropCell(track.id, slotId)}
-          />
-        ))}
+        .map((track) => {
+          const drag: CellDragHandlers = {
+            draggedSlotId: dragSource && dragSource.trackId === track.id ? dragSource.slotId : null,
+            dropTargetSlotId: dropTarget && dropTarget.trackId === track.id ? dropTarget.slotId : null,
+            onDragStart: (slotId) => handleDragStart(track.id, slotId),
+            onDragEnd: handleDragEnd,
+            onDragEnter: (slotId) => handleDragEnterCell(track.id, slotId),
+            onDragLeave: (slotId) => handleDragLeaveCell(track.id, slotId),
+            onDrop: (slotId) => handleDropCell(track.id, slotId),
+          };
+          return (
+            <TrackRow
+              key={track.id}
+              trackId={track.id}
+              label={track.label}
+              slotIds={slotIds}
+              cells={cells}
+              onSetCellText={onSetCellText}
+              drag={drag}
+            />
+          );
+        })}
       <div className="syllable-row" role="row">
         {line.words.map((word, wIndex) => {
           const firstSyllable = word.syllables[0];
@@ -221,26 +239,15 @@ export function LineView({
 
           return (
             <Fragment key={word.id}>
-              {prevSyllable && firstSyllable
-                ? (() => {
-                    const merged = merges.has(mergeKey(prevSyllable.id, firstSyllable.id));
-                    return (
-                      <button
-                        type="button"
-                        className={
-                          "syllable-gap" + (merged ? " syllable-gap--merged" : " syllable-gap--word-boundary")
-                        }
-                        aria-pressed={merged}
-                        aria-label={
-                          merged
-                            ? `Separar sílabas "${prevSyllable.text}" y "${firstSyllable.text}"`
-                            : `Unir sílabas "${prevSyllable.text}" y "${firstSyllable.text}"`
-                        }
-                        onClick={() => onToggleMerge(line.id, prevSyllable.id, firstSyllable.id)}
-                      />
-                    );
-                  })()
-                : null}
+              {prevSyllable && firstSyllable ? (
+                <SyllableGapButton
+                  merged={merges.has(mergeKey(prevSyllable.id, firstSyllable.id))}
+                  wordBoundary
+                  fromText={prevSyllable.text}
+                  toText={firstSyllable.text}
+                  onToggle={() => onToggleMerge(line.id, prevSyllable.id, firstSyllable.id)}
+                />
+              ) : null}
               <WordEditor
                 lineId={line.id}
                 word={word}

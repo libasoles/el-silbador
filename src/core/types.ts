@@ -15,7 +15,9 @@ export interface Line {
 
 export type Song = Line[];
 
-export type TrackId = "chords" | "vocalNotes";
+/** Opaque track identifier. The reducer/model treat tracks generically; only the app layer
+ * instantiates specific ids ("chords", "vocalNotes") as data, in createInitialState. */
+export type TrackId = string;
 
 export interface TrackDef {
   id: TrackId;

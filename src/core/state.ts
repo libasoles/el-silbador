@@ -87,6 +87,14 @@ function deleteCell(cells: CellsByTrack, trackId: TrackId, slotId: string): Cell
   return { ...cells, [trackId]: nextTrackCells };
 }
 
+function deleteCellAcrossTracks(tracks: EditorState["tracks"], cells: CellsByTrack, slotId: string): CellsByTrack {
+  let next = cells;
+  for (const track of tracks) {
+    next = deleteCell(next, track.id, slotId);
+  }
+  return next;
+}
+
 function applyResyllabify(state: EditorState, lineId: string, wordId: string, newText: string): EditorState {
   const line = state.song.find((l) => l.id === lineId);
   const word = line?.words.find((w) => w.id === wordId);
@@ -102,10 +110,8 @@ function applyResyllabify(state: EditorState, lineId: string, wordId: string, ne
   );
 
   let cells = state.cells;
-  for (const trackId of Object.keys(cells) as TrackId[]) {
-    for (const droppedId of droppedIds) {
-      cells = deleteCell(cells, trackId, beforeSlotId(droppedId));
-    }
+  for (const droppedId of droppedIds) {
+    cells = deleteCellAcrossTracks(state.tracks, cells, beforeSlotId(droppedId));
   }
 
   const merges = pruneMerges(song, state.merges);
@@ -126,10 +132,7 @@ function applyToggleSyllableMerge(state: EditorState, lineId: string, aId: strin
   }
 
   merges.add(key);
-  let cells = state.cells;
-  for (const trackId of state.tracks.map((t) => t.id)) {
-    cells = deleteCell(cells, trackId, beforeSlotId(bId));
-  }
+  const cells = deleteCellAcrossTracks(state.tracks, state.cells, beforeSlotId(bId));
   return { ...state, merges, cells };
 }
 

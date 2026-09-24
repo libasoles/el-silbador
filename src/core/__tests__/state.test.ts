@@ -189,17 +189,31 @@ describe("resyllabify + reconciliation", () => {
     expect(getCell(state.cells, "chords", beforeSlotId(dorId))).toBe("");
   });
 
-  it("does not double-fire for the same edit across word-boundary and debounce", async () => {
+  it("does not double-dispatch resyllabify for the same edit across word-boundary and debounce", async () => {
     const { createResyllabifyCoordinator } = await import("../resyllabifyCoordinator");
     vi.useFakeTimers();
-    const due: string[] = [];
-    const coordinator = createResyllabifyCoordinator((key) => due.push(key));
 
-    coordinator.notifyKeystroke("line1:word1");
-    coordinator.notifyWordBoundary("line1:word1");
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "pescador" });
+    const line = state.song[0];
+    const word = line.words[0];
+
+    let dispatchCount = 0;
+    const coordinator = createResyllabifyCoordinator(() => {
+      dispatchCount += 1;
+      state = editorReducer(state, {
+        type: "resyllabify",
+        lineId: line.id,
+        wordId: word.id,
+        newText: "pescadores",
+      });
+    });
+
+    coordinator.notifyKeystroke();
+    coordinator.notifyWordBoundary();
     vi.advanceTimersByTime(2000);
 
-    expect(due).toEqual(["line1:word1"]);
+    expect(dispatchCount).toBe(1);
+    expect(state.song[0].words[0].syllables.map((s) => s.text)).toEqual(["pes", "ca", "do", "res"]);
     vi.useRealTimers();
   });
 });

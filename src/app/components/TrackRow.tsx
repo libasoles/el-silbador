@@ -3,35 +3,27 @@ import { getCell } from "../../core/state";
 import type { CellsByTrack, TrackId } from "../../core/types";
 import { TrackCell } from "./TrackCell";
 
+/** A track row's cell drag & drop wiring, bundled so it travels as one prop instead of five. */
+export interface CellDragHandlers {
+  draggedSlotId: string | null;
+  dropTargetSlotId: string | null;
+  onDragStart: (slotId: string) => void;
+  onDragEnd: () => void;
+  onDragEnter: (slotId: string) => void;
+  onDragLeave: (slotId: string) => void;
+  onDrop: (slotId: string) => void;
+}
+
 interface TrackRowProps {
   trackId: TrackId;
   label: string;
   slotIds: string[];
   cells: CellsByTrack;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
-  draggedSlotId: string | null;
-  dropTargetSlotId: string | null;
-  onCellDragStart: (slotId: string) => void;
-  onCellDragEnd: () => void;
-  onCellDragEnter: (slotId: string) => void;
-  onCellDragLeave: (slotId: string) => void;
-  onCellDrop: (slotId: string) => void;
+  drag: CellDragHandlers;
 }
 
-export function TrackRow({
-  trackId,
-  label,
-  slotIds,
-  cells,
-  onSetCellText,
-  draggedSlotId,
-  dropTargetSlotId,
-  onCellDragStart,
-  onCellDragEnd,
-  onCellDragEnter,
-  onCellDragLeave,
-  onCellDrop,
-}: TrackRowProps) {
+export function TrackRow({ trackId, label, slotIds, cells, onSetCellText, drag }: TrackRowProps) {
   const cellRefs = useRef<Array<HTMLElement | null>>([]);
 
   function focusIndex(index: number) {
@@ -54,13 +46,13 @@ export function TrackRow({
               cellRefs.current[index] = el;
             }}
             draggable={value.length > 0}
-            isDragging={draggedSlotId === slotId}
-            isDropTarget={dropTargetSlotId === slotId}
-            onDragStart={() => onCellDragStart(slotId)}
-            onDragEnd={onCellDragEnd}
-            onDragEnter={() => onCellDragEnter(slotId)}
-            onDragLeave={() => onCellDragLeave(slotId)}
-            onDrop={() => onCellDrop(slotId)}
+            isDragging={drag.draggedSlotId === slotId}
+            isDropTarget={drag.dropTargetSlotId === slotId}
+            onDragStart={() => drag.onDragStart(slotId)}
+            onDragEnd={drag.onDragEnd}
+            onDragEnter={() => drag.onDragEnter(slotId)}
+            onDragLeave={() => drag.onDragLeave(slotId)}
+            onDrop={() => drag.onDrop(slotId)}
           />
         );
       })}
