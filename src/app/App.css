@@ -26,6 +26,12 @@
   gap: 0.5rem;
 }
 
+.track-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .empty-state {
   color: var(--muted);
 }
@@ -40,6 +46,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  padding-left: 7rem;
 }
 
 .track-row,
@@ -51,6 +58,15 @@
 
 .track-row {
   gap: 0;
+  position: relative;
+}
+
+.track-row__label {
+  position: absolute;
+  right: calc(100% + 0.5rem);
+  color: var(--fg);
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .track-cell {

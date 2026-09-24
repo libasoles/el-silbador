@@ -21,6 +21,7 @@ export function LineView({ line, merges, tracks, cells, onSetCellText }: LineVie
           <TrackRow
             key={track.id}
             trackId={track.id}
+            label={track.label}
             slotIds={slotIds}
             cells={cells}
             onSetCellText={onSetCellText}

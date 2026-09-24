@@ -5,12 +5,13 @@ import { TrackCell } from "./TrackCell";
 
 interface TrackRowProps {
   trackId: TrackId;
+  label: string;
   slotIds: string[];
   cells: CellsByTrack;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
 }
 
-export function TrackRow({ trackId, slotIds, cells, onSetCellText }: TrackRowProps) {
+export function TrackRow({ trackId, label, slotIds, cells, onSetCellText }: TrackRowProps) {
   const cellRefs = useRef<Array<HTMLElement | null>>([]);
 
   function focusIndex(index: number) {
@@ -20,6 +21,7 @@ export function TrackRow({ trackId, slotIds, cells, onSetCellText }: TrackRowPro
 
   return (
     <div className="track-row" data-track={trackId} role="row">
+      <span className="track-row__label">{label}</span>
       {slotIds.map((slotId, index) => (
         <TrackCell
           key={slotId}
