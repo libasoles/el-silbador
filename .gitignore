@@ -1,0 +1,7 @@
+node_modules/
+dist/
+
+# Skill installs, reproducible from skills-lock.json
+.agents/
+.claude/skills/
+.hermes/
