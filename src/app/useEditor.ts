@@ -8,6 +8,7 @@ export function useEditor() {
   const actions = useMemo(
     () => ({
       setLyricsText: (text: string) => dispatch({ type: "setLyricsText", text }),
+      loadYpacaraiExample: () => dispatch({ type: "loadYpacaraiExample" }),
       resyllabify: (lineId: string, wordId: string, newText: string) =>
         dispatch({ type: "resyllabify", lineId, wordId, newText }),
       toggleSyllableMerge: (lineId: string, aId: string, bId: string) =>

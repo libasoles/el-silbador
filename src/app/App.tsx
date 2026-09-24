@@ -12,7 +12,7 @@ function App() {
       <h1>Silabeo</h1>
       <p className="subtitle">Editor de anotaciones sobre sílabas de canciones</p>
 
-      <LyricsInput onConfirm={actions.setLyricsText} />
+      <LyricsInput onConfirm={actions.setLyricsText} onLoadExample={actions.loadYpacaraiExample} />
 
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
