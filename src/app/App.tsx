@@ -33,6 +33,7 @@ function App() {
         cells={state.cells}
         onSetCellText={actions.setCellText}
         onToggleMerge={actions.toggleSyllableMerge}
+        onResyllabify={actions.resyllabify}
       />
     </main>
   );
