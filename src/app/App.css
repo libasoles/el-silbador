@@ -105,6 +105,7 @@ h1 {
 }
 
 .track-toolbar__label {
+  font-family: var(--sans);
   font-size: 0.6rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -161,6 +162,8 @@ h1 {
   border: none;
   border-bottom: 1px solid transparent;
   color: var(--accent);
+  font-family: var(--sans);
+  font-weight: 500;
   font-size: 0.85rem;
   text-align: center;
   white-space: nowrap;
