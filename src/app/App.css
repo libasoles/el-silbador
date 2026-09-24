@@ -94,6 +94,35 @@
   outline: none;
 }
 
+.track-cell--dragging {
+  animation: track-cell-dragging 0.6s ease-in-out infinite alternate;
+  color: #ffffff;
+  border-style: solid;
+  border-color: var(--accent);
+  position: relative;
+  z-index: 1;
+}
+
+.track-cell--drop-target {
+  background: var(--border);
+  border-style: solid;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+@keyframes track-cell-dragging {
+  from {
+    transform: scale(1);
+    background: var(--accent);
+    box-shadow: 0 0 0 0 rgba(179, 38, 30, 0.5);
+  }
+  to {
+    transform: scale(1.25);
+    background: var(--fg);
+    box-shadow: 0 0 0.5rem 0.15rem rgba(179, 38, 30, 0.5);
+  }
+}
+
 .syllable-row {
   font-size: 1.1rem;
   align-items: flex-end;
@@ -107,7 +136,32 @@
 }
 
 .syllable--merged {
-  border-bottom-color: var(--accent);
+  border-bottom-color: transparent;
+}
+
+.syllable--merged::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--fg), var(--accent));
+  background-size: 200% 100%;
+  animation: lava-flow 6s linear infinite;
+}
+
+.line--dragging .syllable--merged::after {
+  animation: lava-flow 0.9s linear infinite;
+}
+
+@keyframes lava-flow {
+  from {
+    background-position: 0% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
 }
 
 .syllable-gap {
@@ -133,7 +187,23 @@
   background: transparent;
   color: inherit;
   border-color: transparent;
-  border-bottom-color: var(--accent);
+  border-bottom-color: transparent;
+}
+
+.syllable-gap--merged::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--fg), var(--accent));
+  background-size: 200% 100%;
+  animation: lava-flow 6s linear infinite;
+}
+
+.line--dragging .syllable-gap--merged::after {
+  animation: lava-flow 0.9s linear infinite;
 }
 
 .syllable-gap:hover {
