@@ -423,6 +423,34 @@ export function SongView({
   // text-offset model commit()/restoreCaret already use, rather than letting the browser traverse
   // the DOM.
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    // Some Chromium keyboard paths don't emit a cancellable `beforeinput` event for Enter in a
+    // contentEditable host. Handle the key itself as a fallback so it follows the same document
+    // model route as the `insertParagraph` branch below.
+    if (event.key === "Enter") {
+      if (
+        event.nativeEvent.isComposing ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey
+      )
+        return;
+      if ((event.target as HTMLElement).closest("[data-track]")) return;
+
+      const root = rootRef.current;
+      if (!root) return;
+      const range = captureSelectionRange(root);
+      if (!range) return;
+
+      const lines = readDocument(root).split("\n");
+      let start = flatOffset(lines, range.start);
+      let end = flatOffset(lines, range.end);
+      if (start > end) [start, end] = [end, start];
+
+      event.preventDefault();
+      replaceRange(start, end, "\n");
+      return;
+    }
+
     if (
       event.key !== "ArrowLeft" &&
       event.key !== "ArrowRight" &&
