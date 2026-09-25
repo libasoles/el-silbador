@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import "./App.css";
 import { SongView } from "./components/SongView";
-import { TrackIcon } from "./components/icons";
+import { TrackIcon, UnderlineIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
 import { useEditor } from "./useEditor";
 
@@ -25,6 +25,16 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
+          <button
+            type="button"
+            className="track-toolbar__toggle"
+            aria-pressed={state.showUnderline}
+            aria-label="Subrayado"
+            title="Subrayado"
+            onClick={() => actions.setShowUnderline(!state.showUnderline)}
+          >
+            <UnderlineIcon />
+          </button>
           {state.tracks.map((track) => {
             const hasContent = Object.values(state.cells[track.id] ?? {}).some(
               (text) => text.trim() !== "",
@@ -52,6 +62,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
           merges={state.merges}
           tracks={state.tracks}
           cells={state.cells}
+          showUnderline={state.showUnderline}
           onSetCellText={actions.setCellText}
           onToggleMerge={actions.toggleSyllableMerge}
           onMoveCellText={actions.moveCellText}

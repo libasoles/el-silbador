@@ -63,8 +63,9 @@ function historyReducer(state: HistoryState, action: HistoryAction): HistoryStat
     };
   }
 
-  // Track visibility is view state, not document content: apply without recording history.
-  if (action.type === "setTrackVisibility") {
+  // Track visibility and underline visibility are view state, not document content: apply
+  // without recording history.
+  if (action.type === "setTrackVisibility" || action.type === "setShowUnderline") {
     return { ...state, present: editorReducer(state.present, action), coalesceKey: null };
   }
 
@@ -99,6 +100,7 @@ export function useEditor() {
         dispatch({ type: "moveCellText", trackId, fromSlotId, toSlotId }),
       setTrackVisibility: (trackId: TrackId, visible: boolean) =>
         dispatch({ type: "setTrackVisibility", trackId, visible }),
+      setShowUnderline: (visible: boolean) => dispatch({ type: "setShowUnderline", visible }),
       undo: () => dispatch({ type: "undo" }),
       redo: () => dispatch({ type: "redo" }),
     }),

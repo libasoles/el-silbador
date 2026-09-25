@@ -207,7 +207,11 @@ h1 {
 .line--chords-hidden .syllable::after,
 .line--chords-hidden .syllable-gap--merged::after,
 .line--chords-hidden .syllable-gap:hover::before,
-.line--chords-hidden .syllable-gap:focus-visible::before {
+.line--chords-hidden .syllable-gap:focus-visible::before,
+.song--underline-hidden .syllable::after,
+.song--underline-hidden .syllable-gap--merged::after,
+.song--underline-hidden .syllable-gap:hover::before,
+.song--underline-hidden .syllable-gap:focus-visible::before {
   content: none;
 }
 
