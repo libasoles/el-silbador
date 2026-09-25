@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import "./App.css";
 import { chordToNoteNames } from "../core/chordNotes";
 import { SongView } from "./components/SongView";
-import { TrackIcon, UnderlineIcon } from "./components/icons";
+import { DownloadIcon, TrackIcon, UnderlineIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
 import { useEditor } from "./useEditor";
 
@@ -19,6 +19,10 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
   useEffect(() => {
     applyTheme(deriveTheme(accentColor));
   }, [accentColor]);
+
+  const handleExportPdf = () => {
+    window.print();
+  };
 
   return (
     <main className="app">
@@ -105,6 +109,18 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
           onReconcileLyricsText={actions.reconcileLyricsText}
           onPasteText={actions.pasteText}
         />
+
+        <aside className="action-toolbar" aria-label="Acciones">
+          <button
+            type="button"
+            className="action-toolbar__button"
+            aria-label="Exportar a PDF"
+            title="Exportar a PDF"
+            onClick={handleExportPdf}
+          >
+            <DownloadIcon />
+          </button>
+        </aside>
       </div>
     </main>
   );

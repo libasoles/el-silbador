@@ -105,6 +105,51 @@
   color: var(--border-strong);
 }
 
+/* Second lateral group, same gutter as .track-toolbar (same horizontal line), but anchored to
+   the bottom of the viewport instead of the top: file actions (export, and later save) rather
+   than editing tools. */
+.action-toolbar {
+  position: fixed;
+  bottom: 1.5rem;
+  right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 5;
+}
+
+.action-toolbar__button {
+  appearance: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  padding: 0;
+  width: 2.4rem;
+  height: 2.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--border-strong);
+  opacity: 0.55;
+  transition:
+    color 160ms ease,
+    opacity 180ms ease;
+}
+
+.action-toolbar__button:hover {
+  opacity: 1;
+  color: var(--fg);
+}
+
+@media print {
+  .track-toolbar,
+  .action-toolbar {
+    display: none;
+  }
+}
+
 .song-wrapper {
   flex: 1;
   min-width: 0;
