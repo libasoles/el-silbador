@@ -75,31 +75,30 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
   return (
     <main className="app">
-      <div className="app-header">
-        <div className="title-block">
+      <TransposeWidget
+        chordCells={state.cells.chords}
+        onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
+      />
+
+      <div className="title-block">
+        <input
+          type="text"
+          className="title-input"
+          placeholder="Título"
+          value={state.title}
+          onChange={(event) => actions.setTitle(event.target.value)}
+          aria-label="Título"
+        />
+        {(state.title.trim() !== "" || state.author.trim() !== "") && (
           <input
             type="text"
-            className="title-input"
-            placeholder="Título"
-            value={state.title}
-            onChange={(event) => actions.setTitle(event.target.value)}
-            aria-label="Título"
+            className="author-input"
+            placeholder="Autor"
+            value={state.author}
+            onChange={(event) => actions.setAuthor(event.target.value)}
+            aria-label="Autor"
           />
-          {(state.title.trim() !== "" || state.author.trim() !== "") && (
-            <input
-              type="text"
-              className="author-input"
-              placeholder="Autor"
-              value={state.author}
-              onChange={(event) => actions.setAuthor(event.target.value)}
-              aria-label="Autor"
-            />
-          )}
-        </div>
-        <TransposeWidget
-          chordCells={state.cells.chords}
-          onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
-        />
+        )}
       </div>
 
       <div className="workspace">
