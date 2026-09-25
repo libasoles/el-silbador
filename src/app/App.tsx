@@ -1,8 +1,9 @@
-import { type ReactNode, useEffect } from "react";
+import { useEffect } from "react";
 import "./App.css";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
+import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { SongView } from "./components/SongView";
 import { DownloadIcon, SilbadorIcon, TrackIcon, UnderlineIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
@@ -21,19 +22,6 @@ interface TrackToggleButtonProps {
   track: TrackDef;
   cells: CellsByTrack;
   onToggle: () => void;
-}
-
-interface IconButtonTooltipProps {
-  tooltip: string;
-  children: ReactNode;
-}
-
-function IconButtonTooltip({ tooltip, children }: IconButtonTooltipProps) {
-  return (
-    <span className="icon-button-tooltip" data-tooltip={tooltip}>
-      {children}
-    </span>
-  );
 }
 
 function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {

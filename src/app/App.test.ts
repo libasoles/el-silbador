@@ -4,6 +4,10 @@ import { readFileSync } from "node:fs";
 const styles = readFileSync(new URL("./App.css", import.meta.url), "utf8");
 const themeStyles = readFileSync(new URL("./theme.css", import.meta.url), "utf8");
 const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8");
+const iconButtonTooltip = readFileSync(
+  new URL("./components/IconButtonTooltip.tsx", import.meta.url),
+  "utf8",
+);
 const favicon = readFileSync(new URL("../../public/favicon.svg", import.meta.url), "utf8");
 
 describe("underline visibility", () => {
@@ -21,16 +25,18 @@ describe("lyric caret visibility", () => {
 
 describe("icon-button tooltips", () => {
   it("renders a visible tooltip from a hoverable wrapper", () => {
-    expect(app).toContain("function IconButtonTooltip");
-    expect(app).toContain('className="icon-button-tooltip"');
-    expect(app).toContain("data-tooltip={tooltip}");
+    expect(iconButtonTooltip).toContain("function IconButtonTooltip");
+    expect(iconButtonTooltip).toContain('className="icon-button-tooltip"');
+    expect(iconButtonTooltip).toContain("data-tooltip={tooltip}");
     expect(app).not.toMatch(/<button[^>]*\btitle=/);
-    expect(styles).toMatch(/\.icon-button-tooltip\s*\{[\s\S]*display: inline-flex/);
-    expect(styles).toMatch(/\.icon-button-tooltip > button:disabled\s*\{[\s\S]*pointer-events: none/);
-    expect(styles).toMatch(
+    expect(themeStyles).toMatch(/\.icon-button-tooltip\s*\{[\s\S]*display: inline-flex/);
+    expect(themeStyles).toMatch(
+      /\.icon-button-tooltip > button:disabled\s*\{[\s\S]*pointer-events: none/,
+    );
+    expect(themeStyles).toMatch(
       /\.icon-button-tooltip:hover::after,\s*\.icon-button-tooltip:focus-within::after\s*\{[\s\S]*opacity: 1/,
     );
-    expect(styles).toContain("content: attr(data-tooltip)");
+    expect(themeStyles).toContain("content: attr(data-tooltip)");
   });
 });
 

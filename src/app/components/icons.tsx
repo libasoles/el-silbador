@@ -202,12 +202,12 @@ export function StarIcon({ filled = false }: { filled?: boolean }) {
   );
 }
 
-export function PlusIcon() {
+export function PlusIcon({ size = 18 }: { size?: number }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      width="18"
-      height="18"
+      width={size}
+      height={size}
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
