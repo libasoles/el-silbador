@@ -4,7 +4,7 @@ import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { SongView } from "./components/SongView";
-import { DownloadIcon, SilabeoIcon, TrackIcon, UnderlineIcon } from "./components/icons";
+import { DownloadIcon, SilbadorIcon, TrackIcon, UnderlineIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
 import { useEditor } from "./useEditor";
 
@@ -75,8 +75,8 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
   return (
     <main className="app">
-      <div className="app-mark" role="img" aria-label="Silabeo">
-        <SilabeoIcon />
+      <div className="app-mark" role="img" aria-label="Silbador">
+        <SilbadorIcon />
       </div>
 
       <TransposeWidget

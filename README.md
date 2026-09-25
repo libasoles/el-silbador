@@ -1,4 +1,4 @@
-# Silabeo
+# Silbador
 
 Editor visual de anotaciones sobre sílabas de canciones (acordes, notas de canto). Ver
 `.scratch/silabeo-editor/spec.md` para el spec completo.

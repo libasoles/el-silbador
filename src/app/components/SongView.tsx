@@ -661,7 +661,7 @@ export function SongView({
           <p>Escribí o pegá la letra de una canción para empezar.</p>
           <p>
             También podés pegar el texto con los acordes ya incluidos, ubicados
-            arriba de la línea de letra que les corresponde, y Silabeo los va a
+            arriba de la línea de letra que les corresponde, y Silbador los va a
             detectar solo. Por ejemplo:
           </p>
           <pre>

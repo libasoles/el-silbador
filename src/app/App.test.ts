@@ -34,8 +34,8 @@ describe("icon-button tooltips", () => {
 });
 
 describe("application mark", () => {
-  it("renders the Silabeo icon in the upper-left corner", () => {
-    expect(app).toContain("<SilabeoIcon />");
+  it("renders the Silbador icon in the upper-left corner", () => {
+    expect(app).toContain("<SilbadorIcon />");
     expect(app).toContain('className="app-mark"');
     expect(styles).toMatch(/\.app-mark\s*\{[\s\S]*position: fixed[\s\S]*top: 1rem[\s\S]*left: 1rem/);
     expect(styles).toMatch(/\.app-mark\s*\{[\s\S]*color: #000/);

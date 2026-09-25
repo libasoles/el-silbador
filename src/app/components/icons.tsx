@@ -1,7 +1,7 @@
 /** Minimal line icons for the lateral track toolbar, sized to inherit color/currentColor. */
 
-/** The Silabeo mark: a singer with the sound of their voice. */
-export function SilabeoIcon() {
+/** The Silbador mark: a singer with the sound of their voice. */
+export function SilbadorIcon() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
