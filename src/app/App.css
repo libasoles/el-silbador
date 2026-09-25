@@ -310,6 +310,29 @@
   white-space: nowrap;
 }
 
+/* An explicit stand-in for the native caret on an empty lyric line, which Chrome does not
+   reliably paint in this flex layout on its own. */
+.lyric-caret {
+  display: inline-block;
+  width: 1px;
+  height: 1.1em;
+  margin-left: 1px;
+  background: #555;
+  animation: lyric-caret-blink 1s step-end infinite;
+  pointer-events: none;
+}
+
+@keyframes lyric-caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
 .track-row {
   position: relative;
   height: 1.3em;
