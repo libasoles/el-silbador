@@ -82,8 +82,10 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
     if (createdSongIds.length > 0) {
       await adminClient.from("songs").delete().in("id", createdSongIds);
     }
+    // beforeAll may have thrown partway through, leaving some of these unset — don't let cleanup
+    // mask that original failure with an unrelated "reading 'id' of undefined".
     for (const user of [userA, userB, adminUser]) {
-      await adminClient.auth.admin.deleteUser(user.id);
+      if (user) await adminClient.auth.admin.deleteUser(user.id);
     }
   });
 
