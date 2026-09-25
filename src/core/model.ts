@@ -2,8 +2,11 @@ import { nextId } from "./ids";
 import { hyphenateWord, splitIntoWords } from "./syllabify";
 import type { Line, Song, Syllable, SyllableUnit, Word } from "./types";
 
-/** Builds a fresh, fully-hyphenated song from raw lyrics text. Every id is newly minted. */
+/** Builds a fresh, fully-hyphenated song from raw lyrics text. Every id is newly minted.
+ *  An empty document has no lines at all (not one line with zero words), so consumers can
+ *  detect it with `song.length === 0` and show the empty-document placeholder. */
 export function buildSong(lyricsText: string): Song {
+  if (lyricsText === "") return [];
   return lyricsText.split("\n").map((lineText) => buildLine(lineText));
 }
 

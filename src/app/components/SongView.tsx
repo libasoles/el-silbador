@@ -25,9 +25,12 @@ interface CaretPosition {
   offset: number;
 }
 
-function lineText(line: HTMLElement): string {
+/** A word-boundary gap is a non-editable `<button>` with no text content of its own \u2014 it
+    represents a space purely through layout. Any code that measures text length from the DOM
+    must synthesize that space itself, matching this translation exactly. */
+function nodesText(nodes: Iterable<Node>): string {
   let text = "";
-  for (const node of line.childNodes) {
+  for (const node of nodes) {
     if (node.nodeType === Node.TEXT_NODE) {
       text += node.textContent ?? "";
       continue;
@@ -42,6 +45,10 @@ function lineText(line: HTMLElement): string {
     }
   }
   return text.replaceAll("\u00a0", " ");
+}
+
+function lineText(line: HTMLElement): string {
+  return nodesText(line.childNodes);
 }
 
 function readDocument(root: HTMLElement): string {
@@ -75,7 +82,11 @@ function positionForNode(root: HTMLElement, node: Node, nodeOffset: number): Car
   } catch {
     return null;
   }
-  return { lineIndex: lines.indexOf(line), offset: range.toString().length };
+  // `range.toString()` renders the browser's native text, which has no character for a
+  // word-boundary gap button (it carries no text content of its own). Using it here would
+  // undercount the offset by one for every word boundary before this position, so the same
+  // node-to-text translation `lineText()` uses is applied to the range's cloned contents instead.
+  return { lineIndex: lines.indexOf(line), offset: nodesText(range.cloneContents().childNodes).length };
 }
 
 function captureCaret(root: HTMLElement): CaretPosition | null {
