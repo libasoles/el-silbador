@@ -280,9 +280,9 @@ export function LineView({
         .filter((track) => track.visible && track.id !== "vocalNotes")
         .map(renderTrackRow)}
       <div className="syllable-row" role="textbox" data-lyrics-line ref={syllableRowRef}>
-        {/* A leading text node gives Chrome a stable, visible caret position before the first
-            lyric glyph. It is excluded from the document model. */}
-        <span data-empty-line-caret aria-hidden="true">{"\u200B"}</span>
+        {/* Chrome will not paint a caret on an otherwise-empty flex row unless it has a real
+            line-break box to anchor to. Excluded from the document model. */}
+        {line.words.length === 0 ? <br data-empty-line-caret /> : null}
         {line.words.map((word, wIndex) => {
           const firstSyllable = word.syllables[0];
           const prevWord = wIndex > 0 ? line.words[wIndex - 1] : null;
