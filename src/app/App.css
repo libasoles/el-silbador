@@ -7,12 +7,17 @@
   padding: 1.25rem 2rem 6rem;
 }
 
-.title-input {
+.title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title-input,
+.author-input {
   font-family: inherit;
-  font-size: 1.5rem;
   font-weight: 400;
   letter-spacing: 0.02em;
-  margin-bottom: 0;
   color: inherit;
   background: none;
   border: none;
@@ -21,7 +26,17 @@
   width: 100%;
 }
 
-.title-input::placeholder {
+.title-input {
+  font-size: 1.5rem;
+}
+
+.author-input {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.title-input::placeholder,
+.author-input::placeholder {
   color: var(--muted);
   opacity: 1;
 }
