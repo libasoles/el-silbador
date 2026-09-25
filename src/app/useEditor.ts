@@ -89,7 +89,6 @@ export function useEditor() {
       reconcileLyricsText: (text: string) => dispatch({ type: "reconcileLyricsText", text }),
       pasteText: (text: string, startLineIndex: number, startOffset: number, placements: ChordPlacement[]) =>
         dispatch({ type: "pasteText", text, startLineIndex, startOffset, placements }),
-      loadYpacaraiExample: () => dispatch({ type: "loadYpacaraiExample" }),
       resyllabify: (lineId: string, wordId: string, newText: string) =>
         dispatch({ type: "resyllabify", lineId, wordId, newText }),
       toggleSyllableMerge: (lineId: string, aId: string, bId: string) =>

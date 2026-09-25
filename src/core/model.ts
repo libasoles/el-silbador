@@ -37,28 +37,6 @@ export function beforeSlotId(syllableId: string): string {
   return `before:${syllableId}`;
 }
 
-/** Places chords (by 0-indexed line/flattened-syllable position) into a fresh track's cells,
- * for seeding an example song built via `buildSong`. */
-export function seedChordCells(
-  song: Song,
-  placements: { line: number; syllable: number; chord: string }[],
-  endOfLinePlacements: { line: number; chord: string }[] = [],
-): Record<string, string> {
-  const cells: Record<string, string> = {};
-
-  for (const { line, syllable, chord } of placements) {
-    const flat = flattenSyllables(song[line]);
-    const syl = flat[syllable];
-    if (syl) cells[beforeSlotId(syl.id)] = chord;
-  }
-
-  for (const { line, chord } of endOfLinePlacements) {
-    cells[endSlotId(song[line].id)] = chord;
-  }
-
-  return cells;
-}
-
 /** The chord-track slot for a chord written at `column` above `rawLineText`, the exact text a
  * lyric line was built from. Walks the line's words/syllables left to right (in the same order
  * `buildLine` produced them from that text) and picks the last syllable starting at or before the

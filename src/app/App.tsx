@@ -23,12 +23,6 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
     <main className="app">
       <h1>Silabeo</h1>
 
-      <div className="document-actions">
-        <button type="button" onClick={actions.loadYpacaraiExample}>
-          Cargar "Recuerdos de Ypacaraí"
-        </button>
-      </div>
-
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
           {state.tracks.map((track) => (

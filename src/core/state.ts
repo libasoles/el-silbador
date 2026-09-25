@@ -8,11 +8,8 @@ import {
   mergeKey,
   pruneMerges,
   reconcileWordSyllables,
-  seedChordCells,
 } from "./model";
 import type { ChordPlacement } from "./chordSheet";
-import { YPACARAI_LYRICS } from "./fixtures/ypacarai";
-import { YPACARAI_CHORDS, YPACARAI_END_OF_LINE_CHORDS } from "./fixtures/ypacaraiChords";
 import { hyphenateWord } from "./syllabify";
 import type { CellsByTrack, EditorState, TrackId } from "./types";
 
@@ -36,7 +33,6 @@ export type Action =
       startOffset: number;
       placements: ChordPlacement[];
     }
-  | { type: "loadYpacaraiExample" }
   | { type: "resyllabify"; lineId: string; wordId: string; newText: string }
   | { type: "toggleSyllableMerge"; lineId: string; aId: string; bId: string }
   | { type: "setCellText"; trackId: TrackId; slotId: string; text: string }
@@ -59,17 +55,6 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
 
     case "pasteText":
       return applyPasteText(state, action.text, action.startLineIndex, action.startOffset, action.placements);
-
-    case "loadYpacaraiExample": {
-      const song = buildSong(YPACARAI_LYRICS);
-      return {
-        ...state,
-        lyricsText: YPACARAI_LYRICS,
-        song,
-        merges: new Set(),
-        cells: { chords: seedChordCells(song, YPACARAI_CHORDS, YPACARAI_END_OF_LINE_CHORDS) },
-      };
-    }
 
     case "resyllabify":
       return applyResyllabify(state, action.lineId, action.wordId, action.newText);

@@ -226,6 +226,20 @@ export function SongView({
     onReconcileLyricsText(readDocument(root));
   }
 
+  /** A click on the document's empty space can leave the browser selection on the editing host
+      itself (or outside it), rather than inside a lyric line. Give that click a real insertion
+      point, so an empty document shows its caret and is immediately ready for typing. */
+  function focusDocument() {
+    const root = rootRef.current;
+    if (!root) return;
+    root.focus({ preventScroll: true });
+    if (!captureCaret(root)) restoreCaret(root, { lineIndex: 0, offset: 0 });
+  }
+
+  function isDocumentControl(target: EventTarget | null) {
+    return target instanceof HTMLElement && target.closest("button, input, select, textarea, a[href]") !== null;
+  }
+
   /** Replaces `[start, end)` of the document text with `replacement`, entirely through our own
       text model, then hands the caret's target position to the post-render restore effect. */
   function replaceRange(start: number, end: number, replacement: string) {
@@ -400,8 +414,16 @@ export function SongView({
       }
       contentEditable
       suppressContentEditableWarning
-      spellCheck
+      spellCheck={false}
       aria-label="Letra de la canción"
+      onFocus={(event) => {
+        // React focus events bubble from chord/note inputs too; only the editing host itself
+        // should establish a lyric caret.
+        if (event.target === event.currentTarget) focusDocument();
+      }}
+      onClick={(event) => {
+        if (!isDocumentControl(event.target)) focusDocument();
+      }}
       onInput={(event) => {
         if ((event.target as HTMLElement).closest("[data-track]")) return;
         commit();
