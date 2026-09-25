@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chordToNoteNames } from "../chordNotes";
+import { chordToNoteNames, previousChordNotesBySlot } from "../chordNotes";
 
 describe("chordToNoteNames", () => {
   it("returns the major triad, root to fifth, for a bare letter", () => {
@@ -52,5 +52,20 @@ describe("chordToNoteNames", () => {
     expect(chordToNoteNames("N.C.")).toBeNull();
     expect(chordToNoteNames("")).toBeNull();
     expect(chordToNoteNames("  ")).toBeNull();
+  });
+});
+
+describe("previousChordNotesBySlot", () => {
+  it("maps each chord slot to the notes of the chord before it", () => {
+    const chords: Record<string, string> = { a: "C", b: "Em" };
+    const result = previousChordNotesBySlot(["a", "b"], (slotId) => chords[slotId] ?? "");
+    expect(result.get("a")).toBeUndefined();
+    expect(result.get("b")).toEqual(["do", "mi", "sol"]);
+  });
+
+  it("skips slots with no recognizable chord when finding the previous one", () => {
+    const chords: Record<string, string> = { a: "C", b: "", c: "Em" };
+    const result = previousChordNotesBySlot(["a", "b", "c"], (slotId) => chords[slotId] ?? "");
+    expect(result.get("c")).toEqual(["do", "mi", "sol"]);
   });
 });

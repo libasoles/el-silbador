@@ -177,6 +177,12 @@ h1 {
   white-space: nowrap;
 }
 
+/* A note the chord shares with the one before it stands out in bold. */
+.chord-notes-cell__note--shared {
+  font-weight: 700;
+  color: var(--fg);
+}
+
 .track-cell--chip {
   background: transparent;
 }

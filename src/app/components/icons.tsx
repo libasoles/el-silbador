@@ -27,13 +27,21 @@ export function ChordIcon() {
 export function NoteStackIcon() {
   return (
     <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-      <text x="12" y="7.2" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="currentColor">
+      <text
+        x="12"
+        y="8.3"
+        textAnchor="middle"
+        fontSize="8.6"
+        fontWeight="700"
+        letterSpacing="-0.4"
+        fill="currentColor"
+      >
         sol
       </text>
-      <text x="12" y="14.2" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="currentColor">
+      <text x="12" y="16" textAnchor="middle" fontSize="8.6" fontWeight="700" fill="currentColor">
         mi
       </text>
-      <text x="12" y="21.2" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="currentColor">
+      <text x="12" y="23.7" textAnchor="middle" fontSize="8.6" fontWeight="700" fill="currentColor">
         do
       </text>
     </svg>
