@@ -19,9 +19,18 @@ interface SongViewProps {
   showUnderline: boolean;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
-  onMoveCellText: (trackId: TrackId, fromSlotId: string, toSlotId: string) => void;
+  onMoveCellText: (
+    trackId: TrackId,
+    fromSlotId: string,
+    toSlotId: string,
+  ) => void;
   onReconcileLyricsText: (text: string) => void;
-  onPasteText: (text: string, startLineIndex: number, startOffset: number, placements: ChordPlacement[]) => void;
+  onPasteText: (
+    text: string,
+    startLineIndex: number,
+    startOffset: number,
+    placements: ChordPlacement[],
+  ) => void;
 }
 
 interface CaretPosition {
@@ -56,11 +65,19 @@ function lineText(line: HTMLElement): string {
 }
 
 function readDocument(root: HTMLElement): string {
-  return Array.from(root.querySelectorAll<HTMLElement>("[data-lyrics-line]")).map(lineText).join("\n");
+  return Array.from(root.querySelectorAll<HTMLElement>("[data-lyrics-line]"))
+    .map(lineText)
+    .join("\n");
 }
 
-function positionForNode(root: HTMLElement, node: Node, nodeOffset: number): CaretPosition | null {
-  const lines = Array.from(root.querySelectorAll<HTMLElement>("[data-lyrics-line]"));
+function positionForNode(
+  root: HTMLElement,
+  node: Node,
+  nodeOffset: number,
+): CaretPosition | null {
+  const lines = Array.from(
+    root.querySelectorAll<HTMLElement>("[data-lyrics-line]"),
+  );
 
   // A select-all range is commonly anchored on the editing host itself: `(root, 0)` through
   // `(root, root.childNodes.length)`. That is still a selection of lyric text, even though
@@ -69,14 +86,22 @@ function positionForNode(root: HTMLElement, node: Node, nodeOffset: number): Car
   if (node === root) {
     const nextLine = Array.from(root.childNodes)
       .slice(nodeOffset)
-      .find((child): child is HTMLElement => child instanceof HTMLElement && child.matches("[data-lyrics-line]"));
+      .find(
+        (child): child is HTMLElement =>
+          child instanceof HTMLElement && child.matches("[data-lyrics-line]"),
+      );
     if (nextLine) return { lineIndex: lines.indexOf(nextLine), offset: 0 };
 
     const lastLine = lines.at(-1);
-    return lastLine ? { lineIndex: lines.length - 1, offset: lineText(lastLine).length } : null;
+    return lastLine
+      ? { lineIndex: lines.length - 1, offset: lineText(lastLine).length }
+      : null;
   }
 
-  const element = node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement;
+  const element =
+    node.nodeType === Node.ELEMENT_NODE
+      ? (node as Element)
+      : node.parentElement;
   const line = element?.closest<HTMLElement>("[data-lyrics-line]");
   if (!line || !root.contains(line)) return null;
   const range = document.createRange();
@@ -90,7 +115,10 @@ function positionForNode(root: HTMLElement, node: Node, nodeOffset: number): Car
   // word-boundary gap button (it carries no text content of its own). Using it here would
   // undercount the offset by one for every word boundary before this position, so the same
   // node-to-text translation `lineText()` uses is applied to the range's cloned contents instead.
-  return { lineIndex: lines.indexOf(line), offset: nodesText(range.cloneContents().childNodes).length };
+  return {
+    lineIndex: lines.indexOf(line),
+    offset: nodesText(range.cloneContents().childNodes).length,
+  };
 }
 
 function captureCaret(root: HTMLElement): CaretPosition | null {
@@ -102,7 +130,9 @@ function captureCaret(root: HTMLElement): CaretPosition | null {
 /** Both edges of the current selection, in document order (start may equal end for a collapsed
     caret). Used to compute text edits ourselves instead of letting the browser mutate the
     React-managed DOM directly \u2014 see the comment on `handleBeforeInput`. */
-function captureSelectionRange(root: HTMLElement): { start: CaretPosition; end: CaretPosition } | null {
+function captureSelectionRange(
+  root: HTMLElement,
+): { start: CaretPosition; end: CaretPosition } | null {
   const selection = window.getSelection();
   if (!selection?.rangeCount) return null;
   const range = selection.getRangeAt(0);
@@ -154,7 +184,10 @@ function lineEndBoundary(text: string, index: number): number {
 }
 
 function restoreCaret(root: HTMLElement, position: CaretPosition) {
-  const line = root.querySelectorAll<HTMLElement>("[data-lyrics-line]")[position.lineIndex];
+  const line =
+    root.querySelectorAll<HTMLElement>("[data-lyrics-line]")[
+      position.lineIndex
+    ];
   if (!line) return;
   const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
   let remaining = position.offset;
@@ -184,7 +217,11 @@ function restoreCaret(root: HTMLElement, position: CaretPosition) {
 // Only a single collapsed character insertion (including one step of IME composition) is left to
 // the browser's native fast path — it mutates one text node in place and never touches element
 // structure. Every other input type is intercepted in `handleBeforeInput` below.
-const NATIVE_FAST_PATH_TYPES = new Set(["insertText", "insertCompositionText", "insertReplacementText"]);
+const NATIVE_FAST_PATH_TYPES = new Set([
+  "insertText",
+  "insertCompositionText",
+  "insertReplacementText",
+]);
 
 export function SongView({
   song,
@@ -205,8 +242,9 @@ export function SongView({
   // Flattened in song order (not per line) so a chord at the start of one line can still be
   // compared against the last chord of the previous line.
   const chordSlotOrder = song.flatMap((line) => getLineCellSlots(line, merges));
-  const previousChordNotes = previousChordNotesBySlot(chordSlotOrder, (slotId) =>
-    getCell(cells, "chords", slotId),
+  const previousChordNotes = previousChordNotesBySlot(
+    chordSlotOrder,
+    (slotId) => getCell(cells, "chords", slotId),
   );
 
   // Drag state lives here, above every line, so a chord chip can be dragged from one line's
@@ -230,12 +268,18 @@ export function SongView({
 
   function handleDragLeaveCell(trackId: TrackId, slotId: string) {
     setDropTarget((current) =>
-      current && current.trackId === trackId && current.slotId === slotId ? null : current,
+      current && current.trackId === trackId && current.slotId === slotId
+        ? null
+        : current,
     );
   }
 
   function handleDropCell(trackId: TrackId, slotId: string) {
-    if (dragSource && dragSource.trackId === trackId && dragSource.slotId !== slotId) {
+    if (
+      dragSource &&
+      dragSource.trackId === trackId &&
+      dragSource.slotId !== slotId
+    ) {
       onMoveCellText(trackId, dragSource.slotId, slotId);
     }
     setDragSource(null);
@@ -260,7 +304,10 @@ export function SongView({
   }
 
   function isDocumentControl(target: EventTarget | null) {
-    return target instanceof HTMLElement && target.closest("button, input, select, textarea, a[href]") !== null;
+    return (
+      target instanceof HTMLElement &&
+      target.closest("button, input, select, textarea, a[href]") !== null
+    );
   }
 
   /** Replaces `[start, end)` of the document text with `replacement`, entirely through our own
@@ -270,7 +317,10 @@ export function SongView({
     if (!root) return;
     const text = readDocument(root);
     const newText = text.slice(0, start) + replacement + text.slice(end);
-    pendingCaret.current = positionFromFlatOffset(newText.split("\n"), start + replacement.length);
+    pendingCaret.current = positionFromFlatOffset(
+      newText.split("\n"),
+      start + replacement.length,
+    );
     onReconcileLyricsText(newText);
   }
 
@@ -363,10 +413,16 @@ export function SongView({
   // text-offset model commit()/restoreCaret already use, rather than letting the browser traverse
   // the DOM.
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== "ArrowUp" && event.key !== "ArrowDown") {
+    if (
+      event.key !== "ArrowLeft" &&
+      event.key !== "ArrowRight" &&
+      event.key !== "ArrowUp" &&
+      event.key !== "ArrowDown"
+    ) {
       return;
     }
-    if (event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.shiftKey || event.metaKey || event.ctrlKey || event.altKey)
+      return;
     if ((event.target as HTMLElement).closest("[data-track]")) return;
 
     const root = rootRef.current;
@@ -377,7 +433,9 @@ export function SongView({
     const caret = captureCaret(root);
     if (!caret) return;
 
-    const lines = Array.from(root.querySelectorAll<HTMLElement>("[data-lyrics-line]"));
+    const lines = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-lyrics-line]"),
+    );
     const currentText = lineText(lines[caret.lineIndex]);
 
     let lineIndex = caret.lineIndex;
@@ -428,77 +486,122 @@ export function SongView({
   });
 
   return (
-    <div
-      ref={rootRef}
-      className={
-        "song" +
-        (song.length === 0 ? " song--empty" : "") +
-        (!hasVisibleAnnotations ? " song--annotations-hidden" : "") +
-        (!showUnderline ? " song--underline-hidden" : "")
-      }
-      contentEditable
-      suppressContentEditableWarning
-      spellCheck={false}
-      aria-label="Letra de la canción"
-      onFocus={(event) => {
-        // React focus events bubble from chord/note inputs too; only the editing host itself
-        // should establish a lyric caret.
-        if (event.target === event.currentTarget) focusDocument();
-      }}
-      onClick={(event) => {
-        if (!isDocumentControl(event.target)) focusDocument();
-      }}
-      onInput={(event) => {
-        if ((event.target as HTMLElement).closest("[data-track]")) return;
-        commit();
-      }}
-      onKeyDown={handleKeyDown}
-      onPaste={(event) => {
-        if ((event.target as HTMLElement).closest("[data-track]")) return;
-        event.preventDefault();
-        const root = rootRef.current;
-        if (!root) return;
-        const range = captureSelectionRange(root);
-        if (!range) return;
-        const text = readDocument(root);
-        const lines = text.split("\n");
-        let start = flatOffset(lines, range.start);
-        let end = flatOffset(lines, range.end);
-        if (start > end) [start, end] = [end, start];
-
-        const { lyricsText, placements } = parseChordSheet(
-          event.clipboardData.getData("text/plain").replaceAll("\r\n", "\n"),
-        );
-        const newText = text.slice(0, start) + lyricsText + text.slice(end);
-        pendingCaret.current = positionFromFlatOffset(newText.split("\n"), start + lyricsText.length);
-        if (placements.length > 0) {
-          const startPosition = positionFromFlatOffset(newText.split("\n"), start);
-          onPasteText(newText, startPosition.lineIndex, startPosition.offset, placements);
-        } else {
-          onReconcileLyricsText(newText);
+    <div className="song-wrapper">
+      <div
+        ref={rootRef}
+        className={
+          "song" +
+          (song.length === 0 ? " song--empty" : "") +
+          (!hasVisibleAnnotations ? " song--annotations-hidden" : "") +
+          (!showUnderline ? " song--underline-hidden" : "")
         }
-      }}
-    >
-      {song.length === 0 ? <div className="syllable-row document-empty-line" data-lyrics-line /> : null}
-      {song.map((line) => (
-        <LineView
-          key={line.id}
-          line={line}
-          merges={merges}
-          tracks={tracks}
-          cells={cells}
-          previousChordNotes={previousChordNotes}
-          onSetCellText={onSetCellText}
-          onToggleMerge={onToggleMerge}
-          dragSource={dragSource}
-          dropTarget={dropTarget}
-          onDragStartCell={handleDragStartCell}
-          onDragEndCell={handleDragEndCell}
-          onDragEnterCell={handleDragEnterCell}
-          onDragLeaveCell={handleDragLeaveCell}
-          onDropCell={handleDropCell}
-        />
-      ))}
+        contentEditable
+        suppressContentEditableWarning
+        spellCheck={false}
+        aria-label="Letra de la canción"
+        onFocus={(event) => {
+          // React focus events bubble from chord/note inputs too; only the editing host itself
+          // should establish a lyric caret.
+          if (event.target === event.currentTarget) focusDocument();
+        }}
+        onClick={(event) => {
+          if (!isDocumentControl(event.target)) focusDocument();
+        }}
+        onInput={(event) => {
+          if ((event.target as HTMLElement).closest("[data-track]")) return;
+          commit();
+        }}
+        onKeyDown={handleKeyDown}
+        onPaste={(event) => {
+          if ((event.target as HTMLElement).closest("[data-track]")) return;
+          event.preventDefault();
+          const root = rootRef.current;
+          if (!root) return;
+          const range = captureSelectionRange(root);
+          if (!range) return;
+          const text = readDocument(root);
+          const lines = text.split("\n");
+          let start = flatOffset(lines, range.start);
+          let end = flatOffset(lines, range.end);
+          if (start > end) [start, end] = [end, start];
+
+          const { lyricsText, placements } = parseChordSheet(
+            event.clipboardData.getData("text/plain").replaceAll("\r\n", "\n"),
+          );
+          const newText = text.slice(0, start) + lyricsText + text.slice(end);
+          pendingCaret.current = positionFromFlatOffset(
+            newText.split("\n"),
+            start + lyricsText.length,
+          );
+          if (placements.length > 0) {
+            const startPosition = positionFromFlatOffset(
+              newText.split("\n"),
+              start,
+            );
+            onPasteText(
+              newText,
+              startPosition.lineIndex,
+              startPosition.offset,
+              placements,
+            );
+          } else {
+            onReconcileLyricsText(newText);
+          }
+        }}
+      >
+        {song.length === 0 ? (
+          <div className="syllable-row document-empty-line" data-lyrics-line />
+        ) : null}
+        {song.map((line) => (
+          <LineView
+            key={line.id}
+            line={line}
+            merges={merges}
+            tracks={tracks}
+            cells={cells}
+            previousChordNotes={previousChordNotes}
+            onSetCellText={onSetCellText}
+            onToggleMerge={onToggleMerge}
+            dragSource={dragSource}
+            dropTarget={dropTarget}
+            onDragStartCell={handleDragStartCell}
+            onDragEndCell={handleDragEndCell}
+            onDragEnterCell={handleDragEnterCell}
+            onDragLeaveCell={handleDragLeaveCell}
+            onDropCell={handleDropCell}
+          />
+        ))}
+      </div>
+      {song.length === 0 ? (
+        <div className="song-placeholder" aria-hidden="true">
+          <p>Escribí o pegá la letra de una canción para empezar.</p>
+          <p>
+            También podés pegar el texto con los acordes ya incluidos, ubicados
+            arriba de la línea de letra que les corresponde, y Silabeo los va a
+            detectar solo. Por ejemplo:
+          </p>
+          <pre>
+            {
+              "Bm              B7   Em\nPor mas que la dicha busco\nA7        D    F#7\nVivo penando"
+            }
+          </pre>
+          <p>
+            El botón "Acordes" del costado muestra u oculta esa fila de acordes.
+          </p>
+          <p>
+            El botón "Notas del acorde" muestra las notas que forman cada
+            acorde, por ejemplo do-mi-sol para un Do mayor.
+          </p>
+          <p>
+            El botón "Subrayado" muestra u oculta la línea debajo de cada
+            sílaba.
+          </p>
+          <p>
+            La separación en sílabas funciona para español. No hay garantía de
+            que funcione correctamente en otros idiomas.
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

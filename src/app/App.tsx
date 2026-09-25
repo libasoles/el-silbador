@@ -48,15 +48,17 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
           {state.tracks.map((track) => {
             const hasContent =
               track.id === "chordNotes"
-                ? Object.values(state.cells.chords ?? {}).some((text) => chordToNoteNames(text) !== null)
-                : Object.values(state.cells[track.id] ?? {}).some((text) => text.trim() !== "");
+                ? Object.values(state.cells.chords ?? {}).some(
+                    (text) => chordToNoteNames(text) !== null,
+                  )
+                : Object.values(state.cells[track.id] ?? {}).some(
+                    (text) => text.trim() !== "",
+                  );
             const disabled = !hasContent;
             const disabledTitle =
-              track.id === "chordNotes" ? "No hay notas que mostrar" : "No hay acordes que mostrar";
-            const enabledTitle =
               track.id === "chordNotes"
-                ? "Notas del acorde: muestra, debajo de cada acorde, las notas que lo forman (por ejemplo, do-mi-sol para un Do mayor). Útil para entender o tocar el acorde sin memorizar su nombre."
-                : "Acordes: muestra u oculta la fila de acordes ubicada arriba de la letra. Los acordes se agregan pegando texto que ya los incluya o escribiéndolos manualmente sobre cada sílaba.";
+                ? "No hay notas que mostrar"
+                : "No hay acordes que mostrar";
             return (
               <button
                 key={track.id}
@@ -64,9 +66,11 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
                 className="track-toolbar__toggle"
                 aria-pressed={track.visible}
                 aria-label={track.label}
-                title={disabled ? disabledTitle : enabledTitle}
+                title={disabled ? disabledTitle : track.label}
                 disabled={disabled}
-                onClick={() => actions.setTrackVisibility(track.id, !track.visible)}
+                onClick={() =>
+                  actions.setTrackVisibility(track.id, !track.visible)
+                }
               >
                 <TrackIcon trackId={track.id} />
               </button>
@@ -80,7 +84,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
             title={
               state.lyricsText.trim() === ""
                 ? "No hay letra que subrayar"
-                : "Subrayado: muestra u oculta la línea debajo de cada sílaba, que ayuda a visualizar dónde termina una sílaba y empieza la siguiente."
+                : "Subrayado"
             }
             disabled={state.lyricsText.trim() === ""}
             onClick={() => actions.setShowUnderline(!state.showUnderline)}
