@@ -35,6 +35,16 @@
   color: var(--muted);
 }
 
+.autosave-status {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.autosave-status--error {
+  color: var(--highlight);
+}
+
 .title-input::placeholder,
 .author-input::placeholder {
   color: var(--muted);

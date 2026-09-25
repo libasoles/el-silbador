@@ -3,6 +3,7 @@ import { createInitialState, editorReducer } from "../core/state";
 import type { Action } from "../core/state";
 import type { ChordPlacement } from "../core/chordSheet";
 import type { EditorState, TrackId } from "../core/types";
+import type { SongContent } from "../data/types";
 
 const HISTORY_LIMIT = 200;
 
@@ -73,6 +74,17 @@ function historyReducer(state: HistoryState, action: HistoryAction): HistoryStat
     return { ...state, present: editorReducer(state.present, action), coalesceKey: null };
   }
 
+  // Loading a song replaces the document wholesale (opening a different song, or the initial
+  // fetch of one from Supabase), so it starts a fresh undo history rather than joining it.
+  if (action.type === "loadContent") {
+    return {
+      past: [],
+      present: editorReducer(state.present, action),
+      future: [],
+      coalesceKey: null,
+    };
+  }
+
   const nextPresent = editorReducer(state.present, action);
   if (nextPresent === state.present) return state;
 
@@ -107,6 +119,7 @@ export function useEditor() {
       setTrackVisibility: (trackId: TrackId, visible: boolean) =>
         dispatch({ type: "setTrackVisibility", trackId, visible }),
       setShowUnderline: (visible: boolean) => dispatch({ type: "setShowUnderline", visible }),
+      loadContent: (content: SongContent) => dispatch({ type: "loadContent", content }),
       undo: () => dispatch({ type: "undo" }),
       redo: () => dispatch({ type: "redo" }),
     }),

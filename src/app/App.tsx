@@ -1,20 +1,35 @@
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
+import { getSong } from "../data";
+import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { SongView } from "./components/SongView";
 import { DownloadIcon, SilbadorIcon, TrackIcon, UnderlineIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
+import { useAutosave } from "./useAutosave";
 import { useEditor } from "./useEditor";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
+
+const AUTOSAVE_STATUS_LABEL: Record<"saving" | "saved" | "error", string> = {
+  saving: "Guardando…",
+  saved: "Guardado",
+  error: "No se pudo guardar",
+};
+
+function noop() {}
 
 interface AppProps {
   /** Base color the underline, chord, and highlight colors are all derived from. */
   accentColor?: string;
   /** When set, the singer mark becomes a button back to the library instead of a static badge. */
   onNavigateHome?: () => void;
+  /** Id of the song being edited, from the /canciones/:id route. Absent for a new, unsaved song. */
+  songId?: string;
+  /** Called once autosave creates the row for a new song, so the URL can adopt its id. */
+  onSongCreated?: (id: string) => void;
 }
 
 interface TrackToggleButtonProps {
@@ -64,12 +79,44 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
   );
 }
 
-function App({ accentColor = DEFAULT_ACCENT_COLOR, onNavigateHome }: AppProps) {
+function App({ accentColor = DEFAULT_ACCENT_COLOR, onNavigateHome, songId, onSongCreated }: AppProps) {
   const { state, actions } = useEditor();
+  const [loadError, setLoadError] = useState<{ songId: string; message: string } | null>(null);
 
   useEffect(() => {
     applyTheme(deriveTheme(accentColor));
   }, [accentColor]);
+
+  useEffect(() => {
+    if (!songId) return;
+    let cancelled = false;
+    getSong(songId)
+      .then((detail) => {
+        if (!cancelled) actions.loadContent(detail.content);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setLoadError({ songId, message: error instanceof Error ? error.message : String(error) });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+    // `actions` is a stable ref from useEditor; only `songId` should retrigger the fetch.
+  }, [songId, actions]);
+
+  const content: SongContent = useMemo(
+    () => ({
+      title: state.title,
+      author: state.author,
+      lyricsText: state.lyricsText,
+      song: state.song,
+      cells: state.cells,
+      merges: state.merges,
+    }),
+    [state.title, state.author, state.lyricsText, state.song, state.cells, state.merges],
+  );
+  const autosaveStatus = useAutosave(content, songId, onSongCreated ?? noop);
 
   const handleExportPdf = () => {
     window.print();
@@ -115,6 +162,17 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, onNavigateHome }: AppProps) {
             onChange={(event) => actions.setAuthor(event.target.value)}
             aria-label="Autor"
           />
+        )}
+        {loadError && loadError.songId === songId ? (
+          <p className="autosave-status autosave-status--error">
+            No se pudo cargar la canción: {loadError.message}
+          </p>
+        ) : (
+          autosaveStatus !== "idle" && (
+            <p className={`autosave-status autosave-status--${autosaveStatus}`}>
+              {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
+            </p>
+          )
         )}
       </div>
 

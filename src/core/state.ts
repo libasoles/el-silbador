@@ -47,7 +47,13 @@ export type Action =
   | { type: "setCellText"; trackId: TrackId; slotId: string; text: string }
   | { type: "moveCellText"; trackId: TrackId; fromSlotId: string; toSlotId: string }
   | { type: "setTrackVisibility"; trackId: TrackId; visible: boolean }
-  | { type: "setShowUnderline"; visible: boolean };
+  | { type: "setShowUnderline"; visible: boolean }
+  | {
+      type: "loadContent";
+      content: Pick<EditorState, "title" | "author" | "lyricsText" | "song" | "cells"> & {
+        merges: Set<string>;
+      };
+    };
 
 export function editorReducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
@@ -97,6 +103,17 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
 
     case "setShowUnderline":
       return { ...state, showUnderline: action.visible };
+
+    case "loadContent":
+      return {
+        ...state,
+        title: action.content.title,
+        author: action.content.author,
+        lyricsText: action.content.lyricsText,
+        song: action.content.song,
+        cells: action.content.cells,
+        merges: action.content.merges,
+      };
 
     default:
       return state;

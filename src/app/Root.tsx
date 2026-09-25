@@ -1,22 +1,63 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import App from "./App";
 import { Library } from "./pages/Library";
 
-type Route = { name: "library" } | { name: "editor" };
+type Route = { name: "library" } | { name: "new" } | { name: "song"; id: string };
 
-// Stands in for real routing/loading until a song can be fetched from Supabase: opening a song
-// from the library always lands on a blank editor for now.
+function parseRoute(pathname: string): Route {
+  if (pathname === "/nueva") return { name: "new" };
+  const songMatch = pathname.match(/^\/canciones\/([^/]+)\/?$/);
+  if (songMatch) return { name: "song", id: songMatch[1] };
+  return { name: "library" };
+}
+
+function pathForRoute(route: Route): string {
+  switch (route.name) {
+    case "new":
+      return "/nueva";
+    case "song":
+      return `/canciones/${route.id}`;
+    case "library":
+      return "/";
+  }
+}
+
 function Root() {
-  const [route, setRoute] = useState<Route>({ name: "library" });
+  const [route, setRoute] = useState<Route>(() => parseRoute(window.location.pathname));
 
-  if (route.name === "editor") {
-    return <App onNavigateHome={() => setRoute({ name: "library" })} />;
+  useEffect(() => {
+    function handlePopState() {
+      setRoute(parseRoute(window.location.pathname));
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const navigate = (next: Route, mode: "push" | "replace" = "push") => {
+    const path = pathForRoute(next);
+    if (path !== window.location.pathname) {
+      if (mode === "replace") window.history.replaceState(null, "", path);
+      else window.history.pushState(null, "", path);
+    }
+    setRoute(next);
+  };
+
+  if (route.name === "new" || route.name === "song") {
+    return (
+      <App
+        songId={route.name === "song" ? route.id : undefined}
+        onNavigateHome={() => navigate({ name: "library" })}
+        // Autosave assigns the id the first time it creates the row; swap the URL to the
+        // song's own address without pushing a fresh history entry for the same document.
+        onSongCreated={(id) => navigate({ name: "song", id }, "replace")}
+      />
+    );
   }
 
   return (
     <Library
-      onOpenSong={() => setRoute({ name: "editor" })}
-      onNewSong={() => setRoute({ name: "editor" })}
+      onOpenSong={(song) => navigate({ name: "song", id: song.id })}
+      onNewSong={() => navigate({ name: "new" })}
     />
   );
 }
