@@ -1,7 +1,7 @@
 import "./App.css";
 import { LyricsInput } from "./components/LyricsInput";
 import { SongView } from "./components/SongView";
-import { TrackIcon } from "./components/icons";
+import { TrackGlyph } from "./components/icons";
 import { useEditor } from "./useEditor";
 
 function App() {
@@ -20,12 +20,13 @@ function App() {
             <button
               key={track.id}
               type="button"
+              className="track-toolbar__toggle"
               aria-pressed={track.visible}
+              aria-label={track.label}
               title={track.label}
               onClick={() => actions.setTrackVisibility(track.id, !track.visible)}
             >
-              <TrackIcon trackId={track.id} />
-              <span className="track-toolbar__label">{track.label}</span>
+              <TrackGlyph trackId={track.id} />
             </button>
           ))}
         </aside>
