@@ -64,6 +64,16 @@
   z-index: 5;
 }
 
+/* Browsers do not consistently show a native title on a disabled button. The wrapper receives
+   hover events and owns the title while preserving the disabled button's native semantics. */
+.icon-button-tooltip {
+  display: inline-flex;
+}
+
+.icon-button-tooltip > button:disabled {
+  pointer-events: none;
+}
+
 .track-toolbar__toggle {
   appearance: none;
   background: transparent;
@@ -95,7 +105,7 @@
 }
 
 .track-toolbar__toggle:disabled {
-  cursor: not-allowed;
+  cursor: default;
   opacity: 0.3;
   color: var(--border-strong);
 }
@@ -144,7 +154,7 @@
 }
 
 .action-toolbar__button:disabled {
-  cursor: not-allowed;
+  cursor: default;
   opacity: 0.3;
   color: var(--border-strong);
 }
