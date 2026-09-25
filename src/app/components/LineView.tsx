@@ -144,8 +144,11 @@ export function LineView({
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
+    // chordsVisible is a dependency because it toggles `.line--chords-hidden`, which changes the
+    // rendered width of word-boundary gaps (see App.css) — without it, showing/hiding the chords
+    // track after text already exists leaves every annotation position stale.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [line, merges, annotationGapExtras]);
+  }, [line, merges, annotationGapExtras, chordsVisible]);
 
   useLayoutEffect(() => {
     // A changed label or merge gets a fresh measurement from the unexpanded lyric layout.
