@@ -2,8 +2,9 @@
 
 ## Git workflow
 
-Every task must use its own git worktree and branch. When the task is complete, merge the branch
-into `main`, then remove both the task branch and its worktree.
+Every task must use its own git worktree and branch. Codex creates worktrees at
+`.agents/worktrees/<task-slug>`; this keeps all agent worktrees inside the repository. When the
+task is complete, merge the branch into `main`, then remove both the task branch and its worktree.
 
 ### Issue tracker
 
