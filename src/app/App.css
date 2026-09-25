@@ -196,6 +196,31 @@
   color: var(--border-strong);
 }
 
+/* The Save button uses the disabled/enabled contrast to mean "nothing pending" vs "click to
+   save", not unavailability, so an error state stays visible instead of dimming into
+   .action-toolbar__button:disabled's grayed-out look. */
+.action-toolbar__button--error {
+  color: var(--highlight);
+  opacity: 1;
+}
+
+.action-toolbar__button--error:hover {
+  color: var(--highlight);
+}
+
+.spinner-icon {
+  animation: action-toolbar-spin 0.8s linear infinite;
+}
+
+@keyframes action-toolbar-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Zero page margin suppresses the browser's own print header/footer (URL, title, date, page
    number), which otherwise print regardless of any on-page CSS. The exported sheet supplies its
    own margin via .app's print padding below instead. */

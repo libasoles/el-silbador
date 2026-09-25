@@ -5,10 +5,20 @@ import type { CellsByTrack, TrackDef } from "../core/types";
 import { getSong } from "../data";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
+import { AuthModal } from "./components/AuthModal";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { SongView } from "./components/SongView";
-import { DownloadIcon, SilbadorIcon, TrackIcon, UnderlineIcon, XIcon } from "./components/icons";
+import {
+  DownloadIcon,
+  SaveIcon,
+  SilbadorIcon,
+  SpinnerIcon,
+  TrackIcon,
+  UnderlineIcon,
+  XIcon,
+} from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
+import { useAuth } from "./useAuth";
 import { useAutosave } from "./useAutosave";
 import { useEditor } from "./useEditor";
 
@@ -68,6 +78,9 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
 function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppProps) {
   const { state, actions } = useEditor();
   const [loadError, setLoadError] = useState<{ songId: string; message: string } | null>(null);
+  const session = useAuth();
+  const authenticated = session !== null;
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     applyTheme(deriveTheme(accentColor));
@@ -102,11 +115,36 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
     }),
     [state.title, state.author, state.lyricsText, state.song, state.cells, state.merges],
   );
-  const autosaveStatus = useAutosave(content, songId, onSongCreated ?? noop);
+  const { status: autosaveStatus, retry: retrySave } = useAutosave(
+    content,
+    songId,
+    authenticated,
+    onSongCreated ?? noop,
+  );
+  const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
+  const saving = autosaveStatus === "saving";
 
   const handleExportPdf = () => {
     window.print();
   };
+
+  const handleSaveClick = () => {
+    if (!authenticated) {
+      setAuthModalOpen(true);
+      return;
+    }
+    if (autosaveStatus === "error") retrySave();
+  };
+
+  const saveTooltip = saving
+    ? "Guardando…"
+    : !pendingChanges
+      ? "No hay cambios que guardar"
+      : !authenticated
+        ? "Iniciá sesión para guardar"
+        : autosaveStatus === "error"
+          ? "No se pudo guardar. Tocá para reintentar."
+          : "Guardar canción";
 
   return (
     <main className="app">
@@ -144,7 +182,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
               No se pudo cargar la canción: {loadError.message}
             </p>
           ) : (
-            autosaveStatus !== "idle" && (
+            (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
               <p className={`autosave-status autosave-status--${autosaveStatus}`}>
                 {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
               </p>
@@ -220,6 +258,21 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
         />
 
         <aside className="action-toolbar" aria-label="Acciones">
+          <IconButtonTooltip tooltip={saveTooltip}>
+            <button
+              type="button"
+              className={
+                autosaveStatus === "error"
+                  ? "action-toolbar__button action-toolbar__button--error"
+                  : "action-toolbar__button"
+              }
+              aria-label="Guardar canción"
+              disabled={saving || !pendingChanges}
+              onClick={handleSaveClick}
+            >
+              {saving ? <SpinnerIcon /> : <SaveIcon />}
+            </button>
+          </IconButtonTooltip>
           <IconButtonTooltip
             tooltip={
               state.lyricsText.trim() === ""
@@ -239,6 +292,10 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
           </IconButtonTooltip>
         </aside>
       </div>
+
+      {authModalOpen && (
+        <AuthModal onClose={() => setAuthModalOpen(false)} onAuthenticated={() => setAuthModalOpen(false)} />
+      )}
     </main>
   );
 }
