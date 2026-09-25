@@ -314,8 +314,15 @@ export function SongView({
   function focusDocument() {
     const root = rootRef.current;
     if (!root) return;
+    // Chrome fabricates a default selection anchored on the editing host itself as a side effect
+    // of `.focus()`, with no real user intent behind it. Only trust the current selection when the
+    // document was already focused before this call (e.g. as part of the very click that's
+    // triggering this handler) — otherwise that fabricated default would stand in for a real caret
+    // and the document would look focused without ever showing one.
+    const wasAlreadyFocused = document.activeElement === root;
     root.focus({ preventScroll: true });
-    if (!captureCaret(root)) restoreCaret(root, { lineIndex: 0, offset: 0 });
+    if (wasAlreadyFocused && captureCaret(root)) return;
+    restoreCaret(root, { lineIndex: 0, offset: 0 });
   }
 
   function isDocumentControl(target: EventTarget | null) {
