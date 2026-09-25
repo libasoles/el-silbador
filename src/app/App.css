@@ -429,8 +429,8 @@
 /* The underline has its own visibility control, independent of the chord track. */
 .song--underline-hidden .syllable::after,
 .song--underline-hidden .syllable-gap--merged::after,
-.song--underline-hidden .syllable-gap:hover::before,
-.song--underline-hidden .syllable-gap:focus-visible::before {
+.song--underline-hidden .syllable-gap:hover::after,
+.song--underline-hidden .syllable-gap:focus-visible::after {
   content: none;
 }
 
@@ -499,10 +499,25 @@
   background: var(--syllable-underline);
 }
 
+/* The gap itself is barely wider than a hairline, which makes it fussy to hit with a mouse or
+   finger. This invisible ::before extends the actual click/tap target well past the gap's own
+   layout box — into the neighboring syllables' characters and some vertical padding — without
+   touching the gap's real width, which the lyric layout still depends on. */
+.syllable-gap::before {
+  content: "";
+  position: absolute;
+  left: -0.35em;
+  right: -0.35em;
+  top: -0.3em;
+  bottom: -0.3em;
+}
+
 /* Hover/focus preview uses the same bottom offset as the real underline (::after above and
-   .syllable::after) so it never appears to sit at a different height. */
-.syllable-gap:hover::before,
-.syllable-gap:focus-visible::before {
+   .syllable::after) so it never appears to sit at a different height. Lives on ::after (rather
+   than the ::before above) so it doesn't fight with the enlarged hit area, and only applies while
+   unmerged since a merged gap already shows its permanent bridge via ::after. */
+.syllable-gap:not(.syllable-gap--merged):hover::after,
+.syllable-gap:not(.syllable-gap--merged):focus-visible::after {
   content: "";
   position: absolute;
   left: 0;
@@ -510,11 +525,6 @@
   bottom: 0.05em;
   height: 2px;
   background: var(--syllable-underline);
-}
-
-.syllable-gap--merged:hover::before,
-.syllable-gap--merged:focus-visible::before {
-  content: none;
 }
 
 .syllable-gap--merged:hover {
