@@ -34,8 +34,6 @@ function noop() {}
 interface AppProps {
   /** Base color the underline, chord, and highlight colors are all derived from. */
   accentColor?: string;
-  /** When set, the singer mark becomes a button back to the library instead of a static badge. */
-  onNavigateHome?: () => void;
   /** Id of the song being edited, from the /canciones/:id route. Absent for a new, unsaved song. */
   songId?: string;
   /** Called once autosave creates the row for a new song, so the URL can adopt its id. */
@@ -76,7 +74,7 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
   );
 }
 
-function App({ accentColor = DEFAULT_ACCENT_COLOR, onNavigateHome, songId, onSongCreated }: AppProps) {
+function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppProps) {
   const { state, actions } = useEditor();
   const [loadError, setLoadError] = useState<{ songId: string; message: string } | null>(null);
   const session = useAuth();
@@ -149,20 +147,9 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, onNavigateHome, songId, onSon
 
   return (
     <main className="app">
-      {onNavigateHome ? (
-        <button
-          type="button"
-          className="app-mark"
-          aria-label="Volver al índice"
-          onClick={onNavigateHome}
-        >
-          <SilbadorIcon />
-        </button>
-      ) : (
-        <div className="app-mark" role="img" aria-label="Silbador">
-          <SilbadorIcon />
-        </div>
-      )}
+      <a className="app-mark" href="/" aria-label="Volver al índice">
+        <SilbadorIcon />
+      </a>
 
       <TransposeWidget
         chordCells={state.cells.chords}

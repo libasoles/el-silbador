@@ -41,13 +41,15 @@ describe("icon-button tooltips", () => {
 });
 
 describe("application mark", () => {
-  it("renders the Silbador icon in the upper-left corner", () => {
+  it("renders a larger Silbador icon that links to the index", () => {
     expect(app).toContain("<SilbadorIcon />");
     expect(app).toContain('className="app-mark"');
+    expect(app).toContain('href="/"');
     expect(themeStyles).toMatch(
       /\.app-mark\s*\{[\s\S]*position: fixed[\s\S]*top: 1rem[\s\S]*left: 1rem/,
     );
     expect(themeStyles).toMatch(/\.app-mark\s*\{[\s\S]*color: #000/);
+    expect(themeStyles).toMatch(/\.app-mark\s*\{[\s\S]*width: 3\.25rem/);
   });
 });
 

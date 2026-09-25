@@ -46,7 +46,6 @@ function Root() {
     return (
       <App
         songId={route.name === "song" ? route.id : undefined}
-        onNavigateHome={() => navigate({ name: "library" })}
         // Autosave assigns the id the first time it creates the row; swap the URL to the
         // song's own address without pushing a fresh history entry for the same document.
         onSongCreated={(id) => navigate({ name: "song", id }, "replace")}
