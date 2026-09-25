@@ -252,6 +252,14 @@ describe("reconcileLyricsText", () => {
 
     expect(getCell(state.cells, "chords", beforeSlotId(removed.id))).toBe("");
   });
+
+  it("leaves no lines behind when the whole document is deleted (e.g. select-all + delete)", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "amor paz" });
+
+    state = reduce(state, { type: "reconcileLyricsText", text: "" });
+
+    expect(state.song).toEqual([]);
+  });
 });
 
 describe("pasteText", () => {
