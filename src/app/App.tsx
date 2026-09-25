@@ -25,17 +25,6 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
-          <button
-            type="button"
-            className="track-toolbar__toggle"
-            aria-pressed={state.showUnderline}
-            aria-label="Subrayado"
-            title={state.lyricsText.trim() === "" ? "No hay letra que subrayar" : "Subrayado"}
-            disabled={state.lyricsText.trim() === ""}
-            onClick={() => actions.setShowUnderline(!state.showUnderline)}
-          >
-            <UnderlineIcon />
-          </button>
           {state.tracks.map((track) => {
             const hasContent = Object.values(state.cells[track.id] ?? {}).some(
               (text) => text.trim() !== "",
@@ -56,6 +45,17 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
               </button>
             );
           })}
+          <button
+            type="button"
+            className="track-toolbar__toggle"
+            aria-pressed={state.showUnderline}
+            aria-label="Subrayado"
+            title={state.lyricsText.trim() === "" ? "No hay letra que subrayar" : "Subrayado"}
+            disabled={state.lyricsText.trim() === ""}
+            onClick={() => actions.setShowUnderline(!state.showUnderline)}
+          >
+            <UnderlineIcon />
+          </button>
         </aside>
 
         <SongView
