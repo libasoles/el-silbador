@@ -37,6 +37,7 @@ export type CellsByTrack = Partial<Record<TrackId, Record<string, string>>>;
 
 export interface EditorState {
   title: string;
+  author: string;
   lyricsText: string;
   song: Song;
   /** Adjacent syllable-id pairs, packed as `${aId}|${bId}`, that are merged into one melisma. */

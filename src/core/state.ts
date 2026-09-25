@@ -16,6 +16,7 @@ import type { CellsByTrack, EditorState, TrackId } from "./types";
 export function createInitialState(): EditorState {
   return {
     title: "",
+    author: "",
     lyricsText: "",
     song: [],
     merges: new Set(),
@@ -30,6 +31,7 @@ export function createInitialState(): EditorState {
 
 export type Action =
   | { type: "setTitle"; title: string }
+  | { type: "setAuthor"; author: string }
   | { type: "setLyricsText"; text: string }
   | { type: "reconcileLyricsText"; text: string }
   | {
@@ -50,6 +52,9 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
     case "setTitle":
       return { ...state, title: action.title };
+
+    case "setAuthor":
+      return { ...state, author: action.author };
 
     case "setLyricsText":
       return {

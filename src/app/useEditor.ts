@@ -30,6 +30,8 @@ function coalesceKeyFor(action: Action): string | null {
   switch (action.type) {
     case "setTitle":
       return "title";
+    case "setAuthor":
+      return "author";
     case "setLyricsText":
     case "reconcileLyricsText":
       return "lyrics";
@@ -89,6 +91,7 @@ export function useEditor() {
   const actions = useMemo(
     () => ({
       setTitle: (title: string) => dispatch({ type: "setTitle", title }),
+      setAuthor: (author: string) => dispatch({ type: "setAuthor", author }),
       setLyricsText: (text: string) => dispatch({ type: "setLyricsText", text }),
       reconcileLyricsText: (text: string) => dispatch({ type: "reconcileLyricsText", text }),
       pasteText: (text: string, startLineIndex: number, startOffset: number, placements: ChordPlacement[]) =>
