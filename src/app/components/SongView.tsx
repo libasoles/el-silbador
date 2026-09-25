@@ -605,15 +605,15 @@ export function SongView({
               <span>Muestra u oculta la fila de acordes arriba de la letra.</span>
             </li>
             <li>
-              <UnderlineIcon />
-              <span>Muestra u oculta la línea debajo de cada sílaba.</span>
-            </li>
-            <li>
               <NoteStackIcon />
               <span>
-                Muestra, debajo de la línea, las notas que forman cada acorde,
-                por ejemplo do-mi-sol para un Do mayor.
+                Muestra las notas que forman cada acorde, por ejemplo do-mi-sol
+                para un Do mayor.
               </span>
+            </li>
+            <li>
+              <UnderlineIcon />
+              <span>Muestra u oculta la línea debajo de cada sílaba.</span>
             </li>
           </ul>
           <p>
