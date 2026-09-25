@@ -1,4 +1,5 @@
 import { Fragment, useLayoutEffect, useRef, useState } from "react";
+import { chordToNoteNames } from "../../core/chordNotes";
 import { endSlotId, getLineCellSlots, getLineUnits, mergeKey } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
@@ -226,6 +227,11 @@ export function LineView({
 
   function renderTrackRow(track: TrackDef) {
     if (track.id === "chordNotes") {
+      // This derived, read-only row is up to four notes tall. Do not reserve that vertical space
+      // until this particular lyric line has an actual chord to describe.
+      if (!slotIds.some((slotId) => chordToNoteNames(getCell(cells, "chords", slotId)))) {
+        return null;
+      }
       return (
         <div key={track.id} contentEditable={false}>
           <ChordNotesRow

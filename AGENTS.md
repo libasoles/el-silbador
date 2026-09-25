@@ -1,5 +1,10 @@
 ## Agent skills
 
+## Git workflow
+
+Every task must use its own git worktree and branch. When the task is complete, merge the branch
+into `main`, then remove both the task branch and its worktree.
+
 ### Issue tracker
 
 Local markdown — issues/specs live under `.scratch/<feature-slug>/`. See `docs/agents/issue-tracker.md`.
