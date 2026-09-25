@@ -41,6 +41,10 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
             const disabled = !hasContent;
             const disabledTitle =
               track.id === "chordNotes" ? "No hay notas que mostrar" : "No hay acordes que mostrar";
+            const enabledTitle =
+              track.id === "chordNotes"
+                ? "Notas del acorde: muestra, debajo de cada acorde, las notas que lo forman (por ejemplo, do-mi-sol para un Do mayor). Útil para entender o tocar el acorde sin memorizar su nombre."
+                : "Acordes: muestra u oculta la fila de acordes ubicada arriba de la letra. Los acordes se agregan pegando texto que ya los incluya o escribiéndolos manualmente sobre cada sílaba.";
             return (
               <button
                 key={track.id}
@@ -48,7 +52,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
                 className="track-toolbar__toggle"
                 aria-pressed={track.visible}
                 aria-label={track.label}
-                title={disabled ? disabledTitle : track.label}
+                title={disabled ? disabledTitle : enabledTitle}
                 disabled={disabled}
                 onClick={() => actions.setTrackVisibility(track.id, !track.visible)}
               >
@@ -61,7 +65,11 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
             className="track-toolbar__toggle"
             aria-pressed={state.showUnderline}
             aria-label="Subrayado"
-            title={state.lyricsText.trim() === "" ? "No hay letra que subrayar" : "Subrayado"}
+            title={
+              state.lyricsText.trim() === ""
+                ? "No hay letra que subrayar"
+                : "Subrayado: muestra u oculta la línea debajo de cada sílaba, que ayuda a visualizar dónde termina una sílaba y empieza la siguiente."
+            }
             disabled={state.lyricsText.trim() === ""}
             onClick={() => actions.setShowUnderline(!state.showUnderline)}
           >
