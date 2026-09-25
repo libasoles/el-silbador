@@ -51,7 +51,10 @@ function nodesText(nodes: Iterable<Node>): string {
       continue;
     }
     if (!(node instanceof HTMLElement)) continue;
-    if (node.tagName === "BR" && !node.hasAttribute("data-empty-line-caret")) {
+    if (node.hasAttribute("data-empty-line-caret")) {
+      continue;
+    }
+    if (node.tagName === "BR") {
       text += "\n";
     } else if (node.classList.contains("syllable-gap--word-boundary")) {
       text += " ";
@@ -595,7 +598,9 @@ export function SongView({
         }}
       >
         {song.length === 0 ? (
-          <div className="syllable-row document-empty-line" data-lyrics-line />
+          <div className="syllable-row document-empty-line" data-lyrics-line>
+            <span data-empty-line-caret aria-hidden="true">{"\u200B"}</span>
+          </div>
         ) : null}
         {song.map((line, index) => (
           <LineView
