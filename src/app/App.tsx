@@ -293,8 +293,8 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
         </aside>
       </div>
 
-      {authModalOpen && (
-        <AuthModal onClose={() => setAuthModalOpen(false)} onAuthenticated={() => setAuthModalOpen(false)} />
+      {authModalOpen && !authenticated && (
+        <AuthModal onClose={() => setAuthModalOpen(false)} />
       )}
     </main>
   );

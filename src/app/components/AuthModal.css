@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(42, 38, 34, 0.45);
+  background: rgba(0, 0, 0, 0.45);
   padding: 1.5rem;
 }
 
@@ -13,10 +13,10 @@
   position: relative;
   width: 100%;
   max-width: 22rem;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: #fff;
+  border: 1px solid #000;
   border-radius: 0.5rem;
-  box-shadow: 0 1rem 2.5rem rgba(42, 38, 34, 0.25);
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.25);
   padding: 1.75rem 1.5rem 1.5rem;
 }
 
@@ -28,33 +28,27 @@
   height: 2rem;
   font-size: 1.25rem;
   line-height: 1;
-  color: var(--muted);
+  color: #888;
 }
 
 .auth-modal__close:hover {
-  color: var(--fg);
+  color: #000;
 }
 
-.auth-modal__tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.auth-modal__tab {
-  flex: 1;
-  padding: 0.5rem 0;
+.auth-modal__title {
+  margin: 0 0 1.1rem;
   font-family: var(--sans);
-  font-size: 0.9rem;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #000;
 }
 
-.auth-modal__tab[aria-pressed="true"] {
-  color: var(--fg);
-  border-bottom-color: var(--accent);
+.auth-modal__hint {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.4;
 }
 
 .auth-modal__form {
@@ -69,34 +63,34 @@
   gap: 0.3rem;
   font-family: var(--sans);
   font-size: 0.8rem;
-  color: var(--muted);
+  color: #555;
 }
 
 .auth-modal__field input {
   font-family: var(--sans);
   font-size: 0.95rem;
-  color: var(--fg);
-  border: 1px solid var(--border);
+  color: #000;
+  border: 1px solid #ccc;
   border-radius: 0.3rem;
   padding: 0.5rem 0.6rem;
 }
 
 .auth-modal__field input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: #000;
 }
 
 .auth-modal__error {
   margin: 0;
   font-family: var(--sans);
   font-size: 0.8rem;
-  color: var(--highlight);
+  color: #000;
 }
 
 .auth-modal__message {
   font-family: var(--sans);
   font-size: 0.9rem;
-  color: var(--fg);
+  color: #000;
   line-height: 1.4;
 }
 
@@ -106,18 +100,18 @@
   font-family: var(--sans);
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--bg);
-  background: var(--accent);
+  color: #fff;
+  background: #000;
   border-radius: 0.3rem;
   text-align: center;
 }
 
 .auth-modal__submit:hover {
-  color: var(--bg);
-  opacity: 0.9;
+  color: #fff;
+  opacity: 0.85;
 }
 
 .auth-modal__submit:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: default;
 }
