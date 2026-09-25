@@ -26,22 +26,22 @@ export function ChordIcon() {
  *  shows a chord's notes in. */
 export function NoteStackIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 24 30" width="24" height="30" aria-hidden="true" focusable="false">
       <text
         x="12"
-        y="8.3"
+        y="9.3"
         textAnchor="middle"
-        fontSize="8.6"
+        fontSize="10.2"
         fontWeight="700"
-        letterSpacing="-0.4"
+        letterSpacing="-0.5"
         fill="currentColor"
       >
         sol
       </text>
-      <text x="12" y="16" textAnchor="middle" fontSize="8.6" fontWeight="700" fill="currentColor">
+      <text x="12" y="18.4" textAnchor="middle" fontSize="10.2" fontWeight="700" fill="currentColor">
         mi
       </text>
-      <text x="12" y="23.7" textAnchor="middle" fontSize="8.6" fontWeight="700" fill="currentColor">
+      <text x="12" y="27.5" textAnchor="middle" fontSize="10.2" fontWeight="700" fill="currentColor">
         do
       </text>
     </svg>
