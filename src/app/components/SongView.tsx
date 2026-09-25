@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
 import { getLineCellSlots } from "../../core/model";
@@ -253,6 +253,24 @@ export function SongView({
     (track) => track.visible && track.id !== "chordNotes",
   );
   const lyricLines = lyricsText.split("\n");
+
+  // Chrome does not reliably paint its native caret on an empty lyric line inside this flex
+  // layout — the very bug this file has chased through several attempts. Rather than continue to
+  // coax the native caret into showing there, track the caret's line ourselves and render an
+  // explicit blinking indicator on that one (empty) line while the document has focus.
+  const [isFocused, setIsFocused] = useState(false);
+  const [caretLineIndex, setCaretLineIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    function handleSelectionChange() {
+      const root = rootRef.current;
+      if (!root || document.activeElement !== root) return;
+      setCaretLineIndex(captureCaret(root)?.lineIndex ?? null);
+    }
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () =>
+      document.removeEventListener("selectionchange", handleSelectionChange);
+  }, []);
 
   // Flattened in song order (not per line) so a chord at the start of one line can still be
   // compared against the last chord of the previous line.
@@ -557,7 +575,13 @@ export function SongView({
         onFocus={(event) => {
           // React focus events bubble from chord/note inputs too; only the editing host itself
           // should establish a lyric caret.
-          if (event.target === event.currentTarget) focusDocument();
+          if (event.target !== event.currentTarget) return;
+          focusDocument();
+          setIsFocused(true);
+          setCaretLineIndex(captureCaret(event.currentTarget)?.lineIndex ?? null);
+        }}
+        onBlur={(event) => {
+          if (event.target === event.currentTarget) setIsFocused(false);
         }}
         onClick={(event) => {
           if (!isDocumentControl(event.target)) focusDocument();
@@ -607,6 +631,7 @@ export function SongView({
         {song.length === 0 ? (
           <div className="syllable-row document-empty-line" data-lyrics-line>
             <br data-empty-line-caret />
+            {isFocused ? <span className="lyric-caret" aria-hidden="true" /> : null}
           </div>
         ) : null}
         {song.map((line, index) => (
@@ -620,6 +645,7 @@ export function SongView({
             previousChordNotes={previousChordNotes}
             onSetCellText={onSetCellText}
             onToggleMerge={onToggleMerge}
+            showEmptyCaret={isFocused && caretLineIndex === index}
             dragSource={dragSource}
             dropTarget={dropTarget}
             onDragStartCell={handleDragStartCell}

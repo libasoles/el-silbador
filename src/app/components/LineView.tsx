@@ -63,6 +63,9 @@ interface LineViewProps {
   previousChordNotes: ReadonlyMap<string, string[]>;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
+  /** True while the document caret sits on this (empty) line. Chrome does not reliably paint its
+      own caret there, so this line should render an explicit blinking indicator instead. */
+  showEmptyCaret: boolean;
   dragSource: DragCell | null;
   dropTarget: DragCell | null;
   onDragStartCell: (trackId: TrackId, slotId: string) => void;
@@ -81,6 +84,7 @@ export function LineView({
   previousChordNotes,
   onSetCellText,
   onToggleMerge,
+  showEmptyCaret,
   dragSource,
   dropTarget,
   onDragStartCell,
@@ -283,9 +287,16 @@ export function LineView({
         .filter((track) => track.visible && track.id !== "vocalNotes")
         .map(renderTrackRow)}
       <div className="syllable-row" role="textbox" data-lyrics-line ref={syllableRowRef}>
-        {/* Chrome will not paint a caret on an otherwise-empty flex row unless it has a real
-            line-break box to anchor to. Excluded from the document model. */}
-        {line.words.length === 0 ? <br data-empty-line-caret /> : null}
+        {/* Chrome does not reliably paint its native caret on an otherwise-empty flex row, so the
+            `<br>` gives the browser a real anchor and the explicit `.lyric-caret` bar is the
+            visible indicator while this line holds the document caret. Both are excluded from the
+            document model. */}
+        {line.words.length === 0 ? (
+          <>
+            <br data-empty-line-caret />
+            {showEmptyCaret ? <span className="lyric-caret" aria-hidden="true" /> : null}
+          </>
+        ) : null}
         {line.words.map((word, wIndex) => {
           const firstSyllable = word.syllables[0];
           const prevWord = wIndex > 0 ? line.words[wIndex - 1] : null;
