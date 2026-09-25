@@ -179,7 +179,9 @@ export function LineView({
       const width = labelWidths.get(unit.slotId);
       const firstEl = syllableEls.current.get(unit.syllableIds[0]);
       const nextFirstEl = syllableEls.current.get(nextUnit.syllableIds[0]);
-      if (!width || !firstEl || !nextFirstEl) continue;
+      // A bare next syllable has no label to protect — widening the gap here would only
+      // separate the lyrics, not prevent any annotation from overlapping another one.
+      if (!width || !firstEl || !nextFirstEl || !labelWidths.has(nextUnit.slotId)) continue;
       const distance = nextFirstEl.getBoundingClientRect().left - firstEl.getBoundingClientRect().left;
       const additional = requiredAnnotationGap(width, distance);
       if (additional > 0) next[unit.slotId] = (next[unit.slotId] ?? 0) + additional;
