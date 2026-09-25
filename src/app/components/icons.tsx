@@ -2,10 +2,22 @@
 
 export function ChordIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-      <circle cx="7" cy="17" r="3" />
-      <circle cx="17" cy="15" r="3" />
-      <path strokeLinecap="round" d="M10 17V5.5L20 4v11" />
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="m11.9 12.1 4.514-4.514" />
+      <path d="M20.1 2.3a1 1 0 0 0-1.4 0l-1.114 1.114A2 2 0 0 0 17 4.828v1.344a2 2 0 0 1-.586 1.414A2 2 0 0 1 17.828 7h1.344a2 2 0 0 0 1.414-.586L21.7 5.3a1 1 0 0 0 0-1.4z" />
+      <path d="m6 16 2 2" />
+      <path d="M8.23 9.85A3 3 0 0 1 11 8a5 5 0 0 1 5 5 3 3 0 0 1-1.85 2.77l-.92.38A2 2 0 0 0 12 18a4 4 0 0 1-4 4 6 6 0 0 1-6-6 4 4 0 0 1 4-4 2 2 0 0 0 1.85-1.23z" />
     </svg>
   );
 }
@@ -25,21 +37,4 @@ const ICONS_BY_TRACK: Record<string, typeof ChordIcon> = {
 export function TrackIcon({ trackId }: { trackId: string }) {
   const Icon = ICONS_BY_TRACK[trackId] ?? DotIcon;
   return <Icon />;
-}
-
-/** Text-letter glyph for a track toggle button, in the style of a chord name (root + superscript
- * extension) — e.g. "G⁷" for the chords track. */
-const GLYPHS_BY_TRACK: Record<string, { root: string; sup: string }> = {
-  chords: { root: "G", sup: "7" },
-};
-
-export function TrackGlyph({ trackId }: { trackId: string }) {
-  const glyph = GLYPHS_BY_TRACK[trackId];
-  if (!glyph) return <DotIcon />;
-  return (
-    <span aria-hidden="true" className="track-toolbar__glyph">
-      {glyph.root}
-      <span>{glyph.sup}</span>
-    </span>
-  );
 }

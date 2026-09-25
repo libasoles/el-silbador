@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import "./App.css";
 import { SongView } from "./components/SongView";
-import { TrackGlyph } from "./components/icons";
+import { TrackIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
 import { useEditor } from "./useEditor";
 
@@ -25,19 +25,26 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
-          {state.tracks.map((track) => (
-            <button
-              key={track.id}
-              type="button"
-              className="track-toolbar__toggle"
-              aria-pressed={track.visible}
-              aria-label={track.label}
-              title={track.label}
-              onClick={() => actions.setTrackVisibility(track.id, !track.visible)}
-            >
-              <TrackGlyph trackId={track.id} />
-            </button>
-          ))}
+          {state.tracks.map((track) => {
+            const hasContent = Object.values(state.cells[track.id] ?? {}).some(
+              (text) => text.trim() !== "",
+            );
+            const disabled = !hasContent;
+            return (
+              <button
+                key={track.id}
+                type="button"
+                className="track-toolbar__toggle"
+                aria-pressed={track.visible}
+                aria-label={track.label}
+                title={disabled ? "No hay acordes que mostrar" : track.label}
+                disabled={disabled}
+                onClick={() => actions.setTrackVisibility(track.id, !track.visible)}
+              >
+                <TrackIcon trackId={track.id} />
+              </button>
+            );
+          })}
         </aside>
 
         <SongView

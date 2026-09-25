@@ -64,18 +64,15 @@ h1 {
   color: var(--accent);
 }
 
-.track-toolbar__glyph {
-  font-family: var(--serif);
-  font-size: 1.3rem;
-  font-weight: 600;
-  line-height: 1;
+.track-toolbar__toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+  color: var(--border-strong);
 }
 
-.track-toolbar__glyph span {
-  font-size: 0.6em;
-  vertical-align: super;
-  opacity: 0.7;
-  margin-left: 0.05em;
+.track-toolbar__toggle:disabled:hover {
+  opacity: 0.3;
+  color: var(--border-strong);
 }
 
 .song {
