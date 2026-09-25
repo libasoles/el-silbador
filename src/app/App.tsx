@@ -2,6 +2,7 @@ import { type ReactNode, useEffect } from "react";
 import "./App.css";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
+import { TransposeWidget } from "../transpose/TransposeWidget";
 import { SongView } from "./components/SongView";
 import { DownloadIcon, TrackIcon, UnderlineIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
@@ -81,25 +82,31 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
   return (
     <main className="app">
-      <div className="title-block">
-        <input
-          type="text"
-          className="title-input"
-          placeholder="Título"
-          value={state.title}
-          onChange={(event) => actions.setTitle(event.target.value)}
-          aria-label="Título"
-        />
-        {(state.title.trim() !== "" || state.author.trim() !== "") && (
+      <div className="app-header">
+        <div className="title-block">
           <input
             type="text"
-            className="author-input"
-            placeholder="Autor"
-            value={state.author}
-            onChange={(event) => actions.setAuthor(event.target.value)}
-            aria-label="Autor"
+            className="title-input"
+            placeholder="Título"
+            value={state.title}
+            onChange={(event) => actions.setTitle(event.target.value)}
+            aria-label="Título"
           />
-        )}
+          {(state.title.trim() !== "" || state.author.trim() !== "") && (
+            <input
+              type="text"
+              className="author-input"
+              placeholder="Autor"
+              value={state.author}
+              onChange={(event) => actions.setAuthor(event.target.value)}
+              aria-label="Autor"
+            />
+          )}
+        </div>
+        <TransposeWidget
+          chordCells={state.cells.chords}
+          onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
+        />
       </div>
 
       <div className="workspace">

@@ -7,10 +7,19 @@
   padding: 1.25rem 2rem 6rem;
 }
 
+.app-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .title-block {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .title-input,
@@ -176,7 +185,8 @@
 
 @media print {
   .track-toolbar,
-  .action-toolbar {
+  .action-toolbar,
+  .transpose-widget {
     display: none;
   }
 
