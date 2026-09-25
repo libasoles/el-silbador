@@ -7,10 +7,44 @@
   padding: 1.25rem 2rem 6rem;
 }
 
+/* Puts the close button beside the title instead of pinning it to the viewport corner, where it
+   would sit on top of the transpose widget's own fixed position at that same edge. */
+.title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .title-block {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+/* Mirrors the library's "new song" button (.library-new): a large circular icon button, sized to
+   be an easy target rather than a discreet toolbar icon. */
+.app-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-radius: 999px;
+  color: var(--fg);
+  opacity: 0.75;
+  transition:
+    color 160ms ease,
+    opacity 180ms ease;
+}
+
+.app-close:hover {
+  opacity: 1;
+  color: var(--accent);
 }
 
 .title-input,
@@ -198,6 +232,7 @@
   .track-toolbar,
   .action-toolbar,
   .app-mark,
+  .app-close,
   .transpose-widget {
     display: none;
   }
