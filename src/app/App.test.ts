@@ -48,7 +48,8 @@ describe("application mark", () => {
 describe("favicon", () => {
   it("uses the supplied whistling-face mark", () => {
     expect(favicon).toContain('viewBox="0 0 64 64"');
-    expect(favicon).toContain('stroke="currentColor"');
+    expect(favicon).toContain('stroke="#fff"');
     expect(favicon).toContain('M53.3 27.7V23.4L57 22.5V26.5');
+    expect(favicon).toContain('stroke-width="1.3"');
   });
 });
