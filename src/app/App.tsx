@@ -1,10 +1,23 @@
+import { useEffect } from "react";
 import "./App.css";
 import { SongView } from "./components/SongView";
 import { TrackGlyph } from "./components/icons";
+import { applyTheme, deriveTheme } from "./theme";
 import { useEditor } from "./useEditor";
 
-function App() {
+const DEFAULT_ACCENT_COLOR = "#9c4a3c";
+
+interface AppProps {
+  /** Base color the underline, chord, and highlight colors are all derived from. */
+  accentColor?: string;
+}
+
+function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
   const { state, actions } = useEditor();
+
+  useEffect(() => {
+    applyTheme(deriveTheme(accentColor));
+  }, [accentColor]);
 
   return (
     <main className="app">

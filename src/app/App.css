@@ -160,6 +160,7 @@ h1 {
 
 .track-row[data-track="chords"] .track-cell {
   font-size: 1.05rem;
+  color: var(--chord);
 }
 
 .track-cell--chip {
@@ -226,18 +227,18 @@ h1 {
 /* While dragging a chord, the syllable it would land on lights up as a whole: its text and
    underline share the accent, while the chip itself stays unchanged under the pointer. */
 .syllable--drop-target {
-  color: var(--accent);
+  color: var(--highlight);
 }
 
 .syllable--drop-target::after {
-  background: var(--accent);
+  background: var(--highlight);
   height: 3px;
 }
 
 /* A merged unit's dropzone spans the syllables it joins, so the bridging underline over the
    gap(s) between them must light up too, not just the two outer syllables' own underlines. */
 .syllable-gap--drop-target.syllable-gap--merged::after {
-  background: var(--accent);
+  background: var(--highlight);
   height: 3px;
 }
 
