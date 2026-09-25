@@ -56,6 +56,23 @@ export function TrackCell({
   function handleDragStart(event: React.DragEvent<HTMLElement>) {
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", value);
+    // The browser snapshots whatever we hand setDragImage synchronously, before React can
+    // re-render with the --dragging class, so a CSS scale on the source element wouldn't show
+    // up in the image that follows the cursor. Hand it an enlarged clone instead, parked
+    // off-screen and discarded once the snapshot's been taken.
+    const source = event.currentTarget;
+    const rect = source.getBoundingClientRect();
+    const clone = source.cloneNode(true) as HTMLElement;
+    clone.style.position = "fixed";
+    clone.style.top = "-9999px";
+    clone.style.left = "-9999px";
+    clone.style.width = `${rect.width}px`;
+    clone.style.margin = "0";
+    clone.style.transform = "scale(1.6)";
+    clone.style.transformOrigin = "top left";
+    document.body.appendChild(clone);
+    event.dataTransfer.setDragImage(clone, rect.width / 2, rect.height / 2);
+    window.setTimeout(() => clone.remove(), 0);
     onDragStart?.();
   }
 
