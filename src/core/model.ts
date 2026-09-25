@@ -59,6 +59,27 @@ export function seedChordCells(
   return cells;
 }
 
+/** The chord-track slot for a chord written at `column` above `rawLineText`, the exact text a
+ * lyric line was built from. Walks the line's words/syllables left to right (in the same order
+ * `buildLine` produced them from that text) and picks the last syllable starting at or before the
+ * chord's column — i.e. the syllable the chord sits over, or the next one if it sits in a gap. */
+export function chordSlotForColumn(line: Line, rawLineText: string, column: number): string {
+  const wordStarts = [...rawLineText.matchAll(/\S+/g)].map((match) => match.index);
+  let bestSlotId: string | null = null;
+
+  for (let i = 0; i < line.words.length && i < wordStarts.length; i++) {
+    let offset = wordStarts[i];
+    for (const syllable of line.words[i].syllables) {
+      if (offset <= column) bestSlotId = beforeSlotId(syllable.id);
+      offset += syllable.text.length;
+    }
+  }
+
+  if (bestSlotId) return bestSlotId;
+  const firstSyllable = flattenSyllables(line)[0];
+  return firstSyllable ? beforeSlotId(firstSyllable.id) : endSlotId(line.id);
+}
+
 /**
  * Collapses a line's flat syllable sequence into annotation units, merging any syllables
  * joined by an active melisma into a single unit anchored at the first syllable's slot.

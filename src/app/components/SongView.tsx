@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import type { CellsByTrack, Song, TrackDef, TrackId } from "../../core/types";
 import { LineView } from "./LineView";
 
@@ -16,6 +17,7 @@ interface SongViewProps {
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
   onMoveCellText: (trackId: TrackId, fromSlotId: string, toSlotId: string) => void;
   onReconcileLyricsText: (text: string) => void;
+  onPasteText: (text: string, startLineIndex: number, startOffset: number, placements: ChordPlacement[]) => void;
 }
 
 interface CaretPosition {
@@ -153,7 +155,17 @@ function restoreCaret(root: HTMLElement, position: CaretPosition) {
 // structure. Every other input type is intercepted in `handleBeforeInput` below.
 const NATIVE_FAST_PATH_TYPES = new Set(["insertText", "insertCompositionText", "insertReplacementText"]);
 
-export function SongView({ song, merges, tracks, cells, onSetCellText, onToggleMerge, onMoveCellText, onReconcileLyricsText }: SongViewProps) {
+export function SongView({
+  song,
+  merges,
+  tracks,
+  cells,
+  onSetCellText,
+  onToggleMerge,
+  onMoveCellText,
+  onReconcileLyricsText,
+  onPasteText,
+}: SongViewProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const pendingCaret = useRef<CaretPosition | null>(null);
   const hasVisibleAnnotations = tracks.some((track) => track.visible);
@@ -391,7 +403,18 @@ export function SongView({ song, merges, tracks, cells, onSetCellText, onToggleM
         let start = flatOffset(lines, range.start);
         let end = flatOffset(lines, range.end);
         if (start > end) [start, end] = [end, start];
-        replaceRange(start, end, event.clipboardData.getData("text/plain").replaceAll("\r\n", "\n"));
+
+        const { lyricsText, placements } = parseChordSheet(
+          event.clipboardData.getData("text/plain").replaceAll("\r\n", "\n"),
+        );
+        const newText = text.slice(0, start) + lyricsText + text.slice(end);
+        pendingCaret.current = positionFromFlatOffset(newText.split("\n"), start + lyricsText.length);
+        if (placements.length > 0) {
+          const startPosition = positionFromFlatOffset(newText.split("\n"), start);
+          onPasteText(newText, startPosition.lineIndex, startPosition.offset, placements);
+        } else {
+          onReconcileLyricsText(newText);
+        }
       }}
     >
       {song.length === 0 ? <div className="syllable-row document-empty-line" data-lyrics-line /> : null}
