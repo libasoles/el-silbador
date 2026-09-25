@@ -143,10 +143,39 @@
   color: var(--fg);
 }
 
+.action-toolbar__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+  color: var(--border-strong);
+}
+
+.action-toolbar__button:disabled:hover {
+  opacity: 0.3;
+  color: var(--border-strong);
+}
+
+/* Zero page margin suppresses the browser's own print header/footer (URL, title, date, page
+   number), which otherwise print regardless of any on-page CSS. The exported sheet supplies its
+   own margin via .app's print padding below instead. */
+@page {
+  margin: 0;
+}
+
 @media print {
   .track-toolbar,
   .action-toolbar {
     display: none;
+  }
+
+  body,
+  #root {
+    margin: 0;
+    padding: 0;
+  }
+
+  .app {
+    max-width: none;
+    padding: 1.5cm;
   }
 }
 

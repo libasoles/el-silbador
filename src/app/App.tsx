@@ -140,7 +140,12 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
             type="button"
             className="action-toolbar__button"
             aria-label="Exportar a PDF"
-            title="Exportar a PDF"
+            title={
+              state.lyricsText.trim() === ""
+                ? "No hay letra que exportar"
+                : "Exportar a PDF"
+            }
+            disabled={state.lyricsText.trim() === ""}
             onClick={handleExportPdf}
           >
             <DownloadIcon />
