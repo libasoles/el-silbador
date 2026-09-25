@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const styles = readFileSync(new URL("./App.css", import.meta.url), "utf8");
 const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8");
+const favicon = readFileSync(new URL("../../public/favicon.svg", import.meta.url), "utf8");
 
 describe("underline visibility", () => {
   it("does not couple the underline to the chords track visibility", () => {
@@ -38,5 +39,12 @@ describe("application mark", () => {
     expect(app).toContain('className="app-mark"');
     expect(styles).toMatch(/\.app-mark\s*\{[\s\S]*position: fixed[\s\S]*top: 1rem[\s\S]*left: 1rem/);
     expect(styles).toMatch(/\.app-mark\s*\{[\s\S]*color: #000/);
+  });
+});
+
+describe("favicon", () => {
+  it("crops the view box closely around the mark so it fills a browser tab", () => {
+    expect(favicon).toContain('viewBox="8 7 55 40"');
+    expect(favicon).toContain('stroke="#fff"');
   });
 });
