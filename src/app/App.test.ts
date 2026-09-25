@@ -11,6 +11,12 @@ describe("underline visibility", () => {
   });
 });
 
+describe("lyric caret visibility", () => {
+  it("uses the accent color instead of the browser's automatic caret color", () => {
+    expect(styles).toMatch(/\.song\s*\{[\s\S]*caret-color: var\(--accent\)/);
+  });
+});
+
 describe("icon-button tooltips", () => {
   it("renders a visible tooltip from a hoverable wrapper", () => {
     expect(app).toContain("function IconButtonTooltip");

@@ -207,7 +207,12 @@ function restoreCaret(root: HTMLElement, position: CaretPosition) {
     const length = node.textContent?.length ?? 0;
     if (remaining <= length) {
       const range = document.createRange();
-      range.setStart(node, remaining);
+      // A zero-width caret anchor must put the browser *after* its text. Chrome can suppress a
+      // caret placed before an invisible first glyph, particularly in an otherwise empty editor.
+      const offset = node.parentElement?.hasAttribute("data-empty-line-caret")
+        ? length
+        : remaining;
+      range.setStart(node, offset);
       range.collapse(true);
       const selection = window.getSelection();
       selection?.removeAllRanges();
