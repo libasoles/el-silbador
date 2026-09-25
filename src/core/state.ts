@@ -18,7 +18,10 @@ export function createInitialState(): EditorState {
     lyricsText: "",
     song: [],
     merges: new Set(),
-    tracks: [{ id: "chords", label: "Acordes", visible: true }],
+    tracks: [
+      { id: "chordNotes", label: "Notas del acorde", visible: true },
+      { id: "chords", label: "Acordes", visible: true },
+    ],
     cells: {},
     showUnderline: true,
   };

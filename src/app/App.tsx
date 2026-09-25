@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import "./App.css";
+import { chordToNoteNames } from "../core/chordNotes";
 import { SongView } from "./components/SongView";
 import { TrackIcon, UnderlineIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
@@ -26,10 +27,13 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
           {state.tracks.map((track) => {
-            const hasContent = Object.values(state.cells[track.id] ?? {}).some(
-              (text) => text.trim() !== "",
-            );
+            const hasContent =
+              track.id === "chordNotes"
+                ? Object.values(state.cells.chords ?? {}).some((text) => chordToNoteNames(text) !== null)
+                : Object.values(state.cells[track.id] ?? {}).some((text) => text.trim() !== "");
             const disabled = !hasContent;
+            const disabledTitle =
+              track.id === "chordNotes" ? "No hay notas que mostrar" : "No hay acordes que mostrar";
             return (
               <button
                 key={track.id}
@@ -37,7 +41,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
                 className="track-toolbar__toggle"
                 aria-pressed={track.visible}
                 aria-label={track.label}
-                title={disabled ? "No hay acordes que mostrar" : track.label}
+                title={disabled ? disabledTitle : track.label}
                 disabled={disabled}
                 onClick={() => actions.setTrackVisibility(track.id, !track.visible)}
               >
