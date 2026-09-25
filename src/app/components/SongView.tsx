@@ -4,7 +4,7 @@ import { previousChordNotesBySlot } from "../../core/chordNotes";
 import { getLineCellSlots } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Song, TrackDef, TrackId } from "../../core/types";
-import { ChordIcon, NoteStackIcon, UnderlineIcon } from "./icons";
+import { ChordIcon, MelodyNoteIcon, NoteStackIcon, UnderlineIcon } from "./icons";
 import { LineView } from "./LineView";
 
 interface DragCell {
@@ -614,6 +614,13 @@ export function SongView({
             <li>
               <UnderlineIcon />
               <span>Muestra u oculta la línea debajo de cada sílaba.</span>
+            </li>
+            <li>
+              <MelodyNoteIcon />
+              <span>
+                Deja escribir las notas de la melodía, debajo de la línea de
+                cada sílaba.
+              </span>
             </li>
           </ul>
           <p>

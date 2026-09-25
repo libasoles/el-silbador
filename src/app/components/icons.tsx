@@ -65,6 +65,29 @@ export function NoteStackIcon() {
   );
 }
 
+/** A pair of eighth notes — the sung melody, as opposed to the chord shape (ChordIcon) or the
+ *  chord's constituent note names (NoteStackIcon). */
+export function MelodyNoteIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M9 18V5l10-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="16" cy="16" r="3" />
+    </svg>
+  );
+}
+
 export function UnderlineIcon() {
   return (
     <svg
@@ -117,6 +140,7 @@ export function DotIcon() {
 const ICONS_BY_TRACK: Record<string, typeof ChordIcon> = {
   chords: ChordIcon,
   chordNotes: NoteStackIcon,
+  vocalNotes: MelodyNoteIcon,
 };
 
 export function TrackIcon({ trackId }: { trackId: string }) {

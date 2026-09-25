@@ -224,6 +224,43 @@ export function LineView({
     };
   }
 
+  function renderTrackRow(track: TrackDef) {
+    if (track.id === "chordNotes") {
+      return (
+        <div key={track.id} contentEditable={false}>
+          <ChordNotesRow
+            label={track.label}
+            slotIds={slotIds}
+            slotRects={slotRects}
+            cells={cells}
+            previousChordNotes={previousChordNotes}
+          />
+        </div>
+      );
+    }
+    const drag: CellDragHandlers = {
+      draggedSlotId: dragSource && dragSource.trackId === track.id ? dragSource.slotId : null,
+      onDragStart: (slotId) => onDragStartCell(track.id, slotId),
+      onDragEnd: onDragEndCell,
+      onDragEnter: (slotId) => onDragEnterCell(track.id, slotId),
+      onDragLeave: (slotId) => onDragLeaveCell(track.id, slotId),
+      onDrop: (slotId) => onDropCell(track.id, slotId),
+    };
+    return (
+      <div key={track.id} contentEditable={false}>
+        <TrackRow
+          trackId={track.id}
+          label={track.label}
+          slotIds={slotIds}
+          slotRects={slotRects}
+          cells={cells}
+          onSetCellText={onSetCellText}
+          drag={drag}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={
@@ -231,43 +268,8 @@ export function LineView({
       }
     >
       {tracks
-        .filter((track) => track.visible)
-        .map((track) => {
-          if (track.id === "chordNotes") {
-            return (
-              <div key={track.id} contentEditable={false}>
-                <ChordNotesRow
-                  label={track.label}
-                  slotIds={slotIds}
-                  slotRects={slotRects}
-                  cells={cells}
-                  previousChordNotes={previousChordNotes}
-                />
-              </div>
-            );
-          }
-          const drag: CellDragHandlers = {
-            draggedSlotId: dragSource && dragSource.trackId === track.id ? dragSource.slotId : null,
-            onDragStart: (slotId) => onDragStartCell(track.id, slotId),
-            onDragEnd: onDragEndCell,
-            onDragEnter: (slotId) => onDragEnterCell(track.id, slotId),
-            onDragLeave: (slotId) => onDragLeaveCell(track.id, slotId),
-            onDrop: (slotId) => onDropCell(track.id, slotId),
-          };
-          return (
-            <div key={track.id} contentEditable={false}>
-              <TrackRow
-                trackId={track.id}
-                label={track.label}
-                slotIds={slotIds}
-                slotRects={slotRects}
-                cells={cells}
-                onSetCellText={onSetCellText}
-                drag={drag}
-              />
-            </div>
-          );
-        })}
+        .filter((track) => track.visible && track.id !== "vocalNotes")
+        .map(renderTrackRow)}
       <div className="syllable-row" role="textbox" data-lyrics-line ref={syllableRowRef}>
         {line.words.map((word, wIndex) => {
           const firstSyllable = word.syllables[0];
@@ -333,6 +335,9 @@ export function LineView({
           );
         })}
       </div>
+      {tracks
+        .filter((track) => track.visible && track.id === "vocalNotes")
+        .map(renderTrackRow)}
     </div>
   );
 }
