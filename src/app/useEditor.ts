@@ -1,5 +1,6 @@
 import { useMemo, useReducer } from "react";
 import { createInitialState, editorReducer } from "../core/state";
+import type { ChordPlacement } from "../core/chordSheet";
 import type { TrackId } from "../core/types";
 
 export function useEditor() {
@@ -9,6 +10,8 @@ export function useEditor() {
     () => ({
       setLyricsText: (text: string) => dispatch({ type: "setLyricsText", text }),
       reconcileLyricsText: (text: string) => dispatch({ type: "reconcileLyricsText", text }),
+      pasteText: (text: string, startLineIndex: number, startOffset: number, placements: ChordPlacement[]) =>
+        dispatch({ type: "pasteText", text, startLineIndex, startOffset, placements }),
       loadYpacaraiExample: () => dispatch({ type: "loadYpacaraiExample" }),
       resyllabify: (lineId: string, wordId: string, newText: string) =>
         dispatch({ type: "resyllabify", lineId, wordId, newText }),

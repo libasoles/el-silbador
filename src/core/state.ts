@@ -2,6 +2,7 @@ import {
   areAdjacent,
   beforeSlotId,
   buildSong,
+  chordSlotForColumn,
   endSlotId,
   flattenSyllables,
   mergeKey,
@@ -9,6 +10,7 @@ import {
   reconcileWordSyllables,
   seedChordCells,
 } from "./model";
+import type { ChordPlacement } from "./chordSheet";
 import { YPACARAI_LYRICS } from "./fixtures/ypacarai";
 import { YPACARAI_CHORDS, YPACARAI_END_OF_LINE_CHORDS } from "./fixtures/ypacaraiChords";
 import { hyphenateWord } from "./syllabify";
@@ -27,6 +29,13 @@ export function createInitialState(): EditorState {
 export type Action =
   | { type: "setLyricsText"; text: string }
   | { type: "reconcileLyricsText"; text: string }
+  | {
+      type: "pasteText";
+      text: string;
+      startLineIndex: number;
+      startOffset: number;
+      placements: ChordPlacement[];
+    }
   | { type: "loadYpacaraiExample" }
   | { type: "resyllabify"; lineId: string; wordId: string; newText: string }
   | { type: "toggleSyllableMerge"; lineId: string; aId: string; bId: string }
@@ -47,6 +56,9 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
 
     case "reconcileLyricsText":
       return reconcileLyricsText(state, action.text);
+
+    case "pasteText":
+      return applyPasteText(state, action.text, action.startLineIndex, action.startOffset, action.placements);
 
     case "loadYpacaraiExample": {
       const song = buildSong(YPACARAI_LYRICS);
@@ -140,6 +152,36 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
   }
 
   return { ...state, lyricsText: text, song, cells, merges: pruneMerges(song, state.merges) };
+}
+
+/**
+ * Reconciles the document after a paste, then seeds the chords track with any chord placements
+ * detected above the pasted lyrics (see `parseChordSheet`). `startLineIndex`/`startOffset` locate
+ * where the pasted (already chord-stripped) lyrics landed in the new document, so each
+ * placement's line-relative position can be translated into an actual song line and column.
+ */
+function applyPasteText(
+  state: EditorState,
+  text: string,
+  startLineIndex: number,
+  startOffset: number,
+  placements: ChordPlacement[],
+): EditorState {
+  const next = reconcileLyricsText(state, text);
+  if (placements.length === 0) return next;
+
+  const lines = text.split("\n");
+  let cells = next.cells;
+  for (const placement of placements) {
+    const songLineIndex = startLineIndex + placement.lineIndex;
+    const line = next.song[songLineIndex];
+    if (!line) continue;
+    const column = placement.column + (placement.lineIndex === 0 ? startOffset : 0);
+    const slotId = chordSlotForColumn(line, lines[songLineIndex] ?? "", column);
+    cells = setCell(cells, "chords", slotId, placement.chord);
+  }
+
+  return { ...next, cells };
 }
 
 function lineText(line: EditorState["song"][number]): string {

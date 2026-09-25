@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import type { CellsByTrack, Song, TrackDef, TrackId } from "../../core/types";
 import { LineView } from "./LineView";
 
@@ -16,6 +17,7 @@ interface SongViewProps {
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
   onMoveCellText: (trackId: TrackId, fromSlotId: string, toSlotId: string) => void;
   onReconcileLyricsText: (text: string) => void;
+  onPasteText: (text: string, startLineIndex: number, startOffset: number, placements: ChordPlacement[]) => void;
 }
 
 interface CaretPosition {
@@ -31,21 +33,24 @@ function readDocument(root: HTMLElement): string {
   return Array.from(root.querySelectorAll<HTMLElement>("[data-lyrics-line]")).map(lineText).join("\n");
 }
 
-function captureCaret(root: HTMLElement): CaretPosition | null {
-  const selection = window.getSelection();
-  if (!selection?.rangeCount) return null;
-  const anchor = selection.anchorNode;
-  const element = anchor?.nodeType === Node.ELEMENT_NODE ? (anchor as Element) : anchor?.parentElement;
+function positionForBoundary(root: HTMLElement, node: Node, nodeOffset: number): CaretPosition | null {
+  const element = node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement;
   const line = element?.closest<HTMLElement>("[data-lyrics-line]");
   if (!line || !root.contains(line)) return null;
   const range = document.createRange();
   range.selectNodeContents(line);
   try {
-    range.setEnd(selection.anchorNode!, selection.anchorOffset);
+    range.setEnd(node, nodeOffset);
   } catch {
     return null;
   }
   return { lineIndex: Array.from(root.querySelectorAll("[data-lyrics-line]")).indexOf(line), offset: range.toString().length };
+}
+
+function captureCaret(root: HTMLElement): CaretPosition | null {
+  const selection = window.getSelection();
+  if (!selection?.rangeCount) return null;
+  return positionForBoundary(root, selection.anchorNode!, selection.anchorOffset);
 }
 
 function restoreCaret(root: HTMLElement, position: CaretPosition) {
@@ -98,7 +103,17 @@ function insertPlainText(root: HTMLElement, text: string) {
   selection.addRange(range);
 }
 
-export function SongView({ song, merges, tracks, cells, onSetCellText, onToggleMerge, onMoveCellText, onReconcileLyricsText }: SongViewProps) {
+export function SongView({
+  song,
+  merges,
+  tracks,
+  cells,
+  onSetCellText,
+  onToggleMerge,
+  onMoveCellText,
+  onReconcileLyricsText,
+  onPasteText,
+}: SongViewProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const pendingCaret = useRef<CaretPosition | null>(null);
   const hasVisibleAnnotations = tracks.some((track) => track.visible);
@@ -170,8 +185,20 @@ export function SongView({ song, merges, tracks, cells, onSetCellText, onToggleM
         event.preventDefault();
         const root = rootRef.current;
         if (!root) return;
-        insertPlainText(root, event.clipboardData.getData("text/plain"));
-        commit();
+        const selection = window.getSelection();
+        if (!selection?.rangeCount) return;
+        const pasteRange = selection.getRangeAt(0);
+        const start = positionForBoundary(root, pasteRange.startContainer, pasteRange.startOffset);
+
+        const { lyricsText, placements } = parseChordSheet(event.clipboardData.getData("text/plain"));
+        insertPlainText(root, lyricsText);
+        pendingCaret.current = captureCaret(root);
+        const text = readDocument(root);
+        if (start) {
+          onPasteText(text, start.lineIndex, start.offset, placements);
+        } else {
+          onReconcileLyricsText(text);
+        }
       }}
     >
       {song.length === 0 ? <div className="syllable-row document-empty-line" data-lyrics-line /> : null}

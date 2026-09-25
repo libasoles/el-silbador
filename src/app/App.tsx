@@ -42,6 +42,7 @@ function App() {
           onToggleMerge={actions.toggleSyllableMerge}
           onMoveCellText={actions.moveCellText}
           onReconcileLyricsText={actions.reconcileLyricsText}
+          onPasteText={actions.pasteText}
         />
       </div>
     </main>

@@ -253,3 +253,38 @@ describe("reconcileLyricsText", () => {
     expect(getCell(state.cells, "chords", beforeSlotId(removed.id))).toBe("");
   });
 });
+
+describe("pasteText", () => {
+  it("seeds the chords track from detected chord-line placements, aligned by column", () => {
+    const state = reduce(createInitialState(), {
+      type: "pasteText",
+      text: "Jai guru deva om\nNothing's gonna change my world",
+      startLineIndex: 0,
+      startOffset: 0,
+      placements: [
+        { lineIndex: 0, column: 0, chord: "D" },
+        { lineIndex: 1, column: 26, chord: "A7" },
+      ],
+    });
+
+    const firstSyllable = state.song[0].words[0].syllables[0];
+    const worldWord = state.song[1].words[state.song[1].words.length - 1];
+
+    expect(getCell(state.cells, "chords", beforeSlotId(firstSyllable.id))).toBe("D");
+    expect(getCell(state.cells, "chords", beforeSlotId(worldWord.syllables[0].id))).toBe("A7");
+  });
+
+  it("shifts placements on the first pasted line by the caret's start offset", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "Nothing's gonna change" });
+    state = reduce(state, {
+      type: "pasteText",
+      text: "Nothing's gonna change my world",
+      startLineIndex: 0,
+      startOffset: 23,
+      placements: [{ lineIndex: 0, column: 0, chord: "A7" }],
+    });
+
+    const myWord = state.song[0].words.find((w) => w.syllables.map((s) => s.text).join("") === "my")!;
+    expect(getCell(state.cells, "chords", beforeSlotId(myWord.syllables[0].id))).toBe("A7");
+  });
+});
