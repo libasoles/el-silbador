@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import { PlusIcon, SearchIcon, SilbadorIcon, StarIcon } from "../components/icons";
 import "./Library.css";
 
@@ -52,15 +53,17 @@ function SongRow({ song, favorited, onOpen, onToggleFavorite }: SongRowProps) {
           {song.author ?? "sin autor"}
         </span>
       </button>
-      <button
-        type="button"
-        className="library-row__star"
-        aria-pressed={favorited}
-        aria-label={favorited ? "Quitar de favoritas" : "Agregar a favoritas"}
-        onClick={onToggleFavorite}
-      >
-        <StarIcon filled={favorited} />
-      </button>
+      <IconButtonTooltip tooltip={favorited ? "Quitar de favoritas" : "Agregar a favoritas"}>
+        <button
+          type="button"
+          className="library-row__star"
+          aria-pressed={favorited}
+          aria-label={favorited ? "Quitar de favoritas" : "Agregar a favoritas"}
+          onClick={onToggleFavorite}
+        >
+          <StarIcon filled={favorited} />
+        </button>
+      </IconButtonTooltip>
     </li>
   );
 }
@@ -164,14 +167,16 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
       <header className="library-header">
         <div className="library-header__title-row">
           <h1 className="library-heading">Cancionero</h1>
-          <button
-            type="button"
-            className="library-new"
-            aria-label="Nueva canción"
-            onClick={handleNew}
-          >
-            <PlusIcon />
-          </button>
+          <IconButtonTooltip tooltip="Nueva canción">
+            <button
+              type="button"
+              className="library-new"
+              aria-label="Nueva canción"
+              onClick={handleNew}
+            >
+              <PlusIcon size={26} />
+            </button>
+          </IconButtonTooltip>
         </div>
         <label className="library-search">
           <SearchIcon />

@@ -72,3 +72,40 @@ input {
   color: var(--muted);
   font-style: italic;
 }
+
+/* Tooltips are rendered here rather than with native titles so active and disabled icon buttons
+   behave consistently, on every page that uses icon-only actions. */
+.icon-button-tooltip {
+  display: inline-flex;
+  position: relative;
+}
+
+.icon-button-tooltip > button:disabled {
+  pointer-events: none;
+}
+
+.icon-button-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 0.6rem);
+  transform: translateY(-50%);
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 4rem));
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.2rem;
+  background: var(--fg);
+  color: var(--bg);
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  line-height: 1.2;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.icon-button-tooltip:hover::after,
+.icon-button-tooltip:focus-within::after {
+  opacity: 1;
+}
