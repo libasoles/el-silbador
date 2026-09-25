@@ -48,3 +48,27 @@ input {
   color: var(--fg);
   background: transparent;
 }
+
+/* Shared across pages: the singer mark stays in the page's upper-left corner. On the editor it
+   doubles as a button back to the library; on the library it's a static badge. */
+.app-mark {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 5;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  color: #000;
+}
+
+.app-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-style: italic;
+}
