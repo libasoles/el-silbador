@@ -45,37 +45,30 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
-          {state.tracks.map((track) => {
-            const hasContent =
-              track.id === "chordNotes"
-                ? Object.values(state.cells.chords ?? {}).some(
-                    (text) => chordToNoteNames(text) !== null,
-                  )
-                : Object.values(state.cells[track.id] ?? {}).some(
-                    (text) => text.trim() !== "",
-                  );
-            const disabled = !hasContent;
-            const disabledTitle =
-              track.id === "chordNotes"
-                ? "No hay notas que mostrar"
-                : "No hay acordes que mostrar";
-            return (
-              <button
-                key={track.id}
-                type="button"
-                className="track-toolbar__toggle"
-                aria-pressed={track.visible}
-                aria-label={track.label}
-                title={disabled ? disabledTitle : track.label}
-                disabled={disabled}
-                onClick={() =>
-                  actions.setTrackVisibility(track.id, !track.visible)
-                }
-              >
-                <TrackIcon trackId={track.id} />
-              </button>
-            );
-          })}
+          {state.tracks
+            .filter((track) => track.id !== "chordNotes")
+            .map((track) => {
+              const hasContent = Object.values(state.cells[track.id] ?? {}).some(
+                (text) => text.trim() !== "",
+              );
+              const disabled = !hasContent;
+              return (
+                <button
+                  key={track.id}
+                  type="button"
+                  className="track-toolbar__toggle"
+                  aria-pressed={track.visible}
+                  aria-label={track.label}
+                  title={disabled ? "No hay acordes que mostrar" : track.label}
+                  disabled={disabled}
+                  onClick={() =>
+                    actions.setTrackVisibility(track.id, !track.visible)
+                  }
+                >
+                  <TrackIcon trackId={track.id} />
+                </button>
+              );
+            })}
           <button
             type="button"
             className="track-toolbar__toggle"
@@ -91,6 +84,30 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
           >
             <UnderlineIcon />
           </button>
+          {state.tracks
+            .filter((track) => track.id === "chordNotes")
+            .map((track) => {
+              const hasContent = Object.values(state.cells.chords ?? {}).some(
+                (text) => chordToNoteNames(text) !== null,
+              );
+              const disabled = !hasContent;
+              return (
+                <button
+                  key={track.id}
+                  type="button"
+                  className="track-toolbar__toggle"
+                  aria-pressed={track.visible}
+                  aria-label={track.label}
+                  title={disabled ? "No hay notas que mostrar" : track.label}
+                  disabled={disabled}
+                  onClick={() =>
+                    actions.setTrackVisibility(track.id, !track.visible)
+                  }
+                >
+                  <TrackIcon trackId={track.id} />
+                </button>
+              );
+            })}
         </aside>
 
         <SongView
