@@ -22,7 +22,14 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
   return (
     <main className="app">
-      <h1>Silabeo</h1>
+      <input
+        type="text"
+        className="title-input"
+        placeholder="Título"
+        value={state.title}
+        onChange={(event) => actions.setTitle(event.target.value)}
+        aria-label="Título"
+      />
 
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
