@@ -2,6 +2,8 @@ import {
   areAdjacent,
   beforeSlotId,
   buildSong,
+  endSlotId,
+  flattenSyllables,
   mergeKey,
   pruneMerges,
   reconcileWordSyllables,
@@ -24,6 +26,7 @@ export function createInitialState(): EditorState {
 
 export type Action =
   | { type: "setLyricsText"; text: string }
+  | { type: "reconcileLyricsText"; text: string }
   | { type: "loadYpacaraiExample" }
   | { type: "resyllabify"; lineId: string; wordId: string; newText: string }
   | { type: "toggleSyllableMerge"; lineId: string; aId: string; bId: string }
@@ -41,6 +44,9 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         merges: new Set(),
         cells: {},
       };
+
+    case "reconcileLyricsText":
+      return reconcileLyricsText(state, action.text);
 
     case "loadYpacaraiExample": {
       const song = buildSong(YPACARAI_LYRICS);
@@ -79,6 +85,96 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
     default:
       return state;
   }
+}
+
+/**
+ * Rebuilds the document after a free-form edit while retaining the identities that can be
+ * matched unambiguously. Lines and words are aligned by their ordered common prefix/suffix;
+ * changed words then use the existing syllable prefix/suffix reconciliation.
+ */
+function reconcileLyricsText(state: EditorState, text: string): EditorState {
+  const candidate = buildSong(text);
+  const previous = state.song;
+  const previousTexts = previous.map(lineText);
+  const candidateTexts = candidate.map(lineText);
+
+  let prefix = 0;
+  while (
+    prefix < previous.length &&
+    prefix < candidate.length &&
+    previousTexts[prefix] === candidateTexts[prefix]
+  ) {
+    prefix += 1;
+  }
+
+  let suffix = 0;
+  while (
+    suffix < previous.length - prefix &&
+    suffix < candidate.length - prefix &&
+    previousTexts[previous.length - 1 - suffix] === candidateTexts[candidate.length - 1 - suffix]
+  ) {
+    suffix += 1;
+  }
+
+  const song = candidate.map((nextLine, index) => {
+    if (index < prefix) return previous[index];
+    if (index >= candidate.length - suffix) {
+      return previous[previous.length - candidate.length + index];
+    }
+
+    const previousIndex = prefix + (index - prefix);
+    const oldLine = previousIndex < previous.length - suffix ? previous[previousIndex] : undefined;
+    return oldLine ? reconcileLine(oldLine, nextLine) : nextLine;
+  });
+
+  const retainedSyllableIds = new Set(song.flatMap(flattenSyllables).map((syllable) => syllable.id));
+  const retainedLineIds = new Set(song.map((line) => line.id));
+  let cells = state.cells;
+  for (const line of previous) {
+    if (!retainedLineIds.has(line.id)) cells = deleteCellAcrossTracks(state.tracks, cells, endSlotId(line.id));
+    for (const syllable of flattenSyllables(line)) {
+      if (!retainedSyllableIds.has(syllable.id)) {
+        cells = deleteCellAcrossTracks(state.tracks, cells, beforeSlotId(syllable.id));
+      }
+    }
+  }
+
+  return { ...state, lyricsText: text, song, cells, merges: pruneMerges(song, state.merges) };
+}
+
+function lineText(line: EditorState["song"][number]): string {
+  return line.words.map((word) => word.syllables.map((syllable) => syllable.text).join("")).join(" ");
+}
+
+function reconcileLine(oldLine: EditorState["song"][number], nextLine: EditorState["song"][number]) {
+  const oldWords = oldLine.words;
+  const nextWords = nextLine.words;
+  const oldTexts = oldWords.map((word) => word.syllables.map((syllable) => syllable.text).join(""));
+  const nextTexts = nextWords.map((word) => word.syllables.map((syllable) => syllable.text).join(""));
+
+  let prefix = 0;
+  while (prefix < oldWords.length && prefix < nextWords.length && oldTexts[prefix] === nextTexts[prefix]) prefix += 1;
+  let suffix = 0;
+  while (
+    suffix < oldWords.length - prefix &&
+    suffix < nextWords.length - prefix &&
+    oldTexts[oldWords.length - 1 - suffix] === nextTexts[nextWords.length - 1 - suffix]
+  ) suffix += 1;
+
+  const words = nextWords.map((nextWord, index) => {
+    if (index < prefix) return oldWords[index];
+    if (index >= nextWords.length - suffix) return oldWords[oldWords.length - nextWords.length + index];
+    const oldIndex = prefix + (index - prefix);
+    const oldWord = oldIndex < oldWords.length - suffix ? oldWords[oldIndex] : undefined;
+    if (!oldWord) return nextWord;
+    const { syllables } = reconcileWordSyllables(
+      oldWord.syllables,
+      nextWord.syllables.map((syllable) => syllable.text),
+    );
+    return { ...oldWord, syllables };
+  });
+
+  return { ...oldLine, words };
 }
 
 function getCell(cells: CellsByTrack, trackId: TrackId, slotId: string): string {

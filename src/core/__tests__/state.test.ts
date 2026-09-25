@@ -17,13 +17,13 @@ describe("setLyricsText", () => {
 
     expect(state.song).toHaveLength(YPACARAI_LYRICS.split("\n").length);
     expect(state.song[0].words.map((w) => w.syllables.map((s) => s.text))).toEqual([
-      ["Una"],
+      ["U", "na"],
       ["no", "che"],
       ["ti", "bia"],
       ["nos"],
       ["co", "no", "ci", "mos"],
     ]);
-    expect(state.song[1].words[5].syllables.map((s) => s.text)).toEqual(["Ypa", "ca", "raí"]);
+    expect(state.song[1].words[5].syllables.map((s) => s.text)).toEqual(["Y", "pa", "ca", "ra", "í"]);
   });
 });
 
@@ -103,18 +103,20 @@ describe("toggleSyllableMerge", () => {
     });
     const line = state.song[0];
     const ypacaraiWord = line.words[line.words.length - 1];
-    const [y1, y2, y3] = ypacaraiWord.syllables.map((s) => s.id);
-    expect(ypacaraiWord.syllables.map((s) => s.text)).toEqual(["Ypa", "ca", "raí"]);
+    const [y1, y2, y3, y4, y5] = ypacaraiWord.syllables.map((s) => s.id);
+    expect(ypacaraiWord.syllables.map((s) => s.text)).toEqual(["Y", "pa", "ca", "ra", "í"]);
 
     state = reduce(
       state,
       { type: "toggleSyllableMerge", lineId: line.id, aId: y1, bId: y2 },
       { type: "toggleSyllableMerge", lineId: line.id, aId: y2, bId: y3 },
+      { type: "toggleSyllableMerge", lineId: line.id, aId: y3, bId: y4 },
+      { type: "toggleSyllableMerge", lineId: line.id, aId: y4, bId: y5 },
     );
 
     const units = getLineUnits(state.song[0], state.merges);
     const mergedUnit = units.find((u) => u.syllableIds.includes(y1));
-    expect(mergedUnit?.syllableIds).toEqual([y1, y2, y3]);
+    expect(mergedUnit?.syllableIds).toEqual([y1, y2, y3, y4, y5]);
   });
 });
 
@@ -214,5 +216,40 @@ describe("resyllabify + reconciliation", () => {
     expect(dispatchCount).toBe(1);
     expect(state.song[0].words[0].syllables.map((s) => s.text)).toEqual(["pes", "ca", "do", "res"]);
     vi.useRealTimers();
+  });
+});
+
+describe("reconcileLyricsText", () => {
+  it("keeps an annotation on an equivalent syllable after an in-place word correction", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "cansión" });
+    const original = state.song[0].words[0].syllables[0];
+    state = reduce(state, { type: "setCellText", trackId: "chords", slotId: beforeSlotId(original.id), text: "G7" });
+
+    state = reduce(state, { type: "reconcileLyricsText", text: "canción" });
+
+    expect(state.song[0].words[0].syllables[0].id).toBe(original.id);
+    expect(getCell(state.cells, "chords", beforeSlotId(original.id))).toBe("G7");
+  });
+
+  it("keeps unchanged lines and their annotations when a line is inserted before them", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "amor\npaz" });
+    const retainedLine = state.song[1];
+    const retainedSyllable = retainedLine.words[0].syllables[0];
+    state = reduce(state, { type: "setCellText", trackId: "chords", slotId: beforeSlotId(retainedSyllable.id), text: "Dm" });
+
+    state = reduce(state, { type: "reconcileLyricsText", text: "intro\namor\npaz" });
+
+    expect(state.song[2].id).toBe(retainedLine.id);
+    expect(getCell(state.cells, "chords", beforeSlotId(retainedSyllable.id))).toBe("Dm");
+  });
+
+  it("removes annotations attached to syllables deleted by a document edit", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "amor paz" });
+    const removed = state.song[0].words[0].syllables[0];
+    state = reduce(state, { type: "setCellText", trackId: "chords", slotId: beforeSlotId(removed.id), text: "G7" });
+
+    state = reduce(state, { type: "reconcileLyricsText", text: "paz" });
+
+    expect(getCell(state.cells, "chords", beforeSlotId(removed.id))).toBe("");
   });
 });

@@ -9,7 +9,6 @@ interface TrackCellProps {
   registerRef: (el: HTMLElement | null) => void;
   draggable?: boolean;
   isDragging?: boolean;
-  isDropTarget?: boolean;
   onDragStart?: () => void;
   onDragEnd?: () => void;
   onDragEnter?: () => void;
@@ -34,7 +33,6 @@ export function TrackCell({
   registerRef,
   draggable = false,
   isDragging = false,
-  isDropTarget = false,
   onDragStart,
   onDragEnd,
   onDragEnter,
@@ -43,9 +41,13 @@ export function TrackCell({
 }: TrackCellProps) {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Buttons receive focus on mousedown, i.e. before a drag gesture has a chance to start. If we
+  // switched to the input on every focus, the chip would unmount mid-drag and native HTML5 drag
+  // would never fire. So mouse-originated focus is ignored here; onClick (which only fires when
+  // no drag happened) starts editing instead. Keyboard-originated focus (Tab) still edits eagerly.
+  const pointerDownRef = useRef(false);
 
-  const dragClassName =
-    (isDragging ? " track-cell--dragging" : "") + (isDropTarget ? " track-cell--drop-target" : "");
+  const dragClassName = isDragging ? " track-cell--dragging" : "";
   const style =
     left !== undefined && width !== undefined ? { left: `${left}px`, width: `${width}px` } : undefined;
 
@@ -68,6 +70,10 @@ export function TrackCell({
 
   function startEditing() {
     setEditing(true);
+  }
+
+  function handleFocus() {
+    if (!pointerDownRef.current) startEditing();
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
@@ -95,7 +101,13 @@ export function TrackCell({
         style={style}
         ref={(el) => registerRef(el)}
         onClick={startEditing}
-        onFocus={startEditing}
+        onFocus={handleFocus}
+        onMouseDown={() => {
+          pointerDownRef.current = true;
+        }}
+        onMouseUp={() => {
+          pointerDownRef.current = false;
+        }}
         draggable={draggable}
         onDragStart={handleDragStart}
         onDragEnd={onDragEnd}

@@ -1,23 +1,36 @@
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useLayoutEffect, useRef, useState } from "react";
 import { endSlotId, getLineCellSlots, getLineUnits, mergeKey } from "../../core/model";
-import { createResyllabifyCoordinator } from "../../core/resyllabifyCoordinator";
-import type { CellsByTrack, Line, TrackDef, TrackId, Word } from "../../core/types";
+import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
 
 interface SyllableGapButtonProps {
   merged: boolean;
   wordBoundary?: boolean;
+  dropTarget?: boolean;
   fromText: string;
   toText: string;
   onToggle: () => void;
 }
 
 /** The clickable gap between two adjacent syllables that toggles a melisma merge. */
-function SyllableGapButton({ merged, wordBoundary = false, fromText, toText, onToggle }: SyllableGapButtonProps) {
+function SyllableGapButton({
+  merged,
+  wordBoundary = false,
+  dropTarget = false,
+  fromText,
+  toText,
+  onToggle,
+}: SyllableGapButtonProps) {
   return (
     <button
       type="button"
-      className={"syllable-gap" + (merged ? " syllable-gap--merged" : wordBoundary ? " syllable-gap--word-boundary" : "")}
+      contentEditable={false}
+      className={
+        "syllable-gap" +
+        (wordBoundary ? " syllable-gap--word-boundary" : "") +
+        (merged ? " syllable-gap--merged" : "") +
+        (dropTarget ? " syllable-gap--drop-target" : "")
+      }
       aria-pressed={merged}
       aria-label={merged ? `Separar sílabas "${fromText}" y "${toText}"` : `Unir sílabas "${fromText}" y "${toText}"`}
       onClick={(e) => {
@@ -28,6 +41,11 @@ function SyllableGapButton({ merged, wordBoundary = false, fromText, toText, onT
   );
 }
 
+interface DragCell {
+  trackId: TrackId;
+  slotId: string;
+}
+
 interface LineViewProps {
   line: Line;
   merges: ReadonlySet<string>;
@@ -35,135 +53,13 @@ interface LineViewProps {
   cells: CellsByTrack;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
-  onMoveCellText: (trackId: TrackId, fromSlotId: string, toSlotId: string) => void;
-  onResyllabify: (lineId: string, wordId: string, text: string) => void;
-}
-
-interface WordEditorProps {
-  lineId: string;
-  word: Word;
-  merges: ReadonlySet<string>;
-  mergedIds: ReadonlySet<string>;
-  registerSyllableRef: (syllableId: string, el: HTMLElement | null) => void;
-  onToggleMerge: (lineId: string, aId: string, bId: string) => void;
-  onResyllabify: (lineId: string, wordId: string, text: string) => void;
-}
-
-function WordEditor({
-  lineId,
-  word,
-  merges,
-  mergedIds,
-  registerSyllableRef,
-  onToggleMerge,
-  onResyllabify,
-}: WordEditorProps) {
-  const [editing, setEditing] = useState(false);
-
-  const originalText = word.syllables.map((s) => s.text).join("");
-  const [inputValue, setInputValue] = useState(originalText);
-
-  useEffect(() => {
-    setInputValue(originalText);
-  }, [originalText]);
-
-  const valueRef = useRef(inputValue);
-  valueRef.current = inputValue;
-
-  const coordinator = useMemo(() => {
-    return createResyllabifyCoordinator(() => {
-      const text = valueRef.current.trim();
-      if (text) {
-        onResyllabify(lineId, word.id, text);
-      }
-    });
-  }, [lineId, word.id, onResyllabify]);
-
-  useEffect(() => () => coordinator.dispose(), [coordinator]);
-
-  function startEditing() {
-    setEditing(true);
-  }
-
-  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      coordinator.notifyWordBoundary();
-      setEditing(false);
-    } else if (event.key === "Escape") {
-      setInputValue(originalText);
-      setEditing(false);
-    }
-  }
-
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const val = event.target.value;
-    if (val.endsWith(" ") || val.endsWith("\n")) {
-      setInputValue(val.trim());
-      coordinator.notifyWordBoundary();
-      setEditing(false);
-    } else {
-      setInputValue(val);
-      coordinator.notifyKeystroke();
-    }
-  }
-
-  function handleBlur() {
-    setEditing(false);
-  }
-
-  if (editing) {
-    return (
-      <input
-        className="track-cell--input"
-        style={{
-          fontSize: "inherit",
-          width: `${Math.max(2, inputValue.length)}ch`,
-          padding: 0,
-          margin: 0,
-          border: "none",
-          borderBottom: "3px solid var(--border-strong)",
-          background: "transparent",
-          color: "inherit",
-          outline: "none",
-          textAlign: "center",
-        }}
-        autoFocus
-        value={inputValue}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onBlur={handleBlur}
-      />
-    );
-  }
-
-  return (
-    <span style={{ display: "contents", cursor: "text" }} onClick={startEditing}>
-      {word.syllables.map((syllable, index) => {
-        const prev = index > 0 ? word.syllables[index - 1] : null;
-        const merged = prev ? merges.has(mergeKey(prev.id, syllable.id)) : false;
-
-        return (
-          <Fragment key={syllable.id}>
-            {prev ? (
-              <SyllableGapButton
-                merged={merged}
-                fromText={prev.text}
-                toText={syllable.text}
-                onToggle={() => onToggleMerge(lineId, prev.id, syllable.id)}
-              />
-            ) : null}
-            <span
-              ref={(el) => registerSyllableRef(syllable.id, el)}
-              className={"syllable" + (mergedIds.has(syllable.id) ? " syllable--merged" : "")}
-            >
-              {syllable.text}
-            </span>
-          </Fragment>
-        );
-      })}
-    </span>
-  );
+  dragSource: DragCell | null;
+  dropTarget: DragCell | null;
+  onDragStartCell: (trackId: TrackId, slotId: string) => void;
+  onDragEndCell: () => void;
+  onDragEnterCell: (trackId: TrackId, slotId: string) => void;
+  onDragLeaveCell: (trackId: TrackId, slotId: string) => void;
+  onDropCell: (trackId: TrackId, slotId: string) => void;
 }
 
 export function LineView({
@@ -173,11 +69,17 @@ export function LineView({
   cells,
   onSetCellText,
   onToggleMerge,
-  onMoveCellText,
-  onResyllabify,
+  dragSource,
+  dropTarget,
+  onDragStartCell,
+  onDragEndCell,
+  onDragEnterCell,
+  onDragLeaveCell,
+  onDropCell,
 }: LineViewProps) {
   const slotIds = getLineCellSlots(line, merges);
   const units = getLineUnits(line, merges);
+  const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
 
   const mergedIds = new Set<string>();
   for (const unit of units) {
@@ -227,66 +129,71 @@ export function LineView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [line, merges]);
 
-  const [dragSource, setDragSource] = useState<{ trackId: TrackId; slotId: string } | null>(null);
-  const [dropTarget, setDropTarget] = useState<{ trackId: TrackId; slotId: string } | null>(null);
   const isDragging = dragSource !== null;
 
-  function handleDragStart(trackId: TrackId, slotId: string) {
-    setDragSource({ trackId, slotId });
+  // The slot being dragged over may belong to this line (or another one, since a chord can be
+  // dragged across lines) — only highlight this line's syllables when it's ours to show.
+  const dropTargetUnit = dropTarget ? units.find((unit) => unit.slotId === dropTarget.slotId) : undefined;
+  const dropTargetSyllableIds = new Set(dropTargetUnit?.syllableIds ?? []);
+
+  // Every syllable in a unit doubles as that unit's dropzone, so hovering the underlined word
+  // text (not just the narrow annotation cell above it) is enough to drop a chord there.
+  const syllableSlotId = new Map<string, string>();
+  for (const unit of units) {
+    for (const syllableId of unit.syllableIds) syllableSlotId.set(syllableId, unit.slotId);
   }
 
-  function handleDragEnd() {
-    setDragSource(null);
-    setDropTarget(null);
-  }
-
-  function handleDragEnterCell(trackId: TrackId, slotId: string) {
-    if (!dragSource || dragSource.trackId !== trackId) return;
-    setDropTarget({ trackId, slotId });
-  }
-
-  function handleDragLeaveCell(trackId: TrackId, slotId: string) {
-    setDropTarget((current) =>
-      current && current.trackId === trackId && current.slotId === slotId ? null : current,
-    );
-  }
-
-  function handleDropCell(trackId: TrackId, slotId: string) {
-    if (dragSource && dragSource.trackId === trackId && dragSource.slotId !== slotId) {
-      onMoveCellText(trackId, dragSource.slotId, slotId);
-    }
-    setDragSource(null);
-    setDropTarget(null);
+  function syllableDragProps(syllableId: string) {
+    if (!dragSource) return undefined;
+    const slotId = syllableSlotId.get(syllableId);
+    if (slotId === undefined) return undefined;
+    const trackId = dragSource.trackId;
+    return {
+      onDragOver: (event: React.DragEvent) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      },
+      onDragEnter: () => onDragEnterCell(trackId, slotId),
+      onDragLeave: () => onDragLeaveCell(trackId, slotId),
+      onDrop: (event: React.DragEvent) => {
+        event.preventDefault();
+        onDropCell(trackId, slotId);
+      },
+    };
   }
 
   return (
-    <div className={"line" + (isDragging ? " line--dragging" : "")}>
+    <div
+      className={
+        "line" + (isDragging ? " line--dragging" : "") + (!chordsVisible ? " line--chords-hidden" : "")
+      }
+    >
       {tracks
         .filter((track) => track.visible)
         .map((track) => {
           const drag: CellDragHandlers = {
             draggedSlotId: dragSource && dragSource.trackId === track.id ? dragSource.slotId : null,
-            dropTargetSlotId: dropTarget && dropTarget.trackId === track.id ? dropTarget.slotId : null,
-            onDragStart: (slotId) => handleDragStart(track.id, slotId),
-            onDragEnd: handleDragEnd,
-            onDragEnter: (slotId) => handleDragEnterCell(track.id, slotId),
-            onDragLeave: (slotId) => handleDragLeaveCell(track.id, slotId),
-            onDrop: (slotId) => handleDropCell(track.id, slotId),
+            onDragStart: (slotId) => onDragStartCell(track.id, slotId),
+            onDragEnd: onDragEndCell,
+            onDragEnter: (slotId) => onDragEnterCell(track.id, slotId),
+            onDragLeave: (slotId) => onDragLeaveCell(track.id, slotId),
+            onDrop: (slotId) => onDropCell(track.id, slotId),
           };
           return (
-            <TrackRow
-              key={track.id}
-              trackId={track.id}
-              label={track.label}
-              slotIds={slotIds}
-              slotRects={slotRects}
-              cells={cells}
-              onSetCellText={onSetCellText}
-              drag={drag}
-            />
+            <div key={track.id} contentEditable={false}>
+              <TrackRow
+                trackId={track.id}
+                label={track.label}
+                slotIds={slotIds}
+                slotRects={slotRects}
+                cells={cells}
+                onSetCellText={onSetCellText}
+                drag={drag}
+              />
+            </div>
           );
         })}
-      <div className="syllable-row" role="row" ref={syllableRowRef}>
+      <div className="syllable-row" role="textbox" data-lyrics-line ref={syllableRowRef}>
         {line.words.map((word, wIndex) => {
           const firstSyllable = word.syllables[0];
           const prevWord = wIndex > 0 ? line.words[wIndex - 1] : null;
@@ -298,20 +205,45 @@ export function LineView({
                 <SyllableGapButton
                   merged={merges.has(mergeKey(prevSyllable.id, firstSyllable.id))}
                   wordBoundary
+                  dropTarget={
+                    dropTargetSyllableIds.has(prevSyllable.id) && dropTargetSyllableIds.has(firstSyllable.id)
+                  }
                   fromText={prevSyllable.text}
                   toText={firstSyllable.text}
                   onToggle={() => onToggleMerge(line.id, prevSyllable.id, firstSyllable.id)}
                 />
               ) : null}
-              <WordEditor
-                lineId={line.id}
-                word={word}
-                merges={merges}
-                mergedIds={mergedIds}
-                registerSyllableRef={registerSyllableRef}
-                onToggleMerge={onToggleMerge}
-                onResyllabify={onResyllabify}
-              />
+              {word.syllables.map((syllable, index) => {
+                const previous = index > 0 ? word.syllables[index - 1] : null;
+                const merged = previous ? merges.has(mergeKey(previous.id, syllable.id)) : false;
+                return (
+                  <Fragment key={syllable.id}>
+                    {previous ? (
+                      <SyllableGapButton
+                        merged={merged}
+                        dropTarget={
+                          dropTargetSyllableIds.has(previous.id) && dropTargetSyllableIds.has(syllable.id)
+                        }
+                        fromText={previous.text}
+                        toText={syllable.text}
+                        onToggle={() => onToggleMerge(line.id, previous.id, syllable.id)}
+                      />
+                    ) : null}
+                    <span
+                      ref={(el) => registerSyllableRef(syllable.id, el)}
+                      className={
+                        "syllable" +
+                        (Array.from(syllable.text).length === 1 ? " syllable--single-letter" : "") +
+                        (mergedIds.has(syllable.id) ? " syllable--merged" : "") +
+                        (dropTargetSyllableIds.has(syllable.id) ? " syllable--drop-target" : "")
+                      }
+                      {...syllableDragProps(syllable.id)}
+                    >
+                      {syllable.text}
+                    </span>
+                  </Fragment>
+                );
+              })}
             </Fragment>
           );
         })}

@@ -1,5 +1,4 @@
 import "./App.css";
-import { LyricsInput } from "./components/LyricsInput";
 import { SongView } from "./components/SongView";
 import { TrackGlyph } from "./components/icons";
 import { useEditor } from "./useEditor";
@@ -10,9 +9,12 @@ function App() {
   return (
     <main className="app">
       <h1>Silabeo</h1>
-      <p className="subtitle">Editor de anotaciones sobre sílabas de canciones</p>
 
-      <LyricsInput onConfirm={actions.setLyricsText} onLoadExample={actions.loadYpacaraiExample} />
+      <div className="document-actions">
+        <button type="button" onClick={actions.loadYpacaraiExample}>
+          Cargar "Recuerdos de Ypacaraí"
+        </button>
+      </div>
 
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
@@ -39,7 +41,7 @@ function App() {
           onSetCellText={actions.setCellText}
           onToggleMerge={actions.toggleSyllableMerge}
           onMoveCellText={actions.moveCellText}
-          onResyllabify={actions.resyllabify}
+          onReconcileLyricsText={actions.reconcileLyricsText}
         />
       </div>
     </main>
