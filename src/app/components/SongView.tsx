@@ -246,7 +246,9 @@ export function SongView({
 }: SongViewProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const pendingCaret = useRef<CaretPosition | null>(null);
-  const hasVisibleAnnotations = tracks.some((track) => track.visible);
+  const hasVisibleAnnotations = tracks.some(
+    (track) => track.visible && track.id !== "chordNotes",
+  );
   const lyricLines = lyricsText.split("\n");
 
   // Flattened in song order (not per line) so a chord at the start of one line can still be

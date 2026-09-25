@@ -38,7 +38,9 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
     track.id === "chordNotes"
       ? Object.values(cells.chords ?? {}).some((text) => chordToNoteNames(text) !== null)
       : Object.values(cells[track.id] ?? {}).some((text) => text.trim() !== "");
-  const disabled = !hasContent;
+  // Editable tracks must be activatable while empty so the user can open a row and add its
+  // first annotation. The derived chord-notes track remains unavailable until a chord exists.
+  const disabled = track.id === "chordNotes" && !hasContent;
   const disabledTooltip =
     track.id === "chordNotes"
       ? "No hay notas que mostrar"
