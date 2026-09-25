@@ -33,11 +33,12 @@ function matchesQuery(song: LibrarySong, query: string): boolean {
 interface SongRowProps {
   song: LibrarySong;
   favorited: boolean;
+  showFavorite: boolean;
   onOpen: () => void;
   onToggleFavorite: () => void;
 }
 
-function SongRow({ song, favorited, onOpen, onToggleFavorite }: SongRowProps) {
+function SongRow({ song, favorited, showFavorite, onOpen, onToggleFavorite }: SongRowProps) {
   return (
     <li className="library-row">
       <button type="button" className="library-row__open" onClick={onOpen}>
@@ -53,17 +54,19 @@ function SongRow({ song, favorited, onOpen, onToggleFavorite }: SongRowProps) {
           {song.author ?? "sin autor"}
         </span>
       </button>
-      <IconButtonTooltip tooltip={favorited ? "Quitar de favoritas" : "Agregar a favoritas"}>
-        <button
-          type="button"
-          className="library-row__star"
-          aria-pressed={favorited}
-          aria-label={favorited ? "Quitar de favoritas" : "Agregar a favoritas"}
-          onClick={onToggleFavorite}
-        >
-          <StarIcon filled={favorited} />
-        </button>
-      </IconButtonTooltip>
+      {showFavorite && (
+        <IconButtonTooltip tooltip={favorited ? "Quitar de favoritas" : "Agregar a favoritas"}>
+          <button
+            type="button"
+            className="library-row__star"
+            aria-pressed={favorited}
+            aria-label={favorited ? "Quitar de favoritas" : "Agregar a favoritas"}
+            onClick={onToggleFavorite}
+          >
+            <StarIcon filled={favorited} />
+          </button>
+        </IconButtonTooltip>
+      )}
     </li>
   );
 }
@@ -73,6 +76,7 @@ interface LibrarySectionProps {
   songs: LibrarySong[];
   emptyLabel: string;
   favoriteIds: Set<string>;
+  showFavorite?: boolean;
   onOpenSong: (song: LibrarySong) => void;
   onToggleFavorite: (song: LibrarySong) => void;
 }
@@ -82,6 +86,7 @@ function LibrarySection({
   songs,
   emptyLabel,
   favoriteIds,
+  showFavorite = true,
   onOpenSong,
   onToggleFavorite,
 }: LibrarySectionProps) {
@@ -93,7 +98,12 @@ function LibrarySection({
         </div>
       )}
       {songs.length === 0 ? (
-        <p className="empty-state library-section__empty">{emptyLabel}</p>
+        <div className="library-section__empty">
+          <span className="library-section__empty-mark" aria-hidden="true">
+            <SilbadorIcon />
+          </span>
+          <p className="empty-state">{emptyLabel}</p>
+        </div>
       ) : (
         <ul className="library-list">
           {songs.map((song) => (
@@ -101,6 +111,7 @@ function LibrarySection({
               key={song.id}
               song={song}
               favorited={favoriteIds.has(song.id)}
+              showFavorite={showFavorite}
               onOpen={() => onOpenSong(song)}
               onToggleFavorite={() => onToggleFavorite(song)}
             />
@@ -196,6 +207,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
           songs={mySongs}
           emptyLabel="Todavía no escribiste ninguna canción."
           favoriteIds={favoriteIds}
+          showFavorite={false}
           onOpenSong={handleOpen}
           onToggleFavorite={toggleFavorite}
         />
