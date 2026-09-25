@@ -90,10 +90,17 @@ h1 {
   gap: 0.65rem;
 }
 
+.song--empty .document-empty-line {
+  white-space: normal;
+}
+
 .song--empty .document-empty-line::before {
-  content: "Pegá o escribí la letra de una canción...";
+  content: "Escribí o pegá la letra de una canción para empezar. Podés pegar el texto con los acordes ya incluidos, tal como los escribirías a mano —cada línea de acordes ubicada justo arriba de la línea de letra a la que corresponde— y Silabeo los va a detectar y separar automáticamente.";
+  display: inline-block;
+  max-width: 34rem;
   color: var(--muted);
   font-style: italic;
+  line-height: 1.5;
   pointer-events: none;
 }
 
