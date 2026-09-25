@@ -7,10 +7,23 @@
   padding: 1.25rem 2rem 6rem;
 }
 
-h1 {
+.title-input {
+  font-family: inherit;
+  font-size: 1.5rem;
   font-weight: 400;
   letter-spacing: 0.02em;
   margin-bottom: 0;
+  color: inherit;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  width: 100%;
+}
+
+.title-input::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }
 
 .workspace {
