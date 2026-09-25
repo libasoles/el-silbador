@@ -15,7 +15,8 @@
 
 .library-header__title-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
 }
 
@@ -28,12 +29,11 @@
 }
 
 .library-new {
-  align-self: center;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 2.75rem;
+  height: 2.75rem;
   padding: 0;
   border-radius: 999px;
   color: var(--fg);
