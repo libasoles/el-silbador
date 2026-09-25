@@ -1,0 +1,180 @@
+.library {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 6rem;
+}
+
+.library-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.library-heading {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.75rem;
+  letter-spacing: 0.01em;
+}
+
+.library-search {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+  color: var(--muted);
+}
+
+.library-search svg {
+  flex: none;
+}
+
+.library-search__input {
+  flex: 1;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: var(--fg);
+  border: none;
+  outline: none;
+  padding: 0;
+  background: none;
+}
+
+.library-search__input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.library-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+.library-section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.library-section__title {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.15rem;
+}
+
+.library-section__new {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  padding: 0;
+}
+
+.library-section__new svg {
+  flex: none;
+}
+
+.library-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.library-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.library-row:last-child {
+  border-bottom: none;
+}
+
+.library-row__open {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 0.5em;
+  padding: 0.65rem 0;
+  text-align: left;
+  color: inherit;
+}
+
+.library-row__open:hover .library-row__title {
+  color: var(--accent);
+}
+
+.library-row__title {
+  flex: none;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: var(--fg);
+  transition: color 140ms ease;
+}
+
+/* The dotted leader borrows the songbook table-of-contents convention: a rule connecting a title
+   to the detail at the line's end, the way an index page points a title at its page number. */
+.library-row__leader {
+  flex: 1;
+  min-width: 1rem;
+  align-self: center;
+  border-bottom: 1px dotted var(--border-strong);
+}
+
+.library-row__author {
+  flex: none;
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.library-row__author--empty {
+  font-style: italic;
+}
+
+.library-row__star {
+  flex: none;
+  align-self: center;
+  display: inline-flex;
+  padding: 0.4rem;
+  color: var(--border-strong);
+}
+
+.library-row__star:hover {
+  color: var(--accent);
+}
+
+.library-row__star[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+.library-section__empty {
+  padding: 0.65rem 0 0.9rem;
+}
+
+@media (max-width: 30rem) {
+  .library-row__title {
+    max-width: 55%;
+  }
+}

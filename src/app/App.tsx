@@ -13,6 +13,8 @@ const DEFAULT_ACCENT_COLOR = "#9c4a3c";
 interface AppProps {
   /** Base color the underline, chord, and highlight colors are all derived from. */
   accentColor?: string;
+  /** When set, the singer mark becomes a button back to the library instead of a static badge. */
+  onNavigateHome?: () => void;
 }
 
 interface TrackToggleButtonProps {
@@ -62,7 +64,7 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
   );
 }
 
-function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
+function App({ accentColor = DEFAULT_ACCENT_COLOR, onNavigateHome }: AppProps) {
   const { state, actions } = useEditor();
 
   useEffect(() => {
@@ -75,9 +77,20 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
   return (
     <main className="app">
-      <div className="app-mark" role="img" aria-label="Silbador">
-        <SilbadorIcon />
-      </div>
+      {onNavigateHome ? (
+        <button
+          type="button"
+          className="app-mark"
+          aria-label="Volver al índice"
+          onClick={onNavigateHome}
+        >
+          <SilbadorIcon />
+        </button>
+      ) : (
+        <div className="app-mark" role="img" aria-label="Silbador">
+          <SilbadorIcon />
+        </div>
+      )}
 
       <TransposeWidget
         chordCells={state.cells.chords}
