@@ -14,6 +14,7 @@ interface DragCell {
 
 interface SongViewProps {
   song: Song;
+  lyricsText: string;
   merges: ReadonlySet<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
@@ -221,9 +222,9 @@ function restoreCaret(root: HTMLElement, position: CaretPosition) {
   selection?.addRange(range);
 }
 
-// Only a single collapsed character insertion (including one step of IME composition) is left to
-// the browser's native fast path — it mutates one text node in place and never touches element
-// structure. Every other input type is intercepted in `handleBeforeInput` below.
+// These insertion types provide their replacement text through `InputEvent.data`. They still go
+// through the document model: even a one-character native edit can mutate a syllable text node
+// that React later reuses, leaving the DOM and model out of sync.
 const NATIVE_FAST_PATH_TYPES = new Set([
   "insertText",
   "insertCompositionText",
@@ -232,6 +233,7 @@ const NATIVE_FAST_PATH_TYPES = new Set([
 
 export function SongView({
   song,
+  lyricsText,
   merges,
   tracks,
   cells,
@@ -245,6 +247,7 @@ export function SongView({
   const rootRef = useRef<HTMLDivElement>(null);
   const pendingCaret = useRef<CaretPosition | null>(null);
   const hasVisibleAnnotations = tracks.some((track) => track.visible);
+  const lyricLines = lyricsText.split("\n");
 
   // Flattened in song order (not per line) so a chord at the start of one line can still be
   // compared against the last chord of the previous line.
@@ -349,18 +352,6 @@ export function SongView({
     const selection = window.getSelection();
     const range = captureSelectionRange(root);
     if (!selection || !range) return;
-
-    // Chromium inserts the first character directly into the editing host, rather than its
-    // empty lyric-row child. That text is outside `readDocument()`, leaving the model empty and
-    // the onboarding placeholder visible. Route that first insertion through the model; once a
-    // lyric row has text, the native fast path is safe again.
-    if (
-      NATIVE_FAST_PATH_TYPES.has(inputType) &&
-      selection.isCollapsed &&
-      !root.classList.contains("song--empty")
-    ) {
-      return;
-    }
 
     event.preventDefault();
 
@@ -576,10 +567,11 @@ export function SongView({
         {song.length === 0 ? (
           <div className="syllable-row document-empty-line" data-lyrics-line />
         ) : null}
-        {song.map((line) => (
+        {song.map((line, index) => (
           <LineView
             key={line.id}
             line={line}
+            trailingWhitespace={lyricLines[index]?.match(/\s+$/)?.[0] ?? ""}
             merges={merges}
             tracks={tracks}
             cells={cells}

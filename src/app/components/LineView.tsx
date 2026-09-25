@@ -1,4 +1,5 @@
 import { Fragment, useLayoutEffect, useRef, useState } from "react";
+import { chordToNoteNames } from "../../core/chordNotes";
 import { endSlotId, getLineCellSlots, getLineUnits, mergeKey } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
@@ -54,6 +55,8 @@ interface DragCell {
 
 interface LineViewProps {
   line: Line;
+  /** Whitespace at the end of the raw lyric line, which the syllable model does not retain. */
+  trailingWhitespace: string;
   merges: ReadonlySet<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
@@ -71,6 +74,7 @@ interface LineViewProps {
 
 export function LineView({
   line,
+  trailingWhitespace,
   merges,
   tracks,
   cells,
@@ -226,6 +230,11 @@ export function LineView({
 
   function renderTrackRow(track: TrackDef) {
     if (track.id === "chordNotes") {
+      // This derived, read-only row is up to four notes tall. Do not reserve that vertical space
+      // until this particular lyric line has an actual chord to describe.
+      if (!slotIds.some((slotId) => chordToNoteNames(getCell(cells, "chords", slotId)))) {
+        return null;
+      }
       return (
         <div key={track.id} contentEditable={false}>
           <ChordNotesRow
@@ -334,6 +343,9 @@ export function LineView({
             </Fragment>
           );
         })}
+        {/* Keep a React-owned caret anchor after a trailing space. Without it, the model drops
+            that space while syllabifying and the next typed word is appended to the previous one. */}
+        {trailingWhitespace.replaceAll(/\s/g, "\u00a0")}
       </div>
       {tracks
         .filter((track) => track.visible && track.id === "vocalNotes")

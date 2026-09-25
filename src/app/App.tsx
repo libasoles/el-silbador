@@ -141,6 +141,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
         <SongView
           song={state.song}
+          lyricsText={state.lyricsText}
           merges={state.merges}
           tracks={state.tracks}
           cells={state.cells}
