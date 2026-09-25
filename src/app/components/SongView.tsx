@@ -49,6 +49,22 @@ function readDocument(root: HTMLElement): string {
 }
 
 function positionForNode(root: HTMLElement, node: Node, nodeOffset: number): CaretPosition | null {
+  const lines = Array.from(root.querySelectorAll<HTMLElement>("[data-lyrics-line]"));
+
+  // A select-all range is commonly anchored on the editing host itself: `(root, 0)` through
+  // `(root, root.childNodes.length)`. That is still a selection of lyric text, even though
+  // neither endpoint has a lyric-line ancestor. Translate a host boundary to the nearest line
+  // boundary so beforeinput can perform the edit through the document model.
+  if (node === root) {
+    const nextLine = Array.from(root.childNodes)
+      .slice(nodeOffset)
+      .find((child): child is HTMLElement => child instanceof HTMLElement && child.matches("[data-lyrics-line]"));
+    if (nextLine) return { lineIndex: lines.indexOf(nextLine), offset: 0 };
+
+    const lastLine = lines.at(-1);
+    return lastLine ? { lineIndex: lines.length - 1, offset: lineText(lastLine).length } : null;
+  }
+
   const element = node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement;
   const line = element?.closest<HTMLElement>("[data-lyrics-line]");
   if (!line || !root.contains(line)) return null;
@@ -59,7 +75,7 @@ function positionForNode(root: HTMLElement, node: Node, nodeOffset: number): Car
   } catch {
     return null;
   }
-  return { lineIndex: Array.from(root.querySelectorAll("[data-lyrics-line]")).indexOf(line), offset: range.toString().length };
+  return { lineIndex: lines.indexOf(line), offset: range.toString().length };
 }
 
 function captureCaret(root: HTMLElement): CaretPosition | null {
