@@ -11,11 +11,17 @@ describe("underline visibility", () => {
   });
 });
 
-describe("disabled icon-button tooltips", () => {
-  it("moves the title to a hoverable wrapper", () => {
-    expect(app).toContain("function DisabledIconButtonTooltip");
+describe("icon-button tooltips", () => {
+  it("renders a visible tooltip from a hoverable wrapper", () => {
+    expect(app).toContain("function IconButtonTooltip");
     expect(app).toContain('className="icon-button-tooltip"');
+    expect(app).toContain("data-tooltip={tooltip}");
+    expect(app).not.toMatch(/<button[^>]*\btitle=/);
     expect(styles).toMatch(/\.icon-button-tooltip\s*\{[\s\S]*display: inline-flex/);
     expect(styles).toMatch(/\.icon-button-tooltip > button:disabled\s*\{[\s\S]*pointer-events: none/);
+    expect(styles).toMatch(
+      /\.icon-button-tooltip:hover::after,\s*\.icon-button-tooltip:focus-within::after\s*\{[\s\S]*opacity: 1/,
+    );
+    expect(styles).toContain("content: attr(data-tooltip)");
   });
 });

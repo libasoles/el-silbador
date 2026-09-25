@@ -20,22 +20,14 @@ interface TrackToggleButtonProps {
   onToggle: () => void;
 }
 
-interface DisabledIconButtonTooltipProps {
-  disabled: boolean;
-  title: string;
+interface IconButtonTooltipProps {
+  tooltip: string;
   children: ReactNode;
 }
 
-/** Native titles do not reliably appear on disabled buttons, so the enabled wrapper owns them. */
-function DisabledIconButtonTooltip({
-  disabled,
-  title,
-  children,
-}: DisabledIconButtonTooltipProps) {
-  if (!disabled) return children;
-
+function IconButtonTooltip({ tooltip, children }: IconButtonTooltipProps) {
   return (
-    <span className="icon-button-tooltip" title={title}>
+    <span className="icon-button-tooltip" data-tooltip={tooltip}>
       {children}
     </span>
   );
@@ -47,24 +39,23 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
       ? Object.values(cells.chords ?? {}).some((text) => chordToNoteNames(text) !== null)
       : Object.values(cells[track.id] ?? {}).some((text) => text.trim() !== "");
   const disabled = !hasContent;
-  const disabledTitle =
+  const disabledTooltip =
     track.id === "chordNotes"
       ? "No hay notas que mostrar"
       : `No hay ${track.label.toLowerCase()} que mostrar`;
   return (
-    <DisabledIconButtonTooltip disabled={disabled} title={disabledTitle}>
+    <IconButtonTooltip tooltip={disabled ? disabledTooltip : track.label}>
       <button
         type="button"
         className="track-toolbar__toggle"
         aria-pressed={track.visible}
         aria-label={track.label}
-        title={disabled ? undefined : track.label}
         disabled={disabled}
         onClick={onToggle}
       >
         <TrackIcon trackId={track.id} />
       </button>
-    </DisabledIconButtonTooltip>
+    </IconButtonTooltip>
   );
 }
 
@@ -116,22 +107,24 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
                 }
               />
             ))}
-          <DisabledIconButtonTooltip
-            disabled={state.lyricsText.trim() === ""}
-            title="No hay letra que subrayar"
+          <IconButtonTooltip
+            tooltip={
+              state.lyricsText.trim() === ""
+                ? "No hay letra que subrayar"
+                : "Subrayado"
+            }
           >
             <button
               type="button"
               className="track-toolbar__toggle"
               aria-pressed={state.showUnderline}
               aria-label="Subrayado"
-              title={state.lyricsText.trim() === "" ? undefined : "Subrayado"}
               disabled={state.lyricsText.trim() === ""}
               onClick={() => actions.setShowUnderline(!state.showUnderline)}
             >
               <UnderlineIcon />
             </button>
-          </DisabledIconButtonTooltip>
+          </IconButtonTooltip>
           {state.tracks
             .filter((track) => track.id === "vocalNotes")
             .map((track) => (
@@ -160,21 +153,23 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
         />
 
         <aside className="action-toolbar" aria-label="Acciones">
-          <DisabledIconButtonTooltip
-            disabled={state.lyricsText.trim() === ""}
-            title="No hay letra que exportar"
+          <IconButtonTooltip
+            tooltip={
+              state.lyricsText.trim() === ""
+                ? "No hay letra que exportar"
+                : "Exportar a PDF"
+            }
           >
             <button
               type="button"
               className="action-toolbar__button"
               aria-label="Exportar a PDF"
-              title={state.lyricsText.trim() === "" ? undefined : "Exportar a PDF"}
               disabled={state.lyricsText.trim() === ""}
               onClick={handleExportPdf}
             >
               <DownloadIcon />
             </button>
-          </DisabledIconButtonTooltip>
+          </IconButtonTooltip>
         </aside>
       </div>
     </main>

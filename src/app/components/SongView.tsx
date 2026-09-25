@@ -350,7 +350,17 @@ export function SongView({
     const range = captureSelectionRange(root);
     if (!selection || !range) return;
 
-    if (NATIVE_FAST_PATH_TYPES.has(inputType) && selection.isCollapsed) return;
+    // Chromium inserts the first character directly into the editing host, rather than its
+    // empty lyric-row child. That text is outside `readDocument()`, leaving the model empty and
+    // the onboarding placeholder visible. Route that first insertion through the model; once a
+    // lyric row has text, the native fast path is safe again.
+    if (
+      NATIVE_FAST_PATH_TYPES.has(inputType) &&
+      selection.isCollapsed &&
+      !root.classList.contains("song--empty")
+    ) {
+      return;
+    }
 
     event.preventDefault();
 
