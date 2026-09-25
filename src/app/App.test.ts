@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 const styles = readFileSync(new URL("./App.css", import.meta.url), "utf8");
+const themeStyles = readFileSync(new URL("./theme.css", import.meta.url), "utf8");
 const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8");
 const favicon = readFileSync(new URL("../../public/favicon.svg", import.meta.url), "utf8");
 
@@ -37,8 +38,10 @@ describe("application mark", () => {
   it("renders the Silbador icon in the upper-left corner", () => {
     expect(app).toContain("<SilbadorIcon />");
     expect(app).toContain('className="app-mark"');
-    expect(styles).toMatch(/\.app-mark\s*\{[\s\S]*position: fixed[\s\S]*top: 1rem[\s\S]*left: 1rem/);
-    expect(styles).toMatch(/\.app-mark\s*\{[\s\S]*color: #000/);
+    expect(themeStyles).toMatch(
+      /\.app-mark\s*\{[\s\S]*position: fixed[\s\S]*top: 1rem[\s\S]*left: 1rem/,
+    );
+    expect(themeStyles).toMatch(/\.app-mark\s*\{[\s\S]*color: #000/);
   });
 });
 
