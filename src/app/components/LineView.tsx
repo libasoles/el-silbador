@@ -57,6 +57,7 @@ interface LineViewProps {
   merges: ReadonlySet<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
+  previousChordNotes: ReadonlyMap<string, string[]>;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
   dragSource: DragCell | null;
@@ -73,6 +74,7 @@ export function LineView({
   merges,
   tracks,
   cells,
+  previousChordNotes,
   onSetCellText,
   onToggleMerge,
   dragSource,
@@ -232,7 +234,13 @@ export function LineView({
           if (track.id === "chordNotes") {
             return (
               <div key={track.id} contentEditable={false}>
-                <ChordNotesRow label={track.label} slotIds={slotIds} slotRects={slotRects} cells={cells} />
+                <ChordNotesRow
+                  label={track.label}
+                  slotIds={slotIds}
+                  slotRects={slotRects}
+                  cells={cells}
+                  previousChordNotes={previousChordNotes}
+                />
               </div>
             );
           }

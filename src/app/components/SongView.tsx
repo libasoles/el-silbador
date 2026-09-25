@@ -1,5 +1,8 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
+import { previousChordNotesBySlot } from "../../core/chordNotes";
+import { getLineCellSlots } from "../../core/model";
+import { getCell } from "../../core/state";
 import type { CellsByTrack, Song, TrackDef, TrackId } from "../../core/types";
 import { LineView } from "./LineView";
 
@@ -198,6 +201,13 @@ export function SongView({
   const rootRef = useRef<HTMLDivElement>(null);
   const pendingCaret = useRef<CaretPosition | null>(null);
   const hasVisibleAnnotations = tracks.some((track) => track.visible);
+
+  // Flattened in song order (not per line) so a chord at the start of one line can still be
+  // compared against the last chord of the previous line.
+  const chordSlotOrder = song.flatMap((line) => getLineCellSlots(line, merges));
+  const previousChordNotes = previousChordNotesBySlot(chordSlotOrder, (slotId) =>
+    getCell(cells, "chords", slotId),
+  );
 
   // Drag state lives here, above every line, so a chord chip can be dragged from one line's
   // track row and dropped onto a slot in a different line — not just within the same line.
@@ -477,6 +487,7 @@ export function SongView({
           merges={merges}
           tracks={tracks}
           cells={cells}
+          previousChordNotes={previousChordNotes}
           onSetCellText={onSetCellText}
           onToggleMerge={onToggleMerge}
           dragSource={dragSource}

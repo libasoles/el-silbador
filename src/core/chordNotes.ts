@@ -63,3 +63,21 @@ export function chordToNoteNames(chord: string): string[] | null {
   const offsets = seventh === null ? [0, third, fifth] : [0, third, fifth, seventh];
   return offsets.map((offset) => CHROMATIC_SOLFEGE[((rootIndex + offset) % 12 + 12) % 12]!);
 }
+
+/** For each slot (given in document order) that holds a recognizable chord, this notes the
+ *  *previous* such slot's notes — so a chord can highlight the notes it shares with the one
+ *  before it. `chordAt` looks up the chord text written in a given slot. */
+export function previousChordNotesBySlot(
+  orderedSlotIds: string[],
+  chordAt: (slotId: string) => string,
+): Map<string, string[]> {
+  const result = new Map<string, string[]>();
+  let previous: string[] | null = null;
+  for (const slotId of orderedSlotIds) {
+    const notes = chordToNoteNames(chordAt(slotId));
+    if (!notes) continue;
+    if (previous) result.set(slotId, previous);
+    previous = notes;
+  }
+  return result;
+}
