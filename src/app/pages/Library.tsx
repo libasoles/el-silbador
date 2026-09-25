@@ -66,13 +66,12 @@ function SongRow({ song, favorited, onOpen, onToggleFavorite }: SongRowProps) {
 }
 
 interface LibrarySectionProps {
-  title: string;
+  title?: string;
   songs: LibrarySong[];
   emptyLabel: string;
   favoriteIds: Set<string>;
   onOpenSong: (song: LibrarySong) => void;
   onToggleFavorite: (song: LibrarySong) => void;
-  action?: { label: string; onClick: () => void };
 }
 
 function LibrarySection({
@@ -82,19 +81,14 @@ function LibrarySection({
   favoriteIds,
   onOpenSong,
   onToggleFavorite,
-  action,
 }: LibrarySectionProps) {
   return (
     <section className="library-section">
-      <div className="library-section__head">
-        <h2 className="library-section__title">{title}</h2>
-        {action && (
-          <button type="button" className="library-section__new" onClick={action.onClick}>
-            <PlusIcon />
-            {action.label}
-          </button>
-        )}
-      </div>
+      {title && (
+        <div className="library-section__head">
+          <h2 className="library-section__title">{title}</h2>
+        </div>
+      )}
       {songs.length === 0 ? (
         <p className="empty-state library-section__empty">{emptyLabel}</p>
       ) : (
@@ -168,7 +162,17 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
       </div>
 
       <header className="library-header">
-        <h1 className="library-heading">Tu cancionero</h1>
+        <div className="library-header__title-row">
+          <h1 className="library-heading">Cancionero</h1>
+          <button
+            type="button"
+            className="library-new"
+            aria-label="Nueva canción"
+            onClick={handleNew}
+          >
+            <PlusIcon />
+          </button>
+        </div>
         <label className="library-search">
           <SearchIcon />
           <input
@@ -184,13 +188,11 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
 
       <div className="library-sections">
         <LibrarySection
-          title="Mis canciones"
           songs={mySongs}
           emptyLabel="Todavía no escribiste ninguna canción."
           favoriteIds={favoriteIds}
           onOpenSong={handleOpen}
           onToggleFavorite={toggleFavorite}
-          action={{ label: "Nueva canción", onClick: handleNew }}
         />
 
         <LibrarySection
