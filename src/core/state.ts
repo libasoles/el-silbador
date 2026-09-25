@@ -185,7 +185,14 @@ function applyPasteText(
     cells = setCell(cells, "chords", slotId, placement.chord);
   }
 
-  return { ...next, cells };
+  // Pasting a chord sheet implies the user wants to see the chords they just pasted, so reveal
+  // the chords track automatically. The chord-note-names track is a separate, unrelated setting
+  // and is left untouched.
+  const tracks = next.tracks.map((track) =>
+    track.id === "chords" ? { ...track, visible: true } : track,
+  );
+
+  return { ...next, cells, tracks };
 }
 
 function lineText(line: EditorState["song"][number]): string {
