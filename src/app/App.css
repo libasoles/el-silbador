@@ -7,6 +7,24 @@
   padding: 1.25rem 2rem 6rem;
 }
 
+/* The app's singer mark stays in the page's upper-left corner without competing with the song
+   editor's centered reading column. */
+.app-mark {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 5;
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--accent);
+}
+
+.app-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .title-block {
   display: flex;
   flex-direction: column;
@@ -204,6 +222,7 @@
 @media print {
   .track-toolbar,
   .action-toolbar,
+  .app-mark,
   .transpose-widget {
     display: none;
   }

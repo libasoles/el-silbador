@@ -31,3 +31,11 @@ describe("icon-button tooltips", () => {
     expect(styles).toContain("content: attr(data-tooltip)");
   });
 });
+
+describe("application mark", () => {
+  it("renders the Silabeo icon in the upper-left corner", () => {
+    expect(app).toContain("<SilabeoIcon />");
+    expect(app).toContain('className="app-mark"');
+    expect(styles).toMatch(/\.app-mark\s*\{[\s\S]*position: fixed[\s\S]*top: 1rem[\s\S]*left: 1rem/);
+  });
+});

@@ -4,7 +4,7 @@ import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { SongView } from "./components/SongView";
-import { DownloadIcon, TrackIcon, UnderlineIcon } from "./components/icons";
+import { DownloadIcon, SilabeoIcon, TrackIcon, UnderlineIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
 import { useEditor } from "./useEditor";
 
@@ -75,6 +75,10 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
 
   return (
     <main className="app">
+      <div className="app-mark" role="img" aria-label="Silabeo">
+        <SilabeoIcon />
+      </div>
+
       <TransposeWidget
         chordCells={state.cells.chords}
         onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
