@@ -7,27 +7,14 @@
   padding: 1.25rem 2rem 6rem;
 }
 
-/* Puts the close button beside the title instead of pinning it to the viewport corner, where it
-   would sit on top of the transpose widget's own fixed position at that same edge. */
-.title-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.title-block {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-/* Mirrors the library's "new song" button (.library-new): a large circular icon button, sized to
-   be an easy target rather than a discreet toolbar icon. */
+/* Mirrors .app-mark's own corner exactly, on the opposite side, so the two read as a matched
+   pair. The transpose widget (top: 4.25rem in TransposeWidget.css) starts below this button's
+   bottom edge (top 1rem + height 2.75rem = 3.75rem) so the two can never overlap. */
 .app-close {
-  flex: none;
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -45,6 +32,12 @@
 .app-close:hover {
   opacity: 1;
   color: var(--accent);
+}
+
+.title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .title-input,

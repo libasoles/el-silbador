@@ -152,49 +152,47 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
         <SilbadorIcon />
       </a>
 
+      <IconButtonTooltip tooltip="Volver al índice">
+        <a className="app-close" href="/" aria-label="Volver al índice">
+          <XIcon size={26} />
+        </a>
+      </IconButtonTooltip>
+
       <TransposeWidget
         chordCells={state.cells.chords}
         onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
       />
 
-      <div className="title-row">
-        <div className="title-block">
+      <div className="title-block">
+        <input
+          type="text"
+          className="title-input"
+          placeholder="Título"
+          value={state.title}
+          onChange={(event) => actions.setTitle(event.target.value)}
+          aria-label="Título"
+        />
+        {(state.title.trim() !== "" || state.author.trim() !== "") && (
           <input
             type="text"
-            className="title-input"
-            placeholder="Título"
-            value={state.title}
-            onChange={(event) => actions.setTitle(event.target.value)}
-            aria-label="Título"
+            className="author-input"
+            placeholder="Autor"
+            value={state.author}
+            onChange={(event) => actions.setAuthor(event.target.value)}
+            aria-label="Autor"
           />
-          {(state.title.trim() !== "" || state.author.trim() !== "") && (
-            <input
-              type="text"
-              className="author-input"
-              placeholder="Autor"
-              value={state.author}
-              onChange={(event) => actions.setAuthor(event.target.value)}
-              aria-label="Autor"
-            />
-          )}
-          {loadError && loadError.songId === songId ? (
-            <p className="autosave-status autosave-status--error">
-              No se pudo cargar la canción: {loadError.message}
+        )}
+        {loadError && loadError.songId === songId ? (
+          <p className="autosave-status autosave-status--error">
+            No se pudo cargar la canción: {loadError.message}
+          </p>
+        ) : (
+          (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
+            <p className={`autosave-status autosave-status--${autosaveStatus}`}>
+              {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
             </p>
-          ) : (
-            (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
-              <p className={`autosave-status autosave-status--${autosaveStatus}`}>
-                {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
-              </p>
-            )
-          )}
-        </div>
-
-        <IconButtonTooltip tooltip="Volver al índice">
-          <a className="app-close" href="/" aria-label="Volver al índice">
-            <XIcon size={26} />
-          </a>
-        </IconButtonTooltip>
+          )
+        )}
       </div>
 
       <div className="workspace">

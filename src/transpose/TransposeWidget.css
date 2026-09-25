@@ -1,9 +1,10 @@
 /* Fixed and right-aligned to the same edge as .track-toolbar/.action-toolbar below, so it lines
    up with the sidebar's outer edge regardless of viewport width instead of trailing the header's
-   own (narrower) content column. */
+   own (narrower) content column. Sits below .app-close's fixed corner button (top: 1rem, height
+   2.75rem) rather than sharing its row, so the two can never overlap. */
 .transpose-widget {
   position: fixed;
-  top: 1.5rem;
+  top: 4.25rem;
   right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
   display: flex;
   align-items: center;
