@@ -21,7 +21,7 @@ export function createInitialState(): EditorState {
     song: [],
     merges: new Set(),
     tracks: [
-      { id: "chordNotes", label: "Notas del acorde", visible: true },
+      { id: "chordNotes", label: "Notas del acorde", visible: false },
       { id: "chords", label: "Acordes", visible: false },
       { id: "vocalNotes", label: "Notas de la melodía", visible: false },
     ],
