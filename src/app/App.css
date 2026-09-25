@@ -150,6 +150,31 @@ h1 {
   color: var(--chord);
 }
 
+/* The notes track is read-only and taller than a single text row: each cell stacks up to three
+   note names (highest pitch on top), rather than the one-line chip the other tracks show. */
+.track-row[data-track="chordNotes"] {
+  height: 3.2em;
+}
+
+.chord-notes-cell {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05em;
+  line-height: 1.05;
+  pointer-events: none;
+  user-select: none;
+}
+
+.chord-notes-cell__note {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .track-cell--chip {
   background: transparent;
 }

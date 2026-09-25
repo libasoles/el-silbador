@@ -22,6 +22,29 @@ export function ChordIcon() {
   );
 }
 
+/** "Do mi sol" stacked — three noteheads on one stem, like a triad written on a staff. */
+export function NoteStackIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <line x1="15.5" y1="5" x2="15.5" y2="18.5" />
+      <ellipse cx="7.5" cy="19" rx="3.5" ry="2.3" fill="currentColor" stroke="none" transform="rotate(-18 7.5 19)" />
+      <ellipse cx="9.5" cy="12" rx="3.5" ry="2.3" fill="currentColor" stroke="none" transform="rotate(-18 9.5 12)" />
+      <ellipse cx="12" cy="5" rx="3.5" ry="2.3" fill="currentColor" stroke="none" transform="rotate(-18 12 5)" />
+    </svg>
+  );
+}
+
 export function UnderlineIcon() {
   return (
     <svg
@@ -52,6 +75,7 @@ export function DotIcon() {
 
 const ICONS_BY_TRACK: Record<string, typeof ChordIcon> = {
   chords: ChordIcon,
+  chordNotes: NoteStackIcon,
 };
 
 export function TrackIcon({ trackId }: { trackId: string }) {

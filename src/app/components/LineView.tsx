@@ -3,6 +3,7 @@ import { endSlotId, getLineCellSlots, getLineUnits, mergeKey } from "../../core/
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
 import { requiredAnnotationGap } from "./annotationSpacing";
+import { ChordNotesRow } from "./ChordNotesRow";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
 
 interface SyllableGapButtonProps {
@@ -228,6 +229,13 @@ export function LineView({
       {tracks
         .filter((track) => track.visible)
         .map((track) => {
+          if (track.id === "chordNotes") {
+            return (
+              <div key={track.id} contentEditable={false}>
+                <ChordNotesRow label={track.label} slotIds={slotIds} slotRects={slotRects} cells={cells} />
+              </div>
+            );
+          }
           const drag: CellDragHandlers = {
             draggedSlotId: dragSource && dragSource.trackId === track.id ? dragSource.slotId : null,
             onDragStart: (slotId) => onDragStartCell(track.id, slotId),
