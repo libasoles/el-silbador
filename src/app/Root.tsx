@@ -10,7 +10,7 @@ function Root() {
   const [route, setRoute] = useState<Route>({ name: "library" });
 
   if (route.name === "editor") {
-    return <App onNavigateHome={() => setRoute({ name: "library" })} />;
+    return <App />;
   }
 
   return (

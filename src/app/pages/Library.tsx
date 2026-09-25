@@ -160,9 +160,9 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
 
   return (
     <main className="library">
-      <div className="app-mark" role="img" aria-label="Silbador">
+      <a className="app-mark" href="/" aria-label="Ir al índice">
         <SilbadorIcon />
-      </div>
+      </a>
 
       <header className="library-header">
         <div className="library-header__title-row">
