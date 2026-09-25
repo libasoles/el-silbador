@@ -7,7 +7,7 @@ import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { SongView } from "./components/SongView";
-import { DownloadIcon, SilbadorIcon, TrackIcon, UnderlineIcon } from "./components/icons";
+import { DownloadIcon, SilbadorIcon, TrackIcon, UnderlineIcon, XIcon } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
 import { useAutosave } from "./useAutosave";
 import { useEditor } from "./useEditor";
@@ -113,6 +113,12 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
       <a className="app-mark" href="/" aria-label="Volver al índice">
         <SilbadorIcon />
       </a>
+
+      <IconButtonTooltip tooltip="Volver al índice">
+        <a className="app-close" href="/" aria-label="Volver al índice">
+          <XIcon size={26} />
+        </a>
+      </IconButtonTooltip>
 
       <TransposeWidget
         chordCells={state.cells.chords}

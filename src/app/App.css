@@ -7,6 +7,32 @@
   padding: 1.25rem 2rem 6rem;
 }
 
+/* Mirrors the library's "new song" button (.library-new): a large circular icon button in a
+   fixed corner, sized to be an easy target rather than a discreet toolbar icon. */
+.app-close {
+  position: fixed;
+  top: 1rem;
+  right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-radius: 999px;
+  color: var(--fg);
+  opacity: 0.75;
+  transition:
+    color 160ms ease,
+    opacity 180ms ease;
+}
+
+.app-close:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+
 .title-block {
   display: flex;
   flex-direction: column;
@@ -173,6 +199,7 @@
   .track-toolbar,
   .action-toolbar,
   .app-mark,
+  .app-close,
   .transpose-widget {
     display: none;
   }
