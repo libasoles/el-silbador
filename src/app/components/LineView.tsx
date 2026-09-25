@@ -55,6 +55,8 @@ interface DragCell {
 
 interface LineViewProps {
   line: Line;
+  /** Whitespace at the end of the raw lyric line, which the syllable model does not retain. */
+  trailingWhitespace: string;
   merges: ReadonlySet<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
@@ -72,6 +74,7 @@ interface LineViewProps {
 
 export function LineView({
   line,
+  trailingWhitespace,
   merges,
   tracks,
   cells,
@@ -340,6 +343,9 @@ export function LineView({
             </Fragment>
           );
         })}
+        {/* Keep a React-owned caret anchor after a trailing space. Without it, the model drops
+            that space while syllabifying and the next typed word is appended to the previous one. */}
+        {trailingWhitespace.replaceAll(/\s/g, "\u00a0")}
       </div>
       {tracks
         .filter((track) => track.visible && track.id === "vocalNotes")
