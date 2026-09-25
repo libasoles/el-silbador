@@ -93,7 +93,7 @@ h1 {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 1.4rem;
   min-height: 5rem;
   outline: none;
 }
@@ -139,21 +139,21 @@ h1 {
 }
 
 
-/* Subtle annotation cells: no boxes, just centered text that sits above its syllable. Each is
-   pinned (via inline left/width, computed from the rendered syllable geometry) so chord/note
-   marks line up with the sound they belong to, and stay put — position never changes on focus. */
+/* Subtle annotation cells: no boxes, just onset-aligned text that sits above its syllable. Each
+   is pinned (via inline left/width, computed from the rendered syllable geometry) so chord/note
+   marks begin at the sound they belong to, and stay put — position never changes on focus. */
 .track-cell {
   position: absolute;
   top: 0;
   min-width: 0.6rem;
-  padding: 0 0.1rem;
+  padding: 0;
   border: none;
   border-bottom: 1px solid transparent;
   color: var(--accent);
   font-family: var(--sans);
   font-weight: 500;
   font-size: 0.85rem;
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
   overflow: visible;
 }
@@ -223,8 +223,12 @@ h1 {
   content: none;
 }
 
-/* While dragging a chord, the syllable it would land on lights up its own underline instead of
-   the chip showing any indicator — the chip stays put wherever the pointer drags it. */
+/* While dragging a chord, the syllable it would land on lights up as a whole: its text and
+   underline share the accent, while the chip itself stays unchanged under the pointer. */
+.syllable--drop-target {
+  color: var(--accent);
+}
+
 .syllable--drop-target::after {
   background: var(--accent);
   height: 3px;
@@ -239,7 +243,7 @@ h1 {
 
 .syllable-gap {
   display: inline-block;
-  width: 0.04em;
+  width: calc(0.04em + var(--annotation-gap, 0px));
   height: 1em;
   padding: 0;
   /* This space belongs to the lyric layout. A merged underline bridges it, but never collapses
@@ -256,7 +260,7 @@ h1 {
 
 .syllable-gap--word-boundary {
   /* Extra room makes the chord-alignment boundary easy to target while the track is visible. */
-  width: 0.55em;
+  width: calc(0.55em + var(--annotation-gap, 0px));
 }
 
 /* With chords hidden, this button is the only thing separating words (there's no extra space

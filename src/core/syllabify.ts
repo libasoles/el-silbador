@@ -75,9 +75,7 @@ function findNuclei(word: string): Nucleus[] {
     let end = i;
     while (end + 1 < word.length) {
       let nextIdx = end + 1;
-      let hasH = false;
       if (word[nextIdx].toLowerCase() === "h" && nextIdx + 1 < word.length && isVowel(word, nextIdx + 1)) {
-        hasH = true;
         nextIdx++;
       }
       if (!isVowel(word, nextIdx)) break;
@@ -237,4 +235,3 @@ export function hyphenateWord(rawWord: string): string[] {
 export function splitIntoWords(line: string): string[] {
   return line.split(/\s+/).filter((token) => token.length > 0);
 }
-

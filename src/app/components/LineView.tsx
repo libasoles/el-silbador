@@ -1,6 +1,8 @@
 import { Fragment, useLayoutEffect, useRef, useState } from "react";
 import { endSlotId, getLineCellSlots, getLineUnits, mergeKey } from "../../core/model";
+import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
+import { requiredAnnotationGap } from "./annotationSpacing";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
 
 interface SyllableGapButtonProps {
@@ -9,6 +11,7 @@ interface SyllableGapButtonProps {
   dropTarget?: boolean;
   fromText: string;
   toText: string;
+  annotationGap?: number;
   onToggle: () => void;
 }
 
@@ -19,6 +22,7 @@ function SyllableGapButton({
   dropTarget = false,
   fromText,
   toText,
+  annotationGap = 0,
   onToggle,
 }: SyllableGapButtonProps) {
   return (
@@ -33,6 +37,7 @@ function SyllableGapButton({
       }
       aria-pressed={merged}
       aria-label={merged ? `Separar sílabas "${fromText}" y "${toText}"` : `Unir sílabas "${fromText}" y "${toText}"`}
+      style={{ "--annotation-gap": `${annotationGap}px` } as React.CSSProperties}
       onClick={(e) => {
         e.stopPropagation();
         onToggle();
@@ -91,6 +96,12 @@ export function LineView({
   const syllableEls = useRef(new Map<string, HTMLElement>());
   const syllableRowRef = useRef<HTMLDivElement>(null);
   const [slotRects, setSlotRects] = useState<Record<string, { left: number; width: number }>>({});
+  const [annotationGapExtras, setAnnotationGapExtras] = useState<Record<string, number>>({});
+  const annotationSpacingKeyRef = useRef<string | null>(null);
+  const annotationSpacingKey = tracks
+    .filter((track) => track.visible)
+    .map((track) => `${track.id}:${units.map((unit) => getCell(cells, track.id, unit.slotId)).join("\u0001")}`)
+    .join("\u0002");
 
   function registerSyllableRef(syllableId: string, el: HTMLElement | null) {
     if (el) syllableEls.current.set(syllableId, el);
@@ -127,7 +138,53 @@ export function LineView({
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [line, merges]);
+  }, [line, merges, annotationGapExtras]);
+
+  useLayoutEffect(() => {
+    // A changed label or merge gets a fresh measurement from the unexpanded lyric layout.
+    if (annotationSpacingKeyRef.current !== annotationSpacingKey) {
+      annotationSpacingKeyRef.current = annotationSpacingKey;
+      if (Object.keys(annotationGapExtras).length > 0) {
+        setAnnotationGapExtras({});
+        return;
+      }
+    }
+
+    const rowEl = syllableRowRef.current;
+    const lineEl = rowEl?.parentElement;
+    if (!rowEl || !lineEl) return;
+
+    const labelWidths = new Map<string, number>();
+    for (const track of tracks) {
+      if (!track.visible) continue;
+      const cellsInTrack = Array.from(lineEl.querySelectorAll<HTMLElement>(`[data-track="${track.id}"] [data-slot-id]`));
+      for (const unit of units) {
+        if (!getCell(cells, track.id, unit.slotId)) continue;
+        const cellEl = cellsInTrack.find((cell) => cell.dataset.slotId === unit.slotId);
+        if (!cellEl) continue;
+        const range = document.createRange();
+        range.selectNodeContents(cellEl);
+        const width = Math.ceil(range.getBoundingClientRect().width);
+        labelWidths.set(unit.slotId, Math.max(labelWidths.get(unit.slotId) ?? 0, width));
+      }
+    }
+
+    const next = { ...annotationGapExtras };
+    for (let index = 0; index < units.length - 1; index++) {
+      const unit = units[index]!;
+      const nextUnit = units[index + 1]!;
+      const width = labelWidths.get(unit.slotId);
+      const firstEl = syllableEls.current.get(unit.syllableIds[0]);
+      const nextFirstEl = syllableEls.current.get(nextUnit.syllableIds[0]);
+      if (!width || !firstEl || !nextFirstEl) continue;
+      const distance = nextFirstEl.getBoundingClientRect().left - firstEl.getBoundingClientRect().left;
+      const additional = requiredAnnotationGap(width, distance);
+      if (additional > 0) next[unit.slotId] = (next[unit.slotId] ?? 0) + additional;
+    }
+
+    const changed = Object.keys(next).some((key) => next[key] !== annotationGapExtras[key]);
+    if (changed) setAnnotationGapExtras(next);
+  }, [annotationGapExtras, annotationSpacingKey, cells, tracks, units]);
 
   const isDragging = dragSource !== null;
 
@@ -210,6 +267,11 @@ export function LineView({
                   }
                   fromText={prevSyllable.text}
                   toText={firstSyllable.text}
+                  annotationGap={
+                    syllableSlotId.get(prevSyllable.id) === syllableSlotId.get(firstSyllable.id)
+                      ? 0
+                      : annotationGapExtras[syllableSlotId.get(prevSyllable.id) ?? ""]
+                  }
                   onToggle={() => onToggleMerge(line.id, prevSyllable.id, firstSyllable.id)}
                 />
               ) : null}
@@ -226,6 +288,11 @@ export function LineView({
                         }
                         fromText={previous.text}
                         toText={syllable.text}
+                        annotationGap={
+                          syllableSlotId.get(previous.id) === syllableSlotId.get(syllable.id)
+                            ? 0
+                            : annotationGapExtras[syllableSlotId.get(previous.id) ?? ""]
+                        }
                         onToggle={() => onToggleMerge(line.id, previous.id, syllable.id)}
                       />
                     ) : null}

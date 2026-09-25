@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 
 interface TrackCellProps {
+  slotId: string;
   value: string;
   left?: number;
   width?: number;
@@ -25,6 +26,7 @@ interface TrackCellProps {
  * another cell in the same track. See TrackRow/LineView for the drag-state wiring.
  */
 export function TrackCell({
+  slotId,
   value,
   left,
   width,
@@ -98,6 +100,7 @@ export function TrackCell({
       <button
         type="button"
         className={"track-cell track-cell--chip" + dragClassName}
+        data-slot-id={slotId}
         style={style}
         ref={(el) => registerRef(el)}
         onClick={startEditing}
@@ -133,6 +136,7 @@ export function TrackCell({
   return (
     <input
       className={"track-cell track-cell--input" + dragClassName}
+      data-slot-id={slotId}
       style={style}
       ref={(el) => {
         inputRef.current = el;
