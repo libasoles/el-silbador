@@ -1,0 +1,123 @@
+.auth-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(42, 38, 34, 0.45);
+  padding: 1.5rem;
+}
+
+.auth-modal {
+  position: relative;
+  width: 100%;
+  max-width: 22rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: 0 1rem 2.5rem rgba(42, 38, 34, 0.25);
+  padding: 1.75rem 1.5rem 1.5rem;
+}
+
+.auth-modal__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.auth-modal__close:hover {
+  color: var(--fg);
+}
+
+.auth-modal__tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.auth-modal__tab {
+  flex: 1;
+  padding: 0.5rem 0;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.auth-modal__tab[aria-pressed="true"] {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+
+.auth-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.auth-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.auth-modal__field input {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  padding: 0.5rem 0.6rem;
+}
+
+.auth-modal__field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.auth-modal__error {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--highlight);
+}
+
+.auth-modal__message {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  color: var(--fg);
+  line-height: 1.4;
+}
+
+.auth-modal__submit {
+  margin-top: 0.2rem;
+  padding: 0.55rem 0.8rem;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--accent);
+  border-radius: 0.3rem;
+  text-align: center;
+}
+
+.auth-modal__submit:hover {
+  color: var(--bg);
+  opacity: 0.9;
+}
+
+.auth-modal__submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
