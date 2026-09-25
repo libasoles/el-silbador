@@ -88,6 +88,7 @@ export function LineView({
   const slotIds = getLineCellSlots(line, merges);
   const units = getLineUnits(line, merges);
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
+  const chordNotesTrack = tracks.find((track) => track.id === "chordNotes" && track.visible);
 
   const mergedIds = new Set<string>();
   for (const unit of units) {
@@ -231,21 +232,8 @@ export function LineView({
       }
     >
       {tracks
-        .filter((track) => track.visible)
+        .filter((track) => track.visible && track.id !== "chordNotes")
         .map((track) => {
-          if (track.id === "chordNotes") {
-            return (
-              <div key={track.id} contentEditable={false}>
-                <ChordNotesRow
-                  label={track.label}
-                  slotIds={slotIds}
-                  slotRects={slotRects}
-                  cells={cells}
-                  previousChordNotes={previousChordNotes}
-                />
-              </div>
-            );
-          }
           const drag: CellDragHandlers = {
             draggedSlotId: dragSource && dragSource.trackId === track.id ? dragSource.slotId : null,
             onDragStart: (slotId) => onDragStartCell(track.id, slotId),
@@ -333,6 +321,17 @@ export function LineView({
           );
         })}
       </div>
+      {chordNotesTrack ? (
+        <div contentEditable={false}>
+          <ChordNotesRow
+            label={chordNotesTrack.label}
+            slotIds={slotIds}
+            slotRects={slotRects}
+            cells={cells}
+            previousChordNotes={previousChordNotes}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
