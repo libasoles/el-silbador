@@ -12,8 +12,8 @@ describe("underline visibility", () => {
 });
 
 describe("lyric caret visibility", () => {
-  it("uses the accent color instead of the browser's automatic caret color", () => {
-    expect(styles).toMatch(/\.song\s*\{[\s\S]*caret-color: var\(--accent\)/);
+  it("uses a dark-gray color instead of the browser's automatic caret color", () => {
+    expect(styles).toMatch(/\.song\s*\{[\s\S]*caret-color: #555/);
   });
 });
 

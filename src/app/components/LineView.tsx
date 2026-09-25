@@ -280,6 +280,9 @@ export function LineView({
         .filter((track) => track.visible && track.id !== "vocalNotes")
         .map(renderTrackRow)}
       <div className="syllable-row" role="textbox" data-lyrics-line ref={syllableRowRef}>
+        {/* A leading text node gives Chrome a stable, visible caret position before the first
+            lyric glyph. It is excluded from the document model. */}
+        <span data-empty-line-caret aria-hidden="true">{"\u200B"}</span>
         {line.words.map((word, wIndex) => {
           const firstSyllable = word.syllables[0];
           const prevWord = wIndex > 0 ? line.words[wIndex - 1] : null;
@@ -346,11 +349,6 @@ export function LineView({
         {/* Keep a React-owned caret anchor after a trailing space. Without it, the model drops
             that space while syllabifying and the next typed word is appended to the previous one. */}
         {trailingWhitespace.replaceAll(/\s/g, "\u00a0")}
-        {/* Chrome only paints an animated caret inside a text node. This zero-width caret host is
-            excluded from the document model, then replaced by the next typed character. */}
-        {line.words.length === 0 ? (
-          <span data-empty-line-caret aria-hidden="true">{"\u200B"}</span>
-        ) : null}
       </div>
       {tracks
         .filter((track) => track.visible && track.id === "vocalNotes")

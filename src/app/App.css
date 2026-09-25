@@ -232,7 +232,7 @@
   gap: 1.4rem;
   min-height: 5rem;
   outline: none;
-  caret-color: var(--accent);
+  caret-color: #555;
 }
 
 /* Without annotation rows, lyrics read more naturally with stanza-like leading. */

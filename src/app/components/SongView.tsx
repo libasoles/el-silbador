@@ -205,14 +205,25 @@ function restoreCaret(root: HTMLElement, position: CaretPosition) {
   let node = walker.nextNode();
   while (node) {
     const length = node.textContent?.length ?? 0;
+    const isCaretAnchor = node.parentElement?.hasAttribute("data-empty-line-caret");
+    if (isCaretAnchor) {
+      // The anchor has no document length. It represents offset zero only, so every later model
+      // offset must continue into the actual lyric text.
+      if (remaining === 0) {
+        const range = document.createRange();
+        range.setStart(node, length);
+        range.collapse(true);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        return;
+      }
+      node = walker.nextNode();
+      continue;
+    }
     if (remaining <= length) {
       const range = document.createRange();
-      // A zero-width caret anchor must put the browser *after* its text. Chrome can suppress a
-      // caret placed before an invisible first glyph, particularly in an otherwise empty editor.
-      const offset = node.parentElement?.hasAttribute("data-empty-line-caret")
-        ? length
-        : remaining;
-      range.setStart(node, offset);
+      range.setStart(node, remaining);
       range.collapse(true);
       const selection = window.getSelection();
       selection?.removeAllRanges();
