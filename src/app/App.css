@@ -310,11 +310,7 @@
   right: 0;
 }
 
-/* The underline is the visual anchor for the chord line, so hide it together with that track. */
-.line--chords-hidden .syllable::after,
-.line--chords-hidden .syllable-gap--merged::after,
-.line--chords-hidden .syllable-gap:hover::before,
-.line--chords-hidden .syllable-gap:focus-visible::before,
+/* The underline has its own visibility control, independent of the chord track. */
 .song--underline-hidden .syllable::after,
 .song--underline-hidden .syllable-gap--merged::after,
 .song--underline-hidden .syllable-gap:hover::before,

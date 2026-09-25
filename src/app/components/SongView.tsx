@@ -83,14 +83,20 @@ function positionForNode(
   // A select-all range is commonly anchored on the editing host itself: `(root, 0)` through
   // `(root, root.childNodes.length)`. That is still a selection of lyric text, even though
   // neither endpoint has a lyric-line ancestor. Translate a host boundary to the nearest line
-  // boundary so beforeinput can perform the edit through the document model.
+  // boundary so beforeinput can perform the edit through the document model. Each root child is a
+  // line wrapper (chord track rows plus the `[data-lyrics-line]` row), not the line itself, so the
+  // match has to look inside each child rather than test the child directly.
   if (node === root) {
     const nextLine = Array.from(root.childNodes)
       .slice(nodeOffset)
-      .find(
-        (child): child is HTMLElement =>
-          child instanceof HTMLElement && child.matches("[data-lyrics-line]"),
-      );
+      .map((child): HTMLElement | null =>
+        !(child instanceof HTMLElement)
+          ? null
+          : child.matches("[data-lyrics-line]")
+            ? child
+            : child.querySelector<HTMLElement>("[data-lyrics-line]"),
+      )
+      .find((line): line is HTMLElement => line !== null);
     if (nextLine) return { lineIndex: lines.indexOf(nextLine), offset: 0 };
 
     const lastLine = lines.at(-1);
