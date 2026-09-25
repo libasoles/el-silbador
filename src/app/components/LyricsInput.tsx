@@ -3,6 +3,7 @@ import { YPACARAI_LYRICS } from "../../core/fixtures/ypacarai";
 
 interface LyricsInputProps {
   onConfirm: (text: string) => void;
+  onLoadExample: () => void;
 }
 
 /** Textarea that grows to fit its content and never clips it, since `field-sizing` support
@@ -20,7 +21,7 @@ function useAutoGrow(value: string) {
   return ref;
 }
 
-export function LyricsInput({ onConfirm }: LyricsInputProps) {
+export function LyricsInput({ onConfirm, onLoadExample }: LyricsInputProps) {
   const [draft, setDraft] = useState("");
   const textareaRef = useAutoGrow(draft);
 
@@ -41,7 +42,7 @@ export function LyricsInput({ onConfirm }: LyricsInputProps) {
           type="button"
           onClick={() => {
             setDraft(YPACARAI_LYRICS);
-            onConfirm(YPACARAI_LYRICS);
+            onLoadExample();
           }}
         >
           Cargar "Recuerdos de Ypacaraí"

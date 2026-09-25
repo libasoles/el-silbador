@@ -10,16 +10,6 @@ export function ChordIcon() {
   );
 }
 
-export function VoiceIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-      <circle cx="7" cy="17" r="3" />
-      <path strokeLinecap="round" d="M10 17V4l9 2v11" />
-      <circle cx="19" cy="15" r="3" />
-    </svg>
-  );
-}
-
 export function DotIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
@@ -30,10 +20,26 @@ export function DotIcon() {
 
 const ICONS_BY_TRACK: Record<string, typeof ChordIcon> = {
   chords: ChordIcon,
-  vocalNotes: VoiceIcon,
 };
 
 export function TrackIcon({ trackId }: { trackId: string }) {
   const Icon = ICONS_BY_TRACK[trackId] ?? DotIcon;
   return <Icon />;
+}
+
+/** Text-letter glyph for a track toggle button, in the style of a chord name (root + superscript
+ * extension) — e.g. "G⁷" for the chords track. */
+const GLYPHS_BY_TRACK: Record<string, { root: string; sup: string }> = {
+  chords: { root: "G", sup: "7" },
+};
+
+export function TrackGlyph({ trackId }: { trackId: string }) {
+  const glyph = GLYPHS_BY_TRACK[trackId];
+  if (!glyph) return <DotIcon />;
+  return (
+    <span aria-hidden="true" className="track-toolbar__glyph">
+      {glyph.root}
+      <span>{glyph.sup}</span>
+    </span>
+  );
 }

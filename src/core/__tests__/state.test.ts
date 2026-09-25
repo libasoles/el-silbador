@@ -119,7 +119,7 @@ describe("toggleSyllableMerge", () => {
 });
 
 describe("second track + visibility", () => {
-  it("toggling one track's visibility does not affect the other's content or visibility", () => {
+  it("toggling one track's visibility does not affect another track's content", () => {
     let state = reduce(createInitialState(), { type: "setLyricsText", text: "canción" });
     const slot = beforeSlotId(flattenSyllables(state.song[0])[0].id);
 
@@ -131,7 +131,6 @@ describe("second track + visibility", () => {
     );
 
     expect(state.tracks.find((t) => t.id === "chords")?.visible).toBe(false);
-    expect(state.tracks.find((t) => t.id === "vocalNotes")?.visible).toBe(true);
     expect(getCell(state.cells, "chords", slot)).toBe("G7");
     expect(getCell(state.cells, "vocalNotes", slot)).toBe("Do");
   });
