@@ -42,4 +42,5 @@ export interface EditorState {
   merges: Set<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
+  showUnderline: boolean;
 }

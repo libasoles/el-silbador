@@ -13,6 +13,7 @@ interface SongViewProps {
   merges: ReadonlySet<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
+  showUnderline: boolean;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
   onMoveCellText: (trackId: TrackId, fromSlotId: string, toSlotId: string) => void;
@@ -187,6 +188,7 @@ export function SongView({
   merges,
   tracks,
   cells,
+  showUnderline,
   onSetCellText,
   onToggleMerge,
   onMoveCellText,
@@ -421,7 +423,8 @@ export function SongView({
       className={
         "song" +
         (song.length === 0 ? " song--empty" : "") +
-        (!hasVisibleAnnotations ? " song--annotations-hidden" : "")
+        (!hasVisibleAnnotations ? " song--annotations-hidden" : "") +
+        (!showUnderline ? " song--underline-hidden" : "")
       }
       contentEditable
       suppressContentEditableWarning

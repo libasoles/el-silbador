@@ -20,6 +20,7 @@ export function createInitialState(): EditorState {
     merges: new Set(),
     tracks: [{ id: "chords", label: "Acordes", visible: true }],
     cells: {},
+    showUnderline: true,
   };
 }
 
@@ -37,7 +38,8 @@ export type Action =
   | { type: "toggleSyllableMerge"; lineId: string; aId: string; bId: string }
   | { type: "setCellText"; trackId: TrackId; slotId: string; text: string }
   | { type: "moveCellText"; trackId: TrackId; fromSlotId: string; toSlotId: string }
-  | { type: "setTrackVisibility"; trackId: TrackId; visible: boolean };
+  | { type: "setTrackVisibility"; trackId: TrackId; visible: boolean }
+  | { type: "setShowUnderline"; visible: boolean };
 
 export function editorReducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
@@ -78,6 +80,9 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
           track.id === action.trackId ? { ...track, visible: action.visible } : track,
         ),
       };
+
+    case "setShowUnderline":
+      return { ...state, showUnderline: action.visible };
 
     default:
       return state;
