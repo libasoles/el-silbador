@@ -233,6 +233,10 @@
   min-height: 5rem;
   outline: none;
   caret-color: #555;
+  /* Paint above .song-placeholder, which shares the same top-left corner — otherwise its
+     text sits directly on top of the caret on an empty document. */
+  position: relative;
+  z-index: 1;
 }
 
 /* Without annotation rows, lyrics read more naturally with stanza-like leading. */

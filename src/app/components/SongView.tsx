@@ -205,22 +205,6 @@ function restoreCaret(root: HTMLElement, position: CaretPosition) {
   let node = walker.nextNode();
   while (node) {
     const length = node.textContent?.length ?? 0;
-    const isCaretAnchor = node.parentElement?.hasAttribute("data-empty-line-caret");
-    if (isCaretAnchor) {
-      // The anchor has no document length. It represents offset zero only, so every later model
-      // offset must continue into the actual lyric text.
-      if (remaining === 0) {
-        const range = document.createRange();
-        range.setStart(node, length);
-        range.collapse(true);
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-        return;
-      }
-      node = walker.nextNode();
-      continue;
-    }
     if (remaining <= length) {
       const range = document.createRange();
       range.setStart(node, remaining);
@@ -615,7 +599,7 @@ export function SongView({
       >
         {song.length === 0 ? (
           <div className="syllable-row document-empty-line" data-lyrics-line>
-            <span data-empty-line-caret aria-hidden="true">{"\u200B"}</span>
+            <br data-empty-line-caret />
           </div>
         ) : null}
         {song.map((line, index) => (
