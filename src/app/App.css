@@ -16,7 +16,7 @@
   z-index: 5;
   width: 2.75rem;
   height: 2.75rem;
-  color: var(--accent);
+  color: #000;
 }
 
 .app-mark svg {

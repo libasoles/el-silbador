@@ -37,5 +37,6 @@ describe("application mark", () => {
     expect(app).toContain("<SilabeoIcon />");
     expect(app).toContain('className="app-mark"');
     expect(styles).toMatch(/\.app-mark\s*\{[\s\S]*position: fixed[\s\S]*top: 1rem[\s\S]*left: 1rem/);
+    expect(styles).toMatch(/\.app-mark\s*\{[\s\S]*color: #000/);
   });
 });
