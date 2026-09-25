@@ -2,9 +2,11 @@
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
-  max-width: 40rem;
+  /* Matches .app (App.css) so navigating between the index and the editor doesn't shift the
+     page width. */
+  max-width: 56rem;
   margin: 0 auto;
-  padding: 1.25rem 1.5rem 6rem;
+  padding: 1.25rem 2rem 6rem;
 }
 
 .library-header {
