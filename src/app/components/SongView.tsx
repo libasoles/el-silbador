@@ -4,6 +4,7 @@ import { previousChordNotesBySlot } from "../../core/chordNotes";
 import { getLineCellSlots } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Song, TrackDef, TrackId } from "../../core/types";
+import { ChordIcon, NoteStackIcon, UnderlineIcon } from "./icons";
 import { LineView } from "./LineView";
 
 interface DragCell {
@@ -474,6 +475,13 @@ export function SongView({
     pendingCaret.current = null;
   }, [song]);
 
+  // Land the caret in the editor as soon as the page loads, so a new user can start typing
+  // immediately instead of having to click into the document first.
+  useLayoutEffect(() => {
+    focusDocument();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // React's synthetic `onBeforeInput` does not receive native deletion events in every browser
   // (including Chromium's deleteContentBackward for a Cmd/Ctrl+A selection). Listening on the
   // editing host itself guarantees that cancelling the event happens before the browser removes
@@ -585,17 +593,23 @@ export function SongView({
               "Bm              B7   Em\nPor mas que la dicha busco\nA7        D    F#7\nVivo penando"
             }
           </pre>
-          <p>
-            El botón "Acordes" del costado muestra u oculta esa fila de acordes.
-          </p>
-          <p>
-            El botón "Notas del acorde" muestra las notas que forman cada
-            acorde, por ejemplo do-mi-sol para un Do mayor.
-          </p>
-          <p>
-            El botón "Subrayado" muestra u oculta la línea debajo de cada
-            sílaba.
-          </p>
+          <ul className="song-placeholder__list">
+            <li>
+              <ChordIcon />
+              <span>Muestra u oculta la fila de acordes arriba de la letra.</span>
+            </li>
+            <li>
+              <NoteStackIcon />
+              <span>
+                Muestra las notas que forman cada acorde, por ejemplo do-mi-sol
+                para un Do mayor.
+              </span>
+            </li>
+            <li>
+              <UnderlineIcon />
+              <span>Muestra u oculta la línea debajo de cada sílaba.</span>
+            </li>
+          </ul>
           <p>
             La separación en sílabas funciona para español. No hay garantía de
             que funcione correctamente en otros idiomas.
