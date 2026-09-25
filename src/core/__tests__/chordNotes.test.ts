@@ -11,11 +11,7 @@ describe("chordToNoteNames", () => {
   });
 
   it("does not read an explicit major 'M' as minor", () => {
-    expect(chordToNoteNames("CM7")).toEqual(["do", "mi", "sol"]);
-  });
-
-  it("treats 'maj' as major, not minor", () => {
-    expect(chordToNoteNames("Cmaj7")).toEqual(["do", "mi", "sol"]);
+    expect(chordToNoteNames("CM")).toEqual(["do", "mi", "sol"]);
   });
 
   it("flattens the third and fifth for a diminished chord", () => {
@@ -31,8 +27,25 @@ describe("chordToNoteNames", () => {
     expect(chordToNoteNames("Bb")).toEqual(["la#", "re", "fa"]);
   });
 
-  it("ignores extensions and slash bass, keeping the underlying triad", () => {
-    expect(chordToNoteNames("G7/B")).toEqual(["sol", "si", "re"]);
+  it("adds a fourth, minor-seventh note for a dominant seventh chord", () => {
+    expect(chordToNoteNames("G7")).toEqual(["sol", "si", "re", "fa"]);
+  });
+
+  it("adds a minor seventh for a minor-seventh chord", () => {
+    expect(chordToNoteNames("Am7")).toEqual(["la", "do", "mi", "sol"]);
+  });
+
+  it("adds a major seventh for 'maj7' or explicit 'M7'", () => {
+    expect(chordToNoteNames("Cmaj7")).toEqual(["do", "mi", "sol", "si"]);
+    expect(chordToNoteNames("CM7")).toEqual(["do", "mi", "sol", "si"]);
+  });
+
+  it("adds a fully-diminished seventh for a diminished-seventh chord", () => {
+    expect(chordToNoteNames("Bdim7")).toEqual(["si", "re", "fa", "sol#"]);
+  });
+
+  it("keeps the underlying triad or seventh chord when a slash bass is present", () => {
+    expect(chordToNoteNames("G7/B")).toEqual(["sol", "si", "re", "fa"]);
   });
 
   it("returns null for a no-chord marker or unparseable text", () => {

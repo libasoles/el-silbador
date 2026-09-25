@@ -22,25 +22,20 @@ export function ChordIcon() {
   );
 }
 
-/** "Do mi sol" stacked — three noteheads on one stem, like a triad written on a staff. */
+/** The words "sol", "mi", "do" stacked top to bottom — the same order the notes track itself
+ *  shows a chord's notes in. */
 export function NoteStackIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      width="24"
-      height="24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <line x1="15.5" y1="5" x2="15.5" y2="18.5" />
-      <ellipse cx="7.5" cy="19" rx="3.5" ry="2.3" fill="currentColor" stroke="none" transform="rotate(-18 7.5 19)" />
-      <ellipse cx="9.5" cy="12" rx="3.5" ry="2.3" fill="currentColor" stroke="none" transform="rotate(-18 9.5 12)" />
-      <ellipse cx="12" cy="5" rx="3.5" ry="2.3" fill="currentColor" stroke="none" transform="rotate(-18 12 5)" />
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+      <text x="12" y="7.2" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="currentColor">
+        sol
+      </text>
+      <text x="12" y="14.2" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="currentColor">
+        mi
+      </text>
+      <text x="12" y="21.2" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="currentColor">
+        do
+      </text>
     </svg>
   );
 }
