@@ -46,8 +46,9 @@ describe("application mark", () => {
 });
 
 describe("favicon", () => {
-  it("crops the view box closely around the mark so it fills a browser tab", () => {
-    expect(favicon).toContain('viewBox="8 7 55 40"');
-    expect(favicon).toContain('stroke="#fff"');
+  it("uses the supplied whistling-face mark", () => {
+    expect(favicon).toContain('viewBox="0 0 64 64"');
+    expect(favicon).toContain('stroke="currentColor"');
+    expect(favicon).toContain('M53.3 27.7V23.4L57 22.5V26.5');
   });
 });
