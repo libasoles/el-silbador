@@ -346,6 +346,9 @@ export function LineView({
         {/* Keep a React-owned caret anchor after a trailing space. Without it, the model drops
             that space while syllabifying and the next typed word is appended to the previous one. */}
         {trailingWhitespace.replaceAll(/\s/g, "\u00a0")}
+        {/* Chrome does not reliably paint a caret in an empty flex row. This structural break
+            gives the new lyric line a caret host without contributing text to the document. */}
+        {line.words.length === 0 ? <br data-empty-line-caret /> : null}
       </div>
       {tracks
         .filter((track) => track.visible && track.id === "vocalNotes")

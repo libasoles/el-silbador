@@ -51,7 +51,7 @@ function nodesText(nodes: Iterable<Node>): string {
       continue;
     }
     if (!(node instanceof HTMLElement)) continue;
-    if (node.tagName === "BR") {
+    if (node.tagName === "BR" && !node.hasAttribute("data-empty-line-caret")) {
       text += "\n";
     } else if (node.classList.contains("syllable-gap--word-boundary")) {
       text += " ";
@@ -556,7 +556,7 @@ export function SongView({
           if ((event.target as HTMLElement).closest("[data-track]")) return;
           commit();
         }}
-        onKeyDown={handleKeyDown}
+        onKeyDownCapture={handleKeyDown}
         onPaste={(event) => {
           if ((event.target as HTMLElement).closest("[data-track]")) return;
           event.preventDefault();
