@@ -10,7 +10,7 @@ export function SilbadorIcon() {
       viewBox="0 0 64 64"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.6"
+      strokeWidth="2.15"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -21,14 +21,17 @@ export function SilbadorIcon() {
       <path d="M17.4 27.2C17.6 33.5 19.8 38.6 23.8 41.6C27.2 44.1 31.7 45.1 35.9 44.1C43.3 42.4 47.8 36.3 48.1 27.8L48.1 20" />
       <path d="M23.4 30.4C24.3 28.7 26.7 28.7 27.7 30.4" />
       <path d="M36.5 30.4C37.5 28.7 39.9 28.7 40.8 30.4" />
-      <path d="M31.1 35.2C32.6 34.4 34 35.1 34 36.1C34 36.8 33.4 37.2 32.7 37.3C33.6 37.4 34.2 37.9 34.2 38.6C34.2 39.7 32.7 40.3 31.2 39.5" />
-      <g strokeWidth="1.3">
-        <path d="M53.3 27.7V23.4L57 22.5V26.5" />
-        <ellipse cx="52.1" cy="28.2" rx="1.4" ry="1" />
-        <ellipse cx="55.8" cy="27" rx="1.4" ry="1" />
-        <path d="M55.2 34.4V30.9L58.2 30.1V33.5" />
-        <ellipse cx="54.1" cy="35" rx="1.2" ry=".9" />
-        <ellipse cx="57.1" cy="34.1" rx="1.2" ry=".9" />
+      <path
+        strokeWidth="1.75"
+        d="M38.8 35.3C40.1 34.7 41.2 35.2 41.2 36.1C41.2 36.8 40.6 37.2 39.9 37.3C40.7 37.4 41.3 37.9 41.3 38.6C41.3 39.5 40.1 40 38.9 39.5"
+      />
+      <g strokeWidth="1.75">
+        <ellipse cx="53.2" cy="29.1" rx="1.45" ry="1.05" />
+        <path d="M54.5 28.6V23.9L57.1 25.7" />
+        <ellipse cx="52.7" cy="36.4" rx="1.35" ry="1" />
+        <ellipse cx="57.1" cy="35.1" rx="1.35" ry="1" />
+        <path d="M54 36V31.4L58.4 30.1V34.7" />
+        <path d="M54 31.4L58.4 30.1" />
       </g>
     </svg>
   );
