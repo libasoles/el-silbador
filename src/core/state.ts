@@ -286,7 +286,32 @@ function applyToggleSyllableMerge(state: EditorState, lineId: string, aId: strin
   }
 
   merges.add(key);
-  const cells = deleteCellAcrossTracks(state.tracks, state.cells, beforeSlotId(bId));
+
+  // The merged unit displays annotations at its leftmost syllable's slot (see getLineUnits), so
+  // that's the one surviving cell. Walk out to the full run this merge now joins — it may
+  // already span more than aId/bId if either side was already part of a melisma — and carry
+  // over the first (leftmost) non-empty annotation in the run, per track, before dropping the rest.
+  const flat = flattenSyllables(line);
+  const aIndex = flat.findIndex((syllable) => syllable.id === aId);
+  let start = aIndex;
+  while (start > 0 && merges.has(mergeKey(flat[start - 1].id, flat[start].id))) start -= 1;
+  let end = aIndex;
+  while (end + 1 < flat.length && merges.has(mergeKey(flat[end].id, flat[end + 1].id))) end += 1;
+  const groupIds = flat.slice(start, end + 1).map((syllable) => syllable.id);
+  const [anchorId, ...restIds] = groupIds;
+  const anchorSlot = beforeSlotId(anchorId);
+
+  let cells = state.cells;
+  for (const track of state.tracks) {
+    if (!getCell(cells, track.id, anchorSlot)) {
+      const carried = restIds.map((id) => getCell(cells, track.id, beforeSlotId(id))).find((text) => text);
+      if (carried) cells = setCell(cells, track.id, anchorSlot, carried);
+    }
+    for (const id of restIds) {
+      cells = deleteCell(cells, track.id, beforeSlotId(id));
+    }
+  }
+
   return { ...state, merges, cells };
 }
 

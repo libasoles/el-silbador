@@ -96,6 +96,20 @@ describe("toggleSyllableMerge", () => {
     expect(getCell(state.cells, "chords", beforeSlotId(bId))).toBe("");
   });
 
+  it("merging carries the second cell's content over when the first has none", () => {
+    const [aId, bId] = flattenSyllables(state.song[0]).map((s) => s.id);
+    const lineId = state.song[0].id;
+
+    state = reduce(
+      state,
+      { type: "setCellText", trackId: "chords", slotId: beforeSlotId(bId), text: "Dm" },
+      { type: "toggleSyllableMerge", lineId, aId, bId },
+    );
+
+    expect(getCell(state.cells, "chords", beforeSlotId(aId))).toBe("Dm");
+    expect(getCell(state.cells, "chords", beforeSlotId(bId))).toBe("");
+  });
+
   it("fixture: merging the syllables of Ypacaraí collapses them into one annotation unit", () => {
     state = reduce(createInitialState(), {
       type: "setLyricsText",
