@@ -30,7 +30,8 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR }: AppProps) {
             className="track-toolbar__toggle"
             aria-pressed={state.showUnderline}
             aria-label="Subrayado"
-            title="Subrayado"
+            title={state.lyricsText.trim() === "" ? "No hay letra que subrayar" : "Subrayado"}
+            disabled={state.lyricsText.trim() === ""}
             onClick={() => actions.setShowUnderline(!state.showUnderline)}
           >
             <UnderlineIcon />
