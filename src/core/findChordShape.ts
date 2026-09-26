@@ -2,14 +2,15 @@ import { CHORD_SHAPES, type ChordShape } from "./chordShapes";
 
 /** Matches the chord chip's free text against the fingering database. Chip text is already
  *  well-formed (e.g. "Bb7", "F#m") from the chords track, so an exact match against the name or
- *  one of its aliases — after normalizing symbols/case — is enough; no fuzzy search needed. */
+ *  one of its aliases — after normalizing symbols — is enough; no fuzzy search needed. Case is
+ *  preserved because it's meaningful: "m7" (minor 7th) and "M7"/"maj7" (major 7th) must not
+ *  collide, e.g. "Em7" vs "Emaj7"'s "EM7" alias. */
 function normalize(text: string): string {
   return text
     .replace(/♭/g, "b")
     .replace(/♯/g, "#")
     .replace(/[△Δ]/g, "maj")
     .replace(/ø/g, "m7b5")
-    .toLowerCase()
     .replace(/\s+/g, "");
 }
 
