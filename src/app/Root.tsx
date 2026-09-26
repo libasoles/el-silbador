@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import App from "./App";
 import { initAnalytics, trackPageView } from "./analytics";
 import { AuthRequiredProvider } from "./AuthRequired";
+import { ToastProvider } from "./components/ToastProvider";
 import { Library } from "./pages/Library";
 import { NotFound } from "./pages/NotFound";
 import { useAuth } from "./useAuth";
@@ -80,7 +81,11 @@ function Root() {
       <NotFound />
     );
 
-  return <AuthRequiredProvider session={session}>{page}</AuthRequiredProvider>;
+  return (
+    <ToastProvider>
+      <AuthRequiredProvider session={session}>{page}</AuthRequiredProvider>
+    </ToastProvider>
+  );
 }
 
 export default Root;

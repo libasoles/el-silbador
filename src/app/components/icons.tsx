@@ -1,8 +1,10 @@
 /** Minimal line icons for the lateral track toolbar, sized to inherit color/currentColor. */
 
-/** The one icon sourced from lucide-react instead of hand-drawn here, kept behind this module so
- *  every other component still imports icons from a single place. */
+/** Icons sourced from lucide-react instead of hand-drawn here, kept behind this module so every
+ *  other component still imports icons from a single place. */
 export { Trash2 as TrashIcon } from "lucide-react";
+export { CheckCircle2 as CheckCircleIcon } from "lucide-react";
+export { Info as InfoIcon } from "lucide-react";
 
 /** The Silbador mark: a singer with the sound of their voice. */
 export function SilbadorIcon() {
