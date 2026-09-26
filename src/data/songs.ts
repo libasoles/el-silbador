@@ -159,6 +159,18 @@ export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
   const supabase = getSupabaseClient();
   const userId = await requireUserId(supabase);
 
+  if (input.id) {
+    const { data: existing, error: ownerError } = await supabase
+      .from("songs")
+      .select("owner_id")
+      .eq("id", input.id)
+      .maybeSingle();
+    if (ownerError) throw ownerError;
+    if (existing && existing.owner_id !== userId) {
+      throw new Error("You don't own this song.");
+    }
+  }
+
   const { data, error } = await supabase
     .from("songs")
     .upsert({
@@ -169,7 +181,10 @@ export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
     })
     .select("id, slug, updated_at")
     .single();
-  if (error) throw error;
+  if (error) {
+    if (error.code === "42501") throw new Error("You don't own this song.");
+    throw error;
+  }
 
   return { id: data.id as string, slug: data.slug as string, updatedAt: data.updated_at as string };
 }
@@ -177,8 +192,11 @@ export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
 export async function deleteSong(songId: string): Promise<void> {
   const supabase = getSupabaseClient();
 
-  const { error } = await supabase.from("songs").delete().eq("id", songId);
+  const { data, error } = await supabase.from("songs").delete().eq("id", songId).select("id");
   if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error("You don't own this song.");
+  }
 }
 
 export async function forkSong(songId: string): Promise<SongDetail> {
@@ -228,7 +246,10 @@ export async function toggleFavorite(songId: string): Promise<void> {
   }
 
   const { error } = await supabase.from("favorites").insert({ user_id: userId, song_id: songId });
-  if (error) throw error;
+  if (error) {
+    if (error.code === "42501") throw new Error("You can only favorite public songs.");
+    throw error;
+  }
 }
 
 export async function setSongPublic(songId: string, isPublic: boolean): Promise<SongSummary> {

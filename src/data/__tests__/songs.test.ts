@@ -140,7 +140,7 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
 
     await signInAs(userB);
     await expect(saveSong({ id: saved.id, content: makeContent({ title: "Hackeado" }) })).rejects.toThrow();
-    await deleteSong(saved.id);
+    await expect(deleteSong(saved.id)).rejects.toThrow();
 
     const { data: stillThere, error } = await adminClient
       .from("songs")
