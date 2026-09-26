@@ -13,6 +13,12 @@ import type { ChordPlacement } from "./chordSheet";
 import { hyphenateWord } from "./syllabify";
 import type { CellsByTrack, EditorState, TrackId } from "./types";
 
+function trackHasContent(cells: CellsByTrack, trackId: TrackId): boolean {
+  const trackCells = cells[trackId];
+  if (!trackCells) return false;
+  return Object.values(trackCells).some((text) => text.trim() !== "");
+}
+
 export function createInitialState(): EditorState {
   return {
     title: "",
@@ -114,8 +120,12 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         cells: action.content.cells,
         merges: action.content.merges,
         // Track controls are view state rather than saved song content. Opening an existing
-        // song (including restoring its sign-in draft) starts in the focused chords view.
-        tracks: state.tracks.map((track) => ({ ...track, visible: track.id === "chords" })),
+        // song starts in the focused chords view, plus any other track that already has
+        // annotations (e.g. melody notes) so readers see them without toggling anything.
+        tracks: state.tracks.map((track) => ({
+          ...track,
+          visible: track.id === "chords" || trackHasContent(action.content.cells, track.id),
+        })),
         showUnderline: false,
       };
 

@@ -55,6 +55,26 @@ describe("loadContent", () => {
     ]);
     expect(state.showUnderline).toBe(false);
   });
+
+  it("also shows a track that already has annotations, like melody notes", () => {
+    const state = editorReducer(createInitialState(), {
+      type: "loadContent",
+      content: {
+        title: "Canción existente",
+        author: "Autor",
+        lyricsText: "amor",
+        song: [],
+        cells: { vocalNotes: { slot1: "Do" }, chordNotes: { slot1: "" } },
+        merges: new Set(),
+      },
+    });
+
+    expect(state.tracks).toEqual([
+      { id: "chordNotes", label: "Notas del acorde", visible: false },
+      { id: "chords", label: "Acordes", visible: true },
+      { id: "vocalNotes", label: "Notas de la melodía", visible: true },
+    ]);
+  });
 });
 
 describe("cell tracks (pista Acordes)", () => {
