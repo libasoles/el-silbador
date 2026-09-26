@@ -74,7 +74,7 @@ function SongNotFound() {
         quien la creó.
       </p>
       <a className="song-not-found__link" href="/">
-        Volver al cancionero
+        Ir al cancionero
       </a>
     </div>
   );

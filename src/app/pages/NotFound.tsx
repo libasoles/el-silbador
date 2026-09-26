@@ -11,7 +11,7 @@ export function NotFound() {
         Puede que el enlace esté incompleto o que la página haya cambiado de lugar.
       </p>
       <a className="not-found__link" href="/">
-        Volver al cancionero
+        Ir al cancionero
       </a>
     </main>
   );
