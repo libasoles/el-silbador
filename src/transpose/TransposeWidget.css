@@ -4,7 +4,8 @@
    edge and starts overlapping .app-close's fixed corner button (top: 1rem, height 2.75rem), so at
    those widths the widget stays pinned below it instead of sharing its row. From 62.5rem up, the
    right offset already clears .app-close horizontally, so the widget can sit at the title's own
-   top instead. */
+   top instead: 3.1rem lines up the step buttons' top edge with the title text's own visible top,
+   which sits below #root's 1.5rem padding plus .app's 1.25rem padding (see index.css/App.css). */
 .transpose-widget {
   position: fixed;
   top: 4.25rem;
@@ -18,7 +19,7 @@
 
 @media (min-width: 62.5rem) {
   .transpose-widget {
-    top: 1.6rem;
+    top: 3.1rem;
   }
 }
 
