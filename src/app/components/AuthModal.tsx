@@ -44,12 +44,11 @@ export function AuthModal({ onClose }: AuthModalProps) {
           ×
         </button>
 
-        <h2 className="auth-modal__title">Entrá o creá tu cuenta</h2>
+        <h2 className="auth-modal__title">{linkSent ? "Enviado" : "Entrá o creá tu cuenta"}</h2>
 
         {linkSent ? (
           <p className="auth-modal__message">
-            Te enviamos un enlace a {email}. Abrilo para iniciar sesión y terminar de guardar la
-            canción.
+            Abrí el enlace para iniciar sesión y terminar de guardar la canción.
           </p>
         ) : (
           <form className="auth-modal__form" onSubmit={handleSubmit}>
