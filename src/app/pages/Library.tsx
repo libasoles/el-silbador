@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { trackEvent } from "../analytics";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import { PlusIcon, SearchIcon, SilbadorIcon, StarIcon } from "../components/icons";
 import "./Library.css";
@@ -166,8 +167,14 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
     [normalizedQuery],
   );
 
-  const handleOpen = (song: LibrarySong) => onOpenSong?.(song);
-  const handleNew = () => onNewSong?.();
+  const handleOpen = (song: LibrarySong) => {
+    trackEvent("open_song", { song_id: song.id });
+    onOpenSong?.(song);
+  };
+  const handleNew = () => {
+    trackEvent("new_song_click");
+    onNewSong?.();
+  };
 
   return (
     <main className="library">

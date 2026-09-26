@@ -5,6 +5,7 @@ import type { CellsByTrack, TrackDef } from "../core/types";
 import { getSong } from "../data";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
+import { trackEvent } from "./analytics";
 import { AuthModal } from "./components/AuthModal";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { SongView } from "./components/SongView";
@@ -124,12 +125,18 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
   const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
   const saving = autosaveStatus === "saving";
 
+  useEffect(() => {
+    if (autosaveStatus === "saved") trackEvent("song_saved", { song_id: songId });
+  }, [autosaveStatus, songId]);
+
   const handleExportPdf = () => {
+    trackEvent("export_pdf", { song_id: songId });
     window.print();
   };
 
   const handleSaveClick = () => {
     if (!authenticated) {
+      trackEvent("auth_modal_open");
       setAuthModalOpen(true);
       return;
     }
