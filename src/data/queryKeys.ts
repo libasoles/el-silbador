@@ -10,3 +10,7 @@ export const songQueryKeys = {
   detail: (songId: string) => ["songs", "detail", songId] as const,
   bySlug: (slug: string) => ["songs", "bySlug", slug] as const,
 };
+
+export const profileQueryKeys = {
+  role: (userId: string) => ["profiles", "role", userId] as const,
+};

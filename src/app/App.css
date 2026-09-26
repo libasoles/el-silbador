@@ -267,6 +267,14 @@
   color: var(--highlight);
 }
 
+/* The publish-toggle button reads its current state (public vs. private) through this dimmed
+   look, same as .action-toolbar__button:disabled, but stays clickable — an admin toggles it back
+   the same way they toggled it forward. */
+.action-toolbar__button--inactive {
+  opacity: 0.3;
+  color: var(--border-strong);
+}
+
 .spinner-icon {
   animation: action-toolbar-spin 0.8s linear infinite;
 }
