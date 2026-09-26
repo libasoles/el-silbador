@@ -42,6 +42,19 @@ createRoot(document.getElementById('root')!).render(
         // Bump this when a cached query's shape changes incompatibly, to drop old localStorage
         // entries instead of feeding stale-shaped data into components expecting the new one.
         buster: "v1",
+        dehydrateOptions: {
+          // Song *lists* (["songs", "mine", ...]) are plain, JSON-safe summaries — fine to
+          // persist. A song's own detail (["songs", "bySlug", ...]) carries its full editable
+          // content, which includes a native `Set` (SongContent.merges); the persister's default
+          // JSON serialization silently drops Set contents, so persisting it would hand the editor
+          // a corrupted, merge-less song on next reload. It stays cached in memory only.
+          shouldDehydrateQuery: (query) =>
+            query.state.status === "success" &&
+            Array.isArray(query.queryKey) &&
+            query.queryKey[0] === "songs" &&
+            query.queryKey[1] !== "bySlug" &&
+            query.queryKey[1] !== "detail",
+        },
       }}
     >
       <Root />
