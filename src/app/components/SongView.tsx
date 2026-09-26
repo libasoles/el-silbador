@@ -4,7 +4,7 @@ import { previousChordNotesBySlot } from "../../core/chordNotes";
 import { getLineCellSlots } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Song, TrackDef, TrackId } from "../../core/types";
-import { ChordIcon, MelodyNoteIcon, NoteStackIcon, UnderlineIcon } from "./icons";
+import { EditorHelp } from "./EditorHelp";
 import { LineView } from "./LineView";
 
 interface DragCell {
@@ -669,36 +669,9 @@ export function SongView({
               "Bm              B7   Em\nPor mas que la dicha busco\nA7        D    F#7\nVivo penando"
             }
           </pre>
-          <ul className="song-placeholder__list">
-            <li>
-              <ChordIcon />
-              <span>Muestra u oculta la fila de acordes arriba de la letra.</span>
-            </li>
-            <li>
-              <NoteStackIcon />
-              <span>
-                Muestra las notas que forman cada acorde, por ejemplo do-mi-sol
-                para un Do mayor.
-              </span>
-            </li>
-            <li>
-              <UnderlineIcon />
-              <span>Muestra u oculta la línea debajo de cada sílaba.</span>
-            </li>
-            <li>
-              <MelodyNoteIcon />
-              <span>
-                Deja escribir las notas de la melodía, debajo de la línea de
-                cada sílaba.
-              </span>
-            </li>
-          </ul>
-          <p>
-            La separación en sílabas funciona para español. No hay garantía de
-            que funcione correctamente en otros idiomas.
-          </p>
         </div>
       ) : null}
+      <EditorHelp />
     </div>
   );
 }
