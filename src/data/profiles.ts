@@ -14,7 +14,10 @@ export async function setUsername(username: string): Promise<{ username: string 
     .eq("id", userId)
     .select("username")
     .single();
-  if (error) throw error;
+  if (error) {
+    if (error.code === "23505") throw new Error("That username is already taken.");
+    throw error;
+  }
 
   return { username: data.username as string };
 }
