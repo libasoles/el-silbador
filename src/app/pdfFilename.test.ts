@@ -8,9 +8,12 @@ describe("pdfDocumentTitle", () => {
     );
   });
 
-  it("uses El Silbador for each missing bibliographic field", () => {
-    expect(pdfDocumentTitle("", "Ariel Ramírez")).toBe("El Silbador - Ariel Ramírez");
-    expect(pdfDocumentTitle("Alfonsina y el mar", "   ")).toBe("Alfonsina y el mar - El Silbador");
-    expect(pdfDocumentTitle("", "")).toBe("El Silbador - El Silbador");
+  it("keeps the available field when only one is present", () => {
+    expect(pdfDocumentTitle("", "Ariel Ramírez")).toBe("Ariel Ramírez");
+    expect(pdfDocumentTitle("Alfonsina y el mar", "   ")).toBe("Alfonsina y el mar");
+  });
+
+  it("uses El Silbador when both bibliographic fields are missing", () => {
+    expect(pdfDocumentTitle("", "")).toBe("El Silbador");
   });
 });
