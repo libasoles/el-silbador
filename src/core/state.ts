@@ -113,6 +113,10 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         song: action.content.song,
         cells: action.content.cells,
         merges: action.content.merges,
+        // Track controls are view state rather than saved song content. Opening an existing
+        // song (including restoring its sign-in draft) starts in the focused chords view.
+        tracks: state.tracks.map((track) => ({ ...track, visible: track.id === "chords" })),
+        showUnderline: false,
       };
 
     default:

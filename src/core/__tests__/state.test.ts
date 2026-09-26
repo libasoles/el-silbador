@@ -27,6 +27,36 @@ describe("setLyricsText", () => {
   });
 });
 
+describe("loadContent", () => {
+  it("shows only chords and hides the remaining view toggles for an existing song", () => {
+    let state = createInitialState();
+    state = {
+      ...state,
+      tracks: state.tracks.map((track) => ({ ...track, visible: true })),
+      showUnderline: true,
+    };
+
+    state = editorReducer(state, {
+      type: "loadContent",
+      content: {
+        title: "Canción existente",
+        author: "Autor",
+        lyricsText: "amor",
+        song: state.song,
+        cells: {},
+        merges: new Set(),
+      },
+    });
+
+    expect(state.tracks).toEqual([
+      { id: "chordNotes", label: "Notas del acorde", visible: false },
+      { id: "chords", label: "Acordes", visible: true },
+      { id: "vocalNotes", label: "Notas de la melodía", visible: false },
+    ]);
+    expect(state.showUnderline).toBe(false);
+  });
+});
+
 describe("cell tracks (pista Acordes)", () => {
   let state: EditorState;
   let firstLineSlots: string[];
