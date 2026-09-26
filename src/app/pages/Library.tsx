@@ -19,30 +19,10 @@ import {
 import { signOut } from "../../data/auth";
 import { deleteSong, listMySongs, listPublicSongs } from "../../data/songs";
 import { songQueryKeys } from "../../data/queryKeys";
-import type { PublicSongSummary, SongSummary } from "../../data/types";
 import { clearPendingAuthAction, readPendingAuthAction } from "../pendingAuthActionStorage";
 import { useToast } from "../toastContext";
+import { toLibrarySong, toPublicLibrarySong, type LibrarySong } from "./librarySongs";
 import "./Library.css";
-
-interface LibrarySong {
-  id: string;
-  slug: string;
-  title: string;
-  author: string | null;
-}
-
-function toLibrarySong(song: SongSummary): LibrarySong {
-  return { id: song.id, slug: song.slug, title: song.title ?? "Sin título", author: null };
-}
-
-function toPublicLibrarySong(song: PublicSongSummary): LibrarySong {
-  return {
-    id: song.id,
-    slug: song.slug,
-    title: song.title ?? "Sin título",
-    author: song.authorUsername,
-  };
-}
 
 // Mock data standing in for the still-unimplemented parts of the Supabase-backed library.
 // "Canciones propias" and "Públicas" now come from Supabase (see listMySongs/listPublicSongs

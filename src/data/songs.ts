@@ -39,8 +39,10 @@ interface FavoriteRow {
   songs: SongRow | null;
 }
 
-const SUMMARY_COLUMNS = "id, slug, title, owner_id, is_public, forked_from, created_at, updated_at";
-const DETAIL_COLUMNS = `${SUMMARY_COLUMNS}, content`;
+// The author belongs to the song content rather than the owner profile, so summaries include the
+// content needed to show the work's own author or performer in the index.
+const SUMMARY_COLUMNS = "id, slug, title, owner_id, content, is_public, forked_from, created_at, updated_at";
+const DETAIL_COLUMNS = SUMMARY_COLUMNS;
 const PUBLIC_SUMMARY_COLUMNS = `${SUMMARY_COLUMNS}, profiles!owner_id(username)`;
 
 export function serializeContent(content: SongContent): StoredSongContent {
@@ -70,6 +72,7 @@ function toSummary(row: SongRow): SongSummary {
     id: row.id,
     slug: row.slug,
     title: row.title,
+    author: row.content.author ?? "",
     ownerId: row.owner_id,
     isPublic: row.is_public,
     forkedFrom: row.forked_from,

@@ -14,6 +14,8 @@ export interface SongSummary {
   /** Stable, URL-facing identifier (title-derived + a 5-character hash), used for /cancion/:slug. */
   slug: string;
   title: string | null;
+  /** Autor o intérprete indicado en el contenido de la canción. */
+  author: string;
   ownerId: string;
   isPublic: boolean;
   forkedFrom: string | null;
