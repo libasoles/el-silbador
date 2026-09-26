@@ -40,6 +40,7 @@ import { useAutosave } from "./useAutosave";
 import { useEditor } from "./useEditor";
 import { clearPendingAuthAction, readPendingAuthAction } from "./pendingAuthActionStorage";
 import { consumeJustForked, saveJustForked } from "./justForkedStorage";
+import { pdfDocumentTitle } from "./pdfFilename";
 import { useToast } from "./toastContext";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
@@ -441,7 +442,13 @@ function App({
 
   const handleExportPdf = () => {
     trackEvent("export_pdf", { song_id: songDbId });
-    window.print();
+    const previousDocumentTitle = document.title;
+    document.title = pdfDocumentTitle(state.title, state.author);
+    try {
+      window.print();
+    } finally {
+      document.title = previousDocumentTitle;
+    }
   };
 
   const handleConfirmDelete = async () => {
