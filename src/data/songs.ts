@@ -23,6 +23,7 @@ interface SongRow {
   id: string;
   slug: string;
   title: string | null;
+  owner_id: string;
   content: StoredSongContent;
   is_public: boolean;
   forked_from: string | null;
@@ -38,7 +39,7 @@ interface FavoriteRow {
   songs: SongRow | null;
 }
 
-const SUMMARY_COLUMNS = "id, slug, title, is_public, forked_from, created_at, updated_at";
+const SUMMARY_COLUMNS = "id, slug, title, owner_id, is_public, forked_from, created_at, updated_at";
 const DETAIL_COLUMNS = `${SUMMARY_COLUMNS}, content`;
 const PUBLIC_SUMMARY_COLUMNS = `${SUMMARY_COLUMNS}, profiles!owner_id(username)`;
 
@@ -69,6 +70,7 @@ function toSummary(row: SongRow): SongSummary {
     id: row.id,
     slug: row.slug,
     title: row.title,
+    ownerId: row.owner_id,
     isPublic: row.is_public,
     forkedFrom: row.forked_from,
     createdAt: row.created_at,
