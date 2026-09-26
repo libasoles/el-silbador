@@ -58,6 +58,7 @@ function Root() {
         // Autosave assigns the id the first time it creates the row; swap the URL to the
         // song's own address without pushing a fresh history entry for the same document.
         onSongCreated={(id) => navigate({ name: "song", id }, "replace")}
+        onDeleted={() => navigate({ name: "library" })}
       />
     );
   }

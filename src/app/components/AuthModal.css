@@ -1,52 +1,7 @@
-.auth-modal__overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
-  padding: 1.5rem;
-}
-
-.auth-modal {
-  position: relative;
-  width: 100%;
-  max-width: 22rem;
-  background: #fff;
-  border: 1px solid #000;
-  border-radius: 0.5rem;
-  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.25);
-  padding: 1.75rem 1.5rem 1.5rem;
-}
-
-.auth-modal__close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 2rem;
-  height: 2rem;
-  font-size: 1.25rem;
-  line-height: 1;
-  color: #888;
-}
-
-.auth-modal__close:hover {
-  color: #000;
-}
-
-.auth-modal__title {
-  margin: 0 0 1.1rem;
-  font-family: var(--sans);
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #000;
-}
-
 .auth-modal__hint {
   font-family: var(--sans);
   font-size: 0.85rem;
-  color: #555;
+  color: var(--muted);
   line-height: 1.4;
 }
 
@@ -70,48 +25,27 @@
   gap: 0.3rem;
   font-family: var(--sans);
   font-size: 0.8rem;
-  color: #555;
+  color: var(--muted);
 }
 
 .auth-modal__field input {
   font-family: var(--sans);
   font-size: 0.95rem;
-  color: #000;
-  border: 1px solid #ccc;
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
   border-radius: 0.3rem;
   padding: 0.5rem 0.6rem;
 }
 
 .auth-modal__field input:focus {
   outline: none;
-  border-color: #000;
-}
-
-.auth-modal__error {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0.6rem 0.7rem;
-  font-family: var(--sans);
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: #7a2a00;
-  background: #fff1e6;
-  border: 1px solid #f0a875;
-  border-radius: 0.3rem;
-}
-
-.auth-modal__error svg {
-  flex: none;
-  margin-top: 0.1rem;
-  color: #d1561f;
+  border-color: var(--fg);
 }
 
 .auth-modal__message {
   font-family: var(--sans);
   font-size: 0.9rem;
-  color: #000;
+  color: var(--fg);
   line-height: 1.4;
 }
 
@@ -121,14 +55,14 @@
   font-family: var(--sans);
   font-size: 0.9rem;
   font-weight: 600;
-  color: #fff;
-  background: #000;
+  color: var(--bg);
+  background: var(--fg);
   border-radius: 0.3rem;
   text-align: center;
 }
 
 .auth-modal__submit:hover {
-  color: #fff;
+  color: var(--bg);
   opacity: 0.85;
 }
 

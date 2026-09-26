@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { signInWithMagicLink } from "../../data/auth";
 import "./AuthModal.css";
 import { AlertCircleIcon } from "./icons";
+import { Dialog } from "./Dialog";
 
 interface AuthModalProps {
   onClose: () => void;
@@ -32,58 +33,48 @@ export function AuthModal({ onClose }: AuthModalProps) {
   };
 
   return (
-    <div className="auth-modal__overlay" role="presentation" onClick={onClose}>
-      <div
-        className="auth-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Entrá o creá tu cuenta"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <button type="button" className="auth-modal__close" aria-label="Cerrar" onClick={onClose}>
-          ×
-        </button>
-
-        <h2 className="auth-modal__title">{linkSent ? "Enviado" : "Entrá o creá tu cuenta"}</h2>
-
-        {linkSent ? (
-          <p className="auth-modal__message">
-            Abrí el enlace para iniciar sesión y terminar de guardar la canción.
-          </p>
-        ) : (
-          <form className="auth-modal__form" onSubmit={handleSubmit}>
-            <div className="auth-modal__hint">
-              <p>
-                Login y registro funcionan sin contraseña: ingresá tu email y te mandamos un
-                enlace.
-              </p>
-              <p>
-                Si ya tenés cuenta, te iniciamos sesión. Si es la primera vez, te la creamos al
-                toque.
-              </p>
-            </div>
-            <label className="auth-modal__field">
-              Email
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </label>
-            {error && (
-              <p className="auth-modal__error" role="alert">
-                <AlertCircleIcon />
-                {error}
-              </p>
-            )}
-            <button type="submit" className="auth-modal__submit" disabled={submitting}>
-              {submitting ? "Un momento…" : "Enviarme el enlace"}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
+    <Dialog
+      open
+      onOpenChange={(next) => !next && onClose()}
+      title={linkSent ? "Enviado" : "Entrá o creá tu cuenta"}
+    >
+      {linkSent ? (
+        <p className="auth-modal__message">
+          Abrí el enlace para iniciar sesión y terminar de guardar la canción.
+        </p>
+      ) : (
+        <form className="auth-modal__form" onSubmit={handleSubmit}>
+          <div className="auth-modal__hint">
+            <p>
+              Login y registro funcionan sin contraseña: ingresá tu email y te mandamos un
+              enlace.
+            </p>
+            <p>
+              Si ya tenés cuenta, te iniciamos sesión. Si es la primera vez, te la creamos al
+              toque.
+            </p>
+          </div>
+          <label className="auth-modal__field">
+            Email
+            <input
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </label>
+          {error && (
+            <p className="dialog__error" role="alert">
+              <AlertCircleIcon />
+              {error}
+            </p>
+          )}
+          <button type="submit" className="auth-modal__submit" disabled={submitting}>
+            {submitting ? "Un momento…" : "Enviarme el enlace"}
+          </button>
+        </form>
+      )}
+    </Dialog>
   );
 }

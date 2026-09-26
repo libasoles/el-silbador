@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
-import { getSong } from "../data";
+import { deleteSong, getSong } from "../data";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
 import { AuthModal } from "./components/AuthModal";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { SongView } from "./components/SongView";
 import {
@@ -15,6 +16,7 @@ import {
   SilbadorIcon,
   SpinnerIcon,
   TrackIcon,
+  TrashIcon,
   UnderlineIcon,
   XIcon,
 } from "./components/icons";
@@ -41,6 +43,8 @@ interface AppProps {
   songId?: string;
   /** Called once autosave creates the row for a new song, so the URL can adopt its id. */
   onSongCreated?: (id: string) => void;
+  /** Called once the song is deleted, so the caller can navigate away from its now-gone id. */
+  onDeleted?: () => void;
 }
 
 interface TrackToggleButtonProps {
@@ -77,12 +81,13 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
   );
 }
 
-function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppProps) {
+function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDeleted }: AppProps) {
   const { state, actions } = useEditor();
   const [loadError, setLoadError] = useState<{ songId: string; message: string } | null>(null);
   const session = useAuth();
   const authenticated = Boolean(session);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Following a magic-link sign-in email reloads the page from scratch, so any content typed
   // before authenticating would otherwise vanish. If it was stashed in localStorage first (see
@@ -152,6 +157,13 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
   const handleExportPdf = () => {
     trackEvent("export_pdf", { song_id: songId });
     window.print();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!songId) return;
+    await deleteSong(songId);
+    setDeleteDialogOpen(false);
+    onDeleted?.();
   };
 
   const handleSaveClick = () => {
@@ -320,12 +332,34 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
               <DownloadIcon />
             </button>
           </IconButtonTooltip>
+          <IconButtonTooltip
+            tooltip={songId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
+          >
+            <button
+              type="button"
+              className="action-toolbar__button"
+              aria-label="Eliminar canción"
+              disabled={!songId}
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <TrashIcon size={24} strokeWidth={2} />
+            </button>
+          </IconButtonTooltip>
         </aside>
       </div>
 
       {authModalOpen && !authenticated && (
         <AuthModal onClose={() => setAuthModalOpen(false)} />
       )}
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Eliminar canción"
+        description="Esta acción no se puede deshacer. ¿Querés eliminar esta canción?"
+        confirmLabel="Eliminar"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteDialogOpen(false)}
+      />
     </main>
   );
 }

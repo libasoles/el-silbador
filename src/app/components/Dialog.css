@@ -1,0 +1,135 @@
+.dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.45);
+  animation: dialog-fade-in 120ms ease;
+}
+
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 21;
+  width: calc(100vw - 3rem);
+  max-width: 22rem;
+  background: var(--bg);
+  border: 1px solid var(--fg);
+  border-radius: 0.5rem;
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.25);
+  padding: 1.75rem 1.5rem 1.5rem;
+}
+
+@keyframes dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dialog__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.dialog__close:hover {
+  color: var(--fg);
+}
+
+.dialog__title {
+  margin: 0 0 1.1rem;
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.dialog__description {
+  margin: 0 0 1.25rem;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--fg);
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.dialog__button {
+  padding: 0.55rem 0.9rem;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 0.3rem;
+  text-align: center;
+}
+
+.dialog__button--secondary {
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+}
+
+.dialog__button--secondary:hover {
+  color: var(--fg);
+  background: var(--border);
+}
+
+.dialog__button--primary {
+  color: var(--bg);
+  background: var(--fg);
+}
+
+.dialog__button--primary:hover {
+  color: var(--bg);
+  opacity: 0.85;
+}
+
+.dialog__button--danger {
+  color: #fff;
+  background: var(--highlight);
+}
+
+.dialog__button--danger:hover {
+  color: #fff;
+  opacity: 0.85;
+}
+
+.dialog__button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.dialog__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.7rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #7a2a00;
+  background: #fff1e6;
+  border: 1px solid #f0a875;
+  border-radius: 0.3rem;
+}
+
+.dialog__error svg {
+  flex: none;
+  margin-top: 0.1rem;
+  color: #d1561f;
+}
