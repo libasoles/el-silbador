@@ -9,6 +9,7 @@ const iconButtonTooltip = readFileSync(
   "utf8",
 );
 const favicon = readFileSync(new URL("../../public/favicon.svg", import.meta.url), "utf8");
+const authModal = readFileSync(new URL("./components/AuthModal.tsx", import.meta.url), "utf8");
 
 describe("underline visibility", () => {
   it("does not couple the underline to the chords track visibility", () => {
@@ -82,5 +83,12 @@ describe("favicon", () => {
     expect(favicon).toContain('stroke-width="2.15"');
     expect(favicon).toContain('M38.8 35.3C40.1 34.7');
     expect(favicon).toContain('stroke-width="1.75"');
+  });
+});
+
+describe("authentication dialog", () => {
+  it("confirms magic links without assuming the action that opened it", () => {
+    expect(authModal).toContain("Abrí el enlace para iniciar sesión y continuar.");
+    expect(authModal).not.toContain("terminar de guardar la canción");
   });
 });

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import App from "./App";
 import { initAnalytics, trackPageView } from "./analytics";
+import { AuthRequiredProvider } from "./AuthRequired";
 import { Library } from "./pages/Library";
+import { useAuth } from "./useAuth";
 
 type Route = { name: "library" } | { name: "new" } | { name: "song"; slug: string };
 
@@ -25,6 +27,7 @@ function pathForRoute(route: Route): string {
 
 function Root() {
   const [route, setRoute] = useState<Route>(() => parseRoute(window.location.pathname));
+  const session = useAuth();
 
   useEffect(() => {
     initAnalytics();
@@ -51,8 +54,8 @@ function Root() {
     setRoute(next);
   };
 
-  if (route.name === "new" || route.name === "song") {
-    return (
+  const page =
+    route.name === "new" || route.name === "song" ? (
       <App
         songSlug={route.name === "song" ? route.slug : undefined}
         // Autosave assigns the slug the first time it creates the row; swap the URL to the
@@ -60,15 +63,14 @@ function Root() {
         onSongCreated={(_id, slug) => navigate({ name: "song", slug }, "replace")}
         onDeleted={() => navigate({ name: "library" })}
       />
+    ) : (
+      <Library
+        onOpenSong={(song) => navigate({ name: "song", slug: song.slug })}
+        onNewSong={() => navigate({ name: "new" })}
+      />
     );
-  }
 
-  return (
-    <Library
-      onOpenSong={(song) => navigate({ name: "song", slug: song.slug })}
-      onNewSong={() => navigate({ name: "new" })}
-    />
-  );
+  return <AuthRequiredProvider session={session}>{page}</AuthRequiredProvider>;
 }
 
 export default Root;

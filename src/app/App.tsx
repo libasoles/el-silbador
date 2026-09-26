@@ -10,7 +10,7 @@ import { songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
-import { AuthModal } from "./components/AuthModal";
+import { useAuthRequired } from "./authRequiredContext";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { SongView } from "./components/SongView";
@@ -26,9 +26,9 @@ import {
 } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
 import { clearDraft, readDraft, saveDraft } from "./draftStorage";
-import { useAuth } from "./useAuth";
 import { useAutosave } from "./useAutosave";
 import { useEditor } from "./useEditor";
+import { clearPendingAuthAction, readPendingAuthAction } from "./pendingAuthActionStorage";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
 
@@ -127,9 +127,8 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
   const queryClient = useQueryClient();
   const { state, actions } = useEditor();
   const [loadError, setLoadError] = useState<{ songSlug: string } | null>(null);
-  const session = useAuth();
+  const { session, requireAuthentication } = useAuthRequired();
   const authenticated = Boolean(session);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   // The song's real database id, resolved from `songSlug` once `getSongBySlug` returns (or set
   // directly once autosave creates a brand-new song). Needed because writes (save/delete) still
@@ -229,6 +228,16 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
     if (autosaveStatus === "saved") trackEvent("song_saved", { song_id: songDbId });
   }, [autosaveStatus, songDbId]);
 
+  // The save intent survives the magic-link reload. Mark it complete only after autosave has
+  // actually persisted the restored draft, so a failed save remains available for recovery.
+  useEffect(() => {
+    if (!authenticated || autosaveStatus !== "saved") return;
+    const pendingAction = readPendingAuthAction();
+    if (pendingAction?.type === "save-song" && pendingAction.songSlug === (songSlug ?? null)) {
+      clearPendingAuthAction();
+    }
+  }, [authenticated, autosaveStatus, songSlug]);
+
   const handleExportPdf = () => {
     trackEvent("export_pdf", { song_id: songDbId });
     window.print();
@@ -244,12 +253,11 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
 
   const handleSaveClick = () => {
     if (!authenticated) {
-      trackEvent("auth_modal_open");
       // The modal's overlay blocks further editing while it's open, so `content` here is what
       // the user will still be looking at when they follow the magic-link email — stash it so
       // it can be restored after the reload that link triggers.
       saveDraft(songSlug, content);
-      setAuthModalOpen(true);
+      requireAuthentication({ type: "save-song", songSlug: songSlug ?? null });
       return;
     }
     if (autosaveStatus === "error") retrySave();
@@ -429,10 +437,6 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
               </IconButtonTooltip>
             </aside>
           </div>
-
-          {authModalOpen && !authenticated && (
-            <AuthModal onClose={() => setAuthModalOpen(false)} />
-          )}
 
           <ConfirmDialog
             open={deleteDialogOpen}

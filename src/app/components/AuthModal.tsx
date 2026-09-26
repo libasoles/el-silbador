@@ -8,10 +8,8 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
-/** Magic-link sign-in dialog opened by the Save button when there's no session yet. Entering an
- *  email sends a link; there's no password and no separate register step — following the link
- *  signs the person in, creating an account first if none exists yet. Once a session appears,
- *  App's `useAuth` hook picks it up and closes this modal; its autosave hook then saves the song. */
+/** Shared magic-link login/register dialog. It deliberately knows nothing about the action that
+ *  opened it: the caller resumes that action after the session becomes available. */
 export function AuthModal({ onClose }: AuthModalProps) {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +38,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
     >
       {linkSent ? (
         <p className="auth-modal__message">
-          Abrí el enlace para iniciar sesión y terminar de guardar la canción.
+          Abrí el enlace para iniciar sesión y continuar.
         </p>
       ) : (
         <form className="auth-modal__form" onSubmit={handleSubmit}>

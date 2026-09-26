@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { trackEvent } from "../analytics";
-import { AuthModal } from "../components/AuthModal";
+import { useAuthRequired } from "../authRequiredContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import {
@@ -19,7 +19,7 @@ import { signOut } from "../../data/auth";
 import { deleteSong, listMySongs } from "../../data/songs";
 import { songQueryKeys } from "../../data/queryKeys";
 import type { SongSummary } from "../../data/types";
-import { useAuth } from "../useAuth";
+import { clearPendingAuthAction, readPendingAuthAction } from "../pendingAuthActionStorage";
 import "./Library.css";
 
 interface LibrarySong {
@@ -200,13 +200,12 @@ interface LibraryProps {
 }
 
 export function Library({ onOpenSong, onNewSong }: LibraryProps) {
-  const session = useAuth();
+  const { session, requireAuthentication } = useAuthRequired();
   const userId = session?.user.id;
   const authenticated = Boolean(session);
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [songPendingDelete, setSongPendingDelete] = useState<LibrarySong | null>(null);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const {
     data: myLibrarySongs = [],
@@ -240,17 +239,32 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
     () => new Set(FAVORITE_SONGS.map((song) => song.id)),
   );
 
-  const toggleFavorite = (song: LibrarySong) => {
+  const toggleFavorite = useCallback((songId: string) => {
     setFavoriteIds((current) => {
       const next = new Set(current);
-      if (next.has(song.id)) {
-        next.delete(song.id);
+      if (next.has(songId)) {
+        next.delete(songId);
       } else {
-        next.add(song.id);
+        next.add(songId);
       }
       return next;
     });
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!authenticated) return;
+    const pendingAction = readPendingAuthAction();
+    if (pendingAction?.type !== "toggle-favorite") return;
+
+    // This applies precisely the same local change as a normal click. Once favorites use a
+    // server mutation, clear the intent only after that mutation resolves successfully.
+    // This update mirrors an external auth/session transition. Queue it so React can finish
+    // synchronizing that transition before rendering the resulting favorite state.
+    queueMicrotask(() => {
+      toggleFavorite(pendingAction.songId);
+      clearPendingAuthAction();
+    });
+  }, [authenticated, toggleFavorite]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const mySongs = useMemo(
@@ -294,8 +308,15 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
       });
       return;
     }
-    trackEvent("auth_modal_open");
-    setAuthModalOpen(true);
+    requireAuthentication();
+  };
+
+  const handleToggleFavorite = (song: LibrarySong) => {
+    if (!authenticated) {
+      requireAuthentication({ type: "toggle-favorite", songId: song.id });
+      return;
+    }
+    toggleFavorite(song.id);
   };
 
   return (
@@ -355,7 +376,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
             showDelete
             loading={myLibraryLoading}
             onOpenSong={handleOpen}
-            onToggleFavorite={toggleFavorite}
+            onToggleFavorite={handleToggleFavorite}
             onDeleteSong={setSongPendingDelete}
           />
         )}
@@ -367,7 +388,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
             emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
             favoriteIds={favoriteIds}
             onOpenSong={handleOpen}
-            onToggleFavorite={toggleFavorite}
+            onToggleFavorite={handleToggleFavorite}
           />
         )}
 
@@ -377,7 +398,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
           emptyLabel="Todavía no hay canciones públicas para mostrar."
           favoriteIds={favoriteIds}
           onOpenSong={handleOpen}
-          onToggleFavorite={toggleFavorite}
+          onToggleFavorite={handleToggleFavorite}
         />
       </div>
 
@@ -393,10 +414,6 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
         onConfirm={handleConfirmDelete}
         onCancel={() => setSongPendingDelete(null)}
       />
-
-      {authModalOpen && !authenticated && (
-        <AuthModal onClose={() => setAuthModalOpen(false)} />
-      )}
     </main>
   );
 }
