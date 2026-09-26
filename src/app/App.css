@@ -446,6 +446,10 @@
   opacity: 0.7;
 }
 
+.editor-help__chord-notes svg {
+  height: 2rem;
+}
+
 .editor-help__autosave {
   color: var(--muted);
   font-style: italic;

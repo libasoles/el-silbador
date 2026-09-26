@@ -35,7 +35,7 @@ export function EditorHelp() {
               <ChordIcon />
               <span>Muestra u oculta la fila de acordes arriba de la letra.</span>
             </li>
-            <li>
+            <li className="editor-help__chord-notes">
               <NoteStackIcon />
               <span>
                 Muestra las notas que forman cada acorde, por ejemplo do-mi-sol
@@ -56,7 +56,8 @@ export function EditorHelp() {
           </ul>
           <p>
             La separación en sílabas funciona para español. No hay garantía de
-            que funcione correctamente en otros idiomas.
+            que funcione correctamente en otros idiomas. Se puede unir sílabas
+            clickeando el espacio intermedio.
           </p>
           <p className="editor-help__autosave">
             Los cambios se guardan solos mientras escribís, no hace falta
