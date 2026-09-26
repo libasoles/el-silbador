@@ -44,11 +44,18 @@
 }
 
 .auth-modal__hint {
-  margin: 0;
   font-family: var(--sans);
   font-size: 0.85rem;
   color: #555;
   line-height: 1.4;
+}
+
+.auth-modal__hint p {
+  margin: 0;
+}
+
+.auth-modal__hint p + p {
+  margin-top: 1em;
 }
 
 .auth-modal__form {

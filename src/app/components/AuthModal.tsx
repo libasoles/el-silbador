@@ -53,11 +53,16 @@ export function AuthModal({ onClose }: AuthModalProps) {
           </p>
         ) : (
           <form className="auth-modal__form" onSubmit={handleSubmit}>
-            <p className="auth-modal__hint">
-              Login y registro funcionan sin contraseña: ingresá tu email y te mandamos un enlace.
-              Si ya tenés cuenta, te iniciamos sesión; si es la primera vez, te la creamos al
-              toque.
-            </p>
+            <div className="auth-modal__hint">
+              <p>
+                Login y registro funcionan sin contraseña: ingresá tu email y te mandamos un
+                enlace.
+              </p>
+              <p>
+                Si ya tenés cuenta, te iniciamos sesión. Si es la primera vez, te la creamos al
+                toque.
+              </p>
+            </div>
             <label className="auth-modal__field">
               Email
               <input
