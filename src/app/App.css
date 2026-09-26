@@ -63,6 +63,10 @@
 }
 
 .autosave-status {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 5;
   margin: 0;
   font-size: 0.8rem;
   color: var(--muted);
