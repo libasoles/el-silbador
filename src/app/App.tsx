@@ -170,7 +170,10 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
     }),
     [state.title, state.author, state.lyricsText, state.song, state.cells, state.merges],
   );
-  const ready = !songSlug || songDbId !== undefined;
+  // Ready to autosave once the editor actually holds this song's content, and (for an existing
+  // song) once its real id has been resolved from the slug — otherwise a save could either
+  // persist the default/empty state or insert a duplicate row instead of updating one.
+  const ready = contentLoaded && (!songSlug || songDbId !== undefined);
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
     songDbId,
