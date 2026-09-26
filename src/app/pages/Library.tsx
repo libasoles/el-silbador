@@ -16,9 +16,9 @@ import {
   TrashIcon,
 } from "../components/icons";
 import { signOut } from "../../data/auth";
-import { deleteSong, listMySongs } from "../../data/songs";
+import { deleteSong, listMySongs, listPublicSongs } from "../../data/songs";
 import { songQueryKeys } from "../../data/queryKeys";
-import type { SongSummary } from "../../data/types";
+import type { PublicSongSummary, SongSummary } from "../../data/types";
 import { clearPendingAuthAction, readPendingAuthAction } from "../pendingAuthActionStorage";
 import { useToast } from "../toastContext";
 import "./Library.css";
@@ -34,16 +34,19 @@ function toLibrarySong(song: SongSummary): LibrarySong {
   return { id: song.id, slug: song.slug, title: song.title ?? "Sin título", author: null };
 }
 
-// Mock data standing in for the still-unimplemented parts of the Supabase-backed library.
-// "Canciones propias" now comes from Supabase (see listMySongs below); favoritas and públicas
-// stay mocked until those are wired up too.
-const FAVORITE_SONGS: LibrarySong[] = [];
+function toPublicLibrarySong(song: PublicSongSummary): LibrarySong {
+  return {
+    id: song.id,
+    slug: song.slug,
+    title: song.title ?? "Sin título",
+    author: song.authorUsername,
+  };
+}
 
-const PUBLIC_SONGS: LibrarySong[] = [
-  { id: "pub-1", slug: "recuerdos-de-ypacarai-pub1a", title: "Recuerdos de Ypacaraí", author: "Demetrio Ortiz" },
-  { id: "pub-2", slug: "alfonsina-y-el-mar-pub2b", title: "Alfonsina y el mar", author: "Ariel Ramírez" },
-  { id: "pub-3", slug: "gracias-a-la-vida-pub3c", title: "Gracias a la vida", author: "Violeta Parra" },
-];
+// Mock data standing in for the still-unimplemented parts of the Supabase-backed library.
+// "Canciones propias" and "Públicas" now come from Supabase (see listMySongs/listPublicSongs
+// below); favoritas stays mocked until it's wired up too.
+const FAVORITE_SONGS: LibrarySong[] = [];
 
 function matchesQuery(song: LibrarySong, query: string): boolean {
   const haystack = `${song.title} ${song.author ?? ""}`.toLowerCase();
@@ -222,6 +225,14 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   // signed out) never fetches, so it isn't "loading" even though the query itself stays disabled.
   const myLibraryLoading = session === undefined || (Boolean(userId) && myQueryLoading);
 
+  const {
+    data: publicLibrarySongs = [],
+    isLoading: publicLibraryLoading,
+  } = useQuery({
+    queryKey: songQueryKeys.public(),
+    queryFn: async () => (await listPublicSongs()).map(toPublicLibrarySong),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: deleteSong,
     onSuccess: (_data, songId) => {
@@ -290,8 +301,10 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   );
   const publicSongs = useMemo(
     () =>
-      normalizedQuery ? PUBLIC_SONGS.filter((song) => matchesQuery(song, normalizedQuery)) : PUBLIC_SONGS,
-    [normalizedQuery],
+      normalizedQuery
+        ? publicLibrarySongs.filter((song) => matchesQuery(song, normalizedQuery))
+        : publicLibrarySongs,
+    [publicLibrarySongs, normalizedQuery],
   );
 
   const handleOpen = (song: LibrarySong) => {
@@ -404,6 +417,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
           songs={publicSongs}
           emptyLabel="Todavía no hay canciones públicas para mostrar."
           favoriteIds={favoriteIds}
+          loading={publicLibraryLoading}
           onOpenSong={handleOpen}
           onToggleFavorite={handleToggleFavorite}
         />
