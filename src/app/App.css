@@ -99,12 +99,13 @@
   display: block;
   width: 5.5rem;
   height: 5.5rem;
-  color: var(--muted);
+  opacity: 0.88;
 }
 
 .song-not-found .empty-state {
   margin: 0;
   max-width: 26rem;
+  color: #625b52;
 }
 
 .song-not-found__link {
