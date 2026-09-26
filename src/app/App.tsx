@@ -30,6 +30,8 @@ import { clearDraft, readDraft, saveDraft } from "./draftStorage";
 import { useAutosave } from "./useAutosave";
 import { useEditor } from "./useEditor";
 import { clearPendingAuthAction, readPendingAuthAction } from "./pendingAuthActionStorage";
+import { consumeJustForked, saveJustForked } from "./justForkedStorage";
+import { useToast } from "./toastContext";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
 
@@ -135,6 +137,7 @@ function App({
   const [loadError, setLoadError] = useState<{ songSlug: string } | null>(null);
   const { session, requireAuthentication } = useAuthRequired();
   const authenticated = Boolean(session);
+  const { showToast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [forking, setForking] = useState(false);
   // The song's real database id, resolved from `songSlug` once `getSongBySlug` returns (or set
@@ -273,14 +276,34 @@ function App({
     const pendingAction = readPendingAuthAction();
     if (pendingAction?.type === "save-song" && pendingAction.songSlug === (songSlug ?? null)) {
       clearPendingAuthAction();
+      showToast({
+        variant: "success",
+        title: "Sesión iniciada",
+        description: "Guardamos los cambios pendientes.",
+      });
     }
-  }, [authenticated, autosaveStatus, songSlug]);
+  }, [authenticated, autosaveStatus, songSlug, showToast]);
+
+  // If this mount is the landing page of a hard-navigation fork redirect (see performFork below),
+  // confirm it here — the toast queue that triggered the fork didn't survive that navigation, so
+  // the confirmation has to come from the page the user actually lands on instead.
+  useEffect(() => {
+    if (!songSlug) return;
+    if (consumeJustForked(songSlug)) {
+      showToast({
+        variant: "success",
+        title: "Canción versionada",
+        description: "Creamos una copia lista para editar, sin afectar la original.",
+      });
+    }
+  }, [songSlug, showToast]);
 
   const performFork = async (songId: string) => {
     setForking(true);
     try {
       const forked = await forkSong(songId);
       queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
+      saveJustForked(forked.slug);
       // A hard navigation (rather than the SPA router) so the fork's editor/autosave state starts
       // completely fresh, instead of reusing this mounted App instance's in-progress state.
       window.location.assign(`/cancion/${forked.slug}`);
