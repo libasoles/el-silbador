@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { trackEvent } from "../analytics";
@@ -6,6 +7,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import { PlusIcon, SearchIcon, SilbadorIcon, StarIcon, TrashIcon } from "../components/icons";
 import { deleteSong, listMySongs } from "../../data/songs";
+import { songQueryKeys } from "../../data/queryKeys";
 import type { SongSummary } from "../../data/types";
 import { useAuth } from "../useAuth";
 import "./Library.css";
@@ -189,38 +191,35 @@ interface LibraryProps {
 
 export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   const session = useAuth();
+  const userId = session?.user.id;
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
-  const [myLibrarySongs, setMyLibrarySongs] = useState<LibrarySong[]>([]);
   const [songPendingDelete, setSongPendingDelete] = useState<LibrarySong | null>(null);
-  const [myLibraryLoading, setMyLibraryLoading] = useState(true);
 
-  useEffect(() => {
-    if (session === undefined) {
-      // Still checking for an existing session: neither "logged out" nor "loaded" yet.
-      setMyLibraryLoading(true);
-      return;
-    }
-    if (session === null) {
-      setMyLibrarySongs([]);
-      setMyLibraryLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setMyLibraryLoading(true);
-    listMySongs()
-      .then((songs) => {
-        if (!cancelled) setMyLibrarySongs(songs.map(toLibrarySong));
-      })
-      .catch((error: unknown) => {
-        console.error("No se pudieron cargar las canciones propias.", error);
-      })
-      .finally(() => {
-        if (!cancelled) setMyLibraryLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [session]);
+  const {
+    data: myLibrarySongs = [],
+    isLoading: myQueryLoading,
+  } = useQuery({
+    queryKey: songQueryKeys.mine(userId ?? ""),
+    queryFn: async () => (await listMySongs()).map(toLibrarySong),
+    enabled: Boolean(userId),
+  });
+  // `undefined` session means the initial auth check hasn't resolved yet, so this section should
+  // still read as loading rather than flashing an empty "no songs" state; `null` (confirmed
+  // signed out) never fetches, so it isn't "loading" even though the query itself stays disabled.
+  const myLibraryLoading = session === undefined || (Boolean(userId) && myQueryLoading);
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteSong,
+    onSuccess: (_data, songId) => {
+      if (userId) {
+        queryClient.setQueryData<LibrarySong[]>(songQueryKeys.mine(userId), (current) =>
+          (current ?? []).filter((song) => song.id !== songId),
+        );
+      }
+      setSongPendingDelete(null);
+    },
+  });
 
   // Favoriting a public or own song is mocked locally: it toggles the star on that row, but
   // (unlike the real, Supabase-backed version) doesn't move the song into the Favoritas section
@@ -271,11 +270,9 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
     onNewSong?.();
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (!songPendingDelete) return;
-    await deleteSong(songPendingDelete.id);
-    setMyLibrarySongs((current) => current.filter((song) => song.id !== songPendingDelete.id));
-    setSongPendingDelete(null);
+    deleteMutation.mutate(songPendingDelete.id);
   };
 
   return (

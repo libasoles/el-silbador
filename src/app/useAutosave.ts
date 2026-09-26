@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { saveSong } from "../data";
+import { songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
 
 const DEBOUNCE_MS = 1000;
@@ -39,6 +41,7 @@ export function useAutosave(
   authenticated: boolean,
   onCreated: (id: string, slug: string) => void,
 ): AutosaveHandle {
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [retryTick, setRetryTick] = useState(0);
   const idRef = useRef(songId);
@@ -88,6 +91,9 @@ export function useAutosave(
           if (cancelled) return;
           idRef.current = saved.id;
           if (wasNew) onCreated(saved.id, saved.slug);
+          // Invalidate rather than patch in place: a save can change the title (and, for a new
+          // song, adds a row) that the Library list's cache needs to reflect on next visit.
+          queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
           setStatus("saved");
         } catch (error) {
           if (cancelled) return;
@@ -102,7 +108,7 @@ export function useAutosave(
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, songId, ready, onCreated, authenticated, retryTick]);
+  }, [content, songId, ready, onCreated, authenticated, retryTick, queryClient]);
 
   return { status, retry: () => setRetryTick((tick) => tick + 1) };
 }
