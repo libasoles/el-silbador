@@ -173,6 +173,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
     content,
     songId,
     authenticated,
+    contentLoaded,
     onSongCreated ?? noop,
   );
   const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";

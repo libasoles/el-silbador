@@ -19,6 +19,12 @@ export interface AutosaveHandle {
  * change after mount/song-load is skipped so opening an existing song (which replaces `content`
  * via loadContent) doesn't immediately re-save it unchanged.
  *
+ * `contentLoaded` gates this: while an existing song's content is still being fetched, `content`
+ * only holds the editor's default/empty state, and no save may fire off that. The "skip next
+ * change" latch is re-armed the moment `contentLoaded` flips true, so the load itself (which
+ * replaces `content` via loadContent right as `contentLoaded` flips) is swallowed rather than
+ * mistaken for a real edit.
+ *
  * Saving only ever reaches the network while `authenticated` is true — otherwise changes just
  * accumulate as "dirty" so the Save button lights up, and it's that button's click (opening the
  * login/register modal) that gets the user authenticated in the first place. The moment
@@ -29,6 +35,7 @@ export function useAutosave(
   content: SongContent,
   songId: string | undefined,
   authenticated: boolean,
+  contentLoaded: boolean,
   onCreated: (id: string) => void,
 ): AutosaveHandle {
   const [status, setStatus] = useState<SaveStatus>("idle");
@@ -37,6 +44,7 @@ export function useAutosave(
   const skipNext = useRef(true);
   const wasAuthenticated = useRef(authenticated);
   const lastRetryTick = useRef(retryTick);
+  const wasContentLoaded = useRef(contentLoaded);
 
   useEffect(() => {
     idRef.current = songId;
@@ -44,6 +52,15 @@ export function useAutosave(
   }, [songId]);
 
   useEffect(() => {
+    if (contentLoaded && !wasContentLoaded.current) {
+      skipNext.current = true;
+    }
+    wasContentLoaded.current = contentLoaded;
+  }, [contentLoaded]);
+
+  useEffect(() => {
+    if (!contentLoaded) return;
+
     const justAuthenticated = authenticated && !wasAuthenticated.current;
     const isRetry = retryTick !== lastRetryTick.current;
     wasAuthenticated.current = authenticated;
@@ -84,7 +101,7 @@ export function useAutosave(
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, songId, onCreated, authenticated, retryTick]);
+  }, [content, songId, onCreated, authenticated, retryTick, contentLoaded]);
 
   return { status, retry: () => setRetryTick((tick) => tick + 1) };
 }
