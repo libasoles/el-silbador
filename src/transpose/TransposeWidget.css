@@ -1,7 +1,10 @@
 /* Fixed and right-aligned to the same edge as .track-toolbar/.action-toolbar below, so it lines
    up with the sidebar's outer edge regardless of viewport width instead of trailing the header's
-   own (narrower) content column. Sits below .app-close's fixed corner button (top: 1rem, height
-   2.75rem) rather than sharing its row, so the two can never overlap. */
+   own (narrower) content column. Below 62.5rem the right offset collapses toward the viewport
+   edge and starts overlapping .app-close's fixed corner button (top: 1rem, height 2.75rem), so at
+   those widths the widget stays pinned below it instead of sharing its row. From 62.5rem up, the
+   right offset already clears .app-close horizontally, so the widget can sit at the title's own
+   top instead. */
 .transpose-widget {
   position: fixed;
   top: 4.25rem;
@@ -11,6 +14,12 @@
   gap: 0.25rem;
   font-family: var(--sans);
   z-index: 5;
+}
+
+@media (min-width: 62.5rem) {
+  .transpose-widget {
+    top: 1.6rem;
+  }
 }
 
 .transpose-widget__step,
