@@ -10,6 +10,7 @@ export {
   deleteSong,
   forkSong,
   getSong,
+  getSongBySlug,
   listFavorites,
   listMySongs,
   listPublicSongs,

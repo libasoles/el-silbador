@@ -21,6 +21,7 @@ export interface StoredSongContent {
 
 interface SongRow {
   id: string;
+  slug: string;
   title: string | null;
   content: StoredSongContent;
   is_public: boolean;
@@ -37,7 +38,7 @@ interface FavoriteRow {
   songs: SongRow | null;
 }
 
-const SUMMARY_COLUMNS = "id, title, is_public, forked_from, created_at, updated_at";
+const SUMMARY_COLUMNS = "id, slug, title, is_public, forked_from, created_at, updated_at";
 const DETAIL_COLUMNS = `${SUMMARY_COLUMNS}, content`;
 const PUBLIC_SUMMARY_COLUMNS = `${SUMMARY_COLUMNS}, profiles!owner_id(username)`;
 
@@ -66,6 +67,7 @@ export function deserializeContent(stored: StoredSongContent): SongContent {
 function toSummary(row: SongRow): SongSummary {
   return {
     id: row.id,
+    slug: row.slug,
     title: row.title,
     isPublic: row.is_public,
     forkedFrom: row.forked_from,
@@ -141,6 +143,16 @@ export async function getSong(songId: string): Promise<SongDetail> {
   return toDetail(data as SongRow);
 }
 
+/** Looks a song up by its URL-facing slug (see /cancion/:slug in Root.tsx) rather than its id. */
+export async function getSongBySlug(slug: string): Promise<SongDetail> {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase.from("songs").select(DETAIL_COLUMNS).eq("slug", slug).single();
+  if (error) throw error;
+
+  return toDetail(data as SongRow);
+}
+
 export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
   const supabase = getSupabaseClient();
   const userId = await requireUserId(supabase);
@@ -153,11 +165,11 @@ export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
       title: input.content.title || null,
       content: serializeContent(input.content),
     })
-    .select("id, updated_at")
+    .select("id, slug, updated_at")
     .single();
   if (error) throw error;
 
-  return { id: data.id as string, updatedAt: data.updated_at as string };
+  return { id: data.id as string, slug: data.slug as string, updatedAt: data.updated_at as string };
 }
 
 export async function deleteSong(songId: string): Promise<void> {

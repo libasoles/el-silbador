@@ -28,8 +28,9 @@ export interface AutosaveHandle {
 export function useAutosave(
   content: SongContent,
   songId: string | undefined,
+  ready: boolean,
   authenticated: boolean,
-  onCreated: (id: string) => void,
+  onCreated: (id: string, slug: string) => void,
 ): AutosaveHandle {
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [retryTick, setRetryTick] = useState(0);
@@ -55,6 +56,10 @@ export function useAutosave(
     }
     skipNext.current = false;
 
+    // Not ready means we're routed to an existing song but haven't resolved its real id yet
+    // (see App.tsx) — saving now would risk inserting a duplicate row instead of updating it.
+    if (!ready) return;
+
     if (!authenticated) {
       const timer = setTimeout(() => setStatus("dirty"), 0);
       return () => clearTimeout(timer);
@@ -69,7 +74,7 @@ export function useAutosave(
           const saved = await saveSong({ id: idRef.current, content });
           if (cancelled) return;
           idRef.current = saved.id;
-          if (wasNew) onCreated(saved.id);
+          if (wasNew) onCreated(saved.id, saved.slug);
           setStatus("saved");
         } catch (error) {
           if (cancelled) return;
@@ -84,7 +89,7 @@ export function useAutosave(
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, songId, onCreated, authenticated, retryTick]);
+  }, [content, songId, ready, onCreated, authenticated, retryTick]);
 
   return { status, retry: () => setRetryTick((tick) => tick + 1) };
 }

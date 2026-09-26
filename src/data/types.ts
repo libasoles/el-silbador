@@ -11,6 +11,8 @@ export type SongContent = Pick<EditorState, "title" | "author" | "lyricsText" | 
 
 export interface SongSummary {
   id: string;
+  /** Stable, URL-facing identifier (title-derived + a 5-character hash), used for /cancion/:slug. */
+  slug: string;
   title: string | null;
   isPublic: boolean;
   forkedFrom: string | null;
@@ -27,12 +29,13 @@ export interface SongDetail extends SongSummary {
 }
 
 export interface SaveSongInput {
-  /** Omit to create a new song; the returned id then identifies it going forward. */
+  /** Omit to create a new song; the returned id/slug then identify it going forward. */
   id?: string;
   content: SongContent;
 }
 
 export interface SavedSong {
   id: string;
+  slug: string;
   updatedAt: string;
 }

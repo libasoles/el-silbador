@@ -12,12 +12,13 @@ import "./Library.css";
 
 interface LibrarySong {
   id: string;
+  slug: string;
   title: string;
   author: string | null;
 }
 
 function toLibrarySong(song: SongSummary): LibrarySong {
-  return { id: song.id, title: song.title ?? "Sin título", author: null };
+  return { id: song.id, slug: song.slug, title: song.title ?? "Sin título", author: null };
 }
 
 // Mock data standing in for the still-unimplemented parts of the Supabase-backed library.
@@ -26,9 +27,9 @@ function toLibrarySong(song: SongSummary): LibrarySong {
 const FAVORITE_SONGS: LibrarySong[] = [];
 
 const PUBLIC_SONGS: LibrarySong[] = [
-  { id: "pub-1", title: "Recuerdos de Ypacaraí", author: "Demetrio Ortiz" },
-  { id: "pub-2", title: "Alfonsina y el mar", author: "Ariel Ramírez" },
-  { id: "pub-3", title: "Gracias a la vida", author: "Violeta Parra" },
+  { id: "pub-1", slug: "recuerdos-de-ypacarai-pub1a", title: "Recuerdos de Ypacaraí", author: "Demetrio Ortiz" },
+  { id: "pub-2", slug: "alfonsina-y-el-mar-pub2b", title: "Alfonsina y el mar", author: "Ariel Ramírez" },
+  { id: "pub-3", slug: "gracias-a-la-vida-pub3c", title: "Gracias a la vida", author: "Violeta Parra" },
 ];
 
 function matchesQuery(song: LibrarySong, query: string): boolean {
