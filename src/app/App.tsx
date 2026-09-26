@@ -5,7 +5,7 @@ import "@radix-ui/themes/styles.css";
 import "./App.css";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
-import { deleteSong, getSongBySlug } from "../data";
+import { deleteSong, forkSong, getSongBySlug } from "../data";
 import { songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
@@ -16,6 +16,7 @@ import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { SongView } from "./components/SongView";
 import {
   DownloadIcon,
+  ForkIcon,
   SaveIcon,
   SilbadorIcon,
   SpinnerIcon,
@@ -123,13 +124,19 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
   );
 }
 
-function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDeleted }: AppProps) {
+function App({
+  accentColor = DEFAULT_ACCENT_COLOR,
+  songSlug,
+  onSongCreated,
+  onDeleted,
+}: AppProps) {
   const queryClient = useQueryClient();
   const { state, actions } = useEditor();
   const [loadError, setLoadError] = useState<{ songSlug: string } | null>(null);
   const { session, requireAuthentication } = useAuthRequired();
   const authenticated = Boolean(session);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [forking, setForking] = useState(false);
   // The song's real database id, resolved from `songSlug` once `getSongBySlug` returns (or set
   // directly once autosave creates a brand-new song). Needed because writes (save/delete) still
   // key off the stable id rather than the slug.
@@ -237,6 +244,43 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
       clearPendingAuthAction();
     }
   }, [authenticated, autosaveStatus, songSlug]);
+
+  const performFork = async (songId: string) => {
+    setForking(true);
+    try {
+      const forked = await forkSong(songId);
+      queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
+      // A hard navigation (rather than the SPA router) so the fork's editor/autosave state starts
+      // completely fresh, instead of reusing this mounted App instance's in-progress state.
+      window.location.assign(`/cancion/${forked.slug}`);
+    } catch (error) {
+      console.error("No se pudo versionar la canción.", error);
+      setForking(false);
+    }
+  };
+
+  // The fork intent survives the magic-link reload the same way "save-song" does (see below):
+  // once signed in, resume forking the song that was being viewed when auth was requested.
+  useEffect(() => {
+    if (!authenticated || !songDbId) return;
+    const pendingAction = readPendingAuthAction();
+    if (pendingAction?.type === "fork-song" && pendingAction.songId === songDbId) {
+      clearPendingAuthAction();
+      void performFork(songDbId);
+    }
+    // `performFork` is recreated every render but only reads stable refs/props; only
+    // `authenticated`/`songDbId` should retrigger this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authenticated, songDbId]);
+
+  const handleForkClick = () => {
+    if (!songDbId) return;
+    if (!authenticated) {
+      requireAuthentication({ type: "fork-song", songId: songDbId });
+      return;
+    }
+    void performFork(songDbId);
+  };
 
   const handleExportPdf = () => {
     trackEvent("export_pdf", { song_id: songDbId });
@@ -388,6 +432,19 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
             )}
 
             <aside className="action-toolbar" aria-label="Acciones">
+              {songDbId && (
+                <IconButtonTooltip tooltip={forking ? "Versionando…" : "Versionar canción"}>
+                  <button
+                    type="button"
+                    className="action-toolbar__button"
+                    aria-label="Versionar canción"
+                    disabled={forking}
+                    onClick={handleForkClick}
+                  >
+                    {forking ? <SpinnerIcon /> : <ForkIcon />}
+                  </button>
+                </IconButtonTooltip>
+              )}
               {isOwnSong && (
                 <IconButtonTooltip tooltip={saveTooltip}>
                   <button
