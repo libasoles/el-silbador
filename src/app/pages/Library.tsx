@@ -164,7 +164,12 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   const [myLibraryLoading, setMyLibraryLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) {
+    if (session === undefined) {
+      // Still checking for an existing session: neither "logged out" nor "loaded" yet.
+      setMyLibraryLoading(true);
+      return;
+    }
+    if (session === null) {
       setMyLibrarySongs([]);
       setMyLibraryLoading(false);
       return;
