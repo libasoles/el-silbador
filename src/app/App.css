@@ -85,6 +85,39 @@
   color: var(--highlight);
 }
 
+.song-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.song-not-found__mark {
+  flex: none;
+  display: inline-flex;
+  width: 5.5rem;
+  height: 5.5rem;
+  color: var(--muted);
+}
+
+.song-not-found__mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.song-not-found .empty-state {
+  margin: 0;
+  max-width: 26rem;
+}
+
+.song-not-found__link {
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
 .title-input::placeholder,
 .author-input::placeholder {
   color: var(--muted);

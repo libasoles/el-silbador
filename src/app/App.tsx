@@ -55,6 +55,27 @@ function SongViewSkeleton() {
   );
 }
 
+/** Shown instead of the editor when a song's slug can't be resolved: it doesn't exist, or it's
+    private and the current viewer isn't signed in as its owner. RLS makes those two cases
+    indistinguishable to the client (both come back as "no row"), so they share one message
+    rather than leaking which one applies. */
+function SongNotFound() {
+  return (
+    <div className="song-not-found">
+      <span className="song-not-found__mark" aria-hidden="true">
+        <SilbadorIcon />
+      </span>
+      <p className="empty-state">
+        No encontramos esta canción. Puede que no exista, o que sea privada y solo la pueda ver
+        quien la creó.
+      </p>
+      <a className="song-not-found__link" href="/">
+        Volver al cancionero
+      </a>
+    </div>
+  );
+}
+
 interface AppProps {
   /** Base color the underline, chord, and highlight colors are all derived from. */
   accentColor?: string;
@@ -102,7 +123,7 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
 
 function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDeleted }: AppProps) {
   const { state, actions } = useEditor();
-  const [loadError, setLoadError] = useState<{ songSlug: string; message: string } | null>(null);
+  const [loadError, setLoadError] = useState<{ songSlug: string } | null>(null);
   const session = useAuth();
   const authenticated = Boolean(session);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -151,7 +172,11 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setLoadError({ songSlug, message: error instanceof Error ? error.message : String(error) });
+          // Logged for developers only: shown to the user as a generic "not found" (see
+          // SongNotFound above), since RLS means "doesn't exist" and "private, not yours" are
+          // indistinguishable here and neither should be exposed as raw error text.
+          console.error(`No se pudo cargar la canción "${songSlug}".`, error);
+          setLoadError({ songSlug });
           setContentLoaded(true);
         }
       });
@@ -226,6 +251,8 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
     if (autosaveStatus === "error") retrySave();
   };
 
+  const notFound = loadError !== null && loadError.songSlug === songSlug;
+
   const saveTooltip = saving
     ? "Guardando…"
     : !pendingChanges
@@ -248,171 +275,171 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
         </a>
       </IconButtonTooltip>
 
-      <TransposeWidget
-        chordCells={state.cells.chords}
-        onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
-      />
-
-      <div className="title-block">
-        <input
-          type="text"
-          className="title-input"
-          placeholder="Título"
-          value={state.title}
-          onChange={(event) => actions.setTitle(event.target.value)}
-          aria-label="Título"
-        />
-        {(state.title.trim() !== "" || state.author.trim() !== "") && (
-          <input
-            type="text"
-            className="author-input"
-            placeholder="Autor o intérprete"
-            value={state.author}
-            onChange={(event) => actions.setAuthor(event.target.value)}
-            aria-label="Autor o intérprete"
-          />
-        )}
-      </div>
-
-      {loadError && loadError.songSlug === songSlug ? (
-        <p className="autosave-status autosave-status--error">
-          No se pudo cargar la canción: {loadError.message}
-        </p>
+      {notFound ? (
+        <SongNotFound />
       ) : (
-        (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
-          <p className={`autosave-status autosave-status--${autosaveStatus}`}>
-            {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
-          </p>
-        )
-      )}
-
-      <div className="workspace">
-        <aside className="track-toolbar" aria-label="Visibilidad de pistas">
-          {state.tracks
-            .filter((track) => track.id !== "vocalNotes")
-            .map((track) => (
-              <TrackToggleButton
-                key={track.id}
-                track={track}
-                cells={state.cells}
-                onToggle={() =>
-                  actions.setTrackVisibility(track.id, !track.visible)
-                }
-              />
-            ))}
-          <IconButtonTooltip
-            tooltip={
-              state.lyricsText.trim() === ""
-                ? "No hay letra que subrayar"
-                : "Subrayado"
-            }
-          >
-            <button
-              type="button"
-              className="track-toolbar__toggle"
-              aria-pressed={state.showUnderline}
-              aria-label="Subrayado"
-              disabled={state.lyricsText.trim() === ""}
-              onClick={() => actions.setShowUnderline(!state.showUnderline)}
-            >
-              <UnderlineIcon />
-            </button>
-          </IconButtonTooltip>
-          {state.tracks
-            .filter((track) => track.id === "vocalNotes")
-            .map((track) => (
-              <TrackToggleButton
-                key={track.id}
-                track={track}
-                cells={state.cells}
-                onToggle={() =>
-                  actions.setTrackVisibility(track.id, !track.visible)
-                }
-              />
-            ))}
-        </aside>
-
-        {!contentLoaded ? (
-          <SongViewSkeleton />
-        ) : (
-          <SongView
-            song={state.song}
-            lyricsText={state.lyricsText}
-            merges={state.merges}
-            tracks={state.tracks}
-            cells={state.cells}
-            showUnderline={state.showUnderline}
-            onSetCellText={actions.setCellText}
-            onToggleMerge={actions.toggleSyllableMerge}
-            onMoveCellText={actions.moveCellText}
-            onReconcileLyricsText={actions.reconcileLyricsText}
-            onPasteText={actions.pasteText}
+        <>
+          <TransposeWidget
+            chordCells={state.cells.chords}
+            onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
           />
-        )}
 
-        <aside className="action-toolbar" aria-label="Acciones">
-          {isOwnSong && (
-            <IconButtonTooltip tooltip={saveTooltip}>
-              <button
-                type="button"
-                className={
-                  autosaveStatus === "error"
-                    ? "action-toolbar__button action-toolbar__button--error"
-                    : "action-toolbar__button"
-                }
-                aria-label="Guardar canción"
-                disabled={saving || !pendingChanges}
-                onClick={handleSaveClick}
-              >
-                {saving ? <SpinnerIcon /> : <SaveIcon />}
-              </button>
-            </IconButtonTooltip>
+          <div className="title-block">
+            <input
+              type="text"
+              className="title-input"
+              placeholder="Título"
+              value={state.title}
+              onChange={(event) => actions.setTitle(event.target.value)}
+              aria-label="Título"
+            />
+            {(state.title.trim() !== "" || state.author.trim() !== "") && (
+              <input
+                type="text"
+                className="author-input"
+                placeholder="Autor o intérprete"
+                value={state.author}
+                onChange={(event) => actions.setAuthor(event.target.value)}
+                aria-label="Autor o intérprete"
+              />
+            )}
+          </div>
+
+          {(autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
+            <p className={`autosave-status autosave-status--${autosaveStatus}`}>
+              {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
+            </p>
           )}
-          <IconButtonTooltip
-            tooltip={
-              state.lyricsText.trim() === ""
-                ? "No hay letra que exportar"
-                : "Exportar a PDF"
-            }
-          >
-            <button
-              type="button"
-              className="action-toolbar__button"
-              aria-label="Exportar a PDF"
-              disabled={state.lyricsText.trim() === ""}
-              onClick={handleExportPdf}
-            >
-              <DownloadIcon />
-            </button>
-          </IconButtonTooltip>
-          <IconButtonTooltip
-            tooltip={songDbId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
-          >
-            <button
-              type="button"
-              className="action-toolbar__button"
-              aria-label="Eliminar canción"
-              disabled={!songDbId}
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <TrashIcon size={24} strokeWidth={2} />
-            </button>
-          </IconButtonTooltip>
-        </aside>
-      </div>
 
-      {authModalOpen && !authenticated && (
-        <AuthModal onClose={() => setAuthModalOpen(false)} />
+          <div className="workspace">
+            <aside className="track-toolbar" aria-label="Visibilidad de pistas">
+              {state.tracks
+                .filter((track) => track.id !== "vocalNotes")
+                .map((track) => (
+                  <TrackToggleButton
+                    key={track.id}
+                    track={track}
+                    cells={state.cells}
+                    onToggle={() =>
+                      actions.setTrackVisibility(track.id, !track.visible)
+                    }
+                  />
+                ))}
+              <IconButtonTooltip
+                tooltip={
+                  state.lyricsText.trim() === ""
+                    ? "No hay letra que subrayar"
+                    : "Subrayado"
+                }
+              >
+                <button
+                  type="button"
+                  className="track-toolbar__toggle"
+                  aria-pressed={state.showUnderline}
+                  aria-label="Subrayado"
+                  disabled={state.lyricsText.trim() === ""}
+                  onClick={() => actions.setShowUnderline(!state.showUnderline)}
+                >
+                  <UnderlineIcon />
+                </button>
+              </IconButtonTooltip>
+              {state.tracks
+                .filter((track) => track.id === "vocalNotes")
+                .map((track) => (
+                  <TrackToggleButton
+                    key={track.id}
+                    track={track}
+                    cells={state.cells}
+                    onToggle={() =>
+                      actions.setTrackVisibility(track.id, !track.visible)
+                    }
+                  />
+                ))}
+            </aside>
+
+            {!contentLoaded ? (
+              <SongViewSkeleton />
+            ) : (
+              <SongView
+                song={state.song}
+                lyricsText={state.lyricsText}
+                merges={state.merges}
+                tracks={state.tracks}
+                cells={state.cells}
+                showUnderline={state.showUnderline}
+                onSetCellText={actions.setCellText}
+                onToggleMerge={actions.toggleSyllableMerge}
+                onMoveCellText={actions.moveCellText}
+                onReconcileLyricsText={actions.reconcileLyricsText}
+                onPasteText={actions.pasteText}
+              />
+            )}
+
+            <aside className="action-toolbar" aria-label="Acciones">
+              {isOwnSong && (
+                <IconButtonTooltip tooltip={saveTooltip}>
+                  <button
+                    type="button"
+                    className={
+                      autosaveStatus === "error"
+                        ? "action-toolbar__button action-toolbar__button--error"
+                        : "action-toolbar__button"
+                    }
+                    aria-label="Guardar canción"
+                    disabled={saving || !pendingChanges}
+                    onClick={handleSaveClick}
+                  >
+                    {saving ? <SpinnerIcon /> : <SaveIcon />}
+                  </button>
+                </IconButtonTooltip>
+              )}
+              <IconButtonTooltip
+                tooltip={
+                  state.lyricsText.trim() === ""
+                    ? "No hay letra que exportar"
+                    : "Exportar a PDF"
+                }
+              >
+                <button
+                  type="button"
+                  className="action-toolbar__button"
+                  aria-label="Exportar a PDF"
+                  disabled={state.lyricsText.trim() === ""}
+                  onClick={handleExportPdf}
+                >
+                  <DownloadIcon />
+                </button>
+              </IconButtonTooltip>
+              <IconButtonTooltip
+                tooltip={songDbId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
+              >
+                <button
+                  type="button"
+                  className="action-toolbar__button"
+                  aria-label="Eliminar canción"
+                  disabled={!songDbId}
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <TrashIcon size={24} strokeWidth={2} />
+                </button>
+              </IconButtonTooltip>
+            </aside>
+          </div>
+
+          {authModalOpen && !authenticated && (
+            <AuthModal onClose={() => setAuthModalOpen(false)} />
+          )}
+
+          <ConfirmDialog
+            open={deleteDialogOpen}
+            title="Eliminar canción"
+            description="Esta acción no se puede deshacer. ¿Querés eliminar esta canción?"
+            confirmLabel="Eliminar"
+            onConfirm={handleConfirmDelete}
+            onCancel={() => setDeleteDialogOpen(false)}
+          />
+        </>
       )}
-
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        title="Eliminar canción"
-        description="Esta acción no se puede deshacer. ¿Querés eliminar esta canción?"
-        confirmLabel="Eliminar"
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteDialogOpen(false)}
-      />
     </main>
   );
 }
