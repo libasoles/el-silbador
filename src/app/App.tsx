@@ -347,6 +347,11 @@ function App({
     queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
     if (songSlug) queryClient.removeQueries({ queryKey: songQueryKeys.bySlug(songSlug) });
     setDeleteDialogOpen(false);
+    showToast({
+      variant: "success",
+      title: "Canción eliminada",
+      description: "Borramos la canción de tu biblioteca.",
+    });
     onDeleted?.();
   };
 

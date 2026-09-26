@@ -231,6 +231,11 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
         );
       }
       setSongPendingDelete(null);
+      showToast({
+        variant: "success",
+        title: "Canción eliminada",
+        description: "Borramos la canción de tu biblioteca.",
+      });
     },
   });
 
