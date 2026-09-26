@@ -194,29 +194,65 @@ function lineEndBoundary(text: string, index: number): number {
   return i === -1 ? text.length : i;
 }
 
+function placeCaretAt(node: Node, offsetInNode: number) {
+  const range = document.createRange();
+  range.setStart(node, offsetInNode);
+  range.collapse(true);
+  const selection = window.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+}
+
+/** Walks `nodes` in the same order and with the same per-node length rules as `nodesText`
+    (a word-boundary gap button and a `<br>` each consume exactly one offset unit, an
+    empty-line-caret marker consumes none) so that an offset produced by `captureCaret` lands on
+    the matching DOM position here. Returns the remaining, unconsumed offset if it places the
+    caret nowhere in `nodes` (the caller then knows to fall back to the end of the line). */
+function walkAndPlaceCaret(nodes: Node[], remaining: number): number {
+  for (const node of nodes) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const length = node.textContent?.length ?? 0;
+      if (remaining <= length) {
+        placeCaretAt(node, remaining);
+        return -1;
+      }
+      remaining -= length;
+      continue;
+    }
+    if (!(node instanceof HTMLElement)) continue;
+    if (node.hasAttribute("data-empty-line-caret")) continue;
+    if (
+      node.tagName === "BR" ||
+      node.classList.contains("syllable-gap--word-boundary")
+    ) {
+      if (remaining <= 0) {
+        const parent = node.parentNode!;
+        placeCaretAt(parent, Array.from(parent.childNodes).indexOf(node as ChildNode));
+        return -1;
+      }
+      remaining -= 1;
+      continue;
+    }
+    const length = node.textContent?.length ?? 0;
+    if (remaining <= length) {
+      const result = walkAndPlaceCaret(Array.from(node.childNodes), remaining);
+      if (result === -1) return -1;
+      placeCaretAt(node, node.childNodes.length);
+      return -1;
+    }
+    remaining -= length;
+  }
+  return remaining;
+}
+
 function restoreCaret(root: HTMLElement, position: CaretPosition) {
   const line =
     root.querySelectorAll<HTMLElement>("[data-lyrics-line]")[
       position.lineIndex
     ];
   if (!line) return;
-  const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
-  let remaining = position.offset;
-  let node = walker.nextNode();
-  while (node) {
-    const length = node.textContent?.length ?? 0;
-    if (remaining <= length) {
-      const range = document.createRange();
-      range.setStart(node, remaining);
-      range.collapse(true);
-      const selection = window.getSelection();
-      selection?.removeAllRanges();
-      selection?.addRange(range);
-      return;
-    }
-    remaining -= length;
-    node = walker.nextNode();
-  }
+  const remaining = walkAndPlaceCaret(Array.from(line.childNodes), position.offset);
+  if (remaining === -1) return;
   const range = document.createRange();
   range.selectNodeContents(line);
   range.collapse(false);
