@@ -54,9 +54,12 @@ describe("application mark", () => {
 });
 
 describe("favicon", () => {
-  it("uses the supplied whistling-face mark", () => {
+  it("uses the supplied whistling-face mark on an accent-colored background", () => {
+    // A stroke-only icon with no background is invisible against a browser tab's own
+    // background, so the mark sits on a filled square colored with the brand accent.
     expect(favicon).toContain('viewBox="0 0 64 64"');
-    expect(favicon).toContain('stroke="#fff"');
+    expect(favicon).toContain('fill="#9c4a3c"');
+    expect(favicon).toContain('stroke="#fbfaf7"');
     expect(favicon).toContain('stroke-width="2.15"');
     expect(favicon).toContain('M38.8 35.3C40.1 34.7');
     expect(favicon).toContain('stroke-width="1.75"');
