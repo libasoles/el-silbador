@@ -117,6 +117,9 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
   // Only an existing song (songId set, no restored draft) has content worth waiting on; a new
   // song, or one whose draft was already restored, starts "loaded" with its editor state in place.
   const [contentLoaded, setContentLoaded] = useState(() => !songId || Boolean(restoredDraft));
+  // `undefined` while an existing song's owner is still unknown (fetch in flight); a brand-new
+  // song has no owner yet, so it's implicitly "mine" until it's first saved.
+  const [ownerId, setOwnerId] = useState<string | undefined>(undefined);
   useEffect(() => {
     if (restoredDraft) {
       actions.loadContent(restoredDraft.content);
@@ -141,6 +144,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
       .then((detail) => {
         if (!cancelled) {
           actions.loadContent(detail.content);
+          setOwnerId(detail.ownerId);
           setContentLoaded(true);
         }
       })
@@ -178,6 +182,11 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
   );
   const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
   const saving = autosaveStatus === "saving";
+  // A brand-new song (no songId) or one restored from a pre-auth draft was necessarily started by
+  // this browser, so it's implicitly the user's own; an existing song is only "mine" once its
+  // fetched owner matches the signed-in user (forking a song creates a new row owned by the
+  // forker, so a viewed fork satisfies this the same way any other owned song does).
+  const isOwnSong = !songId || Boolean(restoredDraft) || (ownerId !== undefined && ownerId === session?.user.id);
 
   useEffect(() => {
     if (autosaveStatus === "saved") trackEvent("song_saved", { song_id: songId });
@@ -333,21 +342,23 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
         )}
 
         <aside className="action-toolbar" aria-label="Acciones">
-          <IconButtonTooltip tooltip={saveTooltip}>
-            <button
-              type="button"
-              className={
-                autosaveStatus === "error"
-                  ? "action-toolbar__button action-toolbar__button--error"
-                  : "action-toolbar__button"
-              }
-              aria-label="Guardar canción"
-              disabled={saving || !pendingChanges}
-              onClick={handleSaveClick}
-            >
-              {saving ? <SpinnerIcon /> : <SaveIcon />}
-            </button>
-          </IconButtonTooltip>
+          {isOwnSong && (
+            <IconButtonTooltip tooltip={saveTooltip}>
+              <button
+                type="button"
+                className={
+                  autosaveStatus === "error"
+                    ? "action-toolbar__button action-toolbar__button--error"
+                    : "action-toolbar__button"
+                }
+                aria-label="Guardar canción"
+                disabled={saving || !pendingChanges}
+                onClick={handleSaveClick}
+              >
+                {saving ? <SpinnerIcon /> : <SaveIcon />}
+              </button>
+            </IconButtonTooltip>
+          )}
           <IconButtonTooltip
             tooltip={
               state.lyricsText.trim() === ""

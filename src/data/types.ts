@@ -12,6 +12,7 @@ export type SongContent = Pick<EditorState, "title" | "author" | "lyricsText" | 
 export interface SongSummary {
   id: string;
   title: string | null;
+  ownerId: string;
   isPublic: boolean;
   forkedFrom: string | null;
   createdAt: string;
