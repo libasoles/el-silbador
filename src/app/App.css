@@ -88,6 +88,31 @@
   gap: 1.5rem;
 }
 
+.song-view-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  flex: 1;
+  padding: 0.5rem 0;
+}
+
+.song-view-skeleton__line {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.song-view-skeleton__line:nth-child(3n + 1) {
+  width: 70%;
+}
+
+.song-view-skeleton__line:nth-child(3n + 2) {
+  width: 92%;
+}
+
+.song-view-skeleton__line:nth-child(3n) {
+  width: 55%;
+}
+
 /* Lateral track toolbar — floats over the right margin, like a cancionero's chord-toggle gutter,
    instead of occupying its own flex column. */
 .track-toolbar {
