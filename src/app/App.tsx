@@ -38,30 +38,20 @@ const AUTOSAVE_STATUS_LABEL: Record<"saving" | "saved" | "error", string> = {
 
 function noop() {}
 
-/** Stand-in for the title/author fields and the lyrics workspace while an existing song's
-    content is still being fetched. Never shown for a brand-new song, which has no content to
-    wait on. */
-function SongPageSkeleton() {
+/** Stand-in for the lyrics/annotation grid while an existing song's content is still being
+    fetched. Never shown for a brand-new song, which has no content to wait on. The title,
+    author, and toolbars render normally throughout — only the editor area itself is replaced. */
+function SongViewSkeleton() {
   return (
     <Theme hasBackground={false}>
-      <div className="title-block">
-        <Skeleton>
-          <span className="title-input">Título de ejemplo</span>
-        </Skeleton>
-        <Skeleton>
-          <span className="author-input">Autor de ejemplo</span>
-        </Skeleton>
-      </div>
-      <div className="workspace">
-        <div className="song-view-skeleton">
-          {["Primera línea de ejemplo", "Segunda línea, un poco más larga", "Tercera línea"].map(
-            (line, index) => (
-              <Skeleton key={index}>
-                <span className="song-view-skeleton__line">{line}</span>
-              </Skeleton>
-            ),
-          )}
-        </div>
+      <div className="song-wrapper song-view-skeleton">
+        {["Primera línea de ejemplo", "Segunda línea, un poco más larga", "Tercera línea"].map(
+          (line, index) => (
+            <Skeleton key={index}>
+              <span className="song-view-skeleton__line">{line}</span>
+            </Skeleton>
+          ),
+        )}
       </div>
     </Theme>
   );
@@ -244,153 +234,151 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
         onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
       />
 
-      {!contentLoaded ? (
-        <SongPageSkeleton />
+      <div className="title-block">
+        <input
+          type="text"
+          className="title-input"
+          placeholder="Título"
+          value={state.title}
+          onChange={(event) => actions.setTitle(event.target.value)}
+          aria-label="Título"
+        />
+        {(state.title.trim() !== "" || state.author.trim() !== "") && (
+          <input
+            type="text"
+            className="author-input"
+            placeholder="Autor o intérprete"
+            value={state.author}
+            onChange={(event) => actions.setAuthor(event.target.value)}
+            aria-label="Autor o intérprete"
+          />
+        )}
+      </div>
+
+      {loadError && loadError.songId === songId ? (
+        <p className="autosave-status autosave-status--error">
+          No se pudo cargar la canción: {loadError.message}
+        </p>
       ) : (
-        <>
-          <div className="title-block">
-            <input
-              type="text"
-              className="title-input"
-              placeholder="Título"
-              value={state.title}
-              onChange={(event) => actions.setTitle(event.target.value)}
-              aria-label="Título"
-            />
-            {(state.title.trim() !== "" || state.author.trim() !== "") && (
-              <input
-                type="text"
-                className="author-input"
-                placeholder="Autor o intérprete"
-                value={state.author}
-                onChange={(event) => actions.setAuthor(event.target.value)}
-                aria-label="Autor o intérprete"
-              />
-            )}
-          </div>
-
-          {loadError && loadError.songId === songId ? (
-            <p className="autosave-status autosave-status--error">
-              No se pudo cargar la canción: {loadError.message}
-            </p>
-          ) : (
-            (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
-              <p className={`autosave-status autosave-status--${autosaveStatus}`}>
-                {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
-              </p>
-            )
-          )}
-
-          <div className="workspace">
-            <aside className="track-toolbar" aria-label="Visibilidad de pistas">
-              {state.tracks
-                .filter((track) => track.id !== "vocalNotes")
-                .map((track) => (
-                  <TrackToggleButton
-                    key={track.id}
-                    track={track}
-                    cells={state.cells}
-                    onToggle={() =>
-                      actions.setTrackVisibility(track.id, !track.visible)
-                    }
-                  />
-                ))}
-              <IconButtonTooltip
-                tooltip={
-                  state.lyricsText.trim() === ""
-                    ? "No hay letra que subrayar"
-                    : "Subrayado"
-                }
-              >
-                <button
-                  type="button"
-                  className="track-toolbar__toggle"
-                  aria-pressed={state.showUnderline}
-                  aria-label="Subrayado"
-                  disabled={state.lyricsText.trim() === ""}
-                  onClick={() => actions.setShowUnderline(!state.showUnderline)}
-                >
-                  <UnderlineIcon />
-                </button>
-              </IconButtonTooltip>
-              {state.tracks
-                .filter((track) => track.id === "vocalNotes")
-                .map((track) => (
-                  <TrackToggleButton
-                    key={track.id}
-                    track={track}
-                    cells={state.cells}
-                    onToggle={() =>
-                      actions.setTrackVisibility(track.id, !track.visible)
-                    }
-                  />
-                ))}
-            </aside>
-
-            <SongView
-              song={state.song}
-              lyricsText={state.lyricsText}
-              merges={state.merges}
-              tracks={state.tracks}
-              cells={state.cells}
-              showUnderline={state.showUnderline}
-              onSetCellText={actions.setCellText}
-              onToggleMerge={actions.toggleSyllableMerge}
-              onMoveCellText={actions.moveCellText}
-              onReconcileLyricsText={actions.reconcileLyricsText}
-              onPasteText={actions.pasteText}
-            />
-
-            <aside className="action-toolbar" aria-label="Acciones">
-              <IconButtonTooltip tooltip={saveTooltip}>
-                <button
-                  type="button"
-                  className={
-                    autosaveStatus === "error"
-                      ? "action-toolbar__button action-toolbar__button--error"
-                      : "action-toolbar__button"
-                  }
-                  aria-label="Guardar canción"
-                  disabled={saving || !pendingChanges}
-                  onClick={handleSaveClick}
-                >
-                  {saving ? <SpinnerIcon /> : <SaveIcon />}
-                </button>
-              </IconButtonTooltip>
-              <IconButtonTooltip
-                tooltip={
-                  state.lyricsText.trim() === ""
-                    ? "No hay letra que exportar"
-                    : "Exportar a PDF"
-                }
-              >
-                <button
-                  type="button"
-                  className="action-toolbar__button"
-                  aria-label="Exportar a PDF"
-                  disabled={state.lyricsText.trim() === ""}
-                  onClick={handleExportPdf}
-                >
-                  <DownloadIcon />
-                </button>
-              </IconButtonTooltip>
-              <IconButtonTooltip
-                tooltip={songId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
-              >
-                <button
-                  type="button"
-                  className="action-toolbar__button"
-                  aria-label="Eliminar canción"
-                  disabled={!songId}
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <TrashIcon size={24} strokeWidth={2} />
-                </button>
-              </IconButtonTooltip>
-            </aside>
-          </div>
-        </>
+        (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
+          <p className={`autosave-status autosave-status--${autosaveStatus}`}>
+            {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
+          </p>
+        )
       )}
+
+      <div className="workspace">
+        <aside className="track-toolbar" aria-label="Visibilidad de pistas">
+          {state.tracks
+            .filter((track) => track.id !== "vocalNotes")
+            .map((track) => (
+              <TrackToggleButton
+                key={track.id}
+                track={track}
+                cells={state.cells}
+                onToggle={() =>
+                  actions.setTrackVisibility(track.id, !track.visible)
+                }
+              />
+            ))}
+          <IconButtonTooltip
+            tooltip={
+              state.lyricsText.trim() === ""
+                ? "No hay letra que subrayar"
+                : "Subrayado"
+            }
+          >
+            <button
+              type="button"
+              className="track-toolbar__toggle"
+              aria-pressed={state.showUnderline}
+              aria-label="Subrayado"
+              disabled={state.lyricsText.trim() === ""}
+              onClick={() => actions.setShowUnderline(!state.showUnderline)}
+            >
+              <UnderlineIcon />
+            </button>
+          </IconButtonTooltip>
+          {state.tracks
+            .filter((track) => track.id === "vocalNotes")
+            .map((track) => (
+              <TrackToggleButton
+                key={track.id}
+                track={track}
+                cells={state.cells}
+                onToggle={() =>
+                  actions.setTrackVisibility(track.id, !track.visible)
+                }
+              />
+            ))}
+        </aside>
+
+        {!contentLoaded ? (
+          <SongViewSkeleton />
+        ) : (
+          <SongView
+            song={state.song}
+            lyricsText={state.lyricsText}
+            merges={state.merges}
+            tracks={state.tracks}
+            cells={state.cells}
+            showUnderline={state.showUnderline}
+            onSetCellText={actions.setCellText}
+            onToggleMerge={actions.toggleSyllableMerge}
+            onMoveCellText={actions.moveCellText}
+            onReconcileLyricsText={actions.reconcileLyricsText}
+            onPasteText={actions.pasteText}
+          />
+        )}
+
+        <aside className="action-toolbar" aria-label="Acciones">
+          <IconButtonTooltip tooltip={saveTooltip}>
+            <button
+              type="button"
+              className={
+                autosaveStatus === "error"
+                  ? "action-toolbar__button action-toolbar__button--error"
+                  : "action-toolbar__button"
+              }
+              aria-label="Guardar canción"
+              disabled={saving || !pendingChanges}
+              onClick={handleSaveClick}
+            >
+              {saving ? <SpinnerIcon /> : <SaveIcon />}
+            </button>
+          </IconButtonTooltip>
+          <IconButtonTooltip
+            tooltip={
+              state.lyricsText.trim() === ""
+                ? "No hay letra que exportar"
+                : "Exportar a PDF"
+            }
+          >
+            <button
+              type="button"
+              className="action-toolbar__button"
+              aria-label="Exportar a PDF"
+              disabled={state.lyricsText.trim() === ""}
+              onClick={handleExportPdf}
+            >
+              <DownloadIcon />
+            </button>
+          </IconButtonTooltip>
+          <IconButtonTooltip
+            tooltip={songId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
+          >
+            <button
+              type="button"
+              className="action-toolbar__button"
+              aria-label="Eliminar canción"
+              disabled={!songId}
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <TrashIcon size={24} strokeWidth={2} />
+            </button>
+          </IconButtonTooltip>
+        </aside>
+      </div>
 
       {authModalOpen && !authenticated && (
         <AuthModal onClose={() => setAuthModalOpen(false)} />
