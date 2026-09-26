@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
@@ -15,6 +15,7 @@ import {
   StarIcon,
   TrashIcon,
 } from "../components/icons";
+import neutralIllustration from "../../assets/03-neutral.svg";
 import { signOut } from "../../data/auth";
 import { deleteSong, listMySongs, listPublicSongs } from "../../data/songs";
 import { songQueryKeys } from "../../data/queryKeys";
@@ -136,6 +137,7 @@ interface LibrarySectionProps {
   title?: string;
   songs: LibrarySong[];
   emptyLabel: string;
+  emptyIcon?: ReactNode;
   favoriteIds: Set<string>;
   showFavorite?: boolean;
   showDelete?: boolean;
@@ -149,6 +151,7 @@ function LibrarySection({
   title,
   songs,
   emptyLabel,
+  emptyIcon = <SilbadorIcon />,
   favoriteIds,
   showFavorite = true,
   showDelete = false,
@@ -174,7 +177,7 @@ function LibrarySection({
       ) : songs.length === 0 ? (
         <div className="library-section__empty">
           <span className="library-section__empty-mark" aria-hidden="true">
-            <SilbadorIcon />
+            {emptyIcon}
           </span>
           <p className="empty-state">{emptyLabel}</p>
         </div>
@@ -416,6 +419,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
           title={session ? "Públicas" : undefined}
           songs={publicSongs}
           emptyLabel="Todavía no hay canciones públicas para mostrar."
+          emptyIcon={<img src={neutralIllustration} alt="" />}
           favoriteIds={favoriteIds}
           loading={publicLibraryLoading}
           onOpenSong={handleOpen}
