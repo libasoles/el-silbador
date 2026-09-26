@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import "./App.css";
+import neutralIllustration from "../assets/03-neutral.svg";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
 import { deleteSong, forkSong, getSongBySlug, isCurrentUserAdmin, setSongPublic } from "../data";
@@ -68,15 +69,13 @@ function SongViewSkeleton() {
 function SongNotFound() {
   return (
     <div className="song-not-found">
-      <span className="song-not-found__mark" aria-hidden="true">
-        <SilbadorIcon />
-      </span>
+      <img className="song-not-found__mark" src={neutralIllustration} alt="" />
       <p className="empty-state">
         No encontramos esta canción. Puede que no exista, o que sea privada y solo la pueda ver
         quien la creó.
       </p>
       <a className="song-not-found__link" href="/">
-        Volver al cancionero
+        Ir al cancionero
       </a>
     </div>
   );
@@ -393,6 +392,11 @@ function App({
     queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
     if (songSlug) queryClient.removeQueries({ queryKey: songQueryKeys.bySlug(songSlug) });
     setDeleteDialogOpen(false);
+    showToast({
+      variant: "success",
+      title: "Canción eliminada",
+      description: "Borramos la canción de tu biblioteca.",
+    });
     onDeleted?.();
   };
 

@@ -14,12 +14,12 @@
   width: 7rem;
   height: 7rem;
   margin-bottom: 1.5rem;
-  color: var(--muted);
+  opacity: 0.72;
 }
 
 .not-found__status {
   margin: 0 0 0.35rem;
-  color: var(--muted);
+  color: #625b52;
   font-family: var(--sans);
   font-size: 0.8rem;
   font-weight: 500;
@@ -35,7 +35,7 @@
 .not-found__message {
   max-width: 25rem;
   margin: 0.75rem 0 1.5rem;
-  color: var(--muted);
+  color: #625b52;
   line-height: 1.5;
 }
 
