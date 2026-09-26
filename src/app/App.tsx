@@ -183,10 +183,10 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
           <input
             type="text"
             className="author-input"
-            placeholder="Autor"
+            placeholder="Autor o intérprete"
             value={state.author}
             onChange={(event) => actions.setAuthor(event.target.value)}
-            aria-label="Autor"
+            aria-label="Autor o intérprete"
           />
         )}
       </div>
