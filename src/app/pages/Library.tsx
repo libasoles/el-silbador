@@ -20,6 +20,7 @@ import { deleteSong, listMySongs } from "../../data/songs";
 import { songQueryKeys } from "../../data/queryKeys";
 import type { SongSummary } from "../../data/types";
 import { clearPendingAuthAction, readPendingAuthAction } from "../pendingAuthActionStorage";
+import { useToast } from "../toastContext";
 import "./Library.css";
 
 interface LibrarySong {
@@ -203,6 +204,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   const { session, requireAuthentication } = useAuthRequired();
   const userId = session?.user.id;
   const authenticated = Boolean(session);
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [songPendingDelete, setSongPendingDelete] = useState<LibrarySong | null>(null);
@@ -263,8 +265,13 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
     queueMicrotask(() => {
       toggleFavorite(pendingAction.songId);
       clearPendingAuthAction();
+      showToast({
+        variant: "success",
+        title: "Sesión iniciada",
+        description: "Actualizamos tus favoritas.",
+      });
     });
-  }, [authenticated, toggleFavorite]);
+  }, [authenticated, toggleFavorite, showToast]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const mySongs = useMemo(
