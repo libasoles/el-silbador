@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
@@ -17,17 +17,12 @@ import {
   TrashIcon,
 } from "../components/icons";
 import { signOut } from "../../data/auth";
-import { deleteSong, listMySongs, listPublicSongs } from "../../data/songs";
+import { deleteSong, listFavorites, listMySongs, listPublicSongs, toggleFavorite } from "../../data/songs";
 import { songQueryKeys } from "../../data/queryKeys";
 import { clearPendingAuthAction, readPendingAuthAction } from "../pendingAuthActionStorage";
 import { useToast } from "../toastContext";
 import { toLibrarySong, toPublicLibrarySong, type LibrarySong } from "./librarySongs";
 import "./Library.css";
-
-// Mock data standing in for the still-unimplemented parts of the Supabase-backed library.
-// "Canciones propias" and "Públicas" now come from Supabase (see listMySongs/listPublicSongs
-// below); favoritas stays mocked until it's wired up too.
-const FAVORITE_SONGS: LibrarySong[] = [];
 
 function matchesQuery(song: LibrarySong, query: string): boolean {
   const haystack = `${song.title} ${song.author ?? ""}`.toLowerCase();
@@ -216,6 +211,16 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
     queryFn: async () => (await listPublicSongs()).map(toPublicLibrarySong),
   });
 
+  const {
+    data: favoriteLibrarySongs = [],
+    isLoading: favoritesQueryLoading,
+  } = useQuery({
+    queryKey: songQueryKeys.favorites(userId ?? ""),
+    queryFn: async () => (await listFavorites()).map(toLibrarySong),
+    enabled: Boolean(userId),
+  });
+  const favoritesLoading = session === undefined || (Boolean(userId) && favoritesQueryLoading);
+
   const deleteMutation = useMutation({
     mutationFn: deleteSong,
     onSuccess: (_data, songId) => {
@@ -233,36 +238,39 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
     },
   });
 
-  // Favoriting a public or own song is mocked locally: it toggles the star on that row, but
-  // (unlike the real, Supabase-backed version) doesn't move the song into the Favoritas section
-  // below, which stays fixed mock data.
-  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(
-    () => new Set(FAVORITE_SONGS.map((song) => song.id)),
+  const favoriteIds = useMemo(
+    () => new Set(favoriteLibrarySongs.map((song) => song.id)),
+    [favoriteLibrarySongs],
   );
 
-  const toggleFavorite = useCallback((songId: string) => {
-    setFavoriteIds((current) => {
-      const next = new Set(current);
-      if (next.has(songId)) {
-        next.delete(songId);
-      } else {
-        next.add(songId);
-      }
-      return next;
-    });
-  }, []);
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: (song: LibrarySong) => toggleFavorite(song.id),
+    onSuccess: (_data, song) => {
+      if (!userId) return;
+      queryClient.setQueryData<LibrarySong[]>(songQueryKeys.favorites(userId), (current) => {
+        const list = current ?? [];
+        const alreadyFavorited = list.some((existing) => existing.id === song.id);
+        return alreadyFavorited
+          ? list.filter((existing) => existing.id !== song.id)
+          : [...list, song];
+      });
+    },
+  });
 
   useEffect(() => {
     if (!authenticated) return;
     const pendingAction = readPendingAuthAction();
     if (pendingAction?.type !== "toggle-favorite") return;
 
-    // This applies precisely the same local change as a normal click. Once favorites use a
-    // server mutation, clear the intent only after that mutation resolves successfully.
+    const song = [...myLibrarySongs, ...publicLibrarySongs].find(
+      (candidate) => candidate.id === pendingAction.songId,
+    );
+    if (!song) return;
+
     // This update mirrors an external auth/session transition. Queue it so React can finish
     // synchronizing that transition before rendering the resulting favorite state.
     queueMicrotask(() => {
-      toggleFavorite(pendingAction.songId);
+      toggleFavoriteMutation.mutate(song);
       clearPendingAuthAction();
       showToast({
         variant: "success",
@@ -270,7 +278,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
         description: "Actualizamos tus favoritas.",
       });
     });
-  }, [authenticated, toggleFavorite, showToast]);
+  }, [authenticated, myLibrarySongs, publicLibrarySongs, toggleFavoriteMutation, showToast]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const mySongs = useMemo(
@@ -283,9 +291,9 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   const favoriteSongs = useMemo(
     () =>
       normalizedQuery
-        ? FAVORITE_SONGS.filter((song) => matchesQuery(song, normalizedQuery))
-        : FAVORITE_SONGS,
-    [normalizedQuery],
+        ? favoriteLibrarySongs.filter((song) => matchesQuery(song, normalizedQuery))
+        : favoriteLibrarySongs,
+    [favoriteLibrarySongs, normalizedQuery],
   );
   const publicSongs = useMemo(
     () =>
@@ -324,7 +332,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
       requireAuthentication({ type: "toggle-favorite", songId: song.id });
       return;
     }
-    toggleFavorite(song.id);
+    toggleFavoriteMutation.mutate(song);
   };
 
   return (
@@ -395,6 +403,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
             songs={favoriteSongs}
             emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
             favoriteIds={favoriteIds}
+            loading={favoritesLoading}
             onOpenSong={handleOpen}
             onToggleFavorite={handleToggleFavorite}
           />
