@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { signInWithMagicLink } from "../../data/auth";
 import "./AuthModal.css";
+import { AlertCircleIcon } from "./icons";
 
 interface AuthModalProps {
   onClose: () => void;
@@ -36,14 +37,14 @@ export function AuthModal({ onClose }: AuthModalProps) {
         className="auth-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Iniciar sesión"
+        aria-label="Entrá o creá tu cuenta"
         onClick={(event) => event.stopPropagation()}
       >
         <button type="button" className="auth-modal__close" aria-label="Cerrar" onClick={onClose}>
           ×
         </button>
 
-        <h2 className="auth-modal__title">Iniciar sesión</h2>
+        <h2 className="auth-modal__title">Entrá o creá tu cuenta</h2>
 
         {linkSent ? (
           <p className="auth-modal__message">
@@ -53,7 +54,9 @@ export function AuthModal({ onClose }: AuthModalProps) {
         ) : (
           <form className="auth-modal__form" onSubmit={handleSubmit}>
             <p className="auth-modal__hint">
-              Ingresá tu email y te mandamos un enlace para iniciar sesión, sin contraseña.
+              Login y registro funcionan sin contraseña: ingresá tu email y te mandamos un enlace.
+              Si ya tenés cuenta, te iniciamos sesión; si es la primera vez, te la creamos al
+              toque.
             </p>
             <label className="auth-modal__field">
               Email
@@ -65,7 +68,12 @@ export function AuthModal({ onClose }: AuthModalProps) {
                 onChange={(event) => setEmail(event.target.value)}
               />
             </label>
-            {error && <p className="auth-modal__error">{error}</p>}
+            {error && (
+              <p className="auth-modal__error" role="alert">
+                <AlertCircleIcon />
+                {error}
+              </p>
+            )}
             <button type="submit" className="auth-modal__submit" disabled={submitting}>
               {submitting ? "Un momento…" : "Enviarme el enlace"}
             </button>
