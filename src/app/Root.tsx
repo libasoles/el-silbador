@@ -3,15 +3,21 @@ import App from "./App";
 import { initAnalytics, trackPageView } from "./analytics";
 import { AuthRequiredProvider } from "./AuthRequired";
 import { Library } from "./pages/Library";
+import { NotFound } from "./pages/NotFound";
 import { useAuth } from "./useAuth";
 
-type Route = { name: "library" } | { name: "new" } | { name: "song"; slug: string };
+type Route =
+  | { name: "library" }
+  | { name: "new" }
+  | { name: "song"; slug: string }
+  | { name: "notFound" };
 
 function parseRoute(pathname: string): Route {
   if (pathname === "/nueva") return { name: "new" };
   const songMatch = pathname.match(/^\/cancion\/([^/]+)\/?$/);
   if (songMatch) return { name: "song", slug: songMatch[1] };
-  return { name: "library" };
+  if (pathname === "/" || pathname === "") return { name: "library" };
+  return { name: "notFound" };
 }
 
 function pathForRoute(route: Route): string {
@@ -22,6 +28,8 @@ function pathForRoute(route: Route): string {
       return `/cancion/${route.slug}`;
     case "library":
       return "/";
+    case "notFound":
+      return window.location.pathname;
   }
 }
 
@@ -63,11 +71,13 @@ function Root() {
         onSongCreated={(_id, slug) => navigate({ name: "song", slug }, "replace")}
         onDeleted={() => navigate({ name: "library" })}
       />
-    ) : (
+    ) : route.name === "library" ? (
       <Library
         onOpenSong={(song) => navigate({ name: "song", slug: song.slug })}
         onNewSong={() => navigate({ name: "new" })}
       />
+    ) : (
+      <NotFound />
     );
 
   return <AuthRequiredProvider session={session}>{page}</AuthRequiredProvider>;
