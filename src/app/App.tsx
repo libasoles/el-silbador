@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import "./App.css";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
 import { deleteSong, getSongBySlug } from "../data";
+import { songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
@@ -101,6 +103,7 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
 }
 
 function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDeleted }: AppProps) {
+  const queryClient = useQueryClient();
   const { state, actions } = useEditor();
   const [loadError, setLoadError] = useState<{ songSlug: string; message: string } | null>(null);
   const session = useAuth();
@@ -209,6 +212,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
   const handleConfirmDelete = async () => {
     if (!songDbId) return;
     await deleteSong(songDbId);
+    queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
     setDeleteDialogOpen(false);
     onDeleted?.();
   };
