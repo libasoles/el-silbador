@@ -2,9 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { trackEvent } from "../analytics";
+import { AuthModal } from "../components/AuthModal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
-import { PlusIcon, SearchIcon, SilbadorIcon, StarIcon, TrashIcon } from "../components/icons";
+import {
+  LogInIcon,
+  LogOutIcon,
+  PlusIcon,
+  SearchIcon,
+  SilbadorIcon,
+  StarIcon,
+  TrashIcon,
+} from "../components/icons";
+import { signOut } from "../../data/auth";
 import { deleteSong, listMySongs } from "../../data/songs";
 import type { SongSummary } from "../../data/types";
 import { useAuth } from "../useAuth";
@@ -189,10 +199,12 @@ interface LibraryProps {
 
 export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   const session = useAuth();
+  const authenticated = Boolean(session);
   const [query, setQuery] = useState("");
   const [myLibrarySongs, setMyLibrarySongs] = useState<LibrarySong[]>([]);
   const [songPendingDelete, setSongPendingDelete] = useState<LibrarySong | null>(null);
   const [myLibraryLoading, setMyLibraryLoading] = useState(true);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     if (session === undefined) {
@@ -278,11 +290,36 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
     setSongPendingDelete(null);
   };
 
+  const handleAuthClick = () => {
+    if (authenticated) {
+      signOut().catch((error: unknown) => {
+        console.error("No se pudo cerrar sesión.", error);
+      });
+      return;
+    }
+    trackEvent("auth_modal_open");
+    setAuthModalOpen(true);
+  };
+
   return (
     <main className="library">
       <a className="app-mark" href="/" aria-label="Ir al índice">
         <SilbadorIcon />
       </a>
+
+      <button type="button" className="library-auth" onClick={handleAuthClick}>
+        {authenticated ? (
+          <>
+            <LogOutIcon />
+            Salir
+          </>
+        ) : (
+          <>
+            <LogInIcon />
+            Entrar
+          </>
+        )}
+      </button>
 
       <header className="library-header">
         <div className="library-header__title-row">
@@ -359,6 +396,10 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
         onConfirm={handleConfirmDelete}
         onCancel={() => setSongPendingDelete(null)}
       />
+
+      {authModalOpen && !authenticated && (
+        <AuthModal onClose={() => setAuthModalOpen(false)} />
+      )}
     </main>
   );
 }

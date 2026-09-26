@@ -28,3 +28,9 @@ export async function signInWithMagicLink(email: string): Promise<void> {
   });
   if (error) throw error;
 }
+
+export async function signOut(): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+}
