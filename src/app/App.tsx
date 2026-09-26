@@ -19,6 +19,7 @@ import {
   XIcon,
 } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
+import { clearDraft, readDraft, saveDraft } from "./draftStorage";
 import { useAuth } from "./useAuth";
 import { useAutosave } from "./useAutosave";
 import { useEditor } from "./useEditor";
@@ -83,12 +84,29 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
   const authenticated = session !== null;
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
+  // Following a magic-link sign-in email reloads the page from scratch, so any content typed
+  // before authenticating would otherwise vanish. If it was stashed in localStorage first (see
+  // handleSaveClick below), restore it here and let the usual autosave-on-sign-in flow persist it.
+  const [restoredDraft] = useState(() => readDraft(songId));
+  useEffect(() => {
+    if (restoredDraft) {
+      actions.loadContent(restoredDraft.content);
+      clearDraft();
+    }
+    // Runs once per mount: restoring is a one-time hydration, and `restoredDraft` itself never
+    // changes after that initial read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     applyTheme(deriveTheme(accentColor));
   }, [accentColor]);
 
   useEffect(() => {
-    if (!songId) return;
+    // A restored draft is already the freshest version of this song (it was captured right
+    // before the user went to confirm their sign-in), so it takes priority over re-fetching
+    // whatever was last saved on the server.
+    if (!songId || restoredDraft) return;
     let cancelled = false;
     getSong(songId)
       .then((detail) => {
@@ -102,7 +120,9 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
     return () => {
       cancelled = true;
     };
-    // `actions` is a stable ref from useEditor; only `songId` should retrigger the fetch.
+    // `actions` is a stable ref from useEditor and `restoredDraft` never changes after mount;
+    // only `songId` should retrigger the fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songId, actions]);
 
   const content: SongContent = useMemo(
@@ -137,6 +157,10 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
   const handleSaveClick = () => {
     if (!authenticated) {
       trackEvent("auth_modal_open");
+      // The modal's overlay blocks further editing while it's open, so `content` here is what
+      // the user will still be looking at when they follow the magic-link email — stash it so
+      // it can be restored after the reload that link triggers.
+      saveDraft(songId, content);
       setAuthModalOpen(true);
       return;
     }
