@@ -164,12 +164,36 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
     // Still needed even when a draft was restored: the draft carries the freshest content, but
     // not the song's real id, which autosave needs to update (rather than duplicate) the row.
     let cancelled = false;
-    getSongBySlug(songSlug)
+
+    // A cache hit (from an earlier visit this session, or from the persisted cache surviving a
+    // reload) paints synchronously instead of showing the skeleton for a network round trip.
+    // `fetchQuery` — rather than the reactive `useQuery` — is deliberate: it resolves once and is
+    // never subscribed to again, so a later background revalidation of this same query (e.g. from
+    // Library re-fetching after a save) can't fire `actions.loadContent` a second time and clobber
+    // whatever the user has typed since this song loaded.
+    const cachedDetail = queryClient.getQueryData<Awaited<ReturnType<typeof getSongBySlug>>>(
+      songQueryKeys.bySlug(songSlug),
+    );
+    if (cachedDetail) {
+      setSongDbId(cachedDetail.id);
+      setOwnerId(cachedDetail.ownerId);
+      if (!restoredDraft) actions.loadContent(cachedDetail.content);
+      setContentLoaded(true);
+    }
+
+    queryClient
+      .fetchQuery({
+        queryKey: songQueryKeys.bySlug(songSlug),
+        queryFn: () => getSongBySlug(songSlug),
+        staleTime: 60_000,
+      })
       .then((detail) => {
         if (cancelled) return;
         setSongDbId(detail.id);
         setOwnerId(detail.ownerId);
-        if (!restoredDraft) actions.loadContent(detail.content);
+        // Only the first resolution (cache or network, whichever wins) may load content into the
+        // editor — see the comment above.
+        if (!restoredDraft && !cachedDetail) actions.loadContent(detail.content);
         setContentLoaded(true);
       })
       .catch((error: unknown) => {
@@ -185,10 +209,10 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
     return () => {
       cancelled = true;
     };
-    // `actions` is a stable ref from useEditor and `restoredDraft` never changes after mount;
+    // `actions` and `queryClient` are stable refs, and `restoredDraft` never changes after mount;
     // only `songSlug` should retrigger the fetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songSlug, actions]);
+  }, [songSlug, actions, queryClient]);
 
   const content: SongContent = useMemo(
     () => ({
@@ -247,6 +271,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDe
     if (!songDbId) return;
     await deleteSong(songDbId);
     queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
+    if (songSlug) queryClient.removeQueries({ queryKey: songQueryKeys.bySlug(songSlug) });
     setDeleteDialogOpen(false);
     onDeleted?.();
   };

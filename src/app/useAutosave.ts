@@ -94,6 +94,9 @@ export function useAutosave(
           // Invalidate rather than patch in place: a save can change the title (and, for a new
           // song, adds a row) that the Library list's cache needs to reflect on next visit.
           queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
+          // Also drop this song's own cached detail, so navigating away and back re-fetches the
+          // just-saved content instead of whatever was cached before this save.
+          queryClient.invalidateQueries({ queryKey: songQueryKeys.bySlug(saved.slug) });
           setStatus("saved");
         } catch (error) {
           if (cancelled) return;
