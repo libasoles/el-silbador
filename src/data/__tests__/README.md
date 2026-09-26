@@ -10,3 +10,14 @@ This suite hits a real Supabase project (no local/Docker stack — see the spec)
    deletes them in `afterAll`; no pre-existing accounts are required.
 
 Without those three env vars, this suite is skipped (not failed) so `npm run test`/`npm run build` stay green.
+
+## Data hygiene
+
+This suite runs against the same Supabase project as the app (there's no separate `.env.test`
+project today), and it deliberately triggers RLS/constraint rejections (duplicate username,
+favoriting a private song, editing someone else's song) as part of asserting they work — expect
+to see the corresponding Postgres error codes (23505, 42501) in that project's logs after a test
+run. `afterAll` deletes every user/song/favorite it created, so no rows are left behind, but if a
+run is killed mid-way, or if you're writing a query against auth/analytics data (active users,
+signup counts, etc.), filter out test accounts by email: every user created by this suite has an
+email starting with `songs-test-` (e.g. `email LIKE 'songs-test-%'`).
