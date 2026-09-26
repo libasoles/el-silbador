@@ -4,7 +4,8 @@ const EXPIRY_MS = 30 * 60 * 1000;
 /** An intent that needs a session and can survive the reload caused by a magic link. */
 export type PendingAuthAction =
   | { type: "save-song"; songSlug: string | null }
-  | { type: "toggle-favorite"; songId: string };
+  | { type: "toggle-favorite"; songId: string }
+  | { type: "fork-song"; songId: string };
 
 interface StoredPendingAuthAction {
   savedAt: number;
