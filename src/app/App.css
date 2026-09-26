@@ -636,6 +636,12 @@
   align-items: flex-end;
 }
 
+/* Sits beside the (smaller) placeholder text, not among actual lyrics, so its caret must match
+   the placeholder's font size rather than .syllable-row's larger lyric size. */
+.syllable-row.document-empty-line {
+  font-size: 1rem;
+}
+
 /* Every syllable carries a prominent underline in orange; a hairline gap between spans marks the
    break between syllables. A melisma merge bridges that gap with the accent gradient. */
 .syllable {
