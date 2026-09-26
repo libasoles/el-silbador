@@ -85,7 +85,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
   const { state, actions } = useEditor();
   const [loadError, setLoadError] = useState<{ songId: string; message: string } | null>(null);
   const session = useAuth();
-  const authenticated = session !== null;
+  const authenticated = Boolean(session);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 

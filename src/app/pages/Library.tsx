@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { Skeleton, Theme } from "@radix-ui/themes";
+import "@radix-ui/themes/styles.css";
 import { trackEvent } from "../analytics";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
@@ -97,6 +99,22 @@ function SongRow({
   );
 }
 
+function LibraryRowSkeleton() {
+  return (
+    <li className="library-row">
+      <div className="library-row__open">
+        <Skeleton>
+          <span className="library-row__title">Título de ejemplo</span>
+        </Skeleton>
+        <span className="library-row__leader" aria-hidden="true" />
+        <Skeleton>
+          <span className="library-row__author">Autor de ejemplo</span>
+        </Skeleton>
+      </div>
+    </li>
+  );
+}
+
 interface LibrarySectionProps {
   title?: string;
   songs: LibrarySong[];
@@ -104,6 +122,7 @@ interface LibrarySectionProps {
   favoriteIds: Set<string>;
   showFavorite?: boolean;
   showDelete?: boolean;
+  loading?: boolean;
   onOpenSong: (song: LibrarySong) => void;
   onToggleFavorite: (song: LibrarySong) => void;
   onDeleteSong?: (song: LibrarySong) => void;
@@ -116,6 +135,7 @@ function LibrarySection({
   favoriteIds,
   showFavorite = true,
   showDelete = false,
+  loading = false,
   onOpenSong,
   onToggleFavorite,
   onDeleteSong,
@@ -127,7 +147,14 @@ function LibrarySection({
           <h2 className="library-section__title">{title}</h2>
         </div>
       )}
-      {songs.length === 0 ? (
+      {loading ? (
+        <Theme hasBackground={false}>
+          <ul className="library-list">
+            <LibraryRowSkeleton />
+            <LibraryRowSkeleton />
+          </ul>
+        </Theme>
+      ) : songs.length === 0 ? (
         <div className="library-section__empty">
           <span className="library-section__empty-mark" aria-hidden="true">
             <SilbadorIcon />
@@ -164,19 +191,30 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   const [query, setQuery] = useState("");
   const [myLibrarySongs, setMyLibrarySongs] = useState<LibrarySong[]>([]);
   const [songPendingDelete, setSongPendingDelete] = useState<LibrarySong | null>(null);
+  const [myLibraryLoading, setMyLibraryLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) {
+    if (session === undefined) {
+      // Still checking for an existing session: neither "logged out" nor "loaded" yet.
+      setMyLibraryLoading(true);
+      return;
+    }
+    if (session === null) {
       setMyLibrarySongs([]);
+      setMyLibraryLoading(false);
       return;
     }
     let cancelled = false;
+    setMyLibraryLoading(true);
     listMySongs()
       .then((songs) => {
         if (!cancelled) setMyLibrarySongs(songs.map(toLibrarySong));
       })
       .catch((error: unknown) => {
         console.error("No se pudieron cargar las canciones propias.", error);
+      })
+      .finally(() => {
+        if (!cancelled) setMyLibraryLoading(false);
       });
     return () => {
       cancelled = true;
@@ -279,6 +317,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
           favoriteIds={favoriteIds}
           showFavorite={false}
           showDelete
+          loading={myLibraryLoading}
           onOpenSong={handleOpen}
           onToggleFavorite={toggleFavorite}
           onDeleteSong={setSongPendingDelete}

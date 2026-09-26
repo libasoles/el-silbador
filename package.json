@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
+    "@radix-ui/themes": "^3.3.0",
     "@supabase/supabase-js": "^2.117.2",
     "hyphenation.es": "^0.2.1",
     "hypher": "^0.2.5",
