@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
@@ -236,15 +236,22 @@ function App({
   // song) once its real id has been resolved from the slug — otherwise a save could either
   // persist the default/empty state or insert a duplicate row instead of updating one.
   const ready = contentLoaded && (!songSlug || songDbId !== undefined);
+  // `useAutosave` uses this callback after a successful insert. Keeping it stable is essential:
+  // the hook's debounce effect must only restart for a content/save-input change, not for its own
+  // status updates causing this component to render again.
+  const handleSongCreated = useCallback(
+    (id: string, slug: string) => {
+      setSongDbId(id);
+      onSongCreated?.(id, slug);
+    },
+    [onSongCreated],
+  );
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
     songDbId,
     ready,
     authenticated,
-    (id, slug) => {
-      setSongDbId(id);
-      onSongCreated?.(id, slug);
-    },
+    handleSongCreated,
   );
   const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
   const saving = autosaveStatus === "saving";

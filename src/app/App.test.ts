@@ -92,3 +92,13 @@ describe("authentication dialog", () => {
     expect(authModal).not.toContain("terminar de guardar la canción");
   });
 });
+
+describe("autosave", () => {
+  it("keeps its creation callback stable across status renders", () => {
+    // `useAutosave` schedules a save whenever one of its effect dependencies changes. An inline
+    // callback here changes identity after every "saving"/"saved" status update, which turns the
+    // debounce into a perpetual one-second save loop even while the editor content is unchanged.
+    expect(app).toMatch(/const handleSongCreated = useCallback\(/);
+    expect(app).toMatch(/useAutosave\([\s\S]*?handleSongCreated,/);
+  });
+});
