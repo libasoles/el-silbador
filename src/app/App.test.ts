@@ -60,6 +60,16 @@ describe("icon-button tooltips", () => {
   });
 });
 
+describe("fork source link", () => {
+  it("places a fork icon before the title and explains that it navigates to the source song", () => {
+    expect(app).toContain('className="fork-source-link"');
+    expect(app).toContain('href={`/cancion/${forkSourceSlug}`}');
+    expect(app).toContain("Ver la canción de la que se derivó esta versión");
+    expect(app).toMatch(/className="title-row"[\s\S]*className="fork-source-link"[\s\S]*className="title-input"/);
+    expect(styles).toMatch(/\.fork-source-tooltip::after\s*\{[\s\S]*left: calc\(100% \+ 0\.6rem\)/);
+  });
+});
+
 describe("application mark", () => {
   it("renders a larger Silbador icon that links to the index", () => {
     expect(app).toContain("<SilbadorIcon />");

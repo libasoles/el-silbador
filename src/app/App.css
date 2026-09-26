@@ -49,6 +49,40 @@
   gap: 0.25rem;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.fork-source-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.fork-source-link:hover,
+.fork-source-link:focus-visible {
+  color: var(--accent);
+}
+
+.fork-source-link svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* The shared tooltip normally opens to the left for the right-hand toolbars. This title-adjacent
+   link lives at the other edge of the content, so its explanation opens to the right instead. */
+.fork-source-tooltip::after {
+  right: auto;
+  left: calc(100% + 0.6rem);
+}
+
 .title-input,
 .author-input {
   font-family: inherit;
@@ -64,6 +98,8 @@
 
 .title-input {
   font-size: 1.5rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .author-input {

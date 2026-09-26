@@ -6,7 +6,14 @@ import "./App.css";
 import neutralIllustration from "../assets/03-neutral.svg";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
-import { deleteSong, forkSong, getSongBySlug, isCurrentUserAdmin, setSongPublic } from "../data";
+import {
+  deleteSong,
+  forkSong,
+  getSong,
+  getSongBySlug,
+  isCurrentUserAdmin,
+  setSongPublic,
+} from "../data";
 import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
@@ -143,6 +150,10 @@ function App({
   const [isAdmin, setIsAdmin] = useState(false);
   const [songIsPublic, setSongIsPublic] = useState(false);
   const [togglingPublic, setTogglingPublic] = useState(false);
+  // Fork relationships are stored by database id, but navigation uses slugs. Resolve the source
+  // song separately so the title-area link always points to its canonical URL.
+  const [forkedFrom, setForkedFrom] = useState<string | null>(null);
+  const [forkSourceSlug, setForkSourceSlug] = useState<string | null>(null);
   // The song's real database id, resolved from `songSlug` once `getSongBySlug` returns (or set
   // directly once autosave creates a brand-new song). Needed because writes (save/delete) still
   // key off the stable id rather than the slug.
@@ -199,7 +210,10 @@ function App({
   }, [session?.user.id, queryClient]);
 
   useEffect(() => {
-    if (!songSlug) return;
+    if (!songSlug) {
+      setForkedFrom(null);
+      return;
+    }
     // Still needed even when a draft was restored: the draft carries the freshest content, but
     // not the song's real id, which autosave needs to update (rather than duplicate) the row.
     let cancelled = false;
@@ -217,6 +231,7 @@ function App({
       setSongDbId(cachedDetail.id);
       setOwnerId(cachedDetail.ownerId);
       setSongIsPublic(cachedDetail.isPublic);
+      setForkedFrom(cachedDetail.forkedFrom);
       if (!restoredDraft) actions.loadContent(cachedDetail.content);
       setContentLoaded(true);
     }
@@ -232,6 +247,7 @@ function App({
         setSongDbId(detail.id);
         setOwnerId(detail.ownerId);
         setSongIsPublic(detail.isPublic);
+        setForkedFrom(detail.forkedFrom);
         // Only the first resolution (cache or network, whichever wins) may load content into the
         // editor — see the comment above.
         if (!restoredDraft && !cachedDetail) actions.loadContent(detail.content);
@@ -254,6 +270,36 @@ function App({
     // only `songSlug` should retrigger the fetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songSlug, actions, queryClient]);
+
+  useEffect(() => {
+    if (!forkedFrom) {
+      setForkSourceSlug(null);
+      return;
+    }
+
+    let cancelled = false;
+    // Do not leave the prior source link visible while a newly opened fork resolves its source.
+    setForkSourceSlug(null);
+    queryClient
+      .fetchQuery({
+        queryKey: songQueryKeys.detail(forkedFrom),
+        queryFn: () => getSong(forkedFrom),
+        staleTime: 60_000,
+      })
+      .then((source) => {
+        if (!cancelled) setForkSourceSlug(source.slug);
+      })
+      .catch((error: unknown) => {
+        // The source might have become private after this fork was made. In that case RLS makes
+        // it unavailable to this viewer, so omit a link that would only lead to a not-found page.
+        console.error("No se pudo cargar la canción de origen del fork.", error);
+        if (!cancelled) setForkSourceSlug(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [forkedFrom, queryClient]);
 
   const content: SongContent = useMemo(
     () => ({
@@ -458,14 +504,30 @@ function App({
           />
 
           <div className="title-block">
-            <input
-              type="text"
-              className="title-input"
-              placeholder="Título"
-              value={state.title}
-              onChange={(event) => actions.setTitle(event.target.value)}
-              aria-label="Título"
-            />
+            <div className="title-row">
+              {forkSourceSlug && (
+                <IconButtonTooltip
+                  className="fork-source-tooltip"
+                  tooltip="Ver la canción de la que se derivó esta versión"
+                >
+                  <a
+                    className="fork-source-link"
+                    href={`/cancion/${forkSourceSlug}`}
+                    aria-label="Ver la canción de origen"
+                  >
+                    <ForkIcon />
+                  </a>
+                </IconButtonTooltip>
+              )}
+              <input
+                type="text"
+                className="title-input"
+                placeholder="Título"
+                value={state.title}
+                onChange={(event) => actions.setTitle(event.target.value)}
+                aria-label="Título"
+              />
+            </div>
             {(state.title.trim() !== "" || state.author.trim() !== "") && (
               <input
                 type="text"
