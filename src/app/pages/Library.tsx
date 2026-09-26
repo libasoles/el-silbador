@@ -9,13 +9,13 @@ import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import {
   LogInIcon,
   LogOutIcon,
+  NeutralIllustrationIcon,
   PlusIcon,
   SearchIcon,
   SilbadorIcon,
   StarIcon,
   TrashIcon,
 } from "../components/icons";
-import neutralIllustration from "../../assets/03-neutral.svg";
 import { signOut } from "../../data/auth";
 import { deleteSong, listMySongs, listPublicSongs } from "../../data/songs";
 import { songQueryKeys } from "../../data/queryKeys";
@@ -424,7 +424,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
           title={session ? "Públicas" : undefined}
           songs={publicSongs}
           emptyLabel="Todavía no hay canciones públicas para mostrar."
-          emptyIcon={<img src={neutralIllustration} alt="" />}
+          emptyIcon={<NeutralIllustrationIcon />}
           favoriteIds={favoriteIds}
           loading={publicLibraryLoading}
           onOpenSong={handleOpen}

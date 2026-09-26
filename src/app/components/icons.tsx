@@ -43,6 +43,33 @@ export function SilbadorIcon() {
   );
 }
 
+/** Same illustration as src/assets/03-neutral.svg (used by NotFound), inlined so it can inherit
+ *  currentColor like the other empty-state marks — an <img>'s SVG content can't do that. */
+export function NeutralIllustrationIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="64"
+      height="64"
+      viewBox="0 0 64 64"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.15"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M13.5 27C12.6 22.2 13.8 17.3 17.1 13.8C20.2 10.5 24.9 8.8 30.1 9.1C35.2 9.4 39.1 12.2 44.4 13.6C47.5 14.4 50.6 14.6 53.3 13.9C52.3 16.2 50.2 18.1 47.4 19.3C42.3 21.5 35.1 20.5 29.1 17.6C27.1 21.9 22.8 25.7 17.5 27.4" />
+      <path d="M16.5 26.7C13.2 25.8 10.7 27.6 10.8 31C10.9 34.5 13.7 36.5 17.2 35.6" />
+      <path d="M17.4 27.2C17.6 33.5 19.8 38.6 23.8 41.6C27.2 44.1 31.7 45.1 35.9 44.1C43.3 42.4 47.8 36.3 48.1 27.8L48.1 20" />
+      <circle cx="25.5" cy="31.1" r="1.15" fill="currentColor" stroke="none" />
+      <circle cx="39.1" cy="31.1" r="1.15" fill="currentColor" stroke="none" />
+      <path d="M29.7 37.9H34.9" />
+    </svg>
+  );
+}
+
 export function ChordIcon() {
   return (
     <svg

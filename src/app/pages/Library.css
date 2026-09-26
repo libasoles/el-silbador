@@ -246,8 +246,7 @@
   color: var(--muted);
 }
 
-.library-section__empty-mark svg,
-.library-section__empty-mark img {
+.library-section__empty-mark svg {
   display: block;
   width: 100%;
   height: 100%;
