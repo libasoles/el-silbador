@@ -17,18 +17,14 @@ export function onAuthStateChange(callback: (session: Session | null) => void): 
   return () => subscription.unsubscribe();
 }
 
-export async function signInWithPassword(email: string, password: string): Promise<Session> {
+/** Sends a magic link to the given email; following it signs the person in, creating an account
+ *  first if none exists yet. The session itself arrives later via `onAuthStateChange`, once the
+ *  link is opened and Supabase picks up the token from the URL. */
+export async function signInWithMagicLink(email: string): Promise<void> {
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href },
+  });
   if (error) throw error;
-  if (!data.session) throw new Error("No se pudo iniciar sesión.");
-  return data.session;
-}
-
-/** Returns null (instead of a session) when Supabase requires email confirmation before sign-in. */
-export async function signUp(email: string, password: string): Promise<Session | null> {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) throw error;
-  return data.session;
 }
