@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
-import { PlusIcon, SearchIcon, SilbadorIcon, StarIcon } from "../components/icons";
-import { listMySongs } from "../../data/songs";
+import { PlusIcon, SearchIcon, SilbadorIcon, StarIcon, TrashIcon } from "../components/icons";
+import { deleteSong, listMySongs } from "../../data/songs";
 import type { SongSummary } from "../../data/types";
 import { useAuth } from "../useAuth";
 import "./Library.css";
@@ -36,11 +37,21 @@ interface SongRowProps {
   song: LibrarySong;
   favorited: boolean;
   showFavorite: boolean;
+  showDelete: boolean;
   onOpen: () => void;
   onToggleFavorite: () => void;
+  onDelete: () => void;
 }
 
-function SongRow({ song, favorited, showFavorite, onOpen, onToggleFavorite }: SongRowProps) {
+function SongRow({
+  song,
+  favorited,
+  showFavorite,
+  showDelete,
+  onOpen,
+  onToggleFavorite,
+  onDelete,
+}: SongRowProps) {
   return (
     <li className="library-row">
       <button type="button" className="library-row__open" onClick={onOpen}>
@@ -69,6 +80,18 @@ function SongRow({ song, favorited, showFavorite, onOpen, onToggleFavorite }: So
           </button>
         </IconButtonTooltip>
       )}
+      {showDelete && (
+        <IconButtonTooltip tooltip="Eliminar canción">
+          <button
+            type="button"
+            className="library-row__delete"
+            aria-label="Eliminar canción"
+            onClick={onDelete}
+          >
+            <TrashIcon size={18} strokeWidth={1.6} />
+          </button>
+        </IconButtonTooltip>
+      )}
     </li>
   );
 }
@@ -79,8 +102,10 @@ interface LibrarySectionProps {
   emptyLabel: string;
   favoriteIds: Set<string>;
   showFavorite?: boolean;
+  showDelete?: boolean;
   onOpenSong: (song: LibrarySong) => void;
   onToggleFavorite: (song: LibrarySong) => void;
+  onDeleteSong?: (song: LibrarySong) => void;
 }
 
 function LibrarySection({
@@ -89,8 +114,10 @@ function LibrarySection({
   emptyLabel,
   favoriteIds,
   showFavorite = true,
+  showDelete = false,
   onOpenSong,
   onToggleFavorite,
+  onDeleteSong,
 }: LibrarySectionProps) {
   return (
     <section className="library-section">
@@ -114,8 +141,10 @@ function LibrarySection({
               song={song}
               favorited={favoriteIds.has(song.id)}
               showFavorite={showFavorite}
+              showDelete={showDelete}
               onOpen={() => onOpenSong(song)}
               onToggleFavorite={() => onToggleFavorite(song)}
+              onDelete={() => onDeleteSong?.(song)}
             />
           ))}
         </ul>
@@ -133,6 +162,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   const session = useAuth();
   const [query, setQuery] = useState("");
   const [myLibrarySongs, setMyLibrarySongs] = useState<LibrarySong[]>([]);
+  const [songPendingDelete, setSongPendingDelete] = useState<LibrarySong | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -195,6 +225,13 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   const handleOpen = (song: LibrarySong) => onOpenSong?.(song);
   const handleNew = () => onNewSong?.();
 
+  const handleConfirmDelete = async () => {
+    if (!songPendingDelete) return;
+    await deleteSong(songPendingDelete.id);
+    setMyLibrarySongs((current) => current.filter((song) => song.id !== songPendingDelete.id));
+    setSongPendingDelete(null);
+  };
+
   return (
     <main className="library">
       <a className="app-mark" href="/" aria-label="Ir al índice">
@@ -234,8 +271,10 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
           emptyLabel="Todavía no escribiste ninguna canción."
           favoriteIds={favoriteIds}
           showFavorite={false}
+          showDelete
           onOpenSong={handleOpen}
           onToggleFavorite={toggleFavorite}
+          onDeleteSong={setSongPendingDelete}
         />
 
         <LibrarySection
@@ -256,6 +295,19 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
           onToggleFavorite={toggleFavorite}
         />
       </div>
+
+      <ConfirmDialog
+        open={songPendingDelete !== null}
+        title="Eliminar canción"
+        description={
+          songPendingDelete
+            ? `Esta acción no se puede deshacer. ¿Querés eliminar "${songPendingDelete.title}"?`
+            : ""
+        }
+        confirmLabel="Eliminar"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setSongPendingDelete(null)}
+      />
     </main>
   );
 }

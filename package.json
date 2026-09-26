@@ -11,9 +11,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.23",
     "@supabase/supabase-js": "^2.117.2",
     "hyphenation.es": "^0.2.1",
     "hypher": "^0.2.5",
+    "lucide-react": "^1.48.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

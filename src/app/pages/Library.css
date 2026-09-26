@@ -182,6 +182,18 @@
   color: var(--accent);
 }
 
+.library-row__delete {
+  flex: none;
+  align-self: center;
+  display: inline-flex;
+  padding: 0.4rem;
+  color: var(--border-strong);
+}
+
+.library-row__delete:hover {
+  color: var(--highlight);
+}
+
 .library-section__empty {
   display: flex;
   flex-direction: column;
