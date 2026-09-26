@@ -365,8 +365,20 @@ function App({
       const updated = await setSongPublic(songDbId, !songIsPublic);
       setSongIsPublic(updated.isPublic);
       queryClient.invalidateQueries({ queryKey: songQueryKeys.public() });
+      showToast({
+        variant: "success",
+        title: updated.isPublic ? "Canción publicada" : "Canción marcada como privada",
+        description: updated.isPublic
+          ? "Ahora cualquiera puede verla en el cancionero público."
+          : "Ya no aparece en el cancionero público.",
+      });
     } catch (error) {
       console.error("No se pudo cambiar la visibilidad de la canción.", error);
+      showToast({
+        variant: "error",
+        title: "No se pudo cambiar la visibilidad",
+        description: "Intentá de nuevo en unos segundos.",
+      });
     } finally {
       setTogglingPublic(false);
     }
