@@ -312,29 +312,33 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
       </header>
 
       <div className="library-sections">
-        <LibrarySection
-          songs={mySongs}
-          emptyLabel="Todavía no escribiste ninguna canción."
-          favoriteIds={favoriteIds}
-          showFavorite={false}
-          showDelete
-          loading={myLibraryLoading}
-          onOpenSong={handleOpen}
-          onToggleFavorite={toggleFavorite}
-          onDeleteSong={setSongPendingDelete}
-        />
+        {session && (
+          <LibrarySection
+            songs={mySongs}
+            emptyLabel="Todavía no escribiste ninguna canción."
+            favoriteIds={favoriteIds}
+            showFavorite={false}
+            showDelete
+            loading={myLibraryLoading}
+            onOpenSong={handleOpen}
+            onToggleFavorite={toggleFavorite}
+            onDeleteSong={setSongPendingDelete}
+          />
+        )}
+
+        {session && (
+          <LibrarySection
+            title="Favoritas"
+            songs={favoriteSongs}
+            emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
+            favoriteIds={favoriteIds}
+            onOpenSong={handleOpen}
+            onToggleFavorite={toggleFavorite}
+          />
+        )}
 
         <LibrarySection
-          title="Favoritas"
-          songs={favoriteSongs}
-          emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
-          favoriteIds={favoriteIds}
-          onOpenSong={handleOpen}
-          onToggleFavorite={toggleFavorite}
-        />
-
-        <LibrarySection
-          title="Públicas"
+          title={session ? "Públicas" : undefined}
           songs={publicSongs}
           emptyLabel="Todavía no hay canciones públicas para mostrar."
           favoriteIds={favoriteIds}
