@@ -26,7 +26,7 @@ describe("lyric caret visibility", () => {
 describe("icon-button tooltips", () => {
   it("renders a visible tooltip from a hoverable wrapper", () => {
     expect(iconButtonTooltip).toContain("function IconButtonTooltip");
-    expect(iconButtonTooltip).toContain('className="icon-button-tooltip"');
+    expect(iconButtonTooltip).toContain("icon-button-tooltip");
     expect(iconButtonTooltip).toContain("data-tooltip={tooltip}");
     expect(app).not.toMatch(/<button[^>]*\btitle=/);
     expect(themeStyles).toMatch(/\.icon-button-tooltip\s*\{[\s\S]*display: inline-flex/);
@@ -37,6 +37,17 @@ describe("icon-button tooltips", () => {
       /\.icon-button-tooltip:hover::after,\s*\.icon-button-tooltip:focus-within::after\s*\{[\s\S]*opacity: 1/,
     );
     expect(themeStyles).toContain("content: attr(data-tooltip)");
+  });
+
+  it("anchors the close tooltip wrapper to the fixed close control", () => {
+    expect(app).toContain('<IconButtonTooltip className="app-close-tooltip"');
+    expect(styles).toMatch(
+      /\.app-close-tooltip\s*\{[\s\S]*position: fixed[\s\S]*top: 1rem[\s\S]*right: 1rem/,
+    );
+    expect(styles).toMatch(
+      /\.app-close-tooltip\s*\{[\s\S]*width: 2\.75rem[\s\S]*height: 2\.75rem/,
+    );
+    expect(styles).toMatch(/\.app-close\s*\{[\s\S]*position: static/);
   });
 });
 

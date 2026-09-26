@@ -7,14 +7,23 @@
   padding: 1.25rem 2rem 6rem;
 }
 
-/* Mirrors .app-mark's own corner exactly, on the opposite side, so the two read as a matched
-   pair. The transpose widget (top: 4.25rem in TransposeWidget.css) starts below this button's
-   bottom edge (top 1rem + height 2.75rem = 3.75rem) so the two can never overlap. */
-.app-close {
+/* The tooltip's containing block must occupy the same fixed corner as its link. Otherwise the
+   link's own fixed positioning takes it out of the wrapper's layout and the tooltip is anchored
+   at the page content instead of beside the X. */
+.app-close-tooltip {
   position: fixed;
   top: 1rem;
   right: 1rem;
   z-index: 5;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+/* Mirrors .app-mark's own corner exactly, on the opposite side, so the two read as a matched
+   pair. The transpose widget (top: 4.25rem in TransposeWidget.css) starts below this button's
+   bottom edge (top 1rem + height 2.75rem = 3.75rem) so the two can never overlap. */
+.app-close {
+  position: static;
   display: inline-flex;
   align-items: center;
   justify-content: center;
