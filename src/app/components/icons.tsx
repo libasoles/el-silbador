@@ -5,6 +5,7 @@
 export { Trash2 as TrashIcon } from "lucide-react";
 export { CheckCircle2 as CheckCircleIcon } from "lucide-react";
 export { Info as InfoIcon } from "lucide-react";
+export { HatGlasses as HatGlassesIcon } from "lucide-react";
 
 /** The Silbador mark: a singer with the sound of their voice. */
 export function SilbadorIcon() {

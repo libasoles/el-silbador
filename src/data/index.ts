@@ -18,4 +18,4 @@ export {
   setSongPublic,
   toggleFavorite,
 } from "./songs";
-export { setUsername } from "./profiles";
+export { isCurrentUserAdmin, setUsername } from "./profiles";

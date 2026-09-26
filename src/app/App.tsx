@@ -5,8 +5,8 @@ import "@radix-ui/themes/styles.css";
 import "./App.css";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
-import { deleteSong, forkSong, getSongBySlug } from "../data";
-import { songQueryKeys } from "../data/queryKeys";
+import { deleteSong, forkSong, getSongBySlug, isCurrentUserAdmin, setSongPublic } from "../data";
+import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
@@ -17,6 +17,7 @@ import { SongView } from "./components/SongView";
 import {
   DownloadIcon,
   ForkIcon,
+  HatGlassesIcon,
   SaveIcon,
   SilbadorIcon,
   SpinnerIcon,
@@ -140,6 +141,9 @@ function App({
   const { showToast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [forking, setForking] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [songIsPublic, setSongIsPublic] = useState(false);
+  const [togglingPublic, setTogglingPublic] = useState(false);
   // The song's real database id, resolved from `songSlug` once `getSongBySlug` returns (or set
   // directly once autosave creates a brand-new song). Needed because writes (save/delete) still
   // key off the stable id rather than the slug.
@@ -169,6 +173,32 @@ function App({
     applyTheme(deriveTheme(accentColor));
   }, [accentColor]);
 
+  // Admin-only actions (e.g. publishing a song) need to know the signed-in user's role, which
+  // isn't part of the auth session itself — resolved separately from `profiles.role`.
+  useEffect(() => {
+    const userId = session?.user.id;
+    if (!userId) {
+      setIsAdmin(false);
+      return;
+    }
+    let cancelled = false;
+    queryClient
+      .fetchQuery({
+        queryKey: profileQueryKeys.role(userId),
+        queryFn: () => isCurrentUserAdmin(),
+        staleTime: 60_000,
+      })
+      .then((admin) => {
+        if (!cancelled) setIsAdmin(admin);
+      })
+      .catch((error: unknown) => {
+        console.error("No se pudo verificar el rol del usuario.", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user.id, queryClient]);
+
   useEffect(() => {
     if (!songSlug) return;
     // Still needed even when a draft was restored: the draft carries the freshest content, but
@@ -187,6 +217,7 @@ function App({
     if (cachedDetail) {
       setSongDbId(cachedDetail.id);
       setOwnerId(cachedDetail.ownerId);
+      setSongIsPublic(cachedDetail.isPublic);
       if (!restoredDraft) actions.loadContent(cachedDetail.content);
       setContentLoaded(true);
     }
@@ -201,6 +232,7 @@ function App({
         if (cancelled) return;
         setSongDbId(detail.id);
         setOwnerId(detail.ownerId);
+        setSongIsPublic(detail.isPublic);
         // Only the first resolution (cache or network, whichever wins) may load content into the
         // editor — see the comment above.
         if (!restoredDraft && !cachedDetail) actions.loadContent(detail.content);
@@ -326,6 +358,20 @@ function App({
     // `authenticated`/`songDbId` should retrigger this.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated, songDbId]);
+
+  const handleTogglePublicClick = async () => {
+    if (!songDbId) return;
+    setTogglingPublic(true);
+    try {
+      const updated = await setSongPublic(songDbId, !songIsPublic);
+      setSongIsPublic(updated.isPublic);
+      queryClient.invalidateQueries({ queryKey: songQueryKeys.public() });
+    } catch (error) {
+      console.error("No se pudo cambiar la visibilidad de la canción.", error);
+    } finally {
+      setTogglingPublic(false);
+    }
+  };
 
   const handleForkClick = () => {
     if (!songDbId) return;
@@ -487,6 +533,32 @@ function App({
             )}
 
             <aside className="action-toolbar" aria-label="Acciones">
+              {isAdmin && songDbId && (
+                <IconButtonTooltip
+                  tooltip={
+                    togglingPublic
+                      ? "Actualizando…"
+                      : songIsPublic
+                        ? "Pública — tocá para hacerla privada"
+                        : "Privada — tocá para hacerla pública"
+                  }
+                >
+                  <button
+                    type="button"
+                    className={
+                      songIsPublic
+                        ? "action-toolbar__button action-toolbar__button--inactive"
+                        : "action-toolbar__button"
+                    }
+                    aria-label={songIsPublic ? "Hacer privada" : "Hacer pública"}
+                    aria-pressed={!songIsPublic}
+                    disabled={togglingPublic}
+                    onClick={handleTogglePublicClick}
+                  >
+                    {togglingPublic ? <SpinnerIcon /> : <HatGlassesIcon />}
+                  </button>
+                </IconButtonTooltip>
+              )}
               {songDbId && (
                 <IconButtonTooltip tooltip={forking ? "Versionando…" : "Versionar canción"}>
                   <button
