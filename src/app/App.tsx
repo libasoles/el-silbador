@@ -189,18 +189,19 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
             aria-label="Autor"
           />
         )}
-        {loadError && loadError.songId === songId ? (
-          <p className="autosave-status autosave-status--error">
-            No se pudo cargar la canción: {loadError.message}
-          </p>
-        ) : (
-          (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
-            <p className={`autosave-status autosave-status--${autosaveStatus}`}>
-              {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
-            </p>
-          )
-        )}
       </div>
+
+      {loadError && loadError.songId === songId ? (
+        <p className="autosave-status autosave-status--error">
+          No se pudo cargar la canción: {loadError.message}
+        </p>
+      ) : (
+        (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
+          <p className={`autosave-status autosave-status--${autosaveStatus}`}>
+            {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
+          </p>
+        )
+      )}
 
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
