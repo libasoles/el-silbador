@@ -183,7 +183,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated }: AppP
         <SilbadorIcon />
       </a>
 
-      <IconButtonTooltip tooltip="Volver al índice">
+      <IconButtonTooltip className="app-close-tooltip" tooltip="Volver al índice">
         <a className="app-close" href="/" aria-label="Volver al índice">
           <XIcon size={26} />
         </a>
