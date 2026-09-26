@@ -10,7 +10,7 @@ import type {
   SongSummary,
 } from "./types";
 
-interface StoredSongContent {
+export interface StoredSongContent {
   title: string;
   author: string;
   lyricsText: string;
@@ -41,7 +41,7 @@ const SUMMARY_COLUMNS = "id, title, is_public, forked_from, created_at, updated_
 const DETAIL_COLUMNS = `${SUMMARY_COLUMNS}, content`;
 const PUBLIC_SUMMARY_COLUMNS = `${SUMMARY_COLUMNS}, profiles!owner_id(username)`;
 
-function serializeContent(content: SongContent): StoredSongContent {
+export function serializeContent(content: SongContent): StoredSongContent {
   return {
     title: content.title,
     author: content.author,
@@ -52,7 +52,7 @@ function serializeContent(content: SongContent): StoredSongContent {
   };
 }
 
-function deserializeContent(stored: StoredSongContent): SongContent {
+export function deserializeContent(stored: StoredSongContent): SongContent {
   return {
     title: stored.title,
     author: stored.author,

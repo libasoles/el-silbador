@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import App from "./App";
+import { initAnalytics, trackPageView } from "./analytics";
 import { Library } from "./pages/Library";
 
 type Route = { name: "library" } | { name: "new" } | { name: "song"; id: string };
@@ -24,6 +25,14 @@ function pathForRoute(route: Route): string {
 
 function Root() {
   const [route, setRoute] = useState<Route>(() => parseRoute(window.location.pathname));
+
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(window.location.pathname);
+  }, [route]);
 
   useEffect(() => {
     function handlePopState() {

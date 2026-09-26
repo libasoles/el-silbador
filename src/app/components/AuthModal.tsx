@@ -33,11 +33,14 @@ export function AuthModal({ onClose }: AuthModalProps) {
   };
 
   return (
-    <Dialog open onOpenChange={(next) => !next && onClose()} title="Entrá o creá tu cuenta">
+    <Dialog
+      open
+      onOpenChange={(next) => !next && onClose()}
+      title={linkSent ? "Enviado" : "Entrá o creá tu cuenta"}
+    >
       {linkSent ? (
         <p className="auth-modal__message">
-          Te enviamos un enlace a {email}. Abrilo para iniciar sesión y terminar de guardar la
-          canción.
+          Abrí el enlace para iniciar sesión y terminar de guardar la canción.
         </p>
       ) : (
         <form className="auth-modal__form" onSubmit={handleSubmit}>

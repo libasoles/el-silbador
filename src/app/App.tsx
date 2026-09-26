@@ -5,6 +5,7 @@ import type { CellsByTrack, TrackDef } from "../core/types";
 import { deleteSong, getSong } from "../data";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
+import { trackEvent } from "./analytics";
 import { AuthModal } from "./components/AuthModal";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
@@ -20,6 +21,7 @@ import {
   XIcon,
 } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
+import { clearDraft, readDraft, saveDraft } from "./draftStorage";
 import { useAuth } from "./useAuth";
 import { useAutosave } from "./useAutosave";
 import { useEditor } from "./useEditor";
@@ -87,12 +89,29 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  // Following a magic-link sign-in email reloads the page from scratch, so any content typed
+  // before authenticating would otherwise vanish. If it was stashed in localStorage first (see
+  // handleSaveClick below), restore it here and let the usual autosave-on-sign-in flow persist it.
+  const [restoredDraft] = useState(() => readDraft(songId));
+  useEffect(() => {
+    if (restoredDraft) {
+      actions.loadContent(restoredDraft.content);
+      clearDraft();
+    }
+    // Runs once per mount: restoring is a one-time hydration, and `restoredDraft` itself never
+    // changes after that initial read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     applyTheme(deriveTheme(accentColor));
   }, [accentColor]);
 
   useEffect(() => {
-    if (!songId) return;
+    // A restored draft is already the freshest version of this song (it was captured right
+    // before the user went to confirm their sign-in), so it takes priority over re-fetching
+    // whatever was last saved on the server.
+    if (!songId || restoredDraft) return;
     let cancelled = false;
     getSong(songId)
       .then((detail) => {
@@ -106,7 +125,9 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
     return () => {
       cancelled = true;
     };
-    // `actions` is a stable ref from useEditor; only `songId` should retrigger the fetch.
+    // `actions` is a stable ref from useEditor and `restoredDraft` never changes after mount;
+    // only `songId` should retrigger the fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songId, actions]);
 
   const content: SongContent = useMemo(
@@ -129,7 +150,12 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
   const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
   const saving = autosaveStatus === "saving";
 
+  useEffect(() => {
+    if (autosaveStatus === "saved") trackEvent("song_saved", { song_id: songId });
+  }, [autosaveStatus, songId]);
+
   const handleExportPdf = () => {
+    trackEvent("export_pdf", { song_id: songId });
     window.print();
   };
 
@@ -142,6 +168,11 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
 
   const handleSaveClick = () => {
     if (!authenticated) {
+      trackEvent("auth_modal_open");
+      // The modal's overlay blocks further editing while it's open, so `content` here is what
+      // the user will still be looking at when they follow the magic-link email — stash it so
+      // it can be restored after the reload that link triggers.
+      saveDraft(songId, content);
       setAuthModalOpen(true);
       return;
     }
@@ -188,24 +219,25 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
           <input
             type="text"
             className="author-input"
-            placeholder="Autor"
+            placeholder="Autor o intérprete"
             value={state.author}
             onChange={(event) => actions.setAuthor(event.target.value)}
-            aria-label="Autor"
+            aria-label="Autor o intérprete"
           />
         )}
-        {loadError && loadError.songId === songId ? (
-          <p className="autosave-status autosave-status--error">
-            No se pudo cargar la canción: {loadError.message}
-          </p>
-        ) : (
-          (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
-            <p className={`autosave-status autosave-status--${autosaveStatus}`}>
-              {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
-            </p>
-          )
-        )}
       </div>
+
+      {loadError && loadError.songId === songId ? (
+        <p className="autosave-status autosave-status--error">
+          No se pudo cargar la canción: {loadError.message}
+        </p>
+      ) : (
+        (autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
+          <p className={`autosave-status autosave-status--${autosaveStatus}`}>
+            {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
+          </p>
+        )
+      )}
 
       <div className="workspace">
         <aside className="track-toolbar" aria-label="Visibilidad de pistas">
