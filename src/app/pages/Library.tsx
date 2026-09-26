@@ -1,7 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { trackEvent } from "../analytics";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import { PlusIcon, SearchIcon, SilbadorIcon, StarIcon } from "../components/icons";
+import { listMySongs } from "../../data/songs";
+import type { SongSummary } from "../../data/types";
+import { useAuth } from "../useAuth";
 import "./Library.css";
 
 interface LibrarySong {
@@ -10,14 +13,13 @@ interface LibrarySong {
   author: string | null;
 }
 
-// Mock data standing in for the Supabase-backed library. Shapes match what a `songs` table
-// query would return: a title, an optional author (traditional pieces often have none), and the
-// id used to open the song in the editor.
-const MY_SONGS: LibrarySong[] = [
-  { id: "my-1", title: "Duerme negrito", author: "Atahualpa Yupanqui (arr.)" },
-  { id: "my-2", title: "Sin título", author: null },
-];
+function toLibrarySong(song: SongSummary): LibrarySong {
+  return { id: song.id, title: song.title ?? "Sin título", author: null };
+}
 
+// Mock data standing in for the still-unimplemented parts of the Supabase-backed library.
+// "Canciones propias" now comes from Supabase (see listMySongs below); favoritas and públicas
+// stay mocked until those are wired up too.
 const FAVORITE_SONGS: LibrarySong[] = [];
 
 const PUBLIC_SONGS: LibrarySong[] = [
@@ -129,7 +131,28 @@ interface LibraryProps {
 }
 
 export function Library({ onOpenSong, onNewSong }: LibraryProps) {
+  const session = useAuth();
   const [query, setQuery] = useState("");
+  const [myLibrarySongs, setMyLibrarySongs] = useState<LibrarySong[]>([]);
+
+  useEffect(() => {
+    if (!session) {
+      setMyLibrarySongs([]);
+      return;
+    }
+    let cancelled = false;
+    listMySongs()
+      .then((songs) => {
+        if (!cancelled) setMyLibrarySongs(songs.map(toLibrarySong));
+      })
+      .catch((error: unknown) => {
+        console.error("No se pudieron cargar las canciones propias.", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
+
   // Favoriting a public or own song is mocked locally: it toggles the star on that row, but
   // (unlike the real, Supabase-backed version) doesn't move the song into the Favoritas section
   // below, which stays fixed mock data.
@@ -151,8 +174,11 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
 
   const normalizedQuery = query.trim().toLowerCase();
   const mySongs = useMemo(
-    () => (normalizedQuery ? MY_SONGS.filter((song) => matchesQuery(song, normalizedQuery)) : MY_SONGS),
-    [normalizedQuery],
+    () =>
+      normalizedQuery
+        ? myLibrarySongs.filter((song) => matchesQuery(song, normalizedQuery))
+        : myLibrarySongs,
+    [myLibrarySongs, normalizedQuery],
   );
   const favoriteSongs = useMemo(
     () =>
