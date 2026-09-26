@@ -1,4 +1,18 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { findChordShape } from "../../core/findChordShape";
+import { ChordTooltip } from "./ChordTooltip";
+
+/** Desktop pointers can hover; touch-only devices can't, so a tap has to serve the purpose a
+ *  mouseover would elsewhere. Read once at module load — a device doesn't switch input classes
+ *  mid-session, and the project otherwise avoids doing this kind of check reactively. */
+const HOVER_CAPABLE =
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+/** How long the pointer may sit off both the chip and the tooltip before it closes — enough time
+ *  to travel from one to the other in a straight line without a flicker. */
+const HOVER_CLOSE_DELAY_MS = 150;
 
 interface TrackCellProps {
   slotId: string;
@@ -15,6 +29,9 @@ interface TrackCellProps {
   onDragEnter?: () => void;
   onDragLeave?: () => void;
   onDrop?: () => void;
+  /** True for the chords track: chips whose text matches a known chord show a fingering
+   *  diagram — on hover for a mouse/trackpad, on tap for touch (which has no hover to use). */
+  showChordDiagram?: boolean;
 }
 
 /**
@@ -40,14 +57,57 @@ export function TrackCell({
   onDragEnter,
   onDragLeave,
   onDrop,
+  showChordDiagram = false,
 }: TrackCellProps) {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chipRef = useRef<HTMLButtonElement | null>(null);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const hoverCloseTimer = useRef<number | undefined>(undefined);
   // Buttons receive focus on mousedown, i.e. before a drag gesture has a chance to start. If we
   // switched to the input on every focus, the chip would unmount mid-drag and native HTML5 drag
   // would never fire. So mouse-originated focus is ignored here; onClick (which only fires when
   // no drag happened) starts editing instead. Keyboard-originated focus (Tab) still edits eagerly.
   const pointerDownRef = useRef(false);
+
+  const chordShape = showChordDiagram ? findChordShape(value) : null;
+
+  function clearHoverCloseTimer() {
+    if (hoverCloseTimer.current !== undefined) {
+      window.clearTimeout(hoverCloseTimer.current);
+      hoverCloseTimer.current = undefined;
+    }
+  }
+
+  function scheduleTooltipClose() {
+    clearHoverCloseTimer();
+    hoverCloseTimer.current = window.setTimeout(() => setTooltipOpen(false), HOVER_CLOSE_DELAY_MS);
+  }
+
+  function handleChipMouseEnter() {
+    if (!HOVER_CAPABLE || !chordShape) return;
+    clearHoverCloseTimer();
+    setTooltipOpen(true);
+  }
+
+  function handleChipMouseLeave() {
+    if (!HOVER_CAPABLE) return;
+    scheduleTooltipClose();
+  }
+
+  useEffect(() => clearHoverCloseTimer, []);
+
+  // A touch device has no hover to show the diagram on, so a tap does double duty: the first tap
+  // reveals it (in place of jumping straight to editing), and "Cambiar" in the tooltip is then
+  // the only way in to actually edit the chord. A mouse/trackpad already saw the diagram on
+  // hover, so its click goes straight to editing, same as any other track.
+  function handleChipClick() {
+    if (chordShape && !HOVER_CAPABLE) {
+      setTooltipOpen((open) => !open);
+      return;
+    }
+    startEditing();
+  }
 
   const dragClassName = isDragging ? " track-cell--dragging" : "";
   const style =
@@ -88,6 +148,7 @@ export function TrackCell({
   }
 
   function startEditing() {
+    setTooltipOpen(false);
     setEditing(true);
   }
 
@@ -114,39 +175,57 @@ export function TrackCell({
 
   if (!editing) {
     return (
-      <button
-        type="button"
-        className={"track-cell track-cell--chip" + dragClassName}
-        data-slot-id={slotId}
-        style={style}
-        ref={(el) => registerRef(el)}
-        onClick={startEditing}
-        onFocus={handleFocus}
-        onMouseDown={() => {
-          pointerDownRef.current = true;
-        }}
-        onMouseUp={() => {
-          pointerDownRef.current = false;
-        }}
-        draggable={draggable}
-        onDragStart={handleDragStart}
-        onDragEnd={onDragEnd}
-        onDragOver={handleDragOver}
-        onDragEnter={onDragEnter}
-        onDragLeave={onDragLeave}
-        onDrop={handleDrop}
-        onKeyDown={(event) => {
-          if (event.key === "ArrowLeft") {
-            event.preventDefault();
-            onNavigate("prev");
-          } else if (event.key === "ArrowRight") {
-            event.preventDefault();
-            onNavigate("next");
-          }
-        }}
-      >
-        {value || " "}
-      </button>
+      <>
+        <button
+          type="button"
+          className={"track-cell track-cell--chip" + dragClassName}
+          data-slot-id={slotId}
+          style={style}
+          ref={(el) => {
+            chipRef.current = el;
+            registerRef(el);
+          }}
+          onClick={handleChipClick}
+          onFocus={handleFocus}
+          onMouseEnter={handleChipMouseEnter}
+          onMouseLeave={handleChipMouseLeave}
+          onMouseDown={() => {
+            pointerDownRef.current = true;
+          }}
+          onMouseUp={() => {
+            pointerDownRef.current = false;
+          }}
+          draggable={draggable}
+          onDragStart={handleDragStart}
+          onDragEnd={onDragEnd}
+          onDragOver={handleDragOver}
+          onDragEnter={onDragEnter}
+          onDragLeave={onDragLeave}
+          onDrop={handleDrop}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowLeft") {
+              event.preventDefault();
+              onNavigate("prev");
+            } else if (event.key === "ArrowRight") {
+              event.preventDefault();
+              onNavigate("next");
+            }
+          }}
+        >
+          {value || " "}
+        </button>
+        {tooltipOpen && chordShape && chipRef.current ? (
+          <ChordTooltip
+            chordName={value}
+            shape={chordShape}
+            anchorEl={chipRef.current}
+            onRequestEdit={startEditing}
+            onClose={() => setTooltipOpen(false)}
+            onMouseEnter={clearHoverCloseTimer}
+            onMouseLeave={scheduleTooltipClose}
+          />
+        ) : null}
+      </>
     );
   }
 

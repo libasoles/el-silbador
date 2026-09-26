@@ -537,6 +537,100 @@
   border-bottom-color: transparent;
 }
 
+/* Non-blocking chord diagram popover: a small floating card next to the chip it describes,
+   rather than a modal behind a dimming overlay. Positioned in JS (top/left, computed from the
+   chip's rect) since it's rendered in a portal, outside the scrolling/clipped song layout. */
+.chord-tooltip {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.7rem 0.9rem 0.6rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(42, 38, 34, 0.18);
+}
+
+.chord-tooltip__name {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--chord);
+}
+
+.chord-tooltip__edit {
+  margin-top: 0.15rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.chord-tooltip__edit:hover {
+  background: var(--border-strong);
+  color: var(--bg);
+}
+
+.chord-diagram {
+  display: block;
+}
+
+.chord-diagram__string {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+
+.chord-diagram__fret {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+
+.chord-diagram__fret--nut {
+  stroke: var(--fg);
+  stroke-width: 3;
+}
+
+.chord-diagram__position {
+  font-family: var(--sans);
+  font-size: 9px;
+  fill: var(--muted);
+}
+
+.chord-diagram__barre {
+  fill: var(--chord);
+  opacity: 0.9;
+}
+
+.chord-diagram__finger {
+  fill: var(--chord);
+}
+
+.chord-diagram__finger-label {
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 700;
+  fill: var(--bg);
+}
+
+.chord-diagram__open {
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 1.5;
+}
+
+.chord-diagram__mute {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--muted);
+}
+
 .syllable-row {
   font-size: 1.2rem;
   align-items: flex-end;

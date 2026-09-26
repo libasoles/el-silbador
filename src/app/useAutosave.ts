@@ -19,11 +19,12 @@ export interface AutosaveHandle {
  * change after mount/song-load is skipped so opening an existing song (which replaces `content`
  * via loadContent) doesn't immediately re-save it unchanged.
  *
- * `contentLoaded` gates this: while an existing song's content is still being fetched, `content`
- * only holds the editor's default/empty state, and no save may fire off that. The "skip next
- * change" latch is re-armed the moment `contentLoaded` flips true, so the load itself (which
- * replaces `content` via loadContent right as `contentLoaded` flips) is swallowed rather than
- * mistaken for a real edit.
+ * `ready` gates this: while an existing song's content and real id are still being resolved,
+ * `content` only holds the editor's default/empty state, and no save may fire off that (it would
+ * either resave a blank song over the real one, or — before the id is known — insert a duplicate
+ * row instead of updating it). The "skip next change" latch is re-armed the moment `ready` flips
+ * true, so the load itself (which replaces `content` via loadContent right as `ready` flips) is
+ * swallowed rather than mistaken for a real edit.
  *
  * Saving only ever reaches the network while `authenticated` is true — otherwise changes just
  * accumulate as "dirty" so the Save button lights up, and it's that button's click (opening the
@@ -34,9 +35,9 @@ export interface AutosaveHandle {
 export function useAutosave(
   content: SongContent,
   songId: string | undefined,
+  ready: boolean,
   authenticated: boolean,
-  contentLoaded: boolean,
-  onCreated: (id: string) => void,
+  onCreated: (id: string, slug: string) => void,
 ): AutosaveHandle {
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [retryTick, setRetryTick] = useState(0);
@@ -44,7 +45,7 @@ export function useAutosave(
   const skipNext = useRef(true);
   const wasAuthenticated = useRef(authenticated);
   const lastRetryTick = useRef(retryTick);
-  const wasContentLoaded = useRef(contentLoaded);
+  const wasReady = useRef(ready);
 
   useEffect(() => {
     idRef.current = songId;
@@ -52,14 +53,14 @@ export function useAutosave(
   }, [songId]);
 
   useEffect(() => {
-    if (contentLoaded && !wasContentLoaded.current) {
+    if (ready && !wasReady.current) {
       skipNext.current = true;
     }
-    wasContentLoaded.current = contentLoaded;
-  }, [contentLoaded]);
+    wasReady.current = ready;
+  }, [ready]);
 
   useEffect(() => {
-    if (!contentLoaded) return;
+    if (!ready) return;
 
     const justAuthenticated = authenticated && !wasAuthenticated.current;
     const isRetry = retryTick !== lastRetryTick.current;
@@ -86,7 +87,7 @@ export function useAutosave(
           const saved = await saveSong({ id: idRef.current, content });
           if (cancelled) return;
           idRef.current = saved.id;
-          if (wasNew) onCreated(saved.id);
+          if (wasNew) onCreated(saved.id, saved.slug);
           setStatus("saved");
         } catch (error) {
           if (cancelled) return;
@@ -101,7 +102,7 @@ export function useAutosave(
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, songId, onCreated, authenticated, retryTick, contentLoaded]);
+  }, [content, songId, ready, onCreated, authenticated, retryTick]);
 
   return { status, retry: () => setRetryTick((tick) => tick + 1) };
 }

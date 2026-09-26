@@ -3,12 +3,12 @@ import App from "./App";
 import { initAnalytics, trackPageView } from "./analytics";
 import { Library } from "./pages/Library";
 
-type Route = { name: "library" } | { name: "new" } | { name: "song"; id: string };
+type Route = { name: "library" } | { name: "new" } | { name: "song"; slug: string };
 
 function parseRoute(pathname: string): Route {
   if (pathname === "/nueva") return { name: "new" };
-  const songMatch = pathname.match(/^\/canciones\/([^/]+)\/?$/);
-  if (songMatch) return { name: "song", id: songMatch[1] };
+  const songMatch = pathname.match(/^\/cancion\/([^/]+)\/?$/);
+  if (songMatch) return { name: "song", slug: songMatch[1] };
   return { name: "library" };
 }
 
@@ -17,7 +17,7 @@ function pathForRoute(route: Route): string {
     case "new":
       return "/nueva";
     case "song":
-      return `/canciones/${route.id}`;
+      return `/cancion/${route.slug}`;
     case "library":
       return "/";
   }
@@ -54,10 +54,10 @@ function Root() {
   if (route.name === "new" || route.name === "song") {
     return (
       <App
-        songId={route.name === "song" ? route.id : undefined}
-        // Autosave assigns the id the first time it creates the row; swap the URL to the
+        songSlug={route.name === "song" ? route.slug : undefined}
+        // Autosave assigns the slug the first time it creates the row; swap the URL to the
         // song's own address without pushing a fresh history entry for the same document.
-        onSongCreated={(id) => navigate({ name: "song", id }, "replace")}
+        onSongCreated={(_id, slug) => navigate({ name: "song", slug }, "replace")}
         onDeleted={() => navigate({ name: "library" })}
       />
     );
@@ -65,7 +65,7 @@ function Root() {
 
   return (
     <Library
-      onOpenSong={(song) => navigate({ name: "song", id: song.id })}
+      onOpenSong={(song) => navigate({ name: "song", slug: song.slug })}
       onNewSong={() => navigate({ name: "new" })}
     />
   );

@@ -54,6 +54,7 @@ export function TrackRow({ trackId, label, slotIds, slotRects, cells, onSetCellT
             registerRef={(el) => {
               cellRefs.current[index] = el;
             }}
+            showChordDiagram={trackId === "chords"}
             draggable={value.length > 0}
             isDragging={drag.draggedSlotId === slotId}
             onDragStart={() => drag.onDragStart(slotId)}

@@ -4,7 +4,7 @@ import "@radix-ui/themes/styles.css";
 import "./App.css";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
-import { deleteSong, getSong } from "../data";
+import { deleteSong, getSongBySlug } from "../data";
 import type { SongContent } from "../data/types";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
@@ -36,8 +36,6 @@ const AUTOSAVE_STATUS_LABEL: Record<"saving" | "saved" | "error", string> = {
   error: "No se pudo guardar",
 };
 
-function noop() {}
-
 /** Stand-in for the lyrics/annotation grid while an existing song's content is still being
     fetched. Never shown for a brand-new song, which has no content to wait on. The title,
     author, and toolbars render normally throughout — only the editor area itself is replaced. */
@@ -60,11 +58,11 @@ function SongViewSkeleton() {
 interface AppProps {
   /** Base color the underline, chord, and highlight colors are all derived from. */
   accentColor?: string;
-  /** Id of the song being edited, from the /canciones/:id route. Absent for a new, unsaved song. */
-  songId?: string;
-  /** Called once autosave creates the row for a new song, so the URL can adopt its id. */
-  onSongCreated?: (id: string) => void;
-  /** Called once the song is deleted, so the caller can navigate away from its now-gone id. */
+  /** Slug of the song being edited, from the /cancion/:slug route. Absent for a new, unsaved song. */
+  songSlug?: string;
+  /** Called once autosave creates the row for a new song, so the URL can adopt its slug. */
+  onSongCreated?: (id: string, slug: string) => void;
+  /** Called once the song is deleted, so the caller can navigate away from its now-gone slug. */
   onDeleted?: () => void;
 }
 
@@ -102,21 +100,28 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
   );
 }
 
-function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDeleted }: AppProps) {
+function App({ accentColor = DEFAULT_ACCENT_COLOR, songSlug, onSongCreated, onDeleted }: AppProps) {
   const { state, actions } = useEditor();
-  const [loadError, setLoadError] = useState<{ songId: string; message: string } | null>(null);
+  const [loadError, setLoadError] = useState<{ songSlug: string; message: string } | null>(null);
   const session = useAuth();
   const authenticated = Boolean(session);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  // The song's real database id, resolved from `songSlug` once `getSongBySlug` returns (or set
+  // directly once autosave creates a brand-new song). Needed because writes (save/delete) still
+  // key off the stable id rather than the slug.
+  const [songDbId, setSongDbId] = useState<string | undefined>(undefined);
 
   // Following a magic-link sign-in email reloads the page from scratch, so any content typed
   // before authenticating would otherwise vanish. If it was stashed in localStorage first (see
   // handleSaveClick below), restore it here and let the usual autosave-on-sign-in flow persist it.
-  const [restoredDraft] = useState(() => readDraft(songId));
-  // Only an existing song (songId set, no restored draft) has content worth waiting on; a new
+  const [restoredDraft] = useState(() => readDraft(songSlug));
+  // Only an existing song (songSlug set, no restored draft) has content worth waiting on; a new
   // song, or one whose draft was already restored, starts "loaded" with its editor state in place.
-  const [contentLoaded, setContentLoaded] = useState(() => !songId || Boolean(restoredDraft));
+  const [contentLoaded, setContentLoaded] = useState(() => !songSlug || Boolean(restoredDraft));
+  // `undefined` while an existing song's owner is still unknown (fetch in flight); a brand-new
+  // song has no owner yet, so it's implicitly "mine" until it's first saved.
+  const [ownerId, setOwnerId] = useState<string | undefined>(undefined);
   useEffect(() => {
     if (restoredDraft) {
       actions.loadContent(restoredDraft.content);
@@ -132,21 +137,21 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
   }, [accentColor]);
 
   useEffect(() => {
-    // A restored draft is already the freshest version of this song (it was captured right
-    // before the user went to confirm their sign-in), so it takes priority over re-fetching
-    // whatever was last saved on the server.
-    if (!songId || restoredDraft) return;
+    if (!songSlug) return;
+    // Still needed even when a draft was restored: the draft carries the freshest content, but
+    // not the song's real id, which autosave needs to update (rather than duplicate) the row.
     let cancelled = false;
-    getSong(songId)
+    getSongBySlug(songSlug)
       .then((detail) => {
-        if (!cancelled) {
-          actions.loadContent(detail.content);
-          setContentLoaded(true);
-        }
+        if (cancelled) return;
+        setSongDbId(detail.id);
+        setOwnerId(detail.ownerId);
+        if (!restoredDraft) actions.loadContent(detail.content);
+        setContentLoaded(true);
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setLoadError({ songId, message: error instanceof Error ? error.message : String(error) });
+          setLoadError({ songSlug, message: error instanceof Error ? error.message : String(error) });
           setContentLoaded(true);
         }
       });
@@ -154,9 +159,9 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
       cancelled = true;
     };
     // `actions` is a stable ref from useEditor and `restoredDraft` never changes after mount;
-    // only `songId` should retrigger the fetch.
+    // only `songSlug` should retrigger the fetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songId, actions]);
+  }, [songSlug, actions]);
 
   const content: SongContent = useMemo(
     () => ({
@@ -169,28 +174,41 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
     }),
     [state.title, state.author, state.lyricsText, state.song, state.cells, state.merges],
   );
+  // Ready to autosave once the editor actually holds this song's content, and (for an existing
+  // song) once its real id has been resolved from the slug — otherwise a save could either
+  // persist the default/empty state or insert a duplicate row instead of updating one.
+  const ready = contentLoaded && (!songSlug || songDbId !== undefined);
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
-    songId,
+    songDbId,
+    ready,
     authenticated,
-    contentLoaded,
-    onSongCreated ?? noop,
+    (id, slug) => {
+      setSongDbId(id);
+      onSongCreated?.(id, slug);
+    },
   );
   const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
   const saving = autosaveStatus === "saving";
+  // A brand-new song (no songId) or one restored from a pre-auth draft was necessarily started by
+  // this browser, so it's implicitly the user's own; an existing song is only "mine" once its
+  // fetched owner matches the signed-in user (forking a song creates a new row owned by the
+  // forker, so a viewed fork satisfies this the same way any other owned song does).
+  const isOwnSong =
+    !songSlug || Boolean(restoredDraft) || (ownerId !== undefined && ownerId === session?.user.id);
 
   useEffect(() => {
-    if (autosaveStatus === "saved") trackEvent("song_saved", { song_id: songId });
-  }, [autosaveStatus, songId]);
+    if (autosaveStatus === "saved") trackEvent("song_saved", { song_id: songDbId });
+  }, [autosaveStatus, songDbId]);
 
   const handleExportPdf = () => {
-    trackEvent("export_pdf", { song_id: songId });
+    trackEvent("export_pdf", { song_id: songDbId });
     window.print();
   };
 
   const handleConfirmDelete = async () => {
-    if (!songId) return;
-    await deleteSong(songId);
+    if (!songDbId) return;
+    await deleteSong(songDbId);
     setDeleteDialogOpen(false);
     onDeleted?.();
   };
@@ -201,7 +219,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
       // The modal's overlay blocks further editing while it's open, so `content` here is what
       // the user will still be looking at when they follow the magic-link email — stash it so
       // it can be restored after the reload that link triggers.
-      saveDraft(songId, content);
+      saveDraft(songSlug, content);
       setAuthModalOpen(true);
       return;
     }
@@ -256,7 +274,7 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
         )}
       </div>
 
-      {loadError && loadError.songId === songId ? (
+      {loadError && loadError.songSlug === songSlug ? (
         <p className="autosave-status autosave-status--error">
           No se pudo cargar la canción: {loadError.message}
         </p>
@@ -333,21 +351,23 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
         )}
 
         <aside className="action-toolbar" aria-label="Acciones">
-          <IconButtonTooltip tooltip={saveTooltip}>
-            <button
-              type="button"
-              className={
-                autosaveStatus === "error"
-                  ? "action-toolbar__button action-toolbar__button--error"
-                  : "action-toolbar__button"
-              }
-              aria-label="Guardar canción"
-              disabled={saving || !pendingChanges}
-              onClick={handleSaveClick}
-            >
-              {saving ? <SpinnerIcon /> : <SaveIcon />}
-            </button>
-          </IconButtonTooltip>
+          {isOwnSong && (
+            <IconButtonTooltip tooltip={saveTooltip}>
+              <button
+                type="button"
+                className={
+                  autosaveStatus === "error"
+                    ? "action-toolbar__button action-toolbar__button--error"
+                    : "action-toolbar__button"
+                }
+                aria-label="Guardar canción"
+                disabled={saving || !pendingChanges}
+                onClick={handleSaveClick}
+              >
+                {saving ? <SpinnerIcon /> : <SaveIcon />}
+              </button>
+            </IconButtonTooltip>
+          )}
           <IconButtonTooltip
             tooltip={
               state.lyricsText.trim() === ""
@@ -366,13 +386,13 @@ function App({ accentColor = DEFAULT_ACCENT_COLOR, songId, onSongCreated, onDele
             </button>
           </IconButtonTooltip>
           <IconButtonTooltip
-            tooltip={songId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
+            tooltip={songDbId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
           >
             <button
               type="button"
               className="action-toolbar__button"
               aria-label="Eliminar canción"
-              disabled={!songId}
+              disabled={!songDbId}
               onClick={() => setDeleteDialogOpen(true)}
             >
               <TrashIcon size={24} strokeWidth={2} />
