@@ -9,6 +9,38 @@
   padding: 1.25rem 2rem 6rem;
 }
 
+.library-auth {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  background: none;
+  border: none;
+  color: var(--fg);
+  opacity: 0.75;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  transition:
+    color 160ms ease,
+    opacity 180ms ease;
+}
+
+.library-auth svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.library-auth:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+
 .library-header {
   display: flex;
   flex-direction: column;
