@@ -36,6 +36,9 @@
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
+  /* The row actions have smaller hit areas; offset this larger one so their icons share a
+     right-hand alignment. */
+  margin-right: -0.4rem;
   padding: 0;
   border-radius: 999px;
   color: var(--fg);
