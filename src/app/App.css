@@ -311,6 +311,15 @@
     max-width: none;
     padding: 1.5cm;
   }
+
+  /* Print dialogs may omit element backgrounds. Draw the syllable guides as borders instead,
+     so exporting preserves an active underline even with background graphics disabled. */
+  .syllable::after,
+  .syllable-gap--merged::after {
+    height: 0;
+    background: none;
+    border-bottom: 2px solid var(--syllable-underline);
+  }
 }
 
 .song-wrapper {

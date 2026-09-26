@@ -15,6 +15,14 @@ describe("underline visibility", () => {
     expect(styles).not.toMatch(/\.line--chords-hidden\s+\.syllable::after/);
     expect(styles).toMatch(/\.song--underline-hidden\s+\.syllable::after/);
   });
+
+  it("uses an ink-based underline when printing", () => {
+    // Browser print dialogs may omit CSS backgrounds, so the visible editor background must not
+    // be the only representation of a syllable underline in the generated PDF.
+    expect(styles).toMatch(
+      /@media print\s*\{[\s\S]*\.syllable::after,\s*\.syllable-gap--merged::after\s*\{[\s\S]*border-bottom:\s*2px solid var\(--syllable-underline\)/,
+    );
+  });
 });
 
 describe("lyric caret visibility", () => {
