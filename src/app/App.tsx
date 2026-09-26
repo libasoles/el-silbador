@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import "./App.css";
+import neutralIllustration from "../assets/03-neutral.svg";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
 import { deleteSong, forkSong, getSongBySlug } from "../data";
@@ -67,9 +68,7 @@ function SongViewSkeleton() {
 function SongNotFound() {
   return (
     <div className="song-not-found">
-      <span className="song-not-found__mark" aria-hidden="true">
-        <SilbadorIcon />
-      </span>
+      <img className="song-not-found__mark" src={neutralIllustration} alt="" />
       <p className="empty-state">
         No encontramos esta canción. Puede que no exista, o que sea privada y solo la pueda ver
         quien la creó.
