@@ -21,7 +21,6 @@
   gap: 0.65rem;
   padding: 0.85rem 2.2rem 0.85rem 0.9rem;
   background: var(--bg);
-  border: 1px solid var(--border-strong);
   border-radius: 0.5rem;
   box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.2);
 }
