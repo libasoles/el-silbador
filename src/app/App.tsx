@@ -328,21 +328,24 @@ function App({
     },
     [onSongCreated],
   );
-  const { status: autosaveStatus, retry: retrySave } = useAutosave(
-    content,
-    songDbId,
-    ready,
-    authenticated,
-    handleSongCreated,
-  );
-  const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
-  const saving = autosaveStatus === "saving";
   // A brand-new song (no songId) or one restored from a pre-auth draft was necessarily started by
   // this browser, so it's implicitly the user's own; an existing song is only "mine" once its
   // fetched owner matches the signed-in user (forking a song creates a new row owned by the
   // forker, so a viewed fork satisfies this the same way any other owned song does).
   const isOwnSong =
     !songSlug || Boolean(restoredDraft) || (ownerId !== undefined && ownerId === session?.user.id);
+  const { status: autosaveStatus, retry: retrySave } = useAutosave(
+    content,
+    songDbId,
+    ready,
+    // Never even attempt to persist a viewer's edits to a song they don't own — the DB's RLS
+    // policy would reject the write anyway, and without this the debounce would surface a
+    // perpetual "No se pudo guardar" error on every keystroke instead of silently doing nothing.
+    authenticated && isOwnSong,
+    handleSongCreated,
+  );
+  const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
+  const saving = autosaveStatus === "saving";
 
   useEffect(() => {
     if (autosaveStatus === "saved") trackEvent("song_saved", { song_id: songDbId });
@@ -533,6 +536,7 @@ function App({
                 placeholder="Título"
                 value={state.title}
                 onChange={(event) => actions.setTitle(event.target.value)}
+                readOnly={!isOwnSong}
                 aria-label="Título"
               />
             </div>
@@ -543,6 +547,7 @@ function App({
                 placeholder="Autor o intérprete"
                 value={state.author}
                 onChange={(event) => actions.setAuthor(event.target.value)}
+                readOnly={!isOwnSong}
                 aria-label="Autor o intérprete"
               />
             )}
@@ -611,6 +616,7 @@ function App({
                 cells={state.cells}
                 chordVariants={state.chordVariants}
                 showUnderline={state.showUnderline}
+                canEdit={isOwnSong}
                 onSetCellText={actions.setCellText}
                 onSetChordVariant={actions.setChordVariant}
                 onToggleMerge={actions.toggleSyllableMerge}
@@ -647,7 +653,7 @@ function App({
                   </button>
                 </IconButtonTooltip>
               )}
-              {songDbId && (
+              {songDbId && !isOwnSong && (
                 <IconButtonTooltip tooltip={forking ? "Versionando…" : "Versionar canción"}>
                   <button
                     type="button"
@@ -694,19 +700,21 @@ function App({
                   <DownloadIcon />
                 </button>
               </IconButtonTooltip>
-              <IconButtonTooltip
-                tooltip={songDbId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
-              >
-                <button
-                  type="button"
-                  className="action-toolbar__button"
-                  aria-label="Eliminar canción"
-                  disabled={!songDbId}
-                  onClick={() => setDeleteDialogOpen(true)}
+              {isOwnSong && (
+                <IconButtonTooltip
+                  tooltip={songDbId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
                 >
-                  <TrashIcon size={24} strokeWidth={2} />
-                </button>
-              </IconButtonTooltip>
+                  <button
+                    type="button"
+                    className="action-toolbar__button"
+                    aria-label="Eliminar canción"
+                    disabled={!songDbId}
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <TrashIcon size={24} strokeWidth={2} />
+                  </button>
+                </IconButtonTooltip>
+              )}
             </aside>
           </div>
 

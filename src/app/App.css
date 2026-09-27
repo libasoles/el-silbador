@@ -107,6 +107,11 @@
   color: var(--muted);
 }
 
+.title-input:read-only,
+.author-input:read-only {
+  cursor: default;
+}
+
 .autosave-status {
   position: fixed;
   bottom: 1rem;

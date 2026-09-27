@@ -18,6 +18,10 @@ interface TrackCellProps {
   onDragEnter?: () => void;
   onDragLeave?: () => void;
   onDrop?: () => void;
+  /** True while the viewer isn't allowed to edit this song (not its owner and not a fork of it).
+   *  The chip still responds to a click that only shows a chord diagram — that's viewing, not
+   *  editing — but never swaps to the text input. */
+  readOnly?: boolean;
   /** True for the chords track: clicking a chip whose text matches a known chord shows a
    *  fingering diagram instead of editing it; double-clicking edits it directly. */
   showChordDiagram?: boolean;
@@ -50,6 +54,7 @@ export function TrackCell({
   onDragEnter,
   onDragLeave,
   onDrop,
+  readOnly = false,
   showChordDiagram = false,
   chordVariantIndex = 0,
   onChangeChordVariant,
@@ -122,6 +127,7 @@ export function TrackCell({
   }
 
   function startEditing() {
+    if (readOnly) return;
     setTooltipOpen(false);
     setEditing(true);
   }

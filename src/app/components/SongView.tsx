@@ -20,6 +20,10 @@ interface SongViewProps {
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
   showUnderline: boolean;
+  /** False while the viewer isn't allowed to edit this song (not its owner and not a fork of
+   *  it) — the whole document becomes non-editable, and every track cell and syllable-join
+   *  toggle underneath it follows suit. */
+  canEdit: boolean;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onSetChordVariant: (slotId: string, index: number) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
@@ -280,6 +284,7 @@ export function SongView({
   cells,
   chordVariants,
   showUnderline,
+  canEdit,
   onSetCellText,
   onSetChordVariant,
   onToggleMerge,
@@ -414,6 +419,7 @@ export function SongView({
   // we rewrite the text ourselves — the DOM stays untouched until React re-renders it from the new
   // state, keeping the two in sync.
   function handleBeforeInput(event: InputEvent) {
+    if (!canEdit) return;
     if ((event.target as HTMLElement).closest("[data-track]")) return;
     const inputType = event.inputType;
 
@@ -496,6 +502,7 @@ export function SongView({
     // model route as the `insertParagraph` branch below.
     if (event.key === "Enter") {
       if (
+        !canEdit ||
         event.nativeEvent.isComposing ||
         event.metaKey ||
         event.ctrlKey ||
@@ -608,7 +615,7 @@ export function SongView({
           (!hasVisibleAnnotations ? " song--annotations-hidden" : "") +
           (!showUnderline ? " song--underline-hidden" : "")
         }
-        contentEditable
+        contentEditable={canEdit}
         suppressContentEditableWarning
         spellCheck={false}
         aria-label="Letra de la canción"
@@ -627,12 +634,14 @@ export function SongView({
           if (!isDocumentControl(event.target)) focusDocument();
         }}
         onInput={(event) => {
+          if (!canEdit) return;
           if ((event.target as HTMLElement).closest("[data-track]")) return;
           commit();
         }}
         onKeyDownCapture={handleKeyDown}
         onPaste={(event) => {
           if ((event.target as HTMLElement).closest("[data-track]")) return;
+          if (!canEdit) return;
           event.preventDefault();
           const root = rootRef.current;
           if (!root) return;
@@ -688,6 +697,7 @@ export function SongView({
             onSetCellText={onSetCellText}
             onSetChordVariant={onSetChordVariant}
             onToggleMerge={onToggleMerge}
+            readOnly={!canEdit}
             showEmptyCaret={isFocused && caretLineIndex === index}
             dragSource={dragSource}
             dropTarget={dropTarget}

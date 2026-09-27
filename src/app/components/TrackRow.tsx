@@ -24,6 +24,7 @@ interface TrackRowProps {
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onSetChordVariant: (slotId: string, index: number) => void;
   drag: CellDragHandlers;
+  readOnly?: boolean;
 }
 
 export function TrackRow({
@@ -36,6 +37,7 @@ export function TrackRow({
   onSetCellText,
   onSetChordVariant,
   drag,
+  readOnly = false,
 }: TrackRowProps) {
   const cellRefs = useRef<Array<HTMLElement | null>>([]);
   const rects = slotIds.map((slotId) => slotRects[slotId]);
@@ -69,13 +71,14 @@ export function TrackRow({
             showChordDiagram={trackId === "chords"}
             chordVariantIndex={chordVariants[slotId] ?? 0}
             onChangeChordVariant={(nextIndex) => onSetChordVariant(slotId, nextIndex)}
-            draggable={value.length > 0}
+            draggable={value.length > 0 && !readOnly}
             isDragging={drag.draggedSlotId === slotId}
             onDragStart={() => drag.onDragStart(slotId)}
             onDragEnd={drag.onDragEnd}
             onDragEnter={() => drag.onDragEnter(slotId)}
             onDragLeave={() => drag.onDragLeave(slotId)}
             onDrop={() => drag.onDrop(slotId)}
+            readOnly={readOnly}
           />
         );
       })}

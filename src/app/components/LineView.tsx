@@ -70,6 +70,9 @@ interface LineViewProps {
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onSetChordVariant: (slotId: string, index: number) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
+  /** True while the viewer isn't allowed to edit this song. Disables syllable-join toggling and
+   *  every track cell, without hiding any of the annotations themselves. */
+  readOnly?: boolean;
   /** True while the document caret sits on this (empty) line. Chrome does not reliably paint its
       own caret there, so this line should render an explicit blinking indicator instead. */
   showEmptyCaret: boolean;
@@ -94,6 +97,7 @@ export function LineView({
   onSetCellText,
   onSetChordVariant,
   onToggleMerge,
+  readOnly = false,
   showEmptyCaret,
   dragSource,
   dropTarget,
@@ -284,6 +288,7 @@ export function LineView({
           onSetCellText={onSetCellText}
           onSetChordVariant={onSetChordVariant}
           drag={drag}
+          readOnly={readOnly}
         />
       </div>
     );
@@ -325,7 +330,7 @@ export function LineView({
                   }
                   fromText={prevSyllable.text}
                   toText={firstSyllable.text}
-                  disabled={!showUnderline}
+                  disabled={!showUnderline || readOnly}
                   annotationGap={
                     syllableSlotId.get(prevSyllable.id) === syllableSlotId.get(firstSyllable.id)
                       ? 0
@@ -347,7 +352,7 @@ export function LineView({
                         }
                         fromText={previous.text}
                         toText={syllable.text}
-                        disabled={!showUnderline}
+                        disabled={!showUnderline || readOnly}
                         annotationGap={
                           syllableSlotId.get(previous.id) === syllableSlotId.get(syllable.id)
                             ? 0
