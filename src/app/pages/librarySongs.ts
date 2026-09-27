@@ -1,4 +1,4 @@
-import type { PublicSongSummary, SongSummary } from "../../data/types";
+import type { SongSummary } from "../../data/types";
 
 export interface LibrarySong {
   id: string;
@@ -16,7 +16,7 @@ export function toLibrarySong(song: SongSummary): LibrarySong {
   };
 }
 
-export function toPublicLibrarySong(song: PublicSongSummary): LibrarySong {
+export function toPublicLibrarySong(song: SongSummary): LibrarySong {
   return {
     id: song.id,
     slug: song.slug,
