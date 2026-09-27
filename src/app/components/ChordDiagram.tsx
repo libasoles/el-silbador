@@ -12,6 +12,44 @@ const STRING_LABEL_HEIGHT = 16;
 /** Standard tuning, low to high — string 6 (low E) through string 1 (high E). */
 const STRING_NAMES: Record<number, string> = { 6: "E", 5: "A", 4: "D", 3: "G", 2: "B", 1: "E" };
 
+const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+/** Semitone index (C = 0) of each open string, derived from `STRING_NAMES`. */
+const OPEN_STRING_SEMITONE: Record<number, number> = { 6: 4, 5: 9, 4: 2, 3: 7, 2: 11, 1: 4 };
+
+function noteAtFret(string: number, fret: number): string {
+  return NOTE_NAMES[(OPEN_STRING_SEMITONE[string] + fret) % 12];
+}
+
+/** The sounding note name for each string, or "" for a muted string — based on the actual
+ *  fretted/barred/open position per string, not the fixed open-string tuning name. */
+function fingeredStringNames(shape: ChordShape): Record<number, string> {
+  const fretByString: Record<number, Finger[1]> = {};
+  for (const barre of shape.barres ?? []) {
+    const from = Math.min(barre.fromString, barre.toString);
+    const to = Math.max(barre.fromString, barre.toString);
+    for (let string = from; string <= to; string += 1) {
+      fretByString[string] = barre.fret;
+    }
+  }
+  for (const [string, fret] of shape.fingers) {
+    fretByString[string] = fret;
+  }
+
+  const names: Record<number, string> = {};
+  for (let string = 1; string <= STRING_COUNT; string += 1) {
+    const fret = fretByString[string];
+    if (fret === "x") {
+      names[string] = "";
+    } else if (fret === "o" || fret === undefined) {
+      names[string] = STRING_NAMES[string];
+    } else {
+      names[string] = noteAtFret(string, fret);
+    }
+  }
+  return names;
+}
+
 function stringX(stringNumber: number): number {
   const step = (WIDTH - 2 * MARGIN_X) / (STRING_COUNT - 1);
   return MARGIN_X + (STRING_COUNT - stringNumber) * step;
@@ -43,6 +81,7 @@ export function ChordDiagram({ shape }: ChordDiagramProps) {
   const { fingers, barres } = toWindowedShape(shape);
   const position = shape.position ?? 1;
   const height = fretY(FRET_COUNT) + 6 + STRING_LABEL_HEIGHT;
+  const stringNames = fingeredStringNames(shape);
 
   return (
     <svg
@@ -137,7 +176,7 @@ export function ChordDiagram({ shape }: ChordDiagramProps) {
             y={fretY(FRET_COUNT) + STRING_LABEL_HEIGHT}
             textAnchor="middle"
           >
-            {STRING_NAMES[string]}
+            {stringNames[string]}
           </text>
         );
       })}
