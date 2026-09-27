@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { subscribeToAnchorPositionUpdates } from "./chordTooltipPositioning";
+import { getChordTooltipPosition, subscribeToAnchorPositionUpdates } from "./chordTooltipPositioning";
 
 describe("subscribeToAnchorPositionUpdates", () => {
   it("repositions the portal tooltip when its trigger's scroll container moves", () => {
@@ -25,5 +25,16 @@ describe("subscribeToAnchorPositionUpdates", () => {
     scrollTarget.dispatchEvent(new Event("scroll"));
 
     expect(updatePosition).toHaveBeenCalledOnce();
+  });
+});
+
+describe("getChordTooltipPosition", () => {
+  it("stays above and centered on its trigger even when the card leaves the viewport", () => {
+    const position = getChordTooltipPosition(
+      { top: 4, left: -30, width: 24 },
+      { width: 120, height: 150 },
+    );
+
+    expect(position).toEqual({ top: -154, left: -78 });
   });
 });

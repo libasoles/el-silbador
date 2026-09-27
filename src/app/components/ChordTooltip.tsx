@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { createPortal } from "react-dom";
 import type { ChordShape } from "../../core/chordShapes";
 import { ChordDiagram } from "./ChordDiagram";
-import { subscribeToAnchorPositionUpdates } from "./chordTooltipPositioning";
+import { getChordTooltipPosition, subscribeToAnchorPositionUpdates } from "./chordTooltipPositioning";
 import { ChevronLeftIcon, ChevronRightIcon } from "./icons";
 
 interface ChordTooltipProps {
@@ -18,9 +18,6 @@ interface ChordTooltipProps {
   onPrevPosition?: () => void;
   onNextPosition?: () => void;
 }
-
-const VIEWPORT_MARGIN = 8;
-const ANCHOR_GAP = 8;
 
 /** A floating, non-blocking diagram popover for a chord chip — opened by clicking the chip,
  *  positioned next to it rather than behind a screen-dimming overlay. Rendered into a portal so
@@ -41,7 +38,6 @@ export function ChordTooltip({
     left: 0,
     visibility: "hidden",
   });
-  const [placement, setPlacement] = useState<"above" | "below">("above");
 
   const updatePosition = useCallback(() => {
     const card = cardRef.current;
@@ -50,22 +46,7 @@ export function ChordTooltip({
     const anchorRect = anchorEl.getBoundingClientRect();
     const cardRect = card.getBoundingClientRect();
 
-    const spaceAbove = anchorRect.top;
-    const nextPlacement: "above" | "below" = spaceAbove >= cardRect.height + ANCHOR_GAP ? "above" : "below";
-
-    const top =
-      nextPlacement === "above"
-        ? anchorRect.top - cardRect.height - ANCHOR_GAP
-        : anchorRect.bottom + ANCHOR_GAP;
-
-    const idealLeft = anchorRect.left + anchorRect.width / 2 - cardRect.width / 2;
-    const left = Math.min(
-      Math.max(idealLeft, VIEWPORT_MARGIN),
-      window.innerWidth - cardRect.width - VIEWPORT_MARGIN,
-    );
-
-    setPlacement(nextPlacement);
-    setStyle({ top, left, visibility: "visible" });
+    setStyle({ ...getChordTooltipPosition(anchorRect, cardRect), visibility: "visible" });
   }, [anchorEl]);
 
   useLayoutEffect(() => {
@@ -87,7 +68,7 @@ export function ChordTooltip({
   return createPortal(
     <div
       ref={cardRef}
-      className={`chord-tooltip chord-tooltip--${placement}`}
+      className="chord-tooltip"
       style={{ top: style.top, left: style.left, visibility: style.visibility }}
     >
       <div className="chord-tooltip__name">{chordName}</div>
