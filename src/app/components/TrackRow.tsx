@@ -20,11 +20,23 @@ interface TrackRowProps {
   slotIds: string[];
   slotRects: Record<string, { left: number; width: number }>;
   cells: CellsByTrack;
+  chordVariants: Record<string, number>;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
+  onSetChordVariant: (slotId: string, index: number) => void;
   drag: CellDragHandlers;
 }
 
-export function TrackRow({ trackId, label, slotIds, slotRects, cells, onSetCellText, drag }: TrackRowProps) {
+export function TrackRow({
+  trackId,
+  label,
+  slotIds,
+  slotRects,
+  cells,
+  chordVariants,
+  onSetCellText,
+  onSetChordVariant,
+  drag,
+}: TrackRowProps) {
   const cellRefs = useRef<Array<HTMLElement | null>>([]);
   const rects = slotIds.map((slotId) => slotRects[slotId]);
   const annotationLefts = rects.every((rect) => rect !== undefined)
@@ -55,6 +67,8 @@ export function TrackRow({ trackId, label, slotIds, slotRects, cells, onSetCellT
               cellRefs.current[index] = el;
             }}
             showChordDiagram={trackId === "chords"}
+            chordVariantIndex={chordVariants[slotId] ?? 0}
+            onChangeChordVariant={(nextIndex) => onSetChordVariant(slotId, nextIndex)}
             draggable={value.length > 0}
             isDragging={drag.draggedSlotId === slotId}
             onDragStart={() => drag.onDragStart(slotId)}

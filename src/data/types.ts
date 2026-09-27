@@ -5,7 +5,10 @@ import type { EditorState } from "../core/types";
  * note): `tracks`/`showUnderline` are app-layer display settings, not song data, so they're dropped
  * here rather than in the core reducer.
  */
-export type SongContent = Pick<EditorState, "title" | "author" | "lyricsText" | "song" | "cells"> & {
+export type SongContent = Pick<
+  EditorState,
+  "title" | "author" | "lyricsText" | "song" | "cells" | "chordVariants"
+> & {
   merges: Set<string>;
 };
 

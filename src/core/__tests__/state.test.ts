@@ -44,6 +44,7 @@ describe("loadContent", () => {
         lyricsText: "amor",
         song: state.song,
         cells: {},
+        chordVariants: {},
         merges: new Set(),
       },
     });
@@ -65,6 +66,7 @@ describe("loadContent", () => {
         lyricsText: "amor",
         song: [],
         cells: { vocalNotes: { slot1: "Do" }, chordNotes: { slot1: "" } },
+        chordVariants: {},
         merges: new Set(),
       },
     });

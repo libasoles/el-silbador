@@ -308,9 +308,10 @@ function App({
       lyricsText: state.lyricsText,
       song: state.song,
       cells: state.cells,
+      chordVariants: state.chordVariants,
       merges: state.merges,
     }),
-    [state.title, state.author, state.lyricsText, state.song, state.cells, state.merges],
+    [state.title, state.author, state.lyricsText, state.song, state.cells, state.chordVariants, state.merges],
   );
   // Ready to autosave once the editor actually holds this song's content, and (for an existing
   // song) once its real id has been resolved from the slug — otherwise a save could either
@@ -601,8 +602,10 @@ function App({
                 merges={state.merges}
                 tracks={state.tracks}
                 cells={state.cells}
+                chordVariants={state.chordVariants}
                 showUnderline={state.showUnderline}
                 onSetCellText={actions.setCellText}
+                onSetChordVariant={actions.setChordVariant}
                 onToggleMerge={actions.toggleSyllableMerge}
                 onMoveCellText={actions.moveCellText}
                 onReconcileLyricsText={actions.reconcileLyricsText}

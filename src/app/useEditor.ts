@@ -38,6 +38,8 @@ function coalesceKeyFor(action: Action): string | null {
       return "lyrics";
     case "setCellText":
       return `cell:${action.trackId}:${action.slotId}`;
+    case "setChordVariant":
+      return `chordVariant:${action.slotId}`;
     case "resyllabify":
       return `resyllabify:${action.lineId}:${action.wordId}`;
     default:
@@ -116,6 +118,7 @@ export function useEditor() {
         dispatch({ type: "setCellText", trackId, slotId, text }),
       moveCellText: (trackId: TrackId, fromSlotId: string, toSlotId: string) =>
         dispatch({ type: "moveCellText", trackId, fromSlotId, toSlotId }),
+      setChordVariant: (slotId: string, index: number) => dispatch({ type: "setChordVariant", slotId, index }),
       setTrackVisibility: (trackId: TrackId, visible: boolean) =>
         dispatch({ type: "setTrackVisibility", trackId, visible }),
       setShowUnderline: (visible: boolean) => dispatch({ type: "setShowUnderline", visible }),

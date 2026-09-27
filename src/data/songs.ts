@@ -17,6 +17,7 @@ export interface StoredSongContent {
   song: Song;
   merges: string[];
   cells: CellsByTrack;
+  chordVariants: Record<string, number>;
 }
 
 interface SongRow {
@@ -52,6 +53,7 @@ export function serializeContent(content: SongContent): StoredSongContent {
     lyricsText: content.lyricsText,
     song: content.song,
     cells: content.cells,
+    chordVariants: content.chordVariants,
     merges: [...content.merges],
   };
 }
@@ -63,6 +65,8 @@ export function deserializeContent(stored: StoredSongContent): SongContent {
     lyricsText: stored.lyricsText,
     song: stored.song,
     cells: stored.cells,
+    // Songs saved before chord variants existed have no such column in their stored jsonb.
+    chordVariants: stored.chordVariants ?? {},
     merges: new Set(stored.merges),
   };
 }

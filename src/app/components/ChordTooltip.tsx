@@ -15,6 +15,12 @@ interface ChordTooltipProps {
    *  chip onto the tooltip itself (to reach "Cambiar") doesn't close it mid-transit. */
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  /** How many fretboard positions this chord has (see getChordPositions) and which one `shape`
+   *  is. The prev/next arrows are hidden when there's only one. */
+  positionCount?: number;
+  positionIndex?: number;
+  onPrevPosition?: () => void;
+  onNextPosition?: () => void;
 }
 
 const VIEWPORT_MARGIN = 8;
@@ -32,6 +38,10 @@ export function ChordTooltip({
   onClose,
   onMouseEnter,
   onMouseLeave,
+  positionCount = 1,
+  positionIndex = 0,
+  onPrevPosition,
+  onNextPosition,
 }: ChordTooltipProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [style, setStyle] = useState<{ top: number; left: number; visibility: "hidden" | "visible" }>({
@@ -85,7 +95,34 @@ export function ChordTooltip({
       onMouseLeave={onMouseLeave}
     >
       <div className="chord-tooltip__name">{chordName}</div>
-      <ChordDiagram shape={shape} />
+      {positionCount > 1 ? (
+        <div className="chord-tooltip__positions">
+          <button
+            type="button"
+            className="chord-tooltip__position-nav chord-tooltip__position-nav--prev"
+            aria-label="Posición anterior"
+            onClick={onPrevPosition}
+          >
+            ‹
+          </button>
+          <ChordDiagram shape={shape} />
+          <button
+            type="button"
+            className="chord-tooltip__position-nav chord-tooltip__position-nav--next"
+            aria-label="Posición siguiente"
+            onClick={onNextPosition}
+          >
+            ›
+          </button>
+        </div>
+      ) : (
+        <ChordDiagram shape={shape} />
+      )}
+      {positionCount > 1 ? (
+        <div className="chord-tooltip__position-label">
+          Posición {positionIndex + 1} de {positionCount}
+        </div>
+      ) : null}
       <button type="button" className="chord-tooltip__edit" onClick={onRequestEdit}>
         Cambiar
       </button>

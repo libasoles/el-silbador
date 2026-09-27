@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getChordPositions } from "../../core/chordPositions";
 import { findChordShape } from "../../core/findChordShape";
 import { ChordTooltip } from "./ChordTooltip";
 
@@ -32,6 +33,10 @@ interface TrackCellProps {
   /** True for the chords track: chips whose text matches a known chord show a fingering
    *  diagram — on hover for a mouse/trackpad, on tap for touch (which has no hover to use). */
   showChordDiagram?: boolean;
+  /** Index into this chord's alternate fretboard positions (see getChordPositions), chosen with
+   *  the tooltip's prev/next arrows. Ignored when the chord has only one known position. */
+  chordVariantIndex?: number;
+  onChangeChordVariant?: (index: number) => void;
 }
 
 /**
@@ -58,6 +63,8 @@ export function TrackCell({
   onDragLeave,
   onDrop,
   showChordDiagram = false,
+  chordVariantIndex = 0,
+  onChangeChordVariant,
 }: TrackCellProps) {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -71,6 +78,9 @@ export function TrackCell({
   const pointerDownRef = useRef(false);
 
   const chordShape = showChordDiagram ? findChordShape(value) : null;
+  const chordPositions = chordShape ? getChordPositions(chordShape) : [];
+  const clampedVariantIndex = Math.min(chordVariantIndex, Math.max(chordPositions.length - 1, 0));
+  const chordVariantShape = chordPositions[clampedVariantIndex] ?? chordShape;
 
   function clearHoverCloseTimer() {
     if (hoverCloseTimer.current !== undefined) {
@@ -214,10 +224,22 @@ export function TrackCell({
         >
           {value || " "}
         </button>
-        {tooltipOpen && chordShape && chipRef.current ? (
+        {tooltipOpen && chordVariantShape && chipRef.current ? (
           <ChordTooltip
             chordName={value}
-            shape={chordShape}
+            shape={chordVariantShape}
+            positionCount={chordPositions.length}
+            positionIndex={clampedVariantIndex}
+            onPrevPosition={
+              onChangeChordVariant
+                ? () => onChangeChordVariant((clampedVariantIndex - 1 + chordPositions.length) % chordPositions.length)
+                : undefined
+            }
+            onNextPosition={
+              onChangeChordVariant
+                ? () => onChangeChordVariant((clampedVariantIndex + 1) % chordPositions.length)
+                : undefined
+            }
             anchorEl={chipRef.current}
             onRequestEdit={startEditing}
             onClose={() => setTooltipOpen(false)}

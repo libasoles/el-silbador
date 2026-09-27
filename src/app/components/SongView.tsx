@@ -18,8 +18,10 @@ interface SongViewProps {
   merges: ReadonlySet<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
+  chordVariants: Record<string, number>;
   showUnderline: boolean;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
+  onSetChordVariant: (slotId: string, index: number) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
   onMoveCellText: (
     trackId: TrackId,
@@ -276,8 +278,10 @@ export function SongView({
   merges,
   tracks,
   cells,
+  chordVariants,
   showUnderline,
   onSetCellText,
+  onSetChordVariant,
   onToggleMerge,
   onMoveCellText,
   onReconcileLyricsText,
@@ -678,8 +682,10 @@ export function SongView({
             merges={merges}
             tracks={tracks}
             cells={cells}
+            chordVariants={chordVariants}
             previousChordNotes={previousChordNotes}
             onSetCellText={onSetCellText}
+            onSetChordVariant={onSetChordVariant}
             onToggleMerge={onToggleMerge}
             showEmptyCaret={isFocused && caretLineIndex === index}
             dragSource={dragSource}

@@ -662,6 +662,31 @@
   color: var(--bg);
 }
 
+.chord-tooltip__positions {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.chord-tooltip__position-nav {
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fg);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.chord-tooltip__position-nav:hover {
+  background: var(--border);
+}
+
+.chord-tooltip__position-label {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
 .chord-diagram {
   display: block;
 }

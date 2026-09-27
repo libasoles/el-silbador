@@ -32,6 +32,7 @@ export function createInitialState(): EditorState {
       { id: "vocalNotes", label: "Notas de la melodía", visible: false },
     ],
     cells: {},
+    chordVariants: {},
     showUnderline: true,
   };
 }
@@ -52,11 +53,12 @@ export type Action =
   | { type: "toggleSyllableMerge"; lineId: string; aId: string; bId: string }
   | { type: "setCellText"; trackId: TrackId; slotId: string; text: string }
   | { type: "moveCellText"; trackId: TrackId; fromSlotId: string; toSlotId: string }
+  | { type: "setChordVariant"; slotId: string; index: number }
   | { type: "setTrackVisibility"; trackId: TrackId; visible: boolean }
   | { type: "setShowUnderline"; visible: boolean }
   | {
       type: "loadContent";
-      content: Pick<EditorState, "title" | "author" | "lyricsText" | "song" | "cells"> & {
+      content: Pick<EditorState, "title" | "author" | "lyricsText" | "song" | "cells" | "chordVariants"> & {
         merges: Set<string>;
       };
     };
@@ -76,6 +78,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         song: buildSong(action.text),
         merges: new Set(),
         cells: {},
+        chordVariants: {},
       };
 
     case "reconcileLyricsText":
@@ -99,6 +102,12 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
     case "moveCellText":
       return applyMoveCellText(state, action.trackId, action.fromSlotId, action.toSlotId);
 
+    case "setChordVariant":
+      return {
+        ...state,
+        chordVariants: { ...state.chordVariants, [action.slotId]: action.index },
+      };
+
     case "setTrackVisibility":
       return {
         ...state,
@@ -118,6 +127,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         lyricsText: action.content.lyricsText,
         song: action.content.song,
         cells: action.content.cells,
+        chordVariants: action.content.chordVariants,
         merges: action.content.merges,
         // Track controls are view state rather than saved song content. Opening an existing
         // song starts in the focused chords view, plus any other track that already has
@@ -177,16 +187,23 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
   const retainedSyllableIds = new Set(song.flatMap(flattenSyllables).map((syllable) => syllable.id));
   const retainedLineIds = new Set(song.map((line) => line.id));
   let cells = state.cells;
+  let chordVariants = state.chordVariants;
   for (const line of previous) {
-    if (!retainedLineIds.has(line.id)) cells = deleteCellAcrossTracks(state.tracks, cells, endSlotId(line.id));
+    if (!retainedLineIds.has(line.id)) {
+      const slotId = endSlotId(line.id);
+      cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
+      chordVariants = deleteChordVariant(chordVariants, slotId);
+    }
     for (const syllable of flattenSyllables(line)) {
       if (!retainedSyllableIds.has(syllable.id)) {
-        cells = deleteCellAcrossTracks(state.tracks, cells, beforeSlotId(syllable.id));
+        const slotId = beforeSlotId(syllable.id);
+        cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
+        chordVariants = deleteChordVariant(chordVariants, slotId);
       }
     }
   }
 
-  return { ...state, lyricsText: text, song, cells, merges: pruneMerges(song, state.merges) };
+  return { ...state, lyricsText: text, song, cells, chordVariants, merges: pruneMerges(song, state.merges) };
 }
 
 /**
@@ -287,6 +304,24 @@ function deleteCellAcrossTracks(tracks: EditorState["tracks"], cells: CellsByTra
   return next;
 }
 
+function deleteChordVariant(chordVariants: Record<string, number>, slotId: string): Record<string, number> {
+  if (!(slotId in chordVariants)) return chordVariants;
+  const next = { ...chordVariants };
+  delete next[slotId];
+  return next;
+}
+
+function moveChordVariant(
+  chordVariants: Record<string, number>,
+  fromSlotId: string,
+  toSlotId: string,
+): Record<string, number> {
+  if (!(fromSlotId in chordVariants)) return deleteChordVariant(chordVariants, toSlotId);
+  const next = deleteChordVariant({ ...chordVariants }, fromSlotId);
+  next[toSlotId] = chordVariants[fromSlotId];
+  return next;
+}
+
 function applyResyllabify(state: EditorState, lineId: string, wordId: string, newText: string): EditorState {
   const line = state.song.find((l) => l.id === lineId);
   const word = line?.words.find((w) => w.id === wordId);
@@ -302,13 +337,16 @@ function applyResyllabify(state: EditorState, lineId: string, wordId: string, ne
   );
 
   let cells = state.cells;
+  let chordVariants = state.chordVariants;
   for (const droppedId of droppedIds) {
-    cells = deleteCellAcrossTracks(state.tracks, cells, beforeSlotId(droppedId));
+    const slotId = beforeSlotId(droppedId);
+    cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
+    chordVariants = deleteChordVariant(chordVariants, slotId);
   }
 
   const merges = pruneMerges(song, state.merges);
 
-  return { ...state, song, cells, merges };
+  return { ...state, song, cells, chordVariants, merges };
 }
 
 function applyToggleSyllableMerge(state: EditorState, lineId: string, aId: string, bId: string): EditorState {
@@ -350,7 +388,16 @@ function applyToggleSyllableMerge(state: EditorState, lineId: string, aId: strin
     }
   }
 
-  return { ...state, merges, cells };
+  let chordVariants = state.chordVariants;
+  if (!(anchorSlot in chordVariants)) {
+    const carriedRestId = restIds.find((id) => beforeSlotId(id) in chordVariants);
+    if (carriedRestId) chordVariants = { ...chordVariants, [anchorSlot]: chordVariants[beforeSlotId(carriedRestId)] };
+  }
+  for (const id of restIds) {
+    chordVariants = deleteChordVariant(chordVariants, beforeSlotId(id));
+  }
+
+  return { ...state, merges, cells, chordVariants };
 }
 
 function applyMoveCellText(
@@ -362,7 +409,11 @@ function applyMoveCellText(
   const text = getCell(state.cells, trackId, fromSlotId);
   let cells = deleteCell(state.cells, trackId, fromSlotId);
   cells = setCell(cells, trackId, toSlotId, text);
-  return { ...state, cells };
+
+  const chordVariants =
+    trackId === "chords" ? moveChordVariant(state.chordVariants, fromSlotId, toSlotId) : state.chordVariants;
+
+  return { ...state, cells, chordVariants };
 }
 
 export { getCell };

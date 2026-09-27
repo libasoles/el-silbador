@@ -60,8 +60,10 @@ interface LineViewProps {
   merges: ReadonlySet<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
+  chordVariants: Record<string, number>;
   previousChordNotes: ReadonlyMap<string, string[]>;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
+  onSetChordVariant: (slotId: string, index: number) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
   /** True while the document caret sits on this (empty) line. Chrome does not reliably paint its
       own caret there, so this line should render an explicit blinking indicator instead. */
@@ -81,8 +83,10 @@ export function LineView({
   merges,
   tracks,
   cells,
+  chordVariants,
   previousChordNotes,
   onSetCellText,
+  onSetChordVariant,
   onToggleMerge,
   showEmptyCaret,
   dragSource,
@@ -270,7 +274,9 @@ export function LineView({
           slotIds={slotIds}
           slotRects={slotRects}
           cells={cells}
+          chordVariants={chordVariants}
           onSetCellText={onSetCellText}
+          onSetChordVariant={onSetChordVariant}
           drag={drag}
         />
       </div>

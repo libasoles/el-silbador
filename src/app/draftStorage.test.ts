@@ -9,6 +9,7 @@ function createContent(overrides: Partial<SongContent> = {}): SongContent {
     lyricsText: "la la",
     song: [],
     cells: {},
+    chordVariants: {},
     merges: new Set(["a-b"]),
     ...overrides,
   };

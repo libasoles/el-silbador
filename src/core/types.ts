@@ -44,5 +44,8 @@ export interface EditorState {
   merges: Set<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
+  /** `chordVariants[slotId]` is the index into `getChordPositions(shape)` chosen for that chords-
+   *  track slot (see ChordDiagram's variant arrows). Missing = the chord's default position (0). */
+  chordVariants: Record<string, number>;
   showUnderline: boolean;
 }
