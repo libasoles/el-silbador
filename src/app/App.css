@@ -244,6 +244,22 @@
   color: var(--border-strong);
 }
 
+/* "Ae" is a text glyph rather than an SVG icon: the capital carries the toggle's weight and the
+   lowercase sits tucked beside it, echoing the composite "aA" mark used for text-size/typography
+   toggles elsewhere. */
+.track-toolbar__toggle--lyrics span {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.track-toolbar__toggle--lyrics span span {
+  font-size: 0.7em;
+  font-weight: 500;
+  margin-left: 0.05em;
+}
+
 /* Second lateral group, same gutter as .track-toolbar (same horizontal line), but anchored to
    the bottom of the viewport instead of the top: file actions (export, and later save) rather
    than editing tools. */
@@ -777,6 +793,25 @@
 .song--underline-hidden .syllable-gap--merged::after,
 .song--underline-hidden .syllable-gap:hover::after,
 .song--underline-hidden .syllable-gap:focus-visible::after {
+  content: none;
+}
+
+/* Hiding the lyrics collapses their row out of the document instead of just dimming it, so a
+   hidden track never reserves space — chords/annotations above pack together as if the lyric
+   line weren't there. `overflow: hidden` clips the now-invisible glyphs without touching their
+   font size, so the syllable geometry chord/annotation positions are measured from stays
+   unchanged. The contentEditable text itself is untouched, just visually and spatially collapsed. */
+.song--lyrics-hidden .syllable-row {
+  height: 0;
+  overflow: hidden;
+}
+
+.song--lyrics-hidden .syllable-row .syllable {
+  color: transparent;
+}
+
+.song--lyrics-hidden .syllable-row .syllable::after,
+.song--lyrics-hidden .syllable-row .syllable-gap::after {
   content: none;
 }
 

@@ -591,6 +591,28 @@ function App({
                   <UnderlineIcon />
                 </button>
               </IconButtonTooltip>
+              <IconButtonTooltip
+                tooltip={
+                  state.lyricsText.trim() === ""
+                    ? "No hay letra que mostrar"
+                    : state.showLyrics
+                      ? "Ocultar letra"
+                      : "Mostrar letra"
+                }
+              >
+                <button
+                  type="button"
+                  className="track-toolbar__toggle track-toolbar__toggle--lyrics"
+                  aria-pressed={state.showLyrics}
+                  aria-label="Mostrar u ocultar la letra"
+                  disabled={state.lyricsText.trim() === ""}
+                  onClick={() => actions.setShowLyrics(!state.showLyrics)}
+                >
+                  <span aria-hidden="true">
+                    A<span>e</span>
+                  </span>
+                </button>
+              </IconButtonTooltip>
               {state.tracks
                 .filter((track) => track.id === "vocalNotes")
                 .map((track) => (
@@ -616,6 +638,7 @@ function App({
                 cells={state.cells}
                 chordVariants={state.chordVariants}
                 showUnderline={state.showUnderline}
+                showLyrics={state.showLyrics}
                 canEdit={isOwnSong}
                 onSetCellText={actions.setCellText}
                 onSetChordVariant={actions.setChordVariant}
