@@ -48,7 +48,4 @@ export interface EditorState {
    *  track slot (see ChordDiagram's variant arrows). Missing = the chord's default position (0). */
   chordVariants: Record<string, number>;
   showUnderline: boolean;
-  /** Whether the lyric text itself is visible. Defaults to true; toggling it off lets a
-   *  performer rehearse recalling the words from the chords/annotations alone. */
-  showLyrics: boolean;
 }

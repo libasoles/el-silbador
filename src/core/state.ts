@@ -35,7 +35,6 @@ export function createInitialState(): EditorState {
     cells: {},
     chordVariants: {},
     showUnderline: true,
-    showLyrics: true,
   };
 }
 
@@ -58,7 +57,6 @@ export type Action =
   | { type: "setChordVariant"; slotId: string; index: number }
   | { type: "setTrackVisibility"; trackId: TrackId; visible: boolean }
   | { type: "setShowUnderline"; visible: boolean }
-  | { type: "setShowLyrics"; visible: boolean }
   | {
       type: "loadContent";
       content: Pick<EditorState, "title" | "author" | "lyricsText" | "song" | "cells" | "chordVariants"> & {
@@ -122,9 +120,6 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
     case "setShowUnderline":
       return { ...state, showUnderline: action.visible };
 
-    case "setShowLyrics":
-      return { ...state, showLyrics: action.visible };
-
     case "loadContent":
       return {
         ...state,
@@ -143,7 +138,6 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
           visible: track.id === "chords" || trackHasContent(action.content.cells, track.id),
         })),
         showUnderline: false,
-        showLyrics: true,
       };
 
     default:

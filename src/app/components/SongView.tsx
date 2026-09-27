@@ -20,9 +20,6 @@ interface SongViewProps {
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
   showUnderline: boolean;
-  /** Whether the lyric text itself is visible. Purely a display toggle — the underlying
-   *  contentEditable document keeps its text, so editing and caret behavior are unaffected. */
-  showLyrics: boolean;
   /** False while the viewer isn't allowed to edit this song (not its owner and not a fork of
    *  it) — the whole document becomes non-editable, and every track cell and syllable-join
    *  toggle underneath it follows suit. */
@@ -287,7 +284,6 @@ export function SongView({
   cells,
   chordVariants,
   showUnderline,
-  showLyrics,
   canEdit,
   onSetCellText,
   onSetChordVariant,
@@ -617,8 +613,7 @@ export function SongView({
           "song" +
           (song.length === 0 ? " song--empty" : "") +
           (!hasVisibleAnnotations ? " song--annotations-hidden" : "") +
-          (!showUnderline ? " song--underline-hidden" : "") +
-          (!showLyrics ? " song--lyrics-hidden" : "")
+          (!showUnderline ? " song--underline-hidden" : "")
         }
         contentEditable={canEdit}
         suppressContentEditableWarning

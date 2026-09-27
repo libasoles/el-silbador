@@ -70,13 +70,9 @@ function historyReducer(state: HistoryState, action: HistoryAction): HistoryStat
     };
   }
 
-  // Track visibility and underline/lyrics visibility are view state, not document content: apply
+  // Track visibility and underline visibility are view state, not document content: apply
   // without recording history.
-  if (
-    action.type === "setTrackVisibility" ||
-    action.type === "setShowUnderline" ||
-    action.type === "setShowLyrics"
-  ) {
+  if (action.type === "setTrackVisibility" || action.type === "setShowUnderline") {
     return { ...state, present: editorReducer(state.present, action), coalesceKey: null };
   }
 
@@ -126,7 +122,6 @@ export function useEditor() {
       setTrackVisibility: (trackId: TrackId, visible: boolean) =>
         dispatch({ type: "setTrackVisibility", trackId, visible }),
       setShowUnderline: (visible: boolean) => dispatch({ type: "setShowUnderline", visible }),
-      setShowLyrics: (visible: boolean) => dispatch({ type: "setShowLyrics", visible }),
       loadContent: (content: SongContent) => dispatch({ type: "loadContent", content }),
       undo: () => dispatch({ type: "undo" }),
       redo: () => dispatch({ type: "redo" }),
