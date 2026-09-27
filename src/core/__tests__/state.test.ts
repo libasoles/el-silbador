@@ -361,4 +361,18 @@ describe("pasteText", () => {
     const myWord = state.song[0].words.find((w) => w.syllables.map((s) => s.text).join("") === "my")!;
     expect(getCell(state.cells, "chords", beforeSlotId(myWord.syllables[0].id))).toBe("A7");
   });
+
+  it("routes a chord left of the first syllable's own column to the line's start slot", () => {
+    const state = reduce(createInitialState(), {
+      type: "pasteText",
+      text: "  Hola",
+      startLineIndex: 0,
+      startOffset: 0,
+      placements: [{ lineIndex: 0, column: 0, chord: "Em" }],
+    });
+
+    const firstLineSlots = getLineCellSlots(state.song[0], state.merges);
+    expect(getCell(state.cells, "chords", firstLineSlots[0])).toBe("Em");
+    expect(firstLineSlots[0]).not.toBe(beforeSlotId(state.song[0].words[0].syllables[0].id));
+  });
 });

@@ -232,8 +232,10 @@ export function LineView({
 
     // The start slot has no "next unit" to measure against — it grows left, away from the first
     // syllable, so its own rendered label width (not an overlap-avoidance delta) is exactly the
-    // extra offset the position effect above needs to keep it clear.
-    next[startSlotId(line.id)] = labelWidths.get(startSlotId(line.id)) ?? 0;
+    // extra offset the position effect above needs to keep it clear. It's always slotIds[0] (see
+    // getLineCellSlots), which sidesteps re-deriving startSlotId(line.id) as a hook dependency.
+    const startSlotKey = slotIds[0]!;
+    next[startSlotKey] = labelWidths.get(startSlotKey) ?? 0;
 
     const changed = Object.keys(next).some((key) => next[key] !== annotationGapExtras[key]);
     if (changed) setAnnotationGapExtras(next);
