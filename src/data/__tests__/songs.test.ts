@@ -231,22 +231,6 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
     },
   );
 
-  it("includes the author's username when listing public songs", async () => {
-    await signInAs(userA);
-    const username = `author-${Date.now()}`;
-    await setUsername(username);
-    const song = await saveSong({ content: makeContent({ title: "Con autor" }) });
-    createdSongIds.push(song.id);
-
-    await signInAs(adminUser);
-    await setSongPublic(song.id, true);
-
-    await signInAs(userB);
-    const publicSongs = await listPublicSongs();
-    const found = publicSongs.find((s) => s.id === song.id);
-    expect(found?.authorUsername).toBe(username);
-  });
-
   it("rejects setUsername on a duplicate username", async () => {
     const uniqueName = `dup-${Date.now()}`;
     await signInAs(userA);

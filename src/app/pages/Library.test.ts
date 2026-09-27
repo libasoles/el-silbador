@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { toLibrarySong, toPublicLibrarySong } from "./librarySongs";
-import type { PublicSongSummary, SongSummary } from "../../data/types";
+import type { SongSummary } from "../../data/types";
 
 function makeSong(overrides: Partial<SongSummary> = {}): SongSummary {
   return {
@@ -25,11 +25,10 @@ describe("toLibrarySong", () => {
     });
   });
 
-  it("uses the work author instead of the owner's username for public rows", () => {
-    const publicSong: PublicSongSummary = {
+  it("uses the work author for public rows", () => {
+    const publicSong: SongSummary = {
       ...makeSong(),
       isPublic: true,
-      authorUsername: "cuenta-de-la-editorial",
     };
 
     expect(toPublicLibrarySong(publicSong)).toMatchObject({ author: "Mercedes Sosa" });

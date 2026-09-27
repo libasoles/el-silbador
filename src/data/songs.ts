@@ -2,7 +2,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CellsByTrack, Song } from "../core/types";
 import { getSupabaseClient } from "./supabaseClient";
 import type {
-  PublicSongSummary,
   SaveSongInput,
   SavedSong,
   SongContent,
@@ -32,10 +31,6 @@ interface SongRow {
   updated_at: string;
 }
 
-interface PublicSongRow extends SongRow {
-  profiles: { username: string | null } | null;
-}
-
 interface FavoriteRow {
   songs: SongRow | null;
 }
@@ -44,7 +39,6 @@ interface FavoriteRow {
 // content needed to show the work's own author or performer in the index.
 const SUMMARY_COLUMNS = "id, slug, title, owner_id, content, is_public, forked_from, created_at, updated_at";
 const DETAIL_COLUMNS = SUMMARY_COLUMNS;
-const PUBLIC_SUMMARY_COLUMNS = `${SUMMARY_COLUMNS}, profiles!owner_id(username)`;
 
 export function serializeContent(content: SongContent): StoredSongContent {
   return {
@@ -111,20 +105,17 @@ export async function listMySongs(): Promise<SongSummary[]> {
   return ((data ?? []) as SongRow[]).map(toSummary);
 }
 
-export async function listPublicSongs(): Promise<PublicSongSummary[]> {
+export async function listPublicSongs(): Promise<SongSummary[]> {
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
     .from("songs")
-    .select(PUBLIC_SUMMARY_COLUMNS)
+    .select(SUMMARY_COLUMNS)
     .eq("is_public", true)
     .order("updated_at", { ascending: false });
   if (error) throw error;
 
-  return ((data ?? []) as unknown as PublicSongRow[]).map((row) => ({
-    ...toSummary(row),
-    authorUsername: row.profiles?.username ?? null,
-  }));
+  return ((data ?? []) as SongRow[]).map(toSummary);
 }
 
 export async function listFavorites(): Promise<SongSummary[]> {

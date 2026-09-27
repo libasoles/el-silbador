@@ -1,5 +1,4 @@
 export type {
-  PublicSongSummary,
   SaveSongInput,
   SavedSong,
   SongContent,

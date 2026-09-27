@@ -26,10 +26,6 @@ export interface SongSummary {
   updatedAt: string;
 }
 
-export interface PublicSongSummary extends SongSummary {
-  authorUsername: string | null;
-}
-
 export interface SongDetail extends SongSummary {
   content: SongContent;
 }

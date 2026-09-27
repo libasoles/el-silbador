@@ -170,7 +170,10 @@ export function LineView({
         };
         lastRight = b.right;
       }
-      next[endSlotId(line.id)] = { left: Math.round(lastRight - rowsLeft), width: 14 };
+      // Unlike the gaps between syllables, there's no button element after the line's last
+      // syllable to give this slot breathing room — its annotation would otherwise sit flush
+      // against the last syllable's own right edge.
+      next[endSlotId(line.id)] = { left: Math.round(lastRight - rowsLeft) + minimumLabelGap, width: 14 };
       setSlotRects(next);
     }
 
