@@ -1,7 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ChordShape } from "../../core/chordShapes";
 import { ChordDiagram } from "./ChordDiagram";
+import { subscribeToAnchorPositionUpdates } from "./chordTooltipPositioning";
 import { ChevronLeftIcon, ChevronRightIcon } from "./icons";
 
 interface ChordTooltipProps {
@@ -42,7 +43,7 @@ export function ChordTooltip({
   });
   const [placement, setPlacement] = useState<"above" | "below">("above");
 
-  useLayoutEffect(() => {
+  const updatePosition = useCallback(() => {
     const card = cardRef.current;
     if (!card) return;
 
@@ -65,7 +66,13 @@ export function ChordTooltip({
 
     setPlacement(nextPlacement);
     setStyle({ top, left, visibility: "visible" });
-  }, [anchorEl, shape]);
+  }, [anchorEl]);
+
+  useLayoutEffect(() => {
+    updatePosition();
+  }, [updatePosition, shape]);
+
+  useEffect(() => subscribeToAnchorPositionUpdates(updatePosition), [updatePosition]);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
