@@ -680,6 +680,7 @@ export function SongView({
             line={line}
             trailingWhitespace={lyricLines[index]?.match(/\s+$/)?.[0] ?? ""}
             merges={merges}
+            showUnderline={showUnderline}
             tracks={tracks}
             cells={cells}
             chordVariants={chordVariants}

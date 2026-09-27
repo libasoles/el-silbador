@@ -14,10 +14,12 @@ interface SyllableGapButtonProps {
   fromText: string;
   toText: string;
   annotationGap?: number;
+  disabled: boolean;
   onToggle: () => void;
 }
 
-/** The clickable gap between two adjacent syllables that toggles a melisma merge. */
+/** The clickable gap between two adjacent syllables that toggles a melisma merge. Inert while
+    the underline toggle is off, since there is nothing visible to join or separate then. */
 function SyllableGapButton({
   merged,
   wordBoundary = false,
@@ -25,12 +27,14 @@ function SyllableGapButton({
   fromText,
   toText,
   annotationGap = 0,
+  disabled,
   onToggle,
 }: SyllableGapButtonProps) {
   return (
     <button
       type="button"
       contentEditable={false}
+      disabled={disabled}
       className={
         "syllable-gap" +
         (wordBoundary ? " syllable-gap--word-boundary" : "") +
@@ -58,6 +62,7 @@ interface LineViewProps {
   /** Whitespace at the end of the raw lyric line, which the syllable model does not retain. */
   trailingWhitespace: string;
   merges: ReadonlySet<string>;
+  showUnderline: boolean;
   tracks: TrackDef[];
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
@@ -81,6 +86,7 @@ export function LineView({
   line,
   trailingWhitespace,
   merges,
+  showUnderline,
   tracks,
   cells,
   chordVariants,
@@ -319,6 +325,7 @@ export function LineView({
                   }
                   fromText={prevSyllable.text}
                   toText={firstSyllable.text}
+                  disabled={!showUnderline}
                   annotationGap={
                     syllableSlotId.get(prevSyllable.id) === syllableSlotId.get(firstSyllable.id)
                       ? 0
@@ -340,6 +347,7 @@ export function LineView({
                         }
                         fromText={previous.text}
                         toText={syllable.text}
+                        disabled={!showUnderline}
                         annotationGap={
                           syllableSlotId.get(previous.id) === syllableSlotId.get(syllable.id)
                             ? 0

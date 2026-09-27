@@ -805,6 +805,10 @@
   position: relative;
 }
 
+.syllable-gap:disabled {
+  cursor: default;
+}
+
 .syllable-gap--word-boundary {
   /* Extra room makes the chord-alignment boundary easy to target while the track is visible. */
   width: calc(0.55em + var(--annotation-gap, 0px));
