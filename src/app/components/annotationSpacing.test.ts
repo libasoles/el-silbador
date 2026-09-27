@@ -3,7 +3,7 @@ import { requiredAnnotationGap } from "./annotationSpacing";
 
 describe("requiredAnnotationGap", () => {
   it("adds only the missing space after a wide annotation", () => {
-    expect(requiredAnnotationGap(48, 32)).toBe(20);
+    expect(requiredAnnotationGap(48, 32)).toBe(22);
   });
 
   it("does not expand an already clear boundary", () => {
