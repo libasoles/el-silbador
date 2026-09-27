@@ -411,15 +411,6 @@
   gap: 0.65rem;
 }
 
-/* This gap exists to separate a lyric line from the next line's chords, so it's sized for that
-   pairing. With the lyric line collapsed to nothing, only chords/annotations remain — pack them
-   as tightly as an annotation row packs against its own lyric line normally. When both this and
-   .song--annotations-hidden apply (no annotations either), this rule's later position wins and
-   keeps the tighter of the two, which still reads fine on a caret-only empty line. */
-.song--lyrics-hidden {
-  gap: 0.35rem;
-}
-
 .song-placeholder {
   position: absolute;
   top: 0;
