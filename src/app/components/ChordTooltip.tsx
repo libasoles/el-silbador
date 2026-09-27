@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ChordShape } from "../../core/chordShapes";
 import { ChordDiagram } from "./ChordDiagram";
+import { ChevronLeftIcon, ChevronRightIcon } from "./icons";
 
 interface ChordTooltipProps {
   chordName: string;
@@ -91,7 +92,7 @@ export function ChordTooltip({
             aria-label="Posición anterior"
             onClick={onPrevPosition}
           >
-            ‹
+            <ChevronLeftIcon size={22} />
           </button>
           <ChordDiagram shape={shape} />
           <button
@@ -100,7 +101,7 @@ export function ChordTooltip({
             aria-label="Posición siguiente"
             onClick={onNextPosition}
           >
-            ›
+            <ChevronRightIcon size={22} />
           </button>
         </div>
       ) : (

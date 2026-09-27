@@ -653,12 +653,13 @@
 }
 
 .chord-tooltip__position-nav {
-  padding: 0.1rem 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
   border-radius: 999px;
   background: transparent;
   color: var(--fg);
-  font-size: 1.1rem;
-  line-height: 1;
 }
 
 .chord-tooltip__position-nav:hover {
