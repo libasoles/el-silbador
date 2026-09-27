@@ -346,9 +346,14 @@
     padding: 0;
   }
 
+  /* box-decoration-break: clone re-applies this padding at every page break, not just the
+     first and last page of the printed sheet — without it, only the first page gets top
+     padding and only the last page gets bottom padding. */
   .app {
     max-width: none;
     padding: 1.5cm;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
 
   /* Print dialogs may omit element backgrounds. Draw the syllable guides as borders instead,
