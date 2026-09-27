@@ -7,18 +7,12 @@ interface ChordTooltipProps {
   chordName: string;
   shape: ChordShape;
   anchorEl: HTMLElement;
-  onRequestEdit: () => void;
-  /** A tap outside both the chip and the tooltip dismisses it (there's no hover-out to do that
-   *  job on a touch device). */
+  /** A click outside both the chip and the tooltip dismisses it. */
   onClose: () => void;
-  /** Cancels the close-on-mouse-leave timer started by the chip, so drifting the pointer from the
-   *  chip onto the tooltip itself (to reach "Cambiar") doesn't close it mid-transit. */
-  onMouseEnter?: () => void;
-  onMouseLeave?: () => void;
-  /** How many fretboard positions this chord has (see getChordPositions) and which one `shape`
-   *  is. The prev/next arrows are hidden when there's only one. */
+  /** How many fretboard positions this chord has (see getChordPositions). The prev/next arrows
+   *  are hidden when there's only one. Whichever position is showing when the tooltip closes is
+   *  the one that stays in effect — there's no separate "confirm" step. */
   positionCount?: number;
-  positionIndex?: number;
   onPrevPosition?: () => void;
   onNextPosition?: () => void;
 }
@@ -26,20 +20,16 @@ interface ChordTooltipProps {
 const VIEWPORT_MARGIN = 8;
 const ANCHOR_GAP = 8;
 
-/** A floating, non-blocking diagram popover for a chord chip — shown on hover (desktop) or tap
- *  (mobile), positioned next to the chip it describes rather than behind a screen-dimming
- *  overlay. Rendered into a portal so its position (computed from the chip's viewport rect) and
- *  stacking order aren't affected by the scrolling/clipped containers the chip itself sits in. */
+/** A floating, non-blocking diagram popover for a chord chip — opened by clicking the chip,
+ *  positioned next to it rather than behind a screen-dimming overlay. Rendered into a portal so
+ *  its position (computed from the chip's viewport rect) and stacking order aren't affected by
+ *  the scrolling/clipped containers the chip itself sits in. */
 export function ChordTooltip({
   chordName,
   shape,
   anchorEl,
-  onRequestEdit,
   onClose,
-  onMouseEnter,
-  onMouseLeave,
   positionCount = 1,
-  positionIndex = 0,
   onPrevPosition,
   onNextPosition,
 }: ChordTooltipProps) {
@@ -91,8 +81,6 @@ export function ChordTooltip({
       ref={cardRef}
       className={`chord-tooltip chord-tooltip--${placement}`}
       style={{ top: style.top, left: style.left, visibility: style.visibility }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
     >
       <div className="chord-tooltip__name">{chordName}</div>
       {positionCount > 1 ? (
@@ -118,14 +106,6 @@ export function ChordTooltip({
       ) : (
         <ChordDiagram shape={shape} />
       )}
-      {positionCount > 1 ? (
-        <div className="chord-tooltip__position-label">
-          Posición {positionIndex + 1} de {positionCount}
-        </div>
-      ) : null}
-      <button type="button" className="chord-tooltip__edit" onClick={onRequestEdit}>
-        Cambiar
-      </button>
     </div>,
     document.body,
   );

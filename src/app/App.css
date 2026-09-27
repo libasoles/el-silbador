@@ -646,22 +646,6 @@
   color: var(--chord);
 }
 
-.chord-tooltip__edit {
-  margin-top: 0.15rem;
-  padding: 0.3rem 0.9rem;
-  border-radius: 999px;
-  background: var(--border);
-  color: var(--fg);
-  font-family: var(--sans);
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.chord-tooltip__edit:hover {
-  background: var(--border-strong);
-  color: var(--bg);
-}
-
 .chord-tooltip__positions {
   display: flex;
   align-items: center;
@@ -679,12 +663,6 @@
 
 .chord-tooltip__position-nav:hover {
   background: var(--border);
-}
-
-.chord-tooltip__position-label {
-  font-family: var(--sans);
-  font-size: 0.72rem;
-  color: var(--muted);
 }
 
 .chord-diagram {
@@ -738,6 +716,12 @@
   font-family: var(--sans);
   font-size: 11px;
   font-weight: 700;
+  fill: var(--muted);
+}
+
+.chord-diagram__string-name {
+  font-family: var(--sans);
+  font-size: 9px;
   fill: var(--muted);
 }
 

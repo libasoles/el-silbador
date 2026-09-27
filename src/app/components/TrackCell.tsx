@@ -1,19 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { getChordPositions } from "../../core/chordPositions";
 import { findChordShape } from "../../core/findChordShape";
 import { ChordTooltip } from "./ChordTooltip";
-
-/** Desktop pointers can hover; touch-only devices can't, so a tap has to serve the purpose a
- *  mouseover would elsewhere. Read once at module load — a device doesn't switch input classes
- *  mid-session, and the project otherwise avoids doing this kind of check reactively. */
-const HOVER_CAPABLE =
-  typeof window !== "undefined" &&
-  typeof window.matchMedia === "function" &&
-  window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-
-/** How long the pointer may sit off both the chip and the tooltip before it closes — enough time
- *  to travel from one to the other in a straight line without a flicker. */
-const HOVER_CLOSE_DELAY_MS = 150;
 
 interface TrackCellProps {
   slotId: string;
@@ -30,8 +18,8 @@ interface TrackCellProps {
   onDragEnter?: () => void;
   onDragLeave?: () => void;
   onDrop?: () => void;
-  /** True for the chords track: chips whose text matches a known chord show a fingering
-   *  diagram — on hover for a mouse/trackpad, on tap for touch (which has no hover to use). */
+  /** True for the chords track: clicking a chip whose text matches a known chord shows a
+   *  fingering diagram instead of editing it; double-clicking edits it directly. */
   showChordDiagram?: boolean;
   /** Index into this chord's alternate fretboard positions (see getChordPositions), chosen with
    *  the tooltip's prev/next arrows. Ignored when the chord has only one known position. */
@@ -70,7 +58,6 @@ export function TrackCell({
   const inputRef = useRef<HTMLInputElement>(null);
   const chipRef = useRef<HTMLButtonElement | null>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
-  const hoverCloseTimer = useRef<number | undefined>(undefined);
   // Buttons receive focus on mousedown, i.e. before a drag gesture has a chance to start. If we
   // switched to the input on every focus, the chip would unmount mid-drag and native HTML5 drag
   // would never fire. So mouse-originated focus is ignored here; onClick (which only fires when
@@ -82,40 +69,17 @@ export function TrackCell({
   const clampedVariantIndex = Math.min(chordVariantIndex, Math.max(chordPositions.length - 1, 0));
   const chordVariantShape = chordPositions[clampedVariantIndex] ?? chordShape;
 
-  function clearHoverCloseTimer() {
-    if (hoverCloseTimer.current !== undefined) {
-      window.clearTimeout(hoverCloseTimer.current);
-      hoverCloseTimer.current = undefined;
-    }
-  }
-
-  function scheduleTooltipClose() {
-    clearHoverCloseTimer();
-    hoverCloseTimer.current = window.setTimeout(() => setTooltipOpen(false), HOVER_CLOSE_DELAY_MS);
-  }
-
-  function handleChipMouseEnter() {
-    if (!HOVER_CAPABLE || !chordShape) return;
-    clearHoverCloseTimer();
-    setTooltipOpen(true);
-  }
-
-  function handleChipMouseLeave() {
-    if (!HOVER_CAPABLE) return;
-    scheduleTooltipClose();
-  }
-
-  useEffect(() => clearHoverCloseTimer, []);
-
-  // A touch device has no hover to show the diagram on, so a tap does double duty: the first tap
-  // reveals it (in place of jumping straight to editing), and "Cambiar" in the tooltip is then
-  // the only way in to actually edit the chord. A mouse/trackpad already saw the diagram on
-  // hover, so its click goes straight to editing, same as any other track.
+  // A click on a known chord shows its diagram rather than jumping straight to editing;
+  // double-clicking (or clicking a chip with no known chord) edits it directly.
   function handleChipClick() {
-    if (chordShape && !HOVER_CAPABLE) {
+    if (chordShape) {
       setTooltipOpen((open) => !open);
       return;
     }
+    startEditing();
+  }
+
+  function handleChipDoubleClick() {
     startEditing();
   }
 
@@ -196,9 +160,8 @@ export function TrackCell({
             registerRef(el);
           }}
           onClick={handleChipClick}
+          onDoubleClick={handleChipDoubleClick}
           onFocus={handleFocus}
-          onMouseEnter={handleChipMouseEnter}
-          onMouseLeave={handleChipMouseLeave}
           onMouseDown={() => {
             pointerDownRef.current = true;
           }}
@@ -229,7 +192,6 @@ export function TrackCell({
             chordName={value}
             shape={chordVariantShape}
             positionCount={chordPositions.length}
-            positionIndex={clampedVariantIndex}
             onPrevPosition={
               onChangeChordVariant
                 ? () => onChangeChordVariant((clampedVariantIndex - 1 + chordPositions.length) % chordPositions.length)
@@ -241,10 +203,7 @@ export function TrackCell({
                 : undefined
             }
             anchorEl={chipRef.current}
-            onRequestEdit={startEditing}
             onClose={() => setTooltipOpen(false)}
-            onMouseEnter={clearHoverCloseTimer}
-            onMouseLeave={scheduleTooltipClose}
           />
         ) : null}
       </>

@@ -7,6 +7,10 @@ const MARGIN_X = 14;
 const TOP = 26;
 const FRET_HEIGHT = 20;
 const DOT_RADIUS = 8;
+const STRING_LABEL_HEIGHT = 16;
+
+/** Standard tuning, low to high — string 6 (low E) through string 1 (high E). */
+const STRING_NAMES: Record<number, string> = { 6: "E", 5: "A", 4: "D", 3: "G", 2: "B", 1: "E" };
 
 function stringX(stringNumber: number): number {
   const step = (WIDTH - 2 * MARGIN_X) / (STRING_COUNT - 1);
@@ -38,7 +42,7 @@ interface ChordDiagramProps {
 export function ChordDiagram({ shape }: ChordDiagramProps) {
   const { fingers, barres } = toWindowedShape(shape);
   const position = shape.position ?? 1;
-  const height = fretY(FRET_COUNT) + 6;
+  const height = fretY(FRET_COUNT) + 6 + STRING_LABEL_HEIGHT;
 
   return (
     <svg
@@ -120,6 +124,21 @@ export function ChordDiagram({ shape }: ChordDiagramProps) {
               </text>
             ) : null}
           </g>
+        );
+      })}
+
+      {Array.from({ length: STRING_COUNT }, (_, index) => {
+        const string = index + 1;
+        return (
+          <text
+            key={`string-name-${string}`}
+            className="chord-diagram__string-name"
+            x={stringX(string)}
+            y={fretY(FRET_COUNT) + STRING_LABEL_HEIGHT}
+            textAnchor="middle"
+          >
+            {STRING_NAMES[string]}
+          </text>
         );
       })}
     </svg>
