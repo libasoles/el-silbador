@@ -3,7 +3,7 @@ import { chordToNoteNames } from "../../core/chordNotes";
 import { endSlotId, getLineCellSlots, getLineUnits, mergeKey } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
-import { requiredAnnotationGap } from "./annotationSpacing";
+import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
 
@@ -155,7 +155,10 @@ export function LineView({
         };
         lastRight = b.right;
       }
-      next[endSlotId(line.id)] = { left: Math.round(lastRight - rowsLeft), width: 14 };
+      // Unlike the gaps between syllables, there's no button element after the line's last
+      // syllable to give this slot breathing room — its annotation would otherwise sit flush
+      // against the last syllable's own right edge.
+      next[endSlotId(line.id)] = { left: Math.round(lastRight - rowsLeft) + minimumLabelGap, width: 14 };
       setSlotRects(next);
     }
 
