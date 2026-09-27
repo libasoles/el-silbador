@@ -36,6 +36,10 @@ export function endSlotId(lineId: string): string {
   return `end:${lineId}`;
 }
 
+export function startSlotId(lineId: string): string {
+  return `start:${lineId}`;
+}
+
 export function beforeSlotId(syllableId: string): string {
   return `before:${syllableId}`;
 }
@@ -57,8 +61,10 @@ export function chordSlotForColumn(line: Line, rawLineText: string, column: numb
   }
 
   if (bestSlotId) return bestSlotId;
+  // No syllable starts at or before this column, so the chord sits left of the first syllable
+  // entirely (as opposed to merely aligning with it, which the loop above already handles).
   const firstSyllable = flattenSyllables(line)[0];
-  return firstSyllable ? beforeSlotId(firstSyllable.id) : endSlotId(line.id);
+  return firstSyllable ? startSlotId(line.id) : endSlotId(line.id);
 }
 
 /**
@@ -85,7 +91,7 @@ export function getLineUnits(line: Line, merges: ReadonlySet<string>): SyllableU
 /** All addressable annotation cell slots for a line, in left-to-right order. */
 export function getLineCellSlots(line: Line, merges: ReadonlySet<string>): string[] {
   const units = getLineUnits(line, merges);
-  return [...units.map((unit) => unit.slotId), endSlotId(line.id)];
+  return [startSlotId(line.id), ...units.map((unit) => unit.slotId), endSlotId(line.id)];
 }
 
 /** Whether two syllable ids are adjacent (in that order) in the line's flat sequence. */

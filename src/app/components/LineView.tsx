@@ -1,9 +1,9 @@
 import { Fragment, useLayoutEffect, useRef, useState } from "react";
 import { chordToNoteNames } from "../../core/chordNotes";
-import { endSlotId, getLineCellSlots, getLineUnits, mergeKey } from "../../core/model";
+import { endSlotId, getLineCellSlots, getLineUnits, mergeKey, startSlotId } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
-import { requiredAnnotationGap } from "./annotationSpacing";
+import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
 
@@ -142,6 +142,21 @@ export function LineView({
       const rowsLeft = rowEl.getBoundingClientRect().left;
 
       const next: Record<string, { left: number; width: number }> = {};
+
+      // Mirrors the end-of-line slot below: anchored off the first syllable's own left edge
+      // instead of the last syllable's right edge, and growing further left (not right) as its
+      // own label needs more room — annotationGapExtras holds that measured label width. Always
+      // computed (even on an empty line, falling back to the row's own left edge), so this slot's
+      // rect is never missing — TrackRow blanks out a whole row's layout if any slot's rect is.
+      const firstUnit = units[0];
+      const firstEl = firstUnit && syllableEls.current.get(firstUnit.syllableIds[0]);
+      const firstLeft = firstEl ? firstEl.getBoundingClientRect().left - rowsLeft : 0;
+      const startLabelWidth = annotationGapExtras[startSlotId(line.id)] ?? 0;
+      next[startSlotId(line.id)] = {
+        left: Math.round(firstLeft - minimumLabelGap - startLabelWidth),
+        width: 14,
+      };
+
       let lastRight = rowsLeft;
       for (const unit of units) {
         const firstEl = syllableEls.current.get(unit.syllableIds[0]);
@@ -186,14 +201,14 @@ export function LineView({
     for (const track of tracks) {
       if (!track.visible) continue;
       const cellsInTrack = Array.from(lineEl.querySelectorAll<HTMLElement>(`[data-track="${track.id}"] [data-slot-id]`));
-      for (const unit of units) {
-        if (!getCell(cells, track.id, unit.slotId)) continue;
-        const cellEl = cellsInTrack.find((cell) => cell.dataset.slotId === unit.slotId);
+      for (const slotId of slotIds) {
+        if (!getCell(cells, track.id, slotId)) continue;
+        const cellEl = cellsInTrack.find((cell) => cell.dataset.slotId === slotId);
         if (!cellEl) continue;
         const range = document.createRange();
         range.selectNodeContents(cellEl);
         const width = Math.ceil(range.getBoundingClientRect().width);
-        labelWidths.set(unit.slotId, Math.max(labelWidths.get(unit.slotId) ?? 0, width));
+        labelWidths.set(slotId, Math.max(labelWidths.get(slotId) ?? 0, width));
       }
     }
 
@@ -212,9 +227,14 @@ export function LineView({
       if (additional > 0) next[unit.slotId] = (next[unit.slotId] ?? 0) + additional;
     }
 
+    // The start slot has no "next unit" to measure against — it grows left, away from the first
+    // syllable, so its own rendered label width (not an overlap-avoidance delta) is exactly the
+    // extra offset the position effect above needs to keep it clear.
+    next[startSlotId(line.id)] = labelWidths.get(startSlotId(line.id)) ?? 0;
+
     const changed = Object.keys(next).some((key) => next[key] !== annotationGapExtras[key]);
     if (changed) setAnnotationGapExtras(next);
-  }, [annotationGapExtras, annotationSpacingKey, cells, tracks, units]);
+  }, [annotationGapExtras, annotationSpacingKey, cells, slotIds, tracks, units]);
 
   const isDragging = dragSource !== null;
 

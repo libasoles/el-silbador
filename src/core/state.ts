@@ -8,6 +8,7 @@ import {
   mergeKey,
   pruneMerges,
   reconcileWordSyllables,
+  startSlotId,
 } from "./model";
 import type { ChordPlacement } from "./chordSheet";
 import { hyphenateWord } from "./syllabify";
@@ -190,9 +191,10 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
   let chordVariants = state.chordVariants;
   for (const line of previous) {
     if (!retainedLineIds.has(line.id)) {
-      const slotId = endSlotId(line.id);
-      cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
-      chordVariants = deleteChordVariant(chordVariants, slotId);
+      for (const slotId of [startSlotId(line.id), endSlotId(line.id)]) {
+        cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
+        chordVariants = deleteChordVariant(chordVariants, slotId);
+      }
     }
     for (const syllable of flattenSyllables(line)) {
       if (!retainedSyllableIds.has(syllable.id)) {

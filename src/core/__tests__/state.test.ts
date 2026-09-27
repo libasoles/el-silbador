@@ -89,7 +89,7 @@ describe("cell tracks (pista Acordes)", () => {
   });
 
   it("addresses pre, between, and post cells independently", () => {
-    const [pre, between1, between2, post] = firstLineSlots;
+    const [, pre, between1, between2, post] = firstLineSlots;
 
     state = reduce(
       state,
@@ -106,7 +106,7 @@ describe("cell tracks (pista Acordes)", () => {
   });
 
   it("moveCellText moves text and empties the origin", () => {
-    const [pre, , , post] = firstLineSlots;
+    const [, pre, , , post] = firstLineSlots;
     state = reduce(state, { type: "setCellText", trackId: "chords", slotId: pre, text: "G7" });
     state = reduce(state, { type: "moveCellText", trackId: "chords", fromSlotId: pre, toSlotId: post });
 
