@@ -25,3 +25,14 @@ npm run dev      # app en http://localhost:5173
 npm run test     # tests del núcleo (vitest)
 npm run build    # typecheck + build de producción
 ```
+
+### Supabase Studio (local)
+
+El proyecto incluye Supabase local (Docker) con Studio para inspeccionar y editar la base de datos desde el navegador.
+
+```
+npm run supabase:start   # levanta el stack local, incluyendo Studio
+npm run supabase:stop    # lo apaga
+```
+
+Con el stack corriendo, abrí Studio en [http://localhost:54323](http://localhost:54323). Ver `supabase/README.md` para instrucciones de migraciones.
