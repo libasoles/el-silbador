@@ -1,3 +1,5 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/e651d1ba-10b7-4170-98af-1e15e27f9b20/deploy-status)](https://app.netlify.com/projects/elsilbador/deploys)
+
 # Silbador
 
 Editor visual de anotaciones sobre sílabas de canciones (acordes, notas de canto). Ver
