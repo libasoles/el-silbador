@@ -23,6 +23,7 @@ import { songQueryKeys } from "../../data/queryKeys";
 import { clearPendingAuthAction, readPendingAuthAction } from "../pendingAuthActionStorage";
 import { useToast } from "../toastContext";
 import { toLibrarySong, toPublicLibrarySong, type LibrarySong } from "./librarySongs";
+import { useIsMobile } from "../useIsMobile";
 import "./Library.css";
 
 function matchesQuery(song: LibrarySong, query: string): boolean {
@@ -217,6 +218,9 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
   const authenticated = Boolean(session);
   const { showToast } = useToast();
   const queryClient = useQueryClient();
+  // Mobile is read-only by product rule: no deleting from the index, even for the user's own
+  // songs. Favoriting stays available on mobile and must not be gated here.
+  const isMobile = useIsMobile();
   const [query, setQuery] = useState("");
   const [songPendingDelete, setSongPendingDelete] = useState<LibrarySong | null>(null);
   const [favoritePendingSongId, setFavoritePendingSongId] = useState<string | null>(null);
@@ -434,7 +438,7 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
             favoriteIds={favoriteIds}
             favoritePendingSongId={favoritePendingSongId ?? undefined}
             showFavorite={false}
-            showDelete
+            showDelete={!isMobile}
             loading={myLibraryLoading}
             onOpenSong={handleOpen}
             onToggleFavorite={handleToggleFavorite}
