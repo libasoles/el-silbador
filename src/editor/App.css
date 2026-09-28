@@ -7,14 +7,23 @@
   padding: 1.25rem 2rem 6rem;
 }
 
-/* Horizontal and top spacing are the page-shell layout's job on mobile (see globals.css) — zeroed
-   here so they aren't applied twice. Bottom padding stays: it clears the fixed .action-toolbar
+/* Top spacing is the page-shell layout's job from 60rem down — it grows its own top padding to
+   clear the fixed logo over that whole range (see globals.css), so it's zeroed here to avoid
+   stacking two top clearances. Bottom padding stays: it clears the fixed .action-toolbar
    regardless of viewport. */
+@media (max-width: 60rem) {
+  .app {
+    padding-top: 0;
+  }
+}
+
+/* Horizontal spacing is also the page-shell layout's job, but only once there's no room left for
+   it to read as a margin at all — zeroed here to match, same reasoning as globals.css's own
+   30rem rule. */
 @media (max-width: 30rem) {
   .app {
     padding-left: 0;
     padding-right: 0;
-    padding-top: 0;
   }
 }
 
@@ -28,6 +37,23 @@
   z-index: 5;
   width: 2.75rem;
   height: 2.75rem;
+}
+
+/* Below 62.5rem, the transpose widget and both sidebar toolbars all sit in the same clamped
+   column (TransposeWidget.css's comment on that breakpoint explains why — they haven't cleared
+   this button horizontally yet, so they stack under it instead of beside the title). Matching
+   --sidebar-right exactly would line up this button's own right edge with theirs, but this
+   button's box (2.75rem) is wider than the sidebar icons' (2.4rem) — an edge match still leaves
+   the X glyph itself sitting 0.175rem left of the sidebar icons' own centers, which reads as
+   misaligned even though the boxes technically share an edge. Subtracting half that width
+   difference instead centers this button's icon on the same axis as the sidebar icons' (and,
+   below, the transpose widget's) icons. Above 62.5rem the two intentionally part ways — this
+   button stays pinned to the literal corner while the widget moves up beside the title — so this
+   override stops there too. */
+@media (max-width: 62.5rem) {
+  .app-close-tooltip {
+    right: calc(var(--sidebar-right) - 0.175rem);
+  }
 }
 
 /* Mirrors .app-mark's own corner exactly, on the opposite side, so the two read as a matched
@@ -207,7 +233,7 @@
 .track-toolbar {
   position: fixed;
   top: 9rem;
-  right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
+  right: var(--sidebar-right);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -261,7 +287,7 @@
 .action-toolbar {
   position: fixed;
   bottom: 1.5rem;
-  right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
+  right: var(--sidebar-right);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

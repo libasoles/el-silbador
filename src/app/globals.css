@@ -10,15 +10,29 @@ body {
   padding: 1.5rem;
 }
 
-/* On mobile the logo (theme.css: top: 1rem, height: 3.25rem, so its bottom edge sits at 4.25rem)
-   needs clear room below it so page content — the song title, the library heading — never
-   renders under or too close to it. Both page-level paddings (.app, .library) are zeroed at this
-   breakpoint so this is the single place either dimension is set. A small horizontal gutter is
-   kept so content doesn't run edge-to-edge against the screen. */
+/* The fixed .app-mark logo (theme.css: top: 1rem, height: 3.25rem, so its bottom edge sits at
+   4.25rem) needs clear room below it so page content — the song title, the library heading —
+   never renders under or too close to it. That overlap isn't a phone-only problem: .app only
+   gets its own centering margin once the viewport is wide enough for its 56rem content column to
+   clear the page-shell padding on both sides (see App.css's comment on .app), which happens
+   around 59-60rem — below that, .app hugs the same left edge the logo occupies regardless of how
+   much horizontal padding is left. So the top clearance applies up to 60rem, well past the phone
+   breakpoint below. */
+@media (max-width: 60rem) {
+  .page-shell {
+    padding-top: 5.5rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+}
+
+/* Below this, a 1.25rem gutter still reads as more than content needs on a phone-sized screen, so
+   it's trimmed further — but not to zero: content running fully edge-to-edge looked worse than a
+   modest 1rem side gutter, so a little is kept. Both page-level paddings (.app, .library) are set
+   at this breakpoint so this is the single place either dimension is set. */
 @media (max-width: 30rem) {
   .page-shell {
     padding-left: 1rem;
     padding-right: 1rem;
-    padding-top: 5.5rem;
   }
 }
