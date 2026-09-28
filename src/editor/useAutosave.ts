@@ -11,8 +11,9 @@ export type SaveStatus = "idle" | "dirty" | "saving" | "saved" | "error";
 
 export interface AutosaveHandle {
   status: SaveStatus;
-  /** Re-attempts a save immediately without waiting for `content` to change again — used by the
-   *  Save button to recover from an "error" status. */
+  /** Saves immediately without waiting for `content` to change again, bypassing both the debounce
+   *  and (for a brand-new song) the manual-first-save gate below. Used by the Save button both to
+   *  recover from an "error" status and to perform a new song's required first save. */
   retry: () => void;
 }
 
@@ -43,6 +44,16 @@ export interface AutosaveHandle {
  * a `canPersist` flip re-arms the same "skip the next change" latch `ready` uses. While
  * `canPersist` is false — including the entire time spent viewing someone else's song — this hook
  * never marks anything dirty or reaches the network, no matter what `content` or `authenticated` do.
+ *
+ * `isNewSong` enforces the product rule that a brand-new song's *first* save must be an explicit
+ * user action, never a silent debounced write moments after they start typing. While it's true and
+ * no save has completed yet, edits only flip the status to "dirty" (lighting up the Save button)
+ * instead of reaching the network; `retry()` — the Save button's click handler — is what actually
+ * performs that first save, the same way it already bypasses the debounce for error recovery.
+ * Signing in mid-edit (`justAuthenticated`) also bypasses the gate: that flow's own first save is
+ * already the direct result of the user having clicked Save before `requireAuthentication` sent
+ * them to sign in. Once any save under either path succeeds, the gate lifts for the rest of this
+ * hook's lifetime and every later edit autosaves as usual — this rule only governs the first save.
  */
 export function useAutosave(
   content: SongContent,
@@ -50,6 +61,7 @@ export function useAutosave(
   ready: boolean,
   authenticated: boolean,
   canPersist: boolean,
+  isNewSong: boolean,
   onSlugResolved: (id: string, slug: string) => void,
 ): AutosaveHandle {
   const queryClient = useQueryClient();
@@ -62,6 +74,10 @@ export function useAutosave(
   const lastRetryTick = useRef(retryTick);
   const wasReady = useRef(ready);
   const wasCanPersist = useRef(canPersist);
+  // Only a brand-new song (no id yet, from the route) needs its first save gated behind a manual
+  // action. Read once at mount: `isNewSong` is derived from the route slug and never flips true
+  // mid-session, so nothing later needs to re-arm this.
+  const requiresManualFirstSave = useRef(isNewSong);
   // Route callbacks may be recreated by their parent. They are navigation side effects, not
   // document input, so a changed callback must not re-arm the content debounce.
   const onSlugResolvedRef = useRef(onSlugResolved);
@@ -118,6 +134,14 @@ export function useAutosave(
       return () => clearTimeout(timer);
     }
 
+    // A brand-new song's first save must come from an explicit Save click (`retry`), not from
+    // this debounce — see the `isNewSong` doc above. `justAuthenticated` still goes through: that
+    // save is the completion of a click that already happened before sign-in.
+    if (requiresManualFirstSave.current && !isRetry && !justAuthenticated) {
+      const timer = setTimeout(() => setStatus("dirty"), 0);
+      return () => clearTimeout(timer);
+    }
+
     let cancelled = false;
     const timer = setTimeout(
       async () => {
@@ -126,6 +150,7 @@ export function useAutosave(
           const saved = await saveSong({ id: idRef.current, content });
           if (cancelled) return;
           idRef.current = saved.id;
+          requiresManualFirstSave.current = false;
           // Fires on every save, not just the first: a title edit regenerates an existing song's
           // slug too (see supabase/migrations/0006_regenerate_slug_on_title_change.sql), and the
           // caller needs to keep the URL in sync with whichever slug the row now has.
