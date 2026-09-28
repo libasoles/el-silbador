@@ -433,7 +433,8 @@
   .action-toolbar,
   .app-mark,
   .app-close,
-  .transpose-widget {
+  .transpose-widget,
+  .youtube-embed {
     display: none;
   }
 
@@ -467,6 +468,34 @@
   flex: 1;
   min-width: 0;
   position: relative;
+}
+
+/* Sits below the lyrics with breathing room of its own, separate from .song's internal line
+   gap — the video is a distinct block, not another stanza. 16:9 via the padding-top trick keeps
+   the frame's aspect ratio without needing the iframe's own pixel dimensions. */
+.youtube-embed {
+  position: relative;
+  width: 100%;
+  max-width: 40rem;
+  margin-top: 2.5rem;
+  padding-top: calc(40rem * 9 / 16);
+  height: 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.youtube-embed__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+@media (max-width: 40rem) {
+  .youtube-embed {
+    padding-top: 56.25%;
+  }
 }
 
 .song {

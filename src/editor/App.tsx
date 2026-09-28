@@ -13,6 +13,7 @@ import {
   getSongBySlug,
   isCurrentUserAdmin,
   setSongPublic,
+  setSongYoutubeUrl,
 } from "../data";
 import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent, SongDetail } from "../data/types";
@@ -23,6 +24,7 @@ import { useAuthRequired } from "./authRequiredContext";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { SongView } from "./components/SongView";
+import { YoutubeLinkDialog } from "./components/YoutubeLinkDialog";
 import {
   DownloadIcon,
   ForkIcon,
@@ -35,6 +37,7 @@ import {
   TrashIcon,
   UnderlineIcon,
   XIcon,
+  YoutubeIcon,
 } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
 import { clearDraft, readDraft, saveDraft } from "./draftStorage";
@@ -165,6 +168,10 @@ function App({
   const [isAdmin, setIsAdmin] = useState(false);
   const [songIsPublic, setSongIsPublic] = useState(() => initialSong?.isPublic ?? false);
   const [togglingPublic, setTogglingPublic] = useState(false);
+  const [songYoutubeUrl, setSongYoutubeUrlState] = useState<string | null>(
+    () => initialSong?.youtubeUrl ?? null,
+  );
+  const [youtubeDialogOpen, setYoutubeDialogOpen] = useState(false);
   // Fork relationships are stored by database id, but navigation uses slugs. Resolve the source
   // song separately so the title-area link always points to its canonical URL.
   const [forkedFrom, setForkedFrom] = useState<string | null>(() => initialSong?.forkedFrom ?? null);
@@ -276,6 +283,7 @@ function App({
       setSongDbId(cachedDetail.id);
       setOwnerId(cachedDetail.ownerId);
       setSongIsPublic(cachedDetail.isPublic);
+      setSongYoutubeUrlState(cachedDetail.youtubeUrl);
       setForkedFrom(cachedDetail.forkedFrom);
       if (!restoredDraft && !isSameSongAlreadyOpen(cachedDetail.id)) actions.loadContent(cachedDetail.content);
       setContentLoaded(true);
@@ -292,6 +300,7 @@ function App({
         setSongDbId(detail.id);
         setOwnerId(detail.ownerId);
         setSongIsPublic(detail.isPublic);
+        setSongYoutubeUrlState(detail.youtubeUrl);
         setForkedFrom(detail.forkedFrom);
         // Only the first resolution (cache or network, whichever wins) may load content into the
         // editor — see the comment above.
@@ -489,6 +498,19 @@ function App({
     } finally {
       setTogglingPublic(false);
     }
+  };
+
+  const handleSaveYoutubeUrl = async (url: string | null) => {
+    if (!songDbId) return;
+    const updated = await setSongYoutubeUrl(songDbId, url);
+    setSongYoutubeUrlState(updated.youtubeUrl);
+    showToast({
+      variant: "success",
+      title: updated.youtubeUrl ? "Link agregado" : "Link quitado",
+      description: updated.youtubeUrl
+        ? "El video se muestra debajo de la letra."
+        : "Ya no se muestra ningún video debajo de la letra.",
+    });
   };
 
   const handleForkClick = () => {
@@ -746,6 +768,7 @@ function App({
                 cells={state.cells}
                 chordVariants={state.chordVariants}
                 showUnderline={state.showUnderline}
+                youtubeUrl={songYoutubeUrl}
                 canEdit={canEditOnThisDevice}
                 onSetCellText={actions.setCellText}
                 onSetChordVariant={actions.setChordVariant}
@@ -757,6 +780,24 @@ function App({
             )}
 
             <aside className="action-toolbar" aria-label="Acciones">
+              {isAdmin && songDbId && !isMobile && (
+                <IconButtonTooltip
+                  tooltip={songYoutubeUrl ? "Editar link de YouTube" : "Agregar link de YouTube"}
+                >
+                  <button
+                    type="button"
+                    className={
+                      songYoutubeUrl
+                        ? "action-toolbar__button"
+                        : "action-toolbar__button action-toolbar__button--inactive"
+                    }
+                    aria-label={songYoutubeUrl ? "Editar link de YouTube" : "Agregar link de YouTube"}
+                    onClick={() => setYoutubeDialogOpen(true)}
+                  >
+                    <YoutubeIcon />
+                  </button>
+                </IconButtonTooltip>
+              )}
               {isAdmin && songDbId && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
@@ -861,6 +902,15 @@ function App({
             onConfirm={handleConfirmDelete}
             onCancel={() => setDeleteDialogOpen(false)}
           />
+
+          {isAdmin && songDbId && !isMobile && (
+            <YoutubeLinkDialog
+              open={youtubeDialogOpen}
+              currentUrl={songYoutubeUrl}
+              onOpenChange={setYoutubeDialogOpen}
+              onSave={handleSaveYoutubeUrl}
+            />
+          )}
         </>
       )}
     </main>
