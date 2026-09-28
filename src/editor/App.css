@@ -39,17 +39,7 @@
   height: 2.75rem;
 }
 
-/* Below 62.5rem, the transpose widget and both sidebar toolbars all sit in the same clamped
-   column (TransposeWidget.css's comment on that breakpoint explains why — they haven't cleared
-   this button horizontally yet, so they stack under it instead of beside the title). Matching
-   --sidebar-right exactly would line up this button's own right edge with theirs, but this
-   button's box (2.75rem) is wider than the sidebar icons' (2.4rem) — an edge match still leaves
-   the X glyph itself sitting 0.175rem left of the sidebar icons' own centers, which reads as
-   misaligned even though the boxes technically share an edge. Subtracting half that width
-   difference instead centers this button's icon on the same axis as the sidebar icons' (and,
-   below, the transpose widget's) icons. Above 62.5rem the two intentionally part ways — this
-   button stays pinned to the literal corner while the widget moves up beside the title — so this
-   override stops there too. */
+/* On compact screens, keep the close button centered with the sidebar controls. */
 @media (max-width: 62.5rem) {
   .app-close-tooltip {
     right: calc(var(--sidebar-right) - 0.175rem);
@@ -57,8 +47,7 @@
 }
 
 /* Mirrors .app-mark's own corner exactly, on the opposite side, so the two read as a matched
-   pair. The transpose widget (top: 4.25rem in TransposeWidget.css) starts below this button's
-   bottom edge (top 1rem + height 2.75rem = 3.75rem) so the two can never overlap. */
+   pair. */
 .app-close {
   position: static;
   display: inline-flex;

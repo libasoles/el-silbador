@@ -1,38 +1,21 @@
-/* Fixed and right-aligned to the same edge as .track-toolbar/.action-toolbar (App.css), so it
-   lines up with the sidebar's outer edge regardless of viewport width instead of trailing the
-   header's own (narrower) content column. Below 62.5rem the right offset collapses toward the
-   viewport edge and starts overlapping .app-close's fixed corner button (top: 1rem, height
-   2.75rem), so at those widths the widget stays pinned below it instead of sharing its row. From
-   62.5rem up, the right offset already clears .app-close horizontally, so the widget can sit at
-   the title's own top instead: 3.1rem lines up the step buttons' top edge with the title text's
-   own visible top, which sits below #root's 1.5rem padding plus .app's 1.25rem padding (see
-   index.css/App.css). */
+/* On compact screens this remains in the title block, directly below the song details. */
 .transpose-widget {
-  position: fixed;
-  top: 4.25rem;
-  right: var(--sidebar-right);
   display: flex;
+  align-self: flex-start;
   align-items: center;
   gap: 0.25rem;
+  margin-top: 0.5rem;
   font-family: var(--sans);
-  z-index: 5;
 }
 
+/* On wider screens it returns to the right-side toolbar column, aligned with the title. */
 @media (min-width: 62.5rem) {
   .transpose-widget {
+    position: fixed;
     top: 3.1rem;
-  }
-}
-
-/* Below 62.5rem the widget shares App.css's --sidebar-right edge above, which lines its own
-   right edge up with the sidebar icons' — but the rightmost thing in the widget is the "+"
-   button (1.6rem), narrower than the sidebar icons (2.4rem) it's supposed to read as one column
-   with, so an edge match still leaves its glyph sitting left of the sidebar icons' own centers.
-   Same fix as .app-close-tooltip in App.css: nudge inward by half the width difference so the
-   "+" button's icon centers on the same axis as the sidebar icons' (and .app-close's) icons. */
-@media (max-width: 62.5rem) {
-  .transpose-widget {
-    right: calc(var(--sidebar-right) + 0.4rem);
+    right: var(--sidebar-right);
+    margin-top: 0;
+    z-index: 5;
   }
 }
 
