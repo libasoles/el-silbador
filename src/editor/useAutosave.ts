@@ -46,14 +46,30 @@ export function useAutosave(
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [retryTick, setRetryTick] = useState(0);
   const idRef = useRef(songId);
+  const previousSongIdRef = useRef(songId);
   const skipNext = useRef(true);
   const wasAuthenticated = useRef(authenticated);
   const lastRetryTick = useRef(retryTick);
   const wasReady = useRef(ready);
+  // Route callbacks may be recreated by their parent. They are navigation side effects, not
+  // document input, so a changed callback must not re-arm the content debounce.
+  const onSlugResolvedRef = useRef(onSlugResolved);
 
   useEffect(() => {
+    onSlugResolvedRef.current = onSlugResolved;
+  }, [onSlugResolved]);
+
+  useEffect(() => {
+    const switchedExistingSong =
+      previousSongIdRef.current !== undefined &&
+      songId !== undefined &&
+      previousSongIdRef.current !== songId;
     idRef.current = songId;
-    skipNext.current = true;
+    // Loading another existing song replaces the document and must not write that loaded content
+    // back immediately. The first id assigned to a newly-created song is a save result, though,
+    // so it must not consume the next real edit.
+    if (switchedExistingSong) skipNext.current = true;
+    previousSongIdRef.current = songId;
   }, [songId]);
 
   useEffect(() => {
@@ -93,7 +109,7 @@ export function useAutosave(
           // Fires on every save, not just the first: a title edit regenerates an existing song's
           // slug too (see supabase/migrations/0006_regenerate_slug_on_title_change.sql), and the
           // caller needs to keep the URL in sync with whichever slug the row now has.
-          onSlugResolved(saved.id, saved.slug);
+          onSlugResolvedRef.current(saved.id, saved.slug);
           // Invalidate rather than patch in place: a save can change the title (and, for a new
           // song, adds a row) that the Library list's cache needs to reflect on next visit.
           queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
@@ -122,7 +138,7 @@ export function useAutosave(
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, songId, ready, onSlugResolved, authenticated, retryTick, queryClient]);
+  }, [content, ready, authenticated, retryTick, queryClient]);
 
   return { status, retry: () => setRetryTick((tick) => tick + 1) };
 }

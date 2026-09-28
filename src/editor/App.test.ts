@@ -15,6 +15,7 @@ const darkFavicon = readFileSync(
 );
 const layout = readFileSync(new URL("../../src/app/layout.tsx", import.meta.url), "utf8");
 const authModal = readFileSync(new URL("./components/AuthModal.tsx", import.meta.url), "utf8");
+const autosave = readFileSync(new URL("./useAutosave.ts", import.meta.url), "utf8");
 
 describe("underline visibility", () => {
   it("does not couple the underline to the chords track visibility", () => {
@@ -134,5 +135,15 @@ describe("autosave", () => {
     // debounce into a perpetual one-second save loop even while the editor content is unchanged.
     expect(app).toMatch(/const handleSongCreated = useCallback\(/);
     expect(app).toMatch(/useAutosave\([\s\S]*?handleSongCreated,/);
+  });
+
+  it("debounces document changes only", () => {
+    // Saving updates state and can cause route callbacks or the database id to change. Neither is
+    // a document edit, so neither may schedule another save one second later.
+    expect(autosave).toContain("onSlugResolvedRef.current(saved.id, saved.slug)");
+    expect(autosave).toContain(
+      "}, [content, ready, authenticated, retryTick, queryClient]);",
+    );
+    expect(autosave).toContain("const switchedExistingSong =");
   });
 });
