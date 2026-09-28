@@ -18,8 +18,11 @@ interface HistoryState {
 
 type HistoryAction = Action | { type: "undo" } | { type: "redo" };
 
-function createInitialHistoryState(): HistoryState {
-  return { past: [], present: createInitialState(), future: [], coalesceKey: null };
+function createInitialHistoryState(initialContent?: SongContent): HistoryState {
+  const present = initialContent
+    ? editorReducer(createInitialState(), { type: "loadContent", content: initialContent })
+    : createInitialState();
+  return { past: [], present, future: [], coalesceKey: null };
 }
 
 /**
@@ -99,8 +102,8 @@ function historyReducer(state: HistoryState, action: HistoryAction): HistoryStat
   return { past, present: nextPresent, future: [], coalesceKey: key };
 }
 
-export function useEditor() {
-  const [history, dispatch] = useReducer(historyReducer, undefined, createInitialHistoryState);
+export function useEditor(initialContent?: SongContent) {
+  const [history, dispatch] = useReducer(historyReducer, initialContent, createInitialHistoryState);
 
   const actions = useMemo(
     () => ({
