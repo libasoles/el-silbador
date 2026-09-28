@@ -36,3 +36,15 @@ body {
     padding-right: 1rem;
   }
 }
+
+/* The screen shell reserves room for fixed navigation, notably 5.5rem above the content on a
+   phone. Printed pages have no fixed navigation: keeping that padding would both create an
+   oversized first-page top margin and take space away from its bottom. App.css supplies the
+   document margin through its paginated .app rule instead. */
+@media print {
+  .page-shell {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+}

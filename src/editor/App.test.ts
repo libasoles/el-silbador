@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const styles = readFileSync(new URL("./App.css", import.meta.url), "utf8");
 const themeStyles = readFileSync(new URL("./theme.css", import.meta.url), "utf8");
+const globalStyles = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8");
 const iconButtonTooltip = readFileSync(
   new URL("./components/IconButtonTooltip.tsx", import.meta.url),
@@ -28,6 +29,16 @@ describe("underline visibility", () => {
     // be the only representation of a syllable underline in the generated PDF.
     expect(styles).toMatch(
       /@media print\s*\{[\s\S]*\.syllable::after,\s*\.syllable-gap--merged::after\s*\{[\s\S]*border-bottom:\s*2px solid var\(--syllable-underline\)/,
+    );
+  });
+});
+
+describe("PDF export layout", () => {
+  it("removes the responsive page-shell clearance from printed pages", () => {
+    // On phones the screen layout reserves 5.5rem for the fixed logo. That clearance is not
+    // part of the document and must not consume the printable height of the first PDF page.
+    expect(globalStyles).toMatch(
+      /@media print\s*\{[\s\S]*\.page-shell\s*\{[\s\S]*padding:\s*0/,
     );
   });
 });
