@@ -74,6 +74,15 @@ input {
   height: 100%;
 }
 
+/* At phone widths the page content has a 1rem gutter. The drawing begins roughly 0.55rem
+   inside its 3.25rem SVG box, so offset the fixed link by that amount to align the visible
+   mark — rather than its invisible viewBox padding — with the content column. */
+@media (max-width: 30rem) {
+  .app-mark {
+    left: 0.45rem;
+  }
+}
+
 .empty-state {
   color: var(--muted);
   font-style: italic;
