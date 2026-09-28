@@ -217,6 +217,13 @@
   transition: color 140ms ease;
 }
 
+.library-row__match {
+  padding: 0;
+  color: inherit;
+  background: color-mix(in srgb, var(--highlight) 18%, transparent);
+  box-decoration-break: clone;
+}
+
 /* The dotted leader borrows the songbook table-of-contents convention: a rule connecting a title
    to the detail at the line's end, the way an index page points a title at its page number. */
 .library-row__leader {

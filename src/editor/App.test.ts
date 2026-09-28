@@ -89,9 +89,9 @@ describe("application mark", () => {
 });
 
 describe("favicon", () => {
-  it("uses a stroke-only whistling-face mark without the former accent background", () => {
+  it("uses a black whistling-face mark on a white background", () => {
     expect(favicon).toContain('viewBox="0 0 64 64"');
-    expect(favicon).not.toContain("<rect");
+    expect(favicon).toContain('<rect width="64" height="64" fill="#fff"/>');
     expect(favicon).toContain('stroke="#000"');
     expect(favicon).toContain('stroke-width="2.15"');
     expect(favicon).toContain('M38.8 35.3C40.1 34.7');
@@ -103,7 +103,7 @@ describe("favicon", () => {
     expect(layout).toContain('media: "(prefers-color-scheme: light)"');
     expect(layout).toContain('url: "/favicon-dark.svg"');
     expect(layout).toContain('media: "(prefers-color-scheme: dark)"');
-    expect(darkFavicon).toContain('stroke="#fff"');
+    expect(darkFavicon).toContain('stroke="#000"');
   });
 });
 

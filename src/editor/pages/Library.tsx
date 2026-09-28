@@ -23,6 +23,7 @@ import { songQueryKeys } from "../../data/queryKeys";
 import { clearPendingAuthAction, readPendingAuthAction } from "../pendingAuthActionStorage";
 import { useToast } from "../toastContext";
 import { toLibrarySong, toPublicLibrarySong, type LibrarySong } from "./librarySongs";
+import { getHighlightParts } from "./searchHighlights";
 import { useIsMobile } from "../useIsMobile";
 import "./Library.css";
 
@@ -33,6 +34,7 @@ function matchesQuery(song: LibrarySong, query: string): boolean {
 
 interface SongRowProps {
   song: LibrarySong;
+  query: string;
   favorited: boolean;
   favoritePending: boolean;
   fadeIn: boolean;
@@ -45,6 +47,7 @@ interface SongRowProps {
 
 function SongRow({
   song,
+  query,
   favorited,
   favoritePending,
   fadeIn,
@@ -54,10 +57,23 @@ function SongRow({
   onToggleFavorite,
   onDelete,
 }: SongRowProps) {
+  const titleParts = getHighlightParts(song.title, query);
+  const authorParts = getHighlightParts(song.author ?? "sin autor", query);
+
   return (
     <li className={fadeIn ? "library-row library-row--fade-in" : "library-row"}>
       <button type="button" className="library-row__open" onClick={onOpen}>
-        <span className="library-row__title">{song.title}</span>
+        <span className="library-row__title">
+          {titleParts.map((part, index) =>
+            part.matches ? (
+              <mark className="library-row__match" key={index}>
+                {part.text}
+              </mark>
+            ) : (
+              part.text
+            ),
+          )}
+        </span>
         <span className="library-row__leader" aria-hidden="true" />
         <span
           className={
@@ -66,7 +82,15 @@ function SongRow({
               : "library-row__author library-row__author--empty"
           }
         >
-          {song.author ?? "sin autor"}
+          {authorParts.map((part, index) =>
+            part.matches ? (
+              <mark className="library-row__match" key={index}>
+                {part.text}
+              </mark>
+            ) : (
+              part.text
+            ),
+          )}
         </span>
       </button>
       {showFavorite && (
@@ -132,6 +156,7 @@ function LibraryRowSkeleton() {
 interface LibrarySectionProps {
   title?: string;
   songs: LibrarySong[];
+  query: string;
   emptyLabel: string;
   emptyIcon?: ReactNode;
   favoriteIds: Set<string>;
@@ -148,6 +173,7 @@ interface LibrarySectionProps {
 function LibrarySection({
   title,
   songs,
+  query,
   emptyLabel,
   emptyIcon = <SilbadorIcon />,
   favoriteIds,
@@ -187,6 +213,7 @@ function LibrarySection({
             <SongRow
               key={song.id}
               song={song}
+              query={query}
               favorited={favoriteIds.has(song.id)}
               favoritePending={favoritePendingSongId === song.id}
               fadeIn={fadeInSongId === song.id}
@@ -434,6 +461,7 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
         {session && (
           <LibrarySection
             songs={mySongs}
+            query={normalizedQuery}
             emptyLabel="Todavía no escribiste ninguna canción."
             favoriteIds={favoriteIds}
             favoritePendingSongId={favoritePendingSongId ?? undefined}
@@ -450,6 +478,7 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
           <LibrarySection
             title="Favoritas"
             songs={favoriteSongs}
+            query={normalizedQuery}
             emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
             favoriteIds={favoriteIds}
             favoritePendingSongId={favoritePendingSongId ?? undefined}
@@ -463,6 +492,7 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
         <LibrarySection
           title={session ? "Públicas" : undefined}
           songs={publicSongs}
+          query={normalizedQuery}
           emptyLabel="Todavía no hay canciones públicas para mostrar."
           emptyIcon={<NeutralIllustrationIcon />}
           favoriteIds={favoriteIds}
