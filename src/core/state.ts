@@ -137,7 +137,10 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
           ...track,
           visible: track.id === "chords" || trackHasContent(action.content.cells, track.id),
         })),
-        showUnderline: false,
+        // The underline toggle now also drives the melody-notes track, so it must start
+        // pressed whenever that track is already visible — otherwise the button reads as off
+        // while the notes it controls are showing.
+        showUnderline: trackHasContent(action.content.cells, "vocalNotes"),
       };
 
     default:
