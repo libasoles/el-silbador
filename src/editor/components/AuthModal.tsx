@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { signInWithMagicLink } from "../../data/auth";
+import { translateAuthError } from "../../data/authErrorMessages";
 import "./AuthModal.css";
 import { AlertCircleIcon, MailIcon } from "./icons";
 import { Dialog } from "./Dialog";
@@ -24,7 +25,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
       await signInWithMagicLink(email);
       setLinkSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(translateAuthError(err));
     } finally {
       setSubmitting(false);
     }

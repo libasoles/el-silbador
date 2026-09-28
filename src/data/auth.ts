@@ -24,7 +24,10 @@ export async function signInWithMagicLink(email: string): Promise<void> {
   const supabase = getSupabaseClient();
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.href },
+    // Strip any hash: a previous magic-link callback can leave `#access_token=...` in the
+    // address bar, and Supabase appends its own hash onto whatever we send here, producing an
+    // unparsable double-fragment URL if we pass one through.
+    options: { emailRedirectTo: `${location.origin}${location.pathname}${location.search}` },
   });
   if (error) throw error;
 }
