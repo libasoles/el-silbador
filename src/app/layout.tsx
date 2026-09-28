@@ -3,13 +3,13 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 const SITE_URL = "https://elsilbador.com.ar";
-const TITLE = "Silbador — editor de canciones para guitarra";
+const TITLE = "El Silbador — editor de canciones para guitarra";
 const DESCRIPTION =
   "Editor visual para silabear la letra de una canción y anotar acordes, notas de canto y más, línea por línea. Gratis, sin instalar nada.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: TITLE, template: "%s — Silbador" },
+  title: { default: TITLE, template: "%s — El Silbador" },
   description: DESCRIPTION,
   alternates: { canonical: "/" },
   icons: {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
   openGraph: {
     type: "website",
-    siteName: "Silbador",
+    siteName: "El Silbador",
     locale: "es_AR",
     url: "/",
     title: TITLE,

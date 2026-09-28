@@ -1,5 +1,9 @@
 # Silabeo
 
+## Site identity
+
+The site's name is always "El Silbador", with the article — never just "Silbador". This applies to any user-facing text: page titles, meta descriptions/OG tags, on-screen copy, PDF filenames, etc. (Component/identifier names like `SilbadorIcon` are exempt.)
+
 ## Mobile behavior rules
 
 Mobile is read-only for authoring actions. Detected with `useIsMobile` (`src/editor/useIsMobile.ts`, `max-width: 30rem` — same breakpoint as the CSS media queries).
