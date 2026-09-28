@@ -1,6 +1,6 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/e651d1ba-10b7-4170-98af-1e15e27f9b20/deploy-status)](https://app.netlify.com/projects/elsilbador/deploys)
 
-# Silbador
+# El Silbador
 
 Editor visual de anotaciones sobre sílabas de canciones (acordes, notas de canto). Ver
 `.scratch/silabeo-editor/spec.md` para el spec completo.
@@ -36,3 +36,5 @@ npm run supabase:stop    # lo apaga
 ```
 
 Con el stack corriendo, abrí Studio en [http://localhost:54323](http://localhost:54323). Ver `supabase/README.md` para instrucciones de migraciones.
+
+Los correos que genera Supabase local —por ejemplo, los enlaces mágicos para iniciar sesión— no se envían a una casilla real. Podés recibirlos e inspeccionar sus enlaces en [http://127.0.0.1:54324/](http://127.0.0.1:54324/), la bandeja de entrada local que se inicia junto con el stack.
