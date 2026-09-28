@@ -94,6 +94,15 @@
   color: var(--highlight);
 }
 
+.toast--error {
+  background: #fff1f1;
+  border: 1px solid #bd2d2d;
+}
+
+.toast--error .toast__title {
+  color: #7c1717;
+}
+
 .toast__body {
   min-width: 0;
 }

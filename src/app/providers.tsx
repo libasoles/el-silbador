@@ -7,6 +7,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { initAnalytics, trackPageView } from "../editor/analytics";
 import { AuthRequiredProvider } from "../editor/AuthRequired";
+import { AuthCallbackErrorToast } from "../editor/components/AuthCallbackErrorToast";
 import { ToastProvider } from "../editor/components/ToastProvider";
 import { useAuth } from "../editor/useAuth";
 
@@ -60,6 +61,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AnalyticsTracker />
         <ToastProvider>
+          <AuthCallbackErrorToast />
           <AuthRequiredProvider session={session}>{children}</AuthRequiredProvider>
         </ToastProvider>
       </QueryClientProvider>
@@ -92,6 +94,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <AnalyticsTracker />
       <ToastProvider>
+        <AuthCallbackErrorToast />
         <AuthRequiredProvider session={session}>{children}</AuthRequiredProvider>
       </ToastProvider>
     </PersistQueryClientProvider>
