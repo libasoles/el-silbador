@@ -67,8 +67,9 @@ function Root() {
     route.name === "new" || route.name === "song" ? (
       <App
         songSlug={route.name === "song" ? route.slug : undefined}
-        // Autosave assigns the slug the first time it creates the row; swap the URL to the
-        // song's own address without pushing a fresh history entry for the same document.
+        // Autosave assigns the slug the first time it creates the row, and regenerates it
+        // whenever a title edit changes it later; swap the URL to the song's current address
+        // without pushing a fresh history entry for the same document.
         onSongCreated={(_id, slug) => navigate({ name: "song", slug }, "replace")}
         onDeleted={() => navigate({ name: "library" })}
       />

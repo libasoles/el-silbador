@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
@@ -94,7 +94,9 @@ interface AppProps {
   accentColor?: string;
   /** Slug of the song being edited, from the /cancion/:slug route. Absent for a new, unsaved song. */
   songSlug?: string;
-  /** Called once autosave creates the row for a new song, so the URL can adopt its slug. */
+  /** Called after every successful save with the song's id and current slug, so the URL can adopt
+      it — fires both when autosave first creates the row and whenever a title edit later
+      regenerates an existing song's slug. */
   onSongCreated?: (id: string, slug: string) => void;
   /** Called once the song is deleted, so the caller can navigate away from its now-gone slug. */
   onDeleted?: () => void;
@@ -159,6 +161,10 @@ function App({
   // directly once autosave creates a brand-new song). Needed because writes (save/delete) still
   // key off the stable id rather than the slug.
   const [songDbId, setSongDbId] = useState<string | undefined>(undefined);
+  // Latest `songDbId`, readable from the load effect below without adding it to that effect's
+  // dependencies (it intentionally only reruns for `songSlug` changes — see the effect's comment).
+  const songDbIdRef = useRef(songDbId);
+  songDbIdRef.current = songDbId;
 
   // Following a magic-link sign-in email reloads the page from scratch, so any content typed
   // before authenticating would otherwise vanish. If it was stashed in localStorage first (see
@@ -218,6 +224,12 @@ function App({
     // Still needed even when a draft was restored: the draft carries the freshest content, but
     // not the song's real id, which autosave needs to update (rather than duplicate) the row.
     let cancelled = false;
+    // A title edit regenerates this same song's slug (see
+    // supabase/migrations/0006_regenerate_slug_on_title_change.sql), which swaps the URL and
+    // reruns this effect with the new `songSlug` even though it's still the very song already
+    // open here. Compare against the resolved detail's id (not just "is a song already open")
+    // so switching to a genuinely different song, e.g. via the back button, still loads it.
+    const isSameSongAlreadyOpen = (detailId: string) => detailId === songDbIdRef.current;
 
     // A cache hit (from an earlier visit this session, or from the persisted cache surviving a
     // reload) paints synchronously instead of showing the skeleton for a network round trip.
@@ -233,7 +245,7 @@ function App({
       setOwnerId(cachedDetail.ownerId);
       setSongIsPublic(cachedDetail.isPublic);
       setForkedFrom(cachedDetail.forkedFrom);
-      if (!restoredDraft) actions.loadContent(cachedDetail.content);
+      if (!restoredDraft && !isSameSongAlreadyOpen(cachedDetail.id)) actions.loadContent(cachedDetail.content);
       setContentLoaded(true);
     }
 
@@ -251,7 +263,9 @@ function App({
         setForkedFrom(detail.forkedFrom);
         // Only the first resolution (cache or network, whichever wins) may load content into the
         // editor — see the comment above.
-        if (!restoredDraft && !cachedDetail) actions.loadContent(detail.content);
+        if (!restoredDraft && !cachedDetail && !isSameSongAlreadyOpen(detail.id)) {
+          actions.loadContent(detail.content);
+        }
         setContentLoaded(true);
       })
       .catch((error: unknown) => {
@@ -318,9 +332,10 @@ function App({
   // song) once its real id has been resolved from the slug — otherwise a save could either
   // persist the default/empty state or insert a duplicate row instead of updating one.
   const ready = contentLoaded && (!songSlug || songDbId !== undefined);
-  // `useAutosave` uses this callback after a successful insert. Keeping it stable is essential:
-  // the hook's debounce effect must only restart for a content/save-input change, not for its own
-  // status updates causing this component to render again.
+  // `useAutosave` uses this callback after every successful save, including a later save whose
+  // title edit regenerated the slug. Keeping it stable is essential: the hook's debounce effect
+  // must only restart for a content/save-input change, not for its own status updates causing
+  // this component to render again.
   const handleSongCreated = useCallback(
     (id: string, slug: string) => {
       setSongDbId(id);

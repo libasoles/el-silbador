@@ -39,7 +39,7 @@ export function useAutosave(
   songId: string | undefined,
   ready: boolean,
   authenticated: boolean,
-  onCreated: (id: string, slug: string) => void,
+  onSlugResolved: (id: string, slug: string) => void,
 ): AutosaveHandle {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<SaveStatus>("idle");
@@ -85,12 +85,14 @@ export function useAutosave(
     const timer = setTimeout(
       async () => {
         setStatus("saving");
-        const wasNew = !idRef.current;
         try {
           const saved = await saveSong({ id: idRef.current, content });
           if (cancelled) return;
           idRef.current = saved.id;
-          if (wasNew) onCreated(saved.id, saved.slug);
+          // Fires on every save, not just the first: a title edit regenerates an existing song's
+          // slug too (see supabase/migrations/0006_regenerate_slug_on_title_change.sql), and the
+          // caller needs to keep the URL in sync with whichever slug the row now has.
+          onSlugResolved(saved.id, saved.slug);
           // Invalidate rather than patch in place: a save can change the title (and, for a new
           // song, adds a row) that the Library list's cache needs to reflect on next visit.
           queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
@@ -111,7 +113,7 @@ export function useAutosave(
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, songId, ready, onCreated, authenticated, retryTick, queryClient]);
+  }, [content, songId, ready, onSlugResolved, authenticated, retryTick, queryClient]);
 
   return { status, retry: () => setRetryTick((tick) => tick + 1) };
 }
