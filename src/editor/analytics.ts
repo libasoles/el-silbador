@@ -1,5 +1,5 @@
 // Thin wrapper around Google Analytics 4 (gtag.js). Loading is opt-in: without a measurement
-// id (VITE_GA_MEASUREMENT_ID) every call becomes a no-op, so local dev and CI never ping GA.
+// id (NEXT_PUBLIC_GA_MEASUREMENT_ID) every call becomes a no-op, so local dev and CI never ping GA.
 declare global {
   interface Window {
     dataLayer?: unknown[];
@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-const MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
+const MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 let initialized = false;
 

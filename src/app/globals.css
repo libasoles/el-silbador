@@ -1,10 +1,10 @@
-@import "./app/theme.css";
+@import "../editor/theme.css";
 
 body {
   min-height: 100svh;
 }
 
-#root {
+.page-shell {
   max-width: 1024px;
   margin: 0 auto;
   padding: 1.5rem;

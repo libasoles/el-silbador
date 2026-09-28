@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import "./App.css";
-import neutralIllustration from "../assets/03-neutral.svg";
+const neutralIllustration = "/03-neutral.svg";
 import { chordToNoteNames } from "../core/chordNotes";
 import type { CellsByTrack, TrackDef } from "../core/types";
 import {
@@ -169,7 +169,9 @@ function App({
   // Following a magic-link sign-in email reloads the page from scratch, so any content typed
   // before authenticating would otherwise vanish. If it was stashed in localStorage first (see
   // handleSaveClick below), restore it here and let the usual autosave-on-sign-in flow persist it.
-  const [restoredDraft] = useState(() => readDraft(songSlug));
+  // `App` is server-rendered once (for the client hydration it produces — see
+  // SongPageClient/NuevaPage), and `localStorage` doesn't exist on the server.
+  const [restoredDraft] = useState(() => (typeof window === "undefined" ? null : readDraft(songSlug)));
   // Only an existing song (songSlug set, no restored draft) has content worth waiting on; a new
   // song, or one whose draft was already restored, starts "loaded" with its editor state in place.
   const [contentLoaded, setContentLoaded] = useState(() => !songSlug || Boolean(restoredDraft));

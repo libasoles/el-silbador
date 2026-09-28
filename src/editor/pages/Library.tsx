@@ -177,11 +177,15 @@ function LibrarySection({
 }
 
 interface LibraryProps {
+  /** Public songs fetched server-side (Next.js Server Component), so the very first render —
+   *  including the one Next performs on the server to produce pre-rendered HTML for crawlers —
+   *  already shows real content instead of a loading skeleton. */
+  initialPublicSongs?: LibrarySong[];
   onOpenSong?: (song: LibrarySong) => void;
   onNewSong?: () => void;
 }
 
-export function Library({ onOpenSong, onNewSong }: LibraryProps) {
+export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryProps) {
   const { session, requireAuthentication } = useAuthRequired();
   const userId = session?.user.id;
   const authenticated = Boolean(session);
@@ -209,6 +213,7 @@ export function Library({ onOpenSong, onNewSong }: LibraryProps) {
   } = useQuery({
     queryKey: songQueryKeys.public(),
     queryFn: async () => (await listPublicSongs()).map(toPublicLibrarySong),
+    initialData: initialPublicSongs,
   });
 
   const {

@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://elsilbador.com.ar/sitemap.xml

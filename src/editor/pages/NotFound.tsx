@@ -1,4 +1,4 @@
-import neutralIllustration from "../../assets/03-neutral.svg";
+const neutralIllustration = "/03-neutral.svg";
 import "./NotFound.css";
 
 export function NotFound() {
