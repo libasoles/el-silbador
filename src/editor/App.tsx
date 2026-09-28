@@ -557,11 +557,6 @@ function App({
         <SongNotFound />
       ) : (
         <>
-          <TransposeWidget
-            chordCells={state.cells.chords}
-            onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
-          />
-
           <div className="title-block">
             <div className="title-row">
               {forkSourceSlug && (
@@ -599,6 +594,10 @@ function App({
                 aria-label="Autor o intérprete"
               />
             )}
+            <TransposeWidget
+              chordCells={state.cells.chords}
+              onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
+            />
           </div>
 
           {(autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
