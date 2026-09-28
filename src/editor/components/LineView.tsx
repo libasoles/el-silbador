@@ -226,7 +226,12 @@ export function LineView({
       // A bare next syllable has no label to protect — widening the gap here would only
       // separate the lyrics, not prevent any annotation from overlapping another one.
       if (!width || !firstEl || !nextFirstEl || !labelWidths.has(nextUnit.slotId)) continue;
-      const distance = nextFirstEl.getBoundingClientRect().left - firstEl.getBoundingClientRect().left;
+      // Rounded to match `width` (already an integer): comparing a fractional distance against
+      // an integer target never lands on exactly zero, so on some mobile browsers (where `em`
+      // in the CSS gap resolves to a slightly different px value than this measurement) the
+      // shortfall never fully closes — each pass adds a sliver more, forever re-triggering this
+      // effect and blowing React's update-depth guard.
+      const distance = Math.round(nextFirstEl.getBoundingClientRect().left - firstEl.getBoundingClientRect().left);
       const additional = requiredAnnotationGap(width, distance);
       if (additional > 0) next[unit.slotId] = (next[unit.slotId] ?? 0) + additional;
     }
