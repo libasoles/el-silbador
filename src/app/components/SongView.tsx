@@ -295,6 +295,20 @@ function walkAndPlaceCaret(nodes: Node[], remaining: number): number {
   return remaining;
 }
 
+/** Selects the full text of a lyric line. The browser's own triple-click paragraph selection is
+    unreliable here — each line is a flex row sprinkled with non-editable `<button>` gap widgets
+    rather than a plain text block — so a triple click is caught explicitly and replaced with this
+    instead of trusting whatever the browser's own heuristic produced. */
+function selectLine(root: HTMLElement, lineIndex: number) {
+  const line = root.querySelectorAll<HTMLElement>("[data-lyrics-line]")[lineIndex];
+  if (!line) return;
+  const range = document.createRange();
+  range.selectNodeContents(line);
+  const selection = window.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+}
+
 function restoreCaret(root: HTMLElement, position: CaretPosition) {
   const line =
     root.querySelectorAll<HTMLElement>("[data-lyrics-line]")[
@@ -675,6 +689,19 @@ export function SongView({
           if (event.target === event.currentTarget) setIsFocused(false);
         }}
         onClick={(event) => {
+          if (event.detail >= 3) {
+            const line = (event.target as HTMLElement).closest("[data-lyrics-line]");
+            const root = rootRef.current;
+            if (line && root) {
+              const lineIndex = Array.from(
+                root.querySelectorAll<HTMLElement>("[data-lyrics-line]"),
+              ).indexOf(line as HTMLElement);
+              if (lineIndex !== -1) {
+                selectLine(root, lineIndex);
+                return;
+              }
+            }
+          }
           if (!isDocumentControl(event.target)) focusDocument();
         }}
         onInput={(event) => {
