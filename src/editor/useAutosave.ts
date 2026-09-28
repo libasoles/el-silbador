@@ -105,6 +105,9 @@ export function useAutosave(
           // and otherwise a title edit on an already-public song never reaches other visitors.
           queryClient.invalidateQueries({ queryKey: songQueryKeys.public() });
           await revalidatePublicSongs();
+          // A favorited song's title can change too, and the favorites list caches its own copy
+          // of the title — refresh it for whichever user(s) have it cached.
+          queryClient.invalidateQueries({ queryKey: songQueryKeys.favoritesAll });
           setStatus("saved");
         } catch (error) {
           if (cancelled) return;

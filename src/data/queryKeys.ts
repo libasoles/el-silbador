@@ -5,6 +5,9 @@ export const songQueryKeys = {
   // list for whichever user is currently signed in, without needing their id at the call site.
   mineAll: ["songs", "mine"] as const,
   mine: (userId: string) => ["songs", "mine", userId] as const,
+  // Same prefix trick as `mineAll`, for invalidating every signed-in user's favorites list
+  // without knowing whose is currently cached (e.g. after a favorited song's title changes).
+  favoritesAll: ["songs", "favorites"] as const,
   favorites: (userId: string) => ["songs", "favorites", userId] as const,
   public: () => ["songs", "public"] as const,
   detail: (songId: string) => ["songs", "detail", songId] as const,

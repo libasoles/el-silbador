@@ -435,6 +435,9 @@ function App({
       setSongIsPublic(updated.isPublic);
       queryClient.invalidateQueries({ queryKey: songQueryKeys.public() });
       await revalidatePublicSongs();
+      // Going private can drop this song out of other users' favorites (RLS hides it from the
+      // join in listFavorites), so refresh whichever favorites lists are cached too.
+      queryClient.invalidateQueries({ queryKey: songQueryKeys.favoritesAll });
       showToast({
         variant: "success",
         title: updated.isPublic ? "Canción publicada" : "Canción marcada como privada",
