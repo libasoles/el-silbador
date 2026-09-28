@@ -42,7 +42,7 @@ export function EditorHelp() {
                 para un Do mayor.
               </span>
             </li>
-            <li>
+            <li className="editor-help__edit-only">
               <UnderlineIcon />
               <span>
                 Muestra u oculta la línea debajo de cada sílaba y deja
@@ -52,10 +52,12 @@ export function EditorHelp() {
           </ul>
           <p>
             La separación en sílabas funciona para español. No hay garantía de
-            que funcione correctamente en otros idiomas. Se puede unir sílabas
-            clickeando el espacio intermedio.
+            que funcione correctamente en otros idiomas.{" "}
+            <span className="editor-help__edit-only">
+              Se puede unir sílabas clickeando el espacio intermedio.
+            </span>
           </p>
-          <p className="editor-help__autosave">
+          <p className="editor-help__autosave editor-help__edit-only">
             Los cambios se guardan solos mientras escribís, no hace falta
             guardar a mano.
           </p>
