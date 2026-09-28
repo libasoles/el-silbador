@@ -1,23 +1,37 @@
-# Running `songs.test.ts` for real
+# Tests de integración de datos
 
-This suite hits a real Supabase project (no local/Docker stack — see the spec). To run it:
+`songs.test.ts` verifica el acceso a datos, Auth y las políticas RLS contra la pila local de
+Supabase. No usa el proyecto remoto ni sus claves.
 
-1. Provision a Supabase project with the schema + RLS from `.scratch/supabase-persistence/spec.md` (issue 01).
-2. Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `SUPABASE_TEST_SERVICE_ROLE_KEY` (the project's
-   service-role key, used only in this test file to provision/promote/delete throwaway test users and to
-   read ground truth — never shipped to the client) in your shell environment.
-3. Run `npm run test`. The suite creates its own ephemeral users (via the admin API) and songs per run and
-   deletes them in `afterAll`; no pre-existing accounts are required.
+## Requisitos
 
-Without those three env vars, this suite is skipped (not failed) so `npm run test`/`npm run build` stay green.
+- Docker Desktop (u otro runtime compatible con Docker) en ejecución.
+- Node.js 20 o superior.
 
-## Data hygiene
+## Ejecutar
 
-This suite runs against the same Supabase project as the app (there's no separate `.env.test`
-project today), and it deliberately triggers RLS/constraint rejections (duplicate username,
-favoriting a private song, editing someone else's song) as part of asserting they work — expect
-to see the corresponding Postgres error codes (23505, 42501) in that project's logs after a test
-run. `afterAll` deletes every user/song/favorite it created, so no rows are left behind, but if a
-run is killed mid-way, or if you're writing a query against auth/analytics data (active users,
-signup counts, etc.), filter out test accounts by email: every user created by this suite has an
-email starting with `songs-test-` (e.g. `email LIKE 'songs-test-%'`).
+```sh
+npm run test:integration
+```
+
+El comando inicia Supabase local si fuera necesario, ejecuta `supabase db reset` contra la base
+**local** (aplicando todas las migraciones) y usa las credenciales que la CLI acaba de generar.
+Después ejecuta únicamente esta suite. Puede dejar la pila encendida para la siguiente ejecución;
+detenela con `npm run supabase:stop`.
+
+`npm test` sigue ejecutando los tests unitarios sin Docker y deja esta suite saltada. Esto evita
+que tests normales puedan tocar por error un proyecto alojado.
+
+## Desarrollo local de la aplicación
+
+Una vez iniciada la pila, ejecutá `supabase status` para ver la URL y la clave anónima local. Si
+querés que `npm run dev` o `npm run build` usen la pila local, copiá esos valores a un archivo
+`.env.local` ignorado:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key-local>
+```
+
+La clave `service_role` sólo la usa el script de integración para crear y borrar usuarios de
+prueba; nunca debe incluirse en variables `NEXT_PUBLIC_*` ni subirse al repositorio.
