@@ -47,6 +47,7 @@ describe("loadContent", () => {
         chordVariants: {},
         merges: new Set(),
       },
+      isMobile: false,
     });
 
     expect(state.tracks).toEqual([
@@ -69,6 +70,7 @@ describe("loadContent", () => {
         chordVariants: {},
         merges: new Set(),
       },
+      isMobile: false,
     });
 
     expect(state.tracks).toEqual([
@@ -76,6 +78,26 @@ describe("loadContent", () => {
       { id: "chords", label: "Acordes", visible: true },
       { id: "vocalNotes", label: "Notas de la melodía", visible: true },
     ]);
+    expect(state.showUnderline).toBe(true);
+  });
+
+  it("does not auto-enable the underline toggle on mobile, even with existing melody notes", () => {
+    const state = editorReducer(createInitialState(), {
+      type: "loadContent",
+      content: {
+        title: "Canción existente",
+        author: "Autor",
+        lyricsText: "amor",
+        song: [],
+        cells: { vocalNotes: { slot1: "Do" }, chordNotes: { slot1: "" } },
+        chordVariants: {},
+        merges: new Set(),
+      },
+      isMobile: true,
+    });
+
+    expect(state.tracks.find((t) => t.id === "vocalNotes")?.visible).toBe(true);
+    expect(state.showUnderline).toBe(false);
   });
 });
 

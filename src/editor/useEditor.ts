@@ -18,9 +18,9 @@ interface HistoryState {
 
 type HistoryAction = Action | { type: "undo" } | { type: "redo" };
 
-function createInitialHistoryState(initialContent?: SongContent): HistoryState {
+function createInitialHistoryState(initialContent: SongContent | undefined, isMobile: boolean): HistoryState {
   const present = initialContent
-    ? editorReducer(createInitialState(), { type: "loadContent", content: initialContent })
+    ? editorReducer(createInitialState(), { type: "loadContent", content: initialContent, isMobile })
     : createInitialState();
   return { past: [], present, future: [], coalesceKey: null };
 }
@@ -102,8 +102,10 @@ function historyReducer(state: HistoryState, action: HistoryAction): HistoryStat
   return { past, present: nextPresent, future: [], coalesceKey: key };
 }
 
-export function useEditor(initialContent?: SongContent) {
-  const [history, dispatch] = useReducer(historyReducer, initialContent, createInitialHistoryState);
+export function useEditor(initialContent: SongContent | undefined, isMobile: boolean) {
+  const [history, dispatch] = useReducer(historyReducer, initialContent, (content) =>
+    createInitialHistoryState(content, isMobile),
+  );
 
   const actions = useMemo(
     () => ({
@@ -125,11 +127,11 @@ export function useEditor(initialContent?: SongContent) {
       setTrackVisibility: (trackId: TrackId, visible: boolean) =>
         dispatch({ type: "setTrackVisibility", trackId, visible }),
       setShowUnderline: (visible: boolean) => dispatch({ type: "setShowUnderline", visible }),
-      loadContent: (content: SongContent) => dispatch({ type: "loadContent", content }),
+      loadContent: (content: SongContent) => dispatch({ type: "loadContent", content, isMobile }),
       undo: () => dispatch({ type: "undo" }),
       redo: () => dispatch({ type: "redo" }),
     }),
-    [],
+    [isMobile],
   );
 
   useEffect(() => {

@@ -62,6 +62,9 @@ export type Action =
       content: Pick<EditorState, "title" | "author" | "lyricsText" | "song" | "cells" | "chordVariants"> & {
         merges: Set<string>;
       };
+      // Whether this load is happening on a mobile device. The underline-default-on-notes rule
+      // below is a desktop-only convenience — mobile always starts with the toggle off.
+      isMobile: boolean;
     };
 
 export function editorReducer(state: EditorState, action: Action): EditorState {
@@ -137,10 +140,11 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
           ...track,
           visible: track.id === "chords" || trackHasContent(action.content.cells, track.id),
         })),
-        // The underline toggle now also drives the melody-notes track, so it must start
-        // pressed whenever that track is already visible — otherwise the button reads as off
-        // while the notes it controls are showing.
-        showUnderline: trackHasContent(action.content.cells, "vocalNotes"),
+        // The underline toggle now also drives the melody-notes track, so on desktop it must
+        // start pressed whenever that track is already visible — otherwise the button reads as
+        // off while the notes it controls are showing. Mobile is read-only-by-default territory
+        // for this convenience: it always starts off there, regardless of existing notes.
+        showUnderline: !action.isMobile && trackHasContent(action.content.cells, "vocalNotes"),
       };
 
     default:
