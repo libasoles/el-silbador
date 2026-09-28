@@ -18,11 +18,24 @@ import {
   TrashIcon,
 } from "../components/icons";
 import { signOut } from "../../data/auth";
-import { deleteSong, listFavorites, listMySongs, listPublicSongs, toggleFavorite } from "../../data/songs";
+import {
+  deleteSong,
+  listFavorites,
+  listMySongs,
+  listPublicSongs,
+  toggleFavorite,
+} from "../../data/songs";
 import { songQueryKeys } from "../../data/queryKeys";
-import { clearPendingAuthAction, readPendingAuthAction } from "../pendingAuthActionStorage";
+import {
+  clearPendingAuthAction,
+  readPendingAuthAction,
+} from "../pendingAuthActionStorage";
 import { useToast } from "../toastContext";
-import { toLibrarySong, toPublicLibrarySong, type LibrarySong } from "./librarySongs";
+import {
+  toLibrarySong,
+  toPublicLibrarySong,
+  type LibrarySong,
+} from "./librarySongs";
 import { getHighlightParts } from "./searchHighlights";
 import { useIsMobile } from "../useIsMobile";
 import "./Library.css";
@@ -117,7 +130,11 @@ function SongRow({
             onClick={onToggleFavorite}
             disabled={favoritePending}
           >
-            {favoritePending ? <SpinnerIcon /> : <StarIcon filled={favorited} />}
+            {favoritePending ? (
+              <SpinnerIcon />
+            ) : (
+              <StarIcon filled={favorited} />
+            )}
           </button>
         </IconButtonTooltip>
       )}
@@ -240,7 +257,12 @@ interface LibraryProps {
   onNewSong?: () => void;
 }
 
-export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong }: LibraryProps) {
+export function Library({
+  appVersion,
+  initialPublicSongs,
+  onOpenSong,
+  onNewSong,
+}: LibraryProps) {
   const { session, requireAuthentication } = useAuthRequired();
   const userId = session?.user.id;
   const authenticated = Boolean(session);
@@ -250,14 +272,16 @@ export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong 
   // songs. Favoriting stays available on mobile and must not be gated here.
   const isMobile = useIsMobile();
   const [query, setQuery] = useState("");
-  const [songPendingDelete, setSongPendingDelete] = useState<LibrarySong | null>(null);
-  const [favoritePendingSongId, setFavoritePendingSongId] = useState<string | null>(null);
-  const [favoriteFadeInSongId, setFavoriteFadeInSongId] = useState<string | null>(null);
+  const [songPendingDelete, setSongPendingDelete] =
+    useState<LibrarySong | null>(null);
+  const [favoritePendingSongId, setFavoritePendingSongId] = useState<
+    string | null
+  >(null);
+  const [favoriteFadeInSongId, setFavoriteFadeInSongId] = useState<
+    string | null
+  >(null);
 
-  const {
-    data: myLibrarySongs = [],
-    isLoading: myQueryLoading,
-  } = useQuery({
+  const { data: myLibrarySongs = [], isLoading: myQueryLoading } = useQuery({
     queryKey: songQueryKeys.mine(userId ?? ""),
     queryFn: async () => (await listMySongs()).map(toLibrarySong),
     enabled: Boolean(userId),
@@ -265,40 +289,39 @@ export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong 
   // `undefined` session means the initial auth check hasn't resolved yet, so this section should
   // still read as loading rather than flashing an empty "no songs" state; `null` (confirmed
   // signed out) never fetches, so it isn't "loading" even though the query itself stays disabled.
-  const myLibraryLoading = session === undefined || (Boolean(userId) && myQueryLoading);
+  const myLibraryLoading =
+    session === undefined || (Boolean(userId) && myQueryLoading);
 
-  const {
-    data: publicLibrarySongs = [],
-    isLoading: publicLibraryLoading,
-  } = useQuery({
-    queryKey: songQueryKeys.public(),
-    queryFn: async () => (await listPublicSongs()).map(toPublicLibrarySong),
-    initialData: initialPublicSongs,
-  });
+  const { data: publicLibrarySongs = [], isLoading: publicLibraryLoading } =
+    useQuery({
+      queryKey: songQueryKeys.public(),
+      queryFn: async () => (await listPublicSongs()).map(toPublicLibrarySong),
+      initialData: initialPublicSongs,
+    });
 
-  const {
-    data: favoriteLibrarySongs = [],
-    isLoading: favoritesQueryLoading,
-  } = useQuery({
-    queryKey: songQueryKeys.favorites(userId ?? ""),
-    queryFn: async () => (await listFavorites()).map(toLibrarySong),
-    enabled: Boolean(userId),
-  });
-  const favoritesLoading = session === undefined || (Boolean(userId) && favoritesQueryLoading);
+  const { data: favoriteLibrarySongs = [], isLoading: favoritesQueryLoading } =
+    useQuery({
+      queryKey: songQueryKeys.favorites(userId ?? ""),
+      queryFn: async () => (await listFavorites()).map(toLibrarySong),
+      enabled: Boolean(userId),
+    });
+  const favoritesLoading =
+    session === undefined || (Boolean(userId) && favoritesQueryLoading);
 
   const deleteMutation = useMutation({
     mutationFn: deleteSong,
     onSuccess: (_data, songId) => {
       if (userId) {
-        queryClient.setQueryData<LibrarySong[]>(songQueryKeys.mine(userId), (current) =>
-          (current ?? []).filter((song) => song.id !== songId),
+        queryClient.setQueryData<LibrarySong[]>(
+          songQueryKeys.mine(userId),
+          (current) => (current ?? []).filter((song) => song.id !== songId),
         );
       }
       setSongPendingDelete(null);
       showToast({
         variant: "success",
         title: "Canción eliminada",
-        description: "Borramos la canción de tu biblioteca.",
+        description: "Borramos la canción de tu cancionero.",
       });
     },
   });
@@ -319,17 +342,24 @@ export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong 
         queryClient
           .getQueryData<LibrarySong[]>(songQueryKeys.favorites(userId))
           ?.some((existing) => existing.id === song.id) ?? false;
-      queryClient.setQueryData<LibrarySong[]>(songQueryKeys.favorites(userId), (current) => {
-        const list = current ?? [];
-        const alreadyFavorited = list.some((existing) => existing.id === song.id);
-        return alreadyFavorited
-          ? list.filter((existing) => existing.id !== song.id)
-          : [...list, song];
-      });
+      queryClient.setQueryData<LibrarySong[]>(
+        songQueryKeys.favorites(userId),
+        (current) => {
+          const list = current ?? [];
+          const alreadyFavorited = list.some(
+            (existing) => existing.id === song.id,
+          );
+          return alreadyFavorited
+            ? list.filter((existing) => existing.id !== song.id)
+            : [...list, song];
+        },
+      );
       if (!wasFavorited) setFavoriteFadeInSongId(song.id);
     },
     onSettled: (_data, _error, song) => {
-      setFavoritePendingSongId((current) => (current === song.id ? null : current));
+      setFavoritePendingSongId((current) =>
+        current === song.id ? null : current,
+      );
     },
   });
 
@@ -354,7 +384,13 @@ export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong 
         description: "Actualizamos tus favoritas.",
       });
     });
-  }, [authenticated, myLibrarySongs, publicLibrarySongs, toggleFavoriteMutation, showToast]);
+  }, [
+    authenticated,
+    myLibrarySongs,
+    publicLibrarySongs,
+    toggleFavoriteMutation,
+    showToast,
+  ]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const mySongs = useMemo(
@@ -367,14 +403,18 @@ export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong 
   const favoriteSongs = useMemo(
     () =>
       normalizedQuery
-        ? favoriteLibrarySongs.filter((song) => matchesQuery(song, normalizedQuery))
+        ? favoriteLibrarySongs.filter((song) =>
+            matchesQuery(song, normalizedQuery),
+          )
         : favoriteLibrarySongs,
     [favoriteLibrarySongs, normalizedQuery],
   );
   const publicSongs = useMemo(
     () =>
       normalizedQuery
-        ? publicLibrarySongs.filter((song) => matchesQuery(song, normalizedQuery))
+        ? publicLibrarySongs.filter((song) =>
+            matchesQuery(song, normalizedQuery),
+          )
         : publicLibrarySongs,
     [publicLibrarySongs, normalizedQuery],
   );
@@ -515,7 +555,10 @@ export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong 
           <div className="library-section__head">
             <h2 className="library-section__title">Estudio</h2>
           </div>
-          <a className="library-study-link" href="https://acordesdeguitarra.com.ar/">
+          <a
+            className="library-study-link"
+            href="https://acordesdeguitarra.com.ar/"
+          >
             acordesdeguitarra.com.ar
           </a>
         </section>

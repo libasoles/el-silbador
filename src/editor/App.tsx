@@ -43,7 +43,10 @@ import { applyTheme, deriveTheme } from "./theme";
 import { clearDraft, readDraft, saveDraft } from "./draftStorage";
 import { useAutosave } from "./useAutosave";
 import { useEditor } from "./useEditor";
-import { clearPendingAuthAction, readPendingAuthAction } from "./pendingAuthActionStorage";
+import {
+  clearPendingAuthAction,
+  readPendingAuthAction,
+} from "./pendingAuthActionStorage";
 import { consumeJustForked, saveJustForked } from "./justForkedStorage";
 import { pdfDocumentTitle } from "./pdfFilename";
 import { useToast } from "./toastContext";
@@ -64,13 +67,15 @@ function SongViewSkeleton() {
   return (
     <Theme hasBackground={false}>
       <div className="song-wrapper song-view-skeleton">
-        {["Primera línea de ejemplo", "Segunda línea, un poco más larga", "Tercera línea"].map(
-          (line, index) => (
-            <Skeleton key={index}>
-              <span className="song-view-skeleton__line">{line}</span>
-            </Skeleton>
-          ),
-        )}
+        {[
+          "Primera línea de ejemplo",
+          "Segunda línea, un poco más larga",
+          "Tercera línea",
+        ].map((line, index) => (
+          <Skeleton key={index}>
+            <span className="song-view-skeleton__line">{line}</span>
+          </Skeleton>
+        ))}
       </div>
     </Theme>
   );
@@ -85,8 +90,8 @@ function SongNotFound() {
     <div className="song-not-found">
       <img className="song-not-found__mark" src={neutralIllustration} alt="" />
       <p className="empty-state">
-        No encontramos esta canción. Puede que no exista, o que sea privada y solo la pueda ver
-        quien la creó.
+        No encontramos esta canción. Puede que no exista, o que sea privada y
+        solo la pueda ver quien la creó.
       </p>
       <a className="song-not-found__link" href="/">
         Ir al cancionero
@@ -125,7 +130,9 @@ interface TrackToggleButtonProps {
 function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
   const hasContent =
     track.id === "chordNotes"
-      ? Object.values(cells.chords ?? {}).some((text) => chordToNoteNames(text) !== null)
+      ? Object.values(cells.chords ?? {}).some(
+          (text) => chordToNoteNames(text) !== null,
+        )
       : Object.values(cells[track.id] ?? {}).some((text) => text.trim() !== "");
   // Editable tracks must be activatable while empty so the user can open a row and add its
   // first annotation. The derived chord-notes track remains unavailable until a chord exists.
@@ -166,7 +173,9 @@ function App({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [forking, setForking] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [songIsPublic, setSongIsPublic] = useState(() => initialSong?.isPublic ?? false);
+  const [songIsPublic, setSongIsPublic] = useState(
+    () => initialSong?.isPublic ?? false,
+  );
   const [togglingPublic, setTogglingPublic] = useState(false);
   const [songYoutubeUrl, setSongYoutubeUrlState] = useState<string | null>(
     () => initialSong?.youtubeUrl ?? null,
@@ -176,15 +185,21 @@ function App({
   // the song has ever been saved — unlike the public/private toggle, it isn't gated behind
   // songDbId existing. Set only while a link was entered before autosave created the row; the
   // effect below flushes it as a real write the moment songDbId becomes available.
-  const [pendingYoutubeUrl, setPendingYoutubeUrl] = useState<string | null | undefined>(undefined);
+  const [pendingYoutubeUrl, setPendingYoutubeUrl] = useState<
+    string | null | undefined
+  >(undefined);
   // Fork relationships are stored by database id, but navigation uses slugs. Resolve the source
   // song separately so the title-area link always points to its canonical URL.
-  const [forkedFrom, setForkedFrom] = useState<string | null>(() => initialSong?.forkedFrom ?? null);
+  const [forkedFrom, setForkedFrom] = useState<string | null>(
+    () => initialSong?.forkedFrom ?? null,
+  );
   const [forkSourceSlug, setForkSourceSlug] = useState<string | null>(null);
   // The song's real database id, resolved from `songSlug` once `getSongBySlug` returns (or set
   // directly once autosave creates a brand-new song). Needed because writes (save/delete) still
   // key off the stable id rather than the slug.
-  const [songDbId, setSongDbId] = useState<string | undefined>(() => initialSong?.id);
+  const [songDbId, setSongDbId] = useState<string | undefined>(
+    () => initialSong?.id,
+  );
   // Latest `songDbId`, readable from the load effect below without adding it to that effect's
   // dependencies (it intentionally only reruns for `songSlug` changes — see the effect's comment).
   const songDbIdRef = useRef(songDbId);
@@ -195,7 +210,9 @@ function App({
   // handleSaveClick below), restore it here and let the usual autosave-on-sign-in flow persist it.
   // `App` is server-rendered once (for the client hydration it produces — see
   // SongPageClient/NuevaPage), and `localStorage` doesn't exist on the server.
-  const [restoredDraft] = useState(() => (typeof window === "undefined" ? null : readDraft(songSlug)));
+  const [restoredDraft] = useState(() =>
+    typeof window === "undefined" ? null : readDraft(songSlug),
+  );
   // A local draft always wins over the server's anonymous fetch: it's strictly newer (typed after
   // that fetch resolved). Passed to `useEditor` as this mount's one-time seed for the reducer's
   // initial state, so the very first render already shows real content instead of a skeleton —
@@ -205,7 +222,10 @@ function App({
   // Read here (rather than at its other call site below) because it gates the underline-toggle
   // default that `useEditor` applies when loading content.
   const isMobile = useIsMobile();
-  const { state, actions } = useEditor((restoredDraft ?? initialSong)?.content, isMobile);
+  const { state, actions } = useEditor(
+    (restoredDraft ?? initialSong)?.content,
+    isMobile,
+  );
 
   // A song can change without remounting the editor during client navigation. Treat that the
   // same as opening a fresh page: its mobile tools must start tucked away.
@@ -219,7 +239,9 @@ function App({
   );
   // `undefined` while an existing song's owner is still unknown (fetch in flight); a brand-new
   // song has no owner yet, so it's implicitly "mine" until it's first saved.
-  const [ownerId, setOwnerId] = useState<string | undefined>(() => initialSong?.ownerId);
+  const [ownerId, setOwnerId] = useState<string | undefined>(
+    () => initialSong?.ownerId,
+  );
   useEffect(() => {
     if (restoredDraft) {
       actions.loadContent(restoredDraft.content);
@@ -273,7 +295,8 @@ function App({
     // reruns this effect with the new `songSlug` even though it's still the very song already
     // open here. Compare against the resolved detail's id (not just "is a song already open")
     // so switching to a genuinely different song, e.g. via the back button, still loads it.
-    const isSameSongAlreadyOpen = (detailId: string) => detailId === songDbIdRef.current;
+    const isSameSongAlreadyOpen = (detailId: string) =>
+      detailId === songDbIdRef.current;
 
     // A cache hit (from an earlier visit this session, or from the persisted cache surviving a
     // reload) paints synchronously instead of showing the skeleton for a network round trip.
@@ -281,16 +304,17 @@ function App({
     // never subscribed to again, so a later background revalidation of this same query (e.g. from
     // Library re-fetching after a save) can't fire `actions.loadContent` a second time and clobber
     // whatever the user has typed since this song loaded.
-    const cachedDetail = queryClient.getQueryData<Awaited<ReturnType<typeof getSongBySlug>>>(
-      songQueryKeys.bySlug(songSlug),
-    );
+    const cachedDetail = queryClient.getQueryData<
+      Awaited<ReturnType<typeof getSongBySlug>>
+    >(songQueryKeys.bySlug(songSlug));
     if (cachedDetail) {
       setSongDbId(cachedDetail.id);
       setOwnerId(cachedDetail.ownerId);
       setSongIsPublic(cachedDetail.isPublic);
       setSongYoutubeUrlState(cachedDetail.youtubeUrl);
       setForkedFrom(cachedDetail.forkedFrom);
-      if (!restoredDraft && !isSameSongAlreadyOpen(cachedDetail.id)) actions.loadContent(cachedDetail.content);
+      if (!restoredDraft && !isSameSongAlreadyOpen(cachedDetail.id))
+        actions.loadContent(cachedDetail.content);
       setContentLoaded(true);
     }
 
@@ -309,7 +333,11 @@ function App({
         setForkedFrom(detail.forkedFrom);
         // Only the first resolution (cache or network, whichever wins) may load content into the
         // editor — see the comment above.
-        if (!restoredDraft && !cachedDetail && !isSameSongAlreadyOpen(detail.id)) {
+        if (
+          !restoredDraft &&
+          !cachedDetail &&
+          !isSameSongAlreadyOpen(detail.id)
+        ) {
           actions.loadContent(detail.content);
         }
         setContentLoaded(true);
@@ -353,7 +381,10 @@ function App({
       .catch((error: unknown) => {
         // The source might have become private after this fork was made. In that case RLS makes
         // it unavailable to this viewer, so omit a link that would only lead to a not-found page.
-        console.error("No se pudo cargar la canción de origen del fork.", error);
+        console.error(
+          "No se pudo cargar la canción de origen del fork.",
+          error,
+        );
         if (!cancelled) setForkSourceSlug(null);
       });
 
@@ -372,7 +403,15 @@ function App({
       chordVariants: state.chordVariants,
       merges: state.merges,
     }),
-    [state.title, state.author, state.lyricsText, state.song, state.cells, state.chordVariants, state.merges],
+    [
+      state.title,
+      state.author,
+      state.lyricsText,
+      state.song,
+      state.cells,
+      state.chordVariants,
+      state.merges,
+    ],
   );
   // Ready to autosave once the editor actually holds this song's content, and (for an existing
   // song) once its real id has been resolved from the slug — otherwise a save could either
@@ -394,7 +433,9 @@ function App({
   // fetched owner matches the signed-in user (forking a song creates a new row owned by the
   // forker, so a viewed fork satisfies this the same way any other owned song does).
   const isOwnSong =
-    !songSlug || Boolean(restoredDraft) || (ownerId !== undefined && ownerId === session?.user.id);
+    !songSlug ||
+    Boolean(restoredDraft) ||
+    (ownerId !== undefined && ownerId === session?.user.id);
   // Mobile is read-only by product rule: no title/author/content editing and no forking, even for
   // the song's owner. Favoriting, chord/underline toggles, PDF export and transposition stay
   // available on mobile and must not be gated here.
@@ -416,11 +457,13 @@ function App({
     !songSlug,
     handleSongCreated,
   );
-  const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
+  const pendingChanges =
+    autosaveStatus === "dirty" || autosaveStatus === "error";
   const saving = autosaveStatus === "saving";
 
   useEffect(() => {
-    if (autosaveStatus === "saved") trackEvent("song_saved", { song_id: songDbId });
+    if (autosaveStatus === "saved")
+      trackEvent("song_saved", { song_id: songDbId });
   }, [autosaveStatus, songDbId]);
 
   // The save intent survives the magic-link reload. Mark it complete only after autosave has
@@ -428,7 +471,10 @@ function App({
   useEffect(() => {
     if (!authenticated || autosaveStatus !== "saved") return;
     const pendingAction = readPendingAuthAction();
-    if (pendingAction?.type === "save-song" && pendingAction.songSlug === (songSlug ?? null)) {
+    if (
+      pendingAction?.type === "save-song" &&
+      pendingAction.songSlug === (songSlug ?? null)
+    ) {
       clearPendingAuthAction();
       showToast({
         variant: "success",
@@ -447,7 +493,8 @@ function App({
       showToast({
         variant: "success",
         title: "Canción versionada",
-        description: "Creamos una copia lista para editar, sin afectar la original.",
+        description:
+          "Creamos una copia lista para editar, sin afectar la original.",
       });
     }
   }, [songSlug, showToast]);
@@ -472,7 +519,10 @@ function App({
   useEffect(() => {
     if (!authenticated || !songDbId) return;
     const pendingAction = readPendingAuthAction();
-    if (pendingAction?.type === "fork-song" && pendingAction.songId === songDbId) {
+    if (
+      pendingAction?.type === "fork-song" &&
+      pendingAction.songId === songDbId
+    ) {
       clearPendingAuthAction();
       void performFork(songDbId);
     }
@@ -494,7 +544,9 @@ function App({
       queryClient.invalidateQueries({ queryKey: songQueryKeys.favoritesAll });
       showToast({
         variant: "success",
-        title: updated.isPublic ? "Canción publicada" : "Canción marcada como privada",
+        title: updated.isPublic
+          ? "Canción publicada"
+          : "Canción marcada como privada",
         description: updated.isPublic
           ? "Ahora cualquiera puede verla en el cancionero público."
           : "Ya no aparece en el cancionero público.",
@@ -572,12 +624,13 @@ function App({
     if (!songDbId) return;
     await deleteSong(songDbId);
     queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
-    if (songSlug) queryClient.removeQueries({ queryKey: songQueryKeys.bySlug(songSlug) });
+    if (songSlug)
+      queryClient.removeQueries({ queryKey: songQueryKeys.bySlug(songSlug) });
     setDeleteDialogOpen(false);
     showToast({
       variant: "success",
       title: "Canción eliminada",
-      description: "Borramos la canción de tu biblioteca.",
+      description: "Borramos la canción de tu cancionero.",
     });
     onDeleted?.();
   };
@@ -614,7 +667,10 @@ function App({
         <SilbadorIcon />
       </a>
 
-      <IconButtonTooltip className="app-close-tooltip" tooltip="Volver al índice">
+      <IconButtonTooltip
+        className="app-close-tooltip"
+        tooltip="Volver al índice"
+      >
         <a className="app-close" href="/" aria-label="Volver al índice">
           <XIcon size={26} />
         </a>
@@ -663,11 +719,15 @@ function App({
             )}
             <TransposeWidget
               chordCells={state.cells.chords}
-              onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
+              onTransposeCell={(slotId, text) =>
+                actions.setCellText("chords", slotId, text)
+              }
             />
           </div>
 
-          {(autosaveStatus === "saving" || autosaveStatus === "saved" || autosaveStatus === "error") && (
+          {(autosaveStatus === "saving" ||
+            autosaveStatus === "saved" ||
+            autosaveStatus === "error") && (
             <p className={`autosave-status autosave-status--${autosaveStatus}`}>
               {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
             </p>
@@ -682,14 +742,21 @@ function App({
                     className="mobile-sidebar-menu__trigger"
                     aria-expanded={mobileSidebarOpen}
                     aria-controls="mobile-sidebar-menu-controls"
-                    aria-label={mobileSidebarOpen ? "Cerrar herramientas" : "Abrir herramientas"}
+                    aria-label={
+                      mobileSidebarOpen
+                        ? "Cerrar herramientas"
+                        : "Abrir herramientas"
+                    }
                     onClick={() => setMobileSidebarOpen((open) => !open)}
                   >
                     <MenuIcon />
                   </button>
                 </IconButtonTooltip>
                 {mobileSidebarOpen && (
-                  <div id="mobile-sidebar-menu-controls" className="mobile-sidebar-menu__controls">
+                  <div
+                    id="mobile-sidebar-menu-controls"
+                    className="mobile-sidebar-menu__controls"
+                  >
                     {state.tracks
                       .filter((track) => track.id !== "vocalNotes")
                       .map((track) => (
@@ -697,7 +764,9 @@ function App({
                           key={track.id}
                           track={track}
                           cells={state.cells}
-                          onToggle={() => actions.setTrackVisibility(track.id, !track.visible)}
+                          onToggle={() =>
+                            actions.setTrackVisibility(track.id, !track.visible)
+                          }
                         />
                       ))}
                     <IconButtonTooltip
@@ -717,7 +786,7 @@ function App({
                           const next = !state.showUnderline;
                           actions.setShowUnderline(next);
                           const vocalNotes = state.tracks.find(
-                            (track) => track.id === "vocalNotes"
+                            (track) => track.id === "vocalNotes",
                           );
                           if (vocalNotes && vocalNotes.visible !== next) {
                             actions.setTrackVisibility("vocalNotes", next);
@@ -782,7 +851,7 @@ function App({
                     const next = !state.showUnderline;
                     actions.setShowUnderline(next);
                     const vocalNotes = state.tracks.find(
-                      (track) => track.id === "vocalNotes"
+                      (track) => track.id === "vocalNotes",
                     );
                     if (vocalNotes && vocalNotes.visible !== next) {
                       actions.setTrackVisibility("vocalNotes", next);
@@ -794,13 +863,21 @@ function App({
               </IconButtonTooltip>
               {isAdmin && !isMobile && (
                 <IconButtonTooltip
-                  tooltip={songYoutubeUrl ? "Editar link de YouTube" : "Agregar link de YouTube"}
+                  tooltip={
+                    songYoutubeUrl
+                      ? "Editar link de YouTube"
+                      : "Agregar link de YouTube"
+                  }
                 >
                   <button
                     type="button"
                     className="track-toolbar__toggle"
                     aria-pressed={songYoutubeUrl !== null}
-                    aria-label={songYoutubeUrl ? "Editar link de YouTube" : "Agregar link de YouTube"}
+                    aria-label={
+                      songYoutubeUrl
+                        ? "Editar link de YouTube"
+                        : "Agregar link de YouTube"
+                    }
                     onClick={() => setYoutubeDialogOpen(true)}
                   >
                     <YoutubeIcon />
@@ -849,7 +926,9 @@ function App({
                         ? "action-toolbar__button action-toolbar__button--inactive"
                         : "action-toolbar__button"
                     }
-                    aria-label={songIsPublic ? "Hacer privada" : "Hacer pública"}
+                    aria-label={
+                      songIsPublic ? "Hacer privada" : "Hacer pública"
+                    }
                     aria-pressed={!songIsPublic}
                     disabled={togglingPublic}
                     onClick={handleTogglePublicClick}
@@ -912,7 +991,11 @@ function App({
               )}
               {isOwnSong && !isMobile && (
                 <IconButtonTooltip
-                  tooltip={songDbId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
+                  tooltip={
+                    songDbId
+                      ? "Eliminar canción"
+                      : "No hay canción guardada para eliminar"
+                  }
                 >
                   <button
                     type="button"

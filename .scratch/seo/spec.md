@@ -6,7 +6,7 @@ sin SSR/prerender (todo el contenido se arma client-side con React).
 ## Qué se agregó
 
 - `index.html`: `lang="es"`, `<title>` y `<meta name="description">` reales, `robots: index,
-  follow`, `<link rel="canonical">`, Open Graph completo (`og:title`, `og:description`,
+follow`, `<link rel="canonical">`, Open Graph completo (`og:title`, `og:description`,
   `og:image` 1200x630, `og:url`, `og:site_name`, `og:locale`) y Twitter Card
   (`summary_large_image`).
 - `public/og-image.png`: imagen 1200x630 generada a partir del logo (isotipo del que silba +
@@ -30,5 +30,5 @@ OG. Una canción individual no tiene su propio title/description/og:image — pa
 renderizado del lado del servidor o prerender por ruta, que es un cambio de arquitectura más
 grande, fuera del alcance de este pase.
 
-`sitemap.xml` por eso solo lista `/` (la biblioteca): es la única URL con contenido indexable de
+`sitemap.xml` por eso solo lista `/` (la cancionero): es la única URL con contenido indexable de
 forma confiable sin server-side rendering.
