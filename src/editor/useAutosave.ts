@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { saveSong } from "../data";
 import { songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
+import { revalidatePublicSongs } from "../app/actions";
 
 const DEBOUNCE_MS = 1000;
 
@@ -99,6 +100,11 @@ export function useAutosave(
           // Also drop this song's own cached detail, so navigating away and back re-fetches the
           // just-saved content instead of whatever was cached before this save.
           queryClient.invalidateQueries({ queryKey: songQueryKeys.bySlug(saved.slug) });
+          // The save doesn't tell us whether this song is public, and the public listing is
+          // ISR-cached (see src/app/page.tsx), so unconditionally refresh both here too — cheap,
+          // and otherwise a title edit on an already-public song never reaches other visitors.
+          queryClient.invalidateQueries({ queryKey: songQueryKeys.public() });
+          await revalidatePublicSongs();
           setStatus("saved");
         } catch (error) {
           if (cancelled) return;
