@@ -384,7 +384,8 @@ function App({
     // Never even attempt to persist a viewer's edits to a song they don't own — the DB's RLS
     // policy would reject the write anyway, and without this the debounce would surface a
     // perpetual "No se pudo guardar" error on every keystroke instead of silently doing nothing.
-    authenticated && isOwnSong,
+    // Mobile is read-only, so autosave must stay off there too, even for the song's owner.
+    authenticated && isOwnSong && !isMobile,
     handleSongCreated,
   );
   const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
@@ -671,7 +672,7 @@ function App({
             )}
 
             <aside className="action-toolbar" aria-label="Acciones">
-              {isAdmin && songDbId && (
+              {isAdmin && songDbId && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
                     togglingPublic
@@ -713,7 +714,7 @@ function App({
                   </button>
                 </IconButtonTooltip>
               )}
-              {isOwnSong && (
+              {isOwnSong && !isMobile && (
                 <IconButtonTooltip tooltip={saveTooltip}>
                   <button
                     type="button"
@@ -747,7 +748,7 @@ function App({
                   <DownloadIcon />
                 </button>
               </IconButtonTooltip>
-              {isOwnSong && (
+              {isOwnSong && !isMobile && (
                 <IconButtonTooltip
                   tooltip={songDbId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
                 >
