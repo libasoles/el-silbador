@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { signInWithMagicLink } from "../../data/auth";
 import "./AuthModal.css";
-import { AlertCircleIcon } from "./icons";
+import { AlertCircleIcon, MailIcon } from "./icons";
 import { Dialog } from "./Dialog";
 
 interface AuthModalProps {
@@ -34,7 +34,16 @@ export function AuthModal({ onClose }: AuthModalProps) {
     <Dialog
       open
       onOpenChange={(next) => !next && onClose()}
-      title={linkSent ? "Enviado" : "Entrá o creá tu cuenta"}
+      title={
+        linkSent ? (
+          <span className="auth-modal__sent-title">
+            <MailIcon aria-hidden="true" />
+            Enviado
+          </span>
+        ) : (
+          "Entrá o creá tu cuenta"
+        )
+      }
     >
       {linkSent ? (
         <p className="auth-modal__message">
