@@ -41,16 +41,18 @@
 
 /* Below 62.5rem, the transpose widget and both sidebar toolbars all sit in the same clamped
    column (TransposeWidget.css's comment on that breakpoint explains why — they haven't cleared
-   this button horizontally yet, so they stack under it instead of beside the title). A flat 1rem
-   here drifts out of that column across most of that range (the clamp sits at 0.75rem below
-   ~56.5rem, and grows past 1rem again above it), which reads as misaligned toolbars on
-   tablet-sized screens. Sharing their exact formula keeps all four controls in one column
-   whenever they're meant to read as one. Above 62.5rem the two intentionally part ways — this
+   this button horizontally yet, so they stack under it instead of beside the title). Matching
+   --sidebar-right exactly would line up this button's own right edge with theirs, but this
+   button's box (2.75rem) is wider than the sidebar icons' (2.4rem) — an edge match still leaves
+   the X glyph itself sitting 0.175rem left of the sidebar icons' own centers, which reads as
+   misaligned even though the boxes technically share an edge. Subtracting half that width
+   difference instead centers this button's icon on the same axis as the sidebar icons' (and,
+   below, the transpose widget's) icons. Above 62.5rem the two intentionally part ways — this
    button stays pinned to the literal corner while the widget moves up beside the title — so this
    override stops there too. */
 @media (max-width: 62.5rem) {
   .app-close-tooltip {
-    right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
+    right: calc(var(--sidebar-right) - 0.175rem);
   }
 }
 
@@ -231,7 +233,7 @@
 .track-toolbar {
   position: fixed;
   top: 9rem;
-  right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
+  right: var(--sidebar-right);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -285,7 +287,7 @@
 .action-toolbar {
   position: fixed;
   bottom: 1.5rem;
-  right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
+  right: var(--sidebar-right);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
