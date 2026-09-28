@@ -13,6 +13,7 @@ import {
   PlusIcon,
   SearchIcon,
   SilbadorIcon,
+  SpinnerIcon,
   StarIcon,
   TrashIcon,
 } from "../components/icons";
@@ -32,6 +33,8 @@ function matchesQuery(song: LibrarySong, query: string): boolean {
 interface SongRowProps {
   song: LibrarySong;
   favorited: boolean;
+  favoritePending: boolean;
+  fadeIn: boolean;
   showFavorite: boolean;
   showDelete: boolean;
   onOpen: () => void;
@@ -42,6 +45,8 @@ interface SongRowProps {
 function SongRow({
   song,
   favorited,
+  favoritePending,
+  fadeIn,
   showFavorite,
   showDelete,
   onOpen,
@@ -49,7 +54,7 @@ function SongRow({
   onDelete,
 }: SongRowProps) {
   return (
-    <li className="library-row">
+    <li className={fadeIn ? "library-row library-row--fade-in" : "library-row"}>
       <button type="button" className="library-row__open" onClick={onOpen}>
         <span className="library-row__title">{song.title}</span>
         <span className="library-row__leader" aria-hidden="true" />
@@ -64,15 +69,30 @@ function SongRow({
         </span>
       </button>
       {showFavorite && (
-        <IconButtonTooltip tooltip={favorited ? "Quitar de favoritas" : "Agregar a favoritas"}>
+        <IconButtonTooltip
+          tooltip={
+            favoritePending
+              ? "Actualizando favorita"
+              : favorited
+                ? "Quitar de favoritas"
+                : "Agregar a favoritas"
+          }
+        >
           <button
             type="button"
             className="library-row__star"
             aria-pressed={favorited}
-            aria-label={favorited ? "Quitar de favoritas" : "Agregar a favoritas"}
+            aria-label={
+              favoritePending
+                ? "Actualizando favorita"
+                : favorited
+                  ? "Quitar de favoritas"
+                  : "Agregar a favoritas"
+            }
             onClick={onToggleFavorite}
+            disabled={favoritePending}
           >
-            <StarIcon filled={favorited} />
+            {favoritePending ? <SpinnerIcon /> : <StarIcon filled={favorited} />}
           </button>
         </IconButtonTooltip>
       )}
@@ -114,6 +134,8 @@ interface LibrarySectionProps {
   emptyLabel: string;
   emptyIcon?: ReactNode;
   favoriteIds: Set<string>;
+  favoritePendingSongId?: string;
+  fadeInSongId?: string;
   showFavorite?: boolean;
   showDelete?: boolean;
   loading?: boolean;
@@ -128,6 +150,8 @@ function LibrarySection({
   emptyLabel,
   emptyIcon = <SilbadorIcon />,
   favoriteIds,
+  favoritePendingSongId,
+  fadeInSongId,
   showFavorite = true,
   showDelete = false,
   loading = false,
@@ -163,6 +187,8 @@ function LibrarySection({
               key={song.id}
               song={song}
               favorited={favoriteIds.has(song.id)}
+              favoritePending={favoritePendingSongId === song.id}
+              fadeIn={fadeInSongId === song.id}
               showFavorite={showFavorite}
               showDelete={showDelete}
               onOpen={() => onOpenSong(song)}
@@ -193,6 +219,8 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [songPendingDelete, setSongPendingDelete] = useState<LibrarySong | null>(null);
+  const [favoritePendingSongId, setFavoritePendingSongId] = useState<string | null>(null);
+  const [favoriteFadeInSongId, setFavoriteFadeInSongId] = useState<string | null>(null);
 
   const {
     data: myLibrarySongs = [],
@@ -250,8 +278,15 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
 
   const toggleFavoriteMutation = useMutation({
     mutationFn: (song: LibrarySong) => toggleFavorite(song.id),
+    onMutate: (song) => {
+      setFavoritePendingSongId(song.id);
+    },
     onSuccess: (_data, song) => {
       if (!userId) return;
+      const wasFavorited =
+        queryClient
+          .getQueryData<LibrarySong[]>(songQueryKeys.favorites(userId))
+          ?.some((existing) => existing.id === song.id) ?? false;
       queryClient.setQueryData<LibrarySong[]>(songQueryKeys.favorites(userId), (current) => {
         const list = current ?? [];
         const alreadyFavorited = list.some((existing) => existing.id === song.id);
@@ -259,6 +294,10 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
           ? list.filter((existing) => existing.id !== song.id)
           : [...list, song];
       });
+      if (!wasFavorited) setFavoriteFadeInSongId(song.id);
+    },
+    onSettled: (_data, _error, song) => {
+      setFavoritePendingSongId((current) => (current === song.id ? null : current));
     },
   });
 
@@ -393,6 +432,7 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
             songs={mySongs}
             emptyLabel="Todavía no escribiste ninguna canción."
             favoriteIds={favoriteIds}
+            favoritePendingSongId={favoritePendingSongId ?? undefined}
             showFavorite={false}
             showDelete
             loading={myLibraryLoading}
@@ -408,6 +448,8 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
             songs={favoriteSongs}
             emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
             favoriteIds={favoriteIds}
+            favoritePendingSongId={favoritePendingSongId ?? undefined}
+            fadeInSongId={favoriteFadeInSongId ?? undefined}
             loading={favoritesLoading}
             onOpenSong={handleOpen}
             onToggleFavorite={handleToggleFavorite}
@@ -420,6 +462,7 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
           emptyLabel="Todavía no hay canciones públicas para mostrar."
           emptyIcon={<NeutralIllustrationIcon />}
           favoriteIds={favoriteIds}
+          favoritePendingSongId={favoritePendingSongId ?? undefined}
           loading={publicLibraryLoading}
           onOpenSong={handleOpen}
           onToggleFavorite={handleToggleFavorite}
