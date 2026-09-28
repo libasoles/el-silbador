@@ -49,6 +49,17 @@
   line-height: 1.4;
 }
 
+.auth-modal__sent-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.auth-modal__sent-title svg {
+  width: 1.15em;
+  height: 1.15em;
+}
+
 .auth-modal__submit {
   margin-top: 0.2rem;
   padding: 0.55rem 0.8rem;

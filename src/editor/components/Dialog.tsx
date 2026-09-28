@@ -6,7 +6,7 @@ import { XIcon } from "./icons";
 interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string;
+  title: ReactNode;
   children: ReactNode;
 }
 

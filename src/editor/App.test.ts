@@ -99,6 +99,7 @@ describe("favicon", () => {
 describe("authentication dialog", () => {
   it("confirms magic links without assuming the action that opened it", () => {
     expect(authModal).toContain("Abrí el enlace para iniciar sesión y continuar.");
+    expect(authModal).toContain("<MailIcon aria-hidden=\"true\" />");
     expect(authModal).not.toContain("terminar de guardar la canción");
   });
 });
