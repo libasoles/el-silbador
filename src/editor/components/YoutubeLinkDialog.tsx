@@ -64,7 +64,12 @@ export function YoutubeLinkDialog({ open, currentUrl, onOpenChange, onSave }: Yo
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange} title="Link de YouTube">
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      title="Link de YouTube"
+      className="youtube-link-dialog"
+    >
       <form className="youtube-link-dialog__form" onSubmit={handleSubmit}>
         <label className="youtube-link-dialog__field">
           URL del video

@@ -8,17 +8,22 @@ interface DialogProps {
   onOpenChange: (open: boolean) => void;
   title: ReactNode;
   children: ReactNode;
+  /** Extra class applied to the dialog box, e.g. to widen it for a specific dialog. */
+  className?: string;
 }
 
 /** Shared chrome (overlay, box, title, close button) for every modal dialog in the app, so
  *  AuthModal and ConfirmDialog look and behave the same way. Built on Radix's Dialog primitive
  *  for focus trapping, Escape-to-close, and scroll locking. */
-export function Dialog({ open, onOpenChange, title, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, title, children, className }: DialogProps) {
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="dialog__overlay" />
-        <RadixDialog.Content className="dialog" aria-describedby={undefined}>
+        <RadixDialog.Content
+          className={className ? `dialog ${className}` : "dialog"}
+          aria-describedby={undefined}
+        >
           <RadixDialog.Close className="dialog__close" aria-label="Cerrar">
             <XIcon size={18} />
           </RadixDialog.Close>
