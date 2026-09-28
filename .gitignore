@@ -31,3 +31,6 @@ dist-ssr
 TODO.md
 .env
 supabase/.temp/
+
+# Local Netlify folder
+.netlify
