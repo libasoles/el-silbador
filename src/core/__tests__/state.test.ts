@@ -9,6 +9,16 @@ function reduce(state: EditorState, ...actions: Action[]): EditorState {
 }
 
 describe("setLyricsText", () => {
+  it("starts a new song with chords and melody notes visible", () => {
+    const state = createInitialState();
+
+    expect(state.tracks).toEqual([
+      { id: "chordNotes", label: "Notas del acorde", visible: false },
+      { id: "chords", label: "Acordes", visible: true },
+      { id: "vocalNotes", label: "Notas de la melodía", visible: true },
+    ]);
+  });
+
   it("hyphenates every word of every line, preserving line order", () => {
     const state = reduce(createInitialState(), {
       type: "setLyricsText",
