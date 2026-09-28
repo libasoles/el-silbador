@@ -11,6 +11,11 @@
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   color-scheme: light;
+
+  /* Shared right anchor for .track-toolbar/.action-toolbar (App.css) and, below 62.5rem, for
+     .app-close-tooltip and .transpose-widget too (App.css/TransposeWidget.css) — see those rules'
+     own comments for why the latter two only borrow it in that range. */
+  --sidebar-right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
 }
 
 * {
