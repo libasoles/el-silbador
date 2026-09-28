@@ -411,6 +411,9 @@ function App({
     // its own argument (not folded into `authenticated`) so ownership resolving late doesn't look
     // like a sign-in edge and fire an immediate, contentless save — see useAutosave's docstring.
     isOwnSong && !isMobile,
+    // A song with no slug from the route was never fetched — it was started fresh in this
+    // browser — so its first save must be the explicit Save click, not the debounce.
+    !songSlug,
     handleSongCreated,
   );
   const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
@@ -588,7 +591,9 @@ function App({
       requireAuthentication({ type: "save-song", songSlug: songSlug ?? null });
       return;
     }
-    if (autosaveStatus === "error") retrySave();
+    // Always forces an immediate save rather than waiting on the debounce — this is also the
+    // only way a brand-new song's required-manual first save ever reaches the network.
+    retrySave();
   };
 
   const notFound = loadError !== null && loadError.songSlug === songSlug;
