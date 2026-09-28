@@ -16,6 +16,7 @@ import {
 } from "../data";
 import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
+import { revalidatePublicSongs } from "../app/actions";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
 import { useAuthRequired } from "./authRequiredContext";
@@ -433,6 +434,7 @@ function App({
       const updated = await setSongPublic(songDbId, !songIsPublic);
       setSongIsPublic(updated.isPublic);
       queryClient.invalidateQueries({ queryKey: songQueryKeys.public() });
+      await revalidatePublicSongs();
       showToast({
         variant: "success",
         title: updated.isPublic ? "Canción publicada" : "Canción marcada como privada",
