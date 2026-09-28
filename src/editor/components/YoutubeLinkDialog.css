@@ -1,3 +1,7 @@
+.youtube-link-dialog {
+  max-width: 32rem;
+}
+
 .youtube-link-dialog__form {
   display: flex;
   flex-direction: column;
