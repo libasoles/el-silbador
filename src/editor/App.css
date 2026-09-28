@@ -7,14 +7,23 @@
   padding: 1.25rem 2rem 6rem;
 }
 
-/* Horizontal and top spacing are the page-shell layout's job on mobile (see globals.css) — zeroed
-   here so they aren't applied twice. Bottom padding stays: it clears the fixed .action-toolbar
+/* Top spacing is the page-shell layout's job from 60rem down — it grows its own top padding to
+   clear the fixed logo over that whole range (see globals.css), so it's zeroed here to avoid
+   stacking two top clearances. Bottom padding stays: it clears the fixed .action-toolbar
    regardless of viewport. */
+@media (max-width: 60rem) {
+  .app {
+    padding-top: 0;
+  }
+}
+
+/* Horizontal spacing is also the page-shell layout's job, but only once there's no room left for
+   it to read as a margin at all — zeroed here to match, same reasoning as globals.css's own
+   30rem rule. */
 @media (max-width: 30rem) {
   .app {
     padding-left: 0;
     padding-right: 0;
-    padding-top: 0;
   }
 }
 
@@ -28,6 +37,21 @@
   z-index: 5;
   width: 2.75rem;
   height: 2.75rem;
+}
+
+/* Below 62.5rem, the transpose widget and both sidebar toolbars all sit in the same clamped
+   column (TransposeWidget.css's comment on that breakpoint explains why — they haven't cleared
+   this button horizontally yet, so they stack under it instead of beside the title). A flat 1rem
+   here drifts out of that column across most of that range (the clamp sits at 0.75rem below
+   ~56.5rem, and grows past 1rem again above it), which reads as misaligned toolbars on
+   tablet-sized screens. Sharing their exact formula keeps all four controls in one column
+   whenever they're meant to read as one. Above 62.5rem the two intentionally part ways — this
+   button stays pinned to the literal corner while the widget moves up beside the title — so this
+   override stops there too. */
+@media (max-width: 62.5rem) {
+  .app-close-tooltip {
+    right: max(0.75rem, calc((100vw - 56rem) / 2 + 0.5rem));
+  }
 }
 
 /* Mirrors .app-mark's own corner exactly, on the opposite side, so the two read as a matched
