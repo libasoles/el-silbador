@@ -6,7 +6,7 @@
      page width. */
   max-width: 56rem;
   margin: 0 auto;
-  padding: 1.25rem 2rem 6rem;
+  padding: 1.25rem 2rem 0;
 }
 
 /* Horizontal and top spacing are the page-shell layout's job on mobile (see globals.css) — zeroed
@@ -130,11 +130,10 @@
   gap: 2.25rem;
 }
 
-/* Kept outside the library content's column rhythm by the main layout's gap, so the build
-   marker reads as a quiet footer rather than another section of the songbook. */
+/* The parent layout's gap keeps this separate from the songbook content; the main has no bottom
+   padding, so the marker itself remains at the page footer. */
 .library-version {
   align-self: flex-end;
-  margin-top: 1rem;
   color: var(--muted);
   font-family: var(--sans);
   font-size: 0.7rem;
