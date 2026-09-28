@@ -9,6 +9,11 @@ const iconButtonTooltip = readFileSync(
   "utf8",
 );
 const favicon = readFileSync(new URL("../../public/favicon.svg", import.meta.url), "utf8");
+const darkFavicon = readFileSync(
+  new URL("../../public/favicon-dark.svg", import.meta.url),
+  "utf8",
+);
+const layout = readFileSync(new URL("../../src/app/layout.tsx", import.meta.url), "utf8");
 const authModal = readFileSync(new URL("./components/AuthModal.tsx", import.meta.url), "utf8");
 
 describe("underline visibility", () => {
@@ -84,15 +89,21 @@ describe("application mark", () => {
 });
 
 describe("favicon", () => {
-  it("uses the supplied whistling-face mark on an accent-colored background", () => {
-    // A stroke-only icon with no background is invisible against a browser tab's own
-    // background, so the mark sits on a filled square colored with the brand accent.
+  it("uses a stroke-only whistling-face mark without the former accent background", () => {
     expect(favicon).toContain('viewBox="0 0 64 64"');
-    expect(favicon).toContain('fill="#9c4a3c"');
-    expect(favicon).toContain('stroke="#fbfaf7"');
+    expect(favicon).not.toContain("<rect");
+    expect(favicon).toContain('stroke="#000"');
     expect(favicon).toContain('stroke-width="2.15"');
     expect(favicon).toContain('M38.8 35.3C40.1 34.7');
     expect(favicon).toContain('stroke-width="1.75"');
+  });
+
+  it("selects black or white strokes from the system color scheme", () => {
+    expect(layout).toContain('url: "/favicon-light.svg"');
+    expect(layout).toContain('media: "(prefers-color-scheme: light)"');
+    expect(layout).toContain('url: "/favicon-dark.svg"');
+    expect(layout).toContain('media: "(prefers-color-scheme: dark)"');
+    expect(darkFavicon).toContain('stroke="#fff"');
   });
 });
 
