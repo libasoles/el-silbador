@@ -616,14 +616,14 @@ function App({
 
           <div className="workspace">
             {isMobile && (
-              <aside className="mobile-sidebar-menu" aria-label="Herramientas de la canción">
-                <IconButtonTooltip tooltip="Herramientas de la canción">
+              <aside className="mobile-sidebar-menu" aria-label="Herramientas">
+                <IconButtonTooltip tooltip="Herramientas">
                   <button
                     type="button"
                     className="mobile-sidebar-menu__trigger"
                     aria-expanded={mobileSidebarOpen}
                     aria-controls="mobile-sidebar-menu-controls"
-                    aria-label={mobileSidebarOpen ? "Cerrar herramientas de la canción" : "Abrir herramientas de la canción"}
+                    aria-label={mobileSidebarOpen ? "Cerrar herramientas" : "Abrir herramientas"}
                     onClick={() => setMobileSidebarOpen((open) => !open)}
                   >
                     <MenuIcon />
