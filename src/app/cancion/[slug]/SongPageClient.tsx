@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import App from "../../../editor/App";
 import { useAuthRequired } from "../../../editor/authRequiredContext";
@@ -29,6 +30,9 @@ interface SongPageClientProps {
 export function SongPageClient({ slug, initialState }: SongPageClientProps) {
   const router = useRouter();
   const { session } = useAuthRequired();
+  // Tracks whatever slug is currently in the address bar, independent of the `slug` prop (which
+  // never changes — see below). Starts at the slug this page was loaded with.
+  const currentSlugRef = useRef(slug);
 
   if (session === undefined) {
     return initialState ? <StaticSongView state={initialState} /> : <SongPageLoading />;
@@ -39,11 +43,17 @@ export function SongPageClient({ slug, initialState }: SongPageClientProps) {
       songSlug={slug}
       onSongCreated={(_id, newSlug) => {
         // `onSongCreated` fires after every autosave, not just when the slug actually changed
-        // (see useAutosave.ts) — skip the navigation entirely when it didn't, and suppress the
-        // scroll-to-top when it did, so a save in the background doesn't yank the editor's
-        // scroll position back up mid-edit.
-        if (newSlug === slug) return;
-        router.replace(`/cancion/${newSlug}`, { scroll: false });
+        // (see useAutosave.ts) — skip entirely when it didn't.
+        if (newSlug === currentSlugRef.current) return;
+        currentSlugRef.current = newSlug;
+        // A title edit on the song already open here regenerates its slug (see
+        // supabase/migrations/0006_regenerate_slug_on_title_change.sql), but the content shown is
+        // already correct and doesn't need refetching — only the address bar is stale. Using the
+        // History API directly (instead of `router.replace`) keeps this a same-page URL swap:
+        // `router.replace` would ask Next to navigate to what looks like a different dynamic route
+        // segment, refetching the page's server data and rerunning App's song-loading effect for a
+        // song that's already loaded, which is the visible "reload" flash this avoids.
+        window.history.replaceState(window.history.state, "", `/cancion/${newSlug}`);
       }}
       onDeleted={() => router.replace("/")}
     />
