@@ -16,11 +16,10 @@ import {
 import { getSupabaseClient } from "../supabaseClient";
 import type { SongContent } from "../types";
 
-// Integration tests against a real Supabase project (see README.md in this directory for setup).
-// Skipped entirely — not failed — when the required env vars aren't present, so `npm run test`
-// stays green without real credentials.
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
+// Integration tests run against the local Supabase stack (see README.md in this directory).
+// They remain skipped during `npm test`: `npm run test:integration` supplies local-only keys.
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_TEST_SERVICE_ROLE_KEY;
 const hasEnv = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SERVICE_ROLE_KEY);
 

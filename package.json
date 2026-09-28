@@ -8,6 +8,10 @@
     "build": "next build",
     "lint": "oxlint",
     "test": "vitest run",
+    "test:integration": "./scripts/test-integration.sh",
+    "test:integration:run": "vitest run src/data/__tests__/songs.test.ts",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
     "start": "next start"
   },
   "dependencies": {
@@ -30,6 +34,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "oxlint": "^1.81.0",
+    "supabase": "^2.118.0",
     "typescript": "~6.0.2",
     "vitest": "^5.0.1"
   }
