@@ -37,6 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {
         id,
         variant: options.variant ?? "info",
+        icon: options.icon,
         title: options.title,
         description: options.description,
         duration: options.duration ?? DEFAULT_DURATION,
