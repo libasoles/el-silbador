@@ -1,8 +1,6 @@
 # Silabeo
 
-## Site identity
-
-The site's name is always "El Silbador", with the article — never just "Silbador". This applies to any user-facing text: page titles, meta descriptions/OG tags, on-screen copy, PDF filenames, etc. (Component/identifier names like `SilbadorIcon` are exempt.)
+See [AGENTS.md](./AGENTS.md) for site identity and other cross-agent conventions — it is the source of truth, shared across Claude, Codex, and other agents.
 
 ## Mobile behavior rules
 

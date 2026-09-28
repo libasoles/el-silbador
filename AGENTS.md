@@ -1,5 +1,9 @@
 ## Agent skills
 
+## Site identity
+
+Silabeo/El Silbador is a **cancionero** (songbook) app. The site's name is always "El Silbador", with the article — never just "Silbador". This applies to any user-facing text: page titles, meta descriptions/OG tags, on-screen copy, PDF filenames, etc. (Component/identifier names like `SilbadorIcon` are exempt.)
+
 ## Git workflow
 
 Every task must use its own git worktree and branch. Codex creates worktrees at
