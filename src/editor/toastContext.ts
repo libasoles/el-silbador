@@ -1,9 +1,11 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 
 export type ToastVariant = "info" | "success" | "error";
 
 export interface ToastOptions {
   variant?: ToastVariant;
+  /** Optional artwork shown in place of the variant's standard icon. */
+  icon?: ReactNode;
   title: string;
   description?: string;
   /** Milliseconds before the toast auto-dismisses. Defaults to 5000. */

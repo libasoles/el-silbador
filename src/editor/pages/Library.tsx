@@ -395,9 +395,17 @@ export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong 
 
   const handleAuthClick = () => {
     if (authenticated) {
-      signOut().catch((error: unknown) => {
-        console.error("No se pudo cerrar sesión.", error);
-      });
+      signOut()
+        .then(() => {
+          showToast({
+            variant: "success",
+            icon: <img src="/04-happy.svg" alt="" />,
+            title: "Hasta pronto",
+          });
+        })
+        .catch((error: unknown) => {
+          console.error("No se pudo cerrar sesión.", error);
+        });
       return;
     }
     requireAuthentication();

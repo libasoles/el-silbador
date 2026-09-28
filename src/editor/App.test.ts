@@ -18,6 +18,8 @@ const layout = readFileSync(new URL("../../src/app/layout.tsx", import.meta.url)
 const authModal = readFileSync(new URL("./components/AuthModal.tsx", import.meta.url), "utf8");
 const autosave = readFileSync(new URL("./useAutosave.ts", import.meta.url), "utf8");
 const lineView = readFileSync(new URL("./components/LineView.tsx", import.meta.url), "utf8");
+const toastStyles = readFileSync(new URL("./components/Toast.css", import.meta.url), "utf8");
+const providers = readFileSync(new URL("../app/providers.tsx", import.meta.url), "utf8");
 
 describe("underline visibility", () => {
   it("does not couple the underline to the chords track visibility", () => {
@@ -151,6 +153,13 @@ describe("authentication dialog", () => {
     expect(authModal).toContain("Abrí el enlace para iniciar sesión y continuar.");
     expect(authModal).toContain("<MailIcon aria-hidden=\"true\" />");
     expect(authModal).not.toContain("terminar de guardar la canción");
+  });
+});
+
+describe("magic-link callback errors", () => {
+  it("shows Supabase callback errors as a ten-second error toast", () => {
+    expect(providers).toContain("<AuthCallbackErrorToast />");
+    expect(toastStyles).toMatch(/\.toast--error\s*\{[\s\S]*background: #fff1f1[\s\S]*border: 1px solid #bd2d2d/);
   });
 });
 
