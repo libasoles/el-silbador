@@ -21,6 +21,9 @@ export interface SongSummary {
   author: string;
   ownerId: string;
   isPublic: boolean;
+  /** Set by an admin only (see supabase/migrations/0007_song_youtube_link.sql); rendered below
+   *  the lyrics on the song page. `null` when no link has been attached. */
+  youtubeUrl: string | null;
   forkedFrom: string | null;
   createdAt: string;
   updatedAt: string;

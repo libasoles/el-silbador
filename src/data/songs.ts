@@ -26,6 +26,7 @@ interface SongRow {
   owner_id: string;
   content: StoredSongContent;
   is_public: boolean;
+  youtube_url: string | null;
   forked_from: string | null;
   created_at: string;
   updated_at: string;
@@ -37,7 +38,8 @@ interface FavoriteRow {
 
 // The author belongs to the song content rather than the owner profile, so summaries include the
 // content needed to show the work's own author or performer in the index.
-const SUMMARY_COLUMNS = "id, slug, title, owner_id, content, is_public, forked_from, created_at, updated_at";
+const SUMMARY_COLUMNS =
+  "id, slug, title, owner_id, content, is_public, youtube_url, forked_from, created_at, updated_at";
 const DETAIL_COLUMNS = SUMMARY_COLUMNS;
 
 export function serializeContent(content: SongContent): StoredSongContent {
@@ -73,6 +75,7 @@ function toSummary(row: SongRow): SongSummary {
     author: row.content.author ?? "",
     ownerId: row.owner_id,
     isPublic: row.is_public,
+    youtubeUrl: row.youtube_url,
     forkedFrom: row.forked_from,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -267,6 +270,26 @@ export async function setSongPublic(songId: string, isPublic: boolean): Promise<
   // here so callers don't mistake a no-op for success.
   if (summary.isPublic !== isPublic) {
     throw new Error("Not authorized to change this song's visibility.");
+  }
+  return summary;
+}
+
+export async function setSongYoutubeUrl(songId: string, youtubeUrl: string | null): Promise<SongSummary> {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("songs")
+    .update({ youtube_url: youtubeUrl })
+    .eq("id", songId)
+    .select(SUMMARY_COLUMNS)
+    .single();
+  if (error) throw error;
+
+  const summary = toSummary(data as SongRow);
+  // Same admin-only guard as setSongPublic above, reverted silently by the DB trigger instead of
+  // raising (see supabase/migrations/0007_song_youtube_link.sql) — surface that as a rejection.
+  if (summary.youtubeUrl !== youtubeUrl) {
+    throw new Error("Not authorized to change this song's YouTube link.");
   }
   return summary;
 }

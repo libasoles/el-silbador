@@ -15,6 +15,7 @@ export {
   listPublicSongs,
   saveSong,
   setSongPublic,
+  setSongYoutubeUrl,
   toggleFavorite,
 } from "./songs";
 export { isCurrentUserAdmin, setUsername } from "./profiles";

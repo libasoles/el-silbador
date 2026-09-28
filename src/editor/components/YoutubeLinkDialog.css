@@ -1,0 +1,36 @@
+.youtube-link-dialog__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.youtube-link-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.youtube-link-dialog__field input {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 0.3rem;
+  padding: 0.5rem 0.6rem;
+}
+
+.youtube-link-dialog__field input:focus {
+  outline: none;
+  border-color: var(--fg);
+}
+
+.youtube-link-dialog__hint {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--muted);
+}

@@ -6,6 +6,7 @@ import { getCell } from "../../core/state";
 import type { CellsByTrack, Song, TrackDef, TrackId } from "../../core/types";
 import { EditorHelp } from "./EditorHelp";
 import { LineView } from "./LineView";
+import { YoutubeEmbed } from "./YoutubeEmbed";
 
 interface DragCell {
   trackId: TrackId;
@@ -20,6 +21,9 @@ interface SongViewProps {
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
   showUnderline: boolean;
+  /** Admin-attached YouTube link (see App.tsx's action-toolbar button), rendered below the
+   *  lyrics. `null`/`undefined` when none is set. */
+  youtubeUrl?: string | null;
   /** False while the viewer isn't allowed to edit this song (not its owner and not a fork of
    *  it) — the whole document becomes non-editable, and every track cell and syllable-join
    *  toggle underneath it follows suit. */
@@ -342,6 +346,7 @@ export function SongView({
   cells,
   chordVariants,
   showUnderline,
+  youtubeUrl,
   canEdit,
   onSetCellText,
   onSetChordVariant,
@@ -845,6 +850,7 @@ export function SongView({
           </pre>
         </div>
       ) : null}
+      {youtubeUrl ? <YoutubeEmbed url={youtubeUrl} /> : null}
       <EditorHelp />
     </div>
   );
