@@ -595,6 +595,11 @@
 
 /* Editing isn't available on mobile (read-only there), so hide the help text that describes it. */
 @media (max-width: 30rem) {
+  /* Align the help affordance with the export action's bottom gutter. */
+  .editor-help {
+    bottom: 1.5rem;
+  }
+
   .editor-help__edit-only {
     display: none;
   }
