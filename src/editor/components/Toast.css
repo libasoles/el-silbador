@@ -82,6 +82,18 @@
   margin-top: 0.1rem;
 }
 
+.toast__icon--artwork {
+  align-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-top: 0;
+}
+
+.toast__icon--artwork img {
+  width: 100%;
+  height: 100%;
+}
+
 .toast--info .toast__icon {
   color: var(--accent);
 }
