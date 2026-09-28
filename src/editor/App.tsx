@@ -188,7 +188,10 @@ function App({
   // avoiding a second, later mount of the full (potentially large) `SongView`/`LineView` tree,
   // which on mobile is what briefly doubles memory pressure enough to crash the tab (see
   // `SongPageClient`).
-  const { state, actions } = useEditor((restoredDraft ?? initialSong)?.content);
+  // Read here (rather than at its other call site below) because it gates the underline-toggle
+  // default that `useEditor` applies when loading content.
+  const isMobile = useIsMobile();
+  const { state, actions } = useEditor((restoredDraft ?? initialSong)?.content, isMobile);
   // Only an existing song (songSlug set, no restored draft, no server-fetched content) has content
   // worth waiting on; anything else starts "loaded" with its editor state already in place.
   const [contentLoaded, setContentLoaded] = useState(
@@ -370,7 +373,6 @@ function App({
   // forker, so a viewed fork satisfies this the same way any other owned song does).
   const isOwnSong =
     !songSlug || Boolean(restoredDraft) || (ownerId !== undefined && ownerId === session?.user.id);
-  const isMobile = useIsMobile();
   // Mobile is read-only by product rule: no title/author/content editing and no forking, even for
   // the song's owner. Favoriting, chord/underline toggles, PDF export and transposition stay
   // available on mobile and must not be gated here.
