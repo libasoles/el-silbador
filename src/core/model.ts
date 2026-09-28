@@ -67,6 +67,22 @@ export function chordSlotForColumn(line: Line, rawLineText: string, column: numb
   return firstSyllable ? startSlotId(line.id) : endSlotId(line.id);
 }
 
+/** The inverse of `chordSlotForColumn`: the character column, within the line's own plain text
+ * (words joined by single spaces), where `slotId` sits. Used to write a chord back out above its
+ * lyric line (e.g. on copy) in the same column-aligned convention `chordSlotForColumn` reads. */
+export function columnForSlot(line: Line, slotId: string): number {
+  if (slotId === startSlotId(line.id)) return 0;
+  let offset = 0;
+  for (let i = 0; i < line.words.length; i++) {
+    if (i > 0) offset += 1;
+    for (const syllable of line.words[i].syllables) {
+      if (beforeSlotId(syllable.id) === slotId) return offset;
+      offset += syllable.text.length;
+    }
+  }
+  return offset;
+}
+
 /**
  * Collapses a line's flat syllable sequence into annotation units, merging any syllables
  * joined by an active melisma into a single unit anchored at the first syllable's slot.

@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
-import { getLineCellSlots } from "../../core/model";
+import { columnForSlot, getLineCellSlots } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Song, TrackDef, TrackId } from "../../core/types";
 import { EditorHelp } from "./EditorHelp";
@@ -174,6 +174,50 @@ function positionFromFlatOffset(lines: string[], flat: number): CaretPosition {
   }
   const lastIndex = lines.length - 1;
   return { lineIndex: lastIndex, offset: lines[lastIndex]?.length ?? 0 };
+}
+
+/** The clipboard text for `[start, end)` of the document, in the same chord-sheet convention
+ *  `parseChordSheet` reads on paste: each chord written on its own line, above the lyric line it
+ *  applies to, aligned by character column. Only chords whose column falls inside the selected
+ *  slice of their line are included, so a partial-line selection doesn't drag in a chord that sits
+ *  outside it. This is what makes copy/paste of a phrase carry its chords along, and — just as
+ *  importantly — what replaces the browser's default plain-text serialization of the selection,
+ *  which (via the non-editable `<button>` syllable-gap widgets between syllables) otherwise
+ *  breaks each syllable onto its own line. */
+function clipboardTextForRange(
+  song: Song,
+  cells: CellsByTrack,
+  merges: ReadonlySet<string>,
+  lines: string[],
+  start: CaretPosition,
+  end: CaretPosition,
+): string {
+  const outLines: string[] = [];
+  for (let lineIndex = start.lineIndex; lineIndex <= end.lineIndex; lineIndex++) {
+    const lineStartCol = lineIndex === start.lineIndex ? start.offset : 0;
+    const lineEndCol = lineIndex === end.lineIndex ? end.offset : lines[lineIndex].length;
+    const lineSlice = lines[lineIndex].slice(lineStartCol, lineEndCol);
+
+    const modelLine = song[lineIndex];
+    const tokens: { column: number; chord: string }[] = [];
+    if (modelLine) {
+      for (const slotId of getLineCellSlots(modelLine, merges)) {
+        const chord = getCell(cells, "chords", slotId);
+        if (!chord) continue;
+        const column = columnForSlot(modelLine, slotId) - lineStartCol;
+        if (column < 0 || column > lineSlice.length) continue;
+        tokens.push({ column, chord });
+      }
+    }
+    if (tokens.length > 0) {
+      tokens.sort((a, b) => a.column - b.column);
+      let chordLine = "";
+      for (const token of tokens) chordLine = chordLine.padEnd(token.column, " ") + token.chord;
+      outLines.push(chordLine);
+    }
+    outLines.push(lineSlice);
+  }
+  return outLines.join("\n");
 }
 
 function wordBoundaryBackward(text: string, index: number): number {
@@ -639,6 +683,43 @@ export function SongView({
           commit();
         }}
         onKeyDownCapture={handleKeyDown}
+        onCopy={(event) => {
+          if ((event.target as HTMLElement).closest("[data-track]")) return;
+          const root = rootRef.current;
+          if (!root) return;
+          const range = captureSelectionRange(root);
+          if (!range) return;
+          const lines = readDocument(root).split("\n");
+          let { start, end } = range;
+          if (flatOffset(lines, start) > flatOffset(lines, end)) [start, end] = [end, start];
+          event.clipboardData.setData(
+            "text/plain",
+            clipboardTextForRange(song, cells, merges, lines, start, end),
+          );
+          event.preventDefault();
+        }}
+        onCut={(event) => {
+          if ((event.target as HTMLElement).closest("[data-track]")) return;
+          const root = rootRef.current;
+          if (!root) return;
+          const range = captureSelectionRange(root);
+          if (!range) return;
+          const lines = readDocument(root).split("\n");
+          let { start, end } = range;
+          let startFlat = flatOffset(lines, start);
+          let endFlat = flatOffset(lines, end);
+          if (startFlat > endFlat) {
+            [start, end] = [end, start];
+            [startFlat, endFlat] = [endFlat, startFlat];
+          }
+          event.clipboardData.setData(
+            "text/plain",
+            clipboardTextForRange(song, cells, merges, lines, start, end),
+          );
+          event.preventDefault();
+          if (!canEdit) return;
+          replaceRange(startFlat, endFlat, "");
+        }}
         onPaste={(event) => {
           if ((event.target as HTMLElement).closest("[data-track]")) return;
           if (!canEdit) return;
