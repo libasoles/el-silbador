@@ -513,7 +513,7 @@ export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong 
         </section>
       </div>
 
-      <footer className="library-version">v{appVersion}</footer>
+      <footer className="library-version">v{appVersion} alfa</footer>
 
       <ConfirmDialog
         open={songPendingDelete !== null}
