@@ -130,6 +130,18 @@
   gap: 2.25rem;
 }
 
+/* Kept outside the library content's column rhythm by the main layout's gap, so the build
+   marker reads as a quiet footer rather than another section of the songbook. */
+.library-version {
+  align-self: flex-end;
+  margin-top: 1rem;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+}
+
 .library-section__head {
   display: flex;
   align-items: center;
