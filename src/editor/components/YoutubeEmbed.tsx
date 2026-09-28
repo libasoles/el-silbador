@@ -4,7 +4,7 @@ interface YoutubeEmbedProps {
   url: string;
 }
 
-/** Renders the YouTube link an admin attached to a song (see App.tsx's action-toolbar button) as
+/** Renders the YouTube link an admin attached to a song (see App.tsx's track-toolbar button) as
  *  an embedded player. Nothing is shown for a URL that no longer resolves to a video id, rather
  *  than passing an untrusted string straight into an iframe `src`. */
 export function YoutubeEmbed({ url }: YoutubeEmbedProps) {

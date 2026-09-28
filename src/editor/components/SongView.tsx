@@ -21,7 +21,7 @@ interface SongViewProps {
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
   showUnderline: boolean;
-  /** Admin-attached YouTube link (see App.tsx's action-toolbar button), rendered below the
+  /** Admin-attached YouTube link (see App.tsx's track-toolbar button), rendered below the
    *  lyrics. `null`/`undefined` when none is set. */
   youtubeUrl?: string | null;
   /** False while the viewer isn't allowed to edit this song (not its owner and not a fork of
