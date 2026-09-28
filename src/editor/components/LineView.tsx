@@ -1,10 +1,11 @@
-import { Fragment, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { chordToNoteNames } from "../../core/chordNotes";
 import { endSlotId, getLineCellSlots, getLineUnits, mergeKey, startSlotId } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
 import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
+import { haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
 
 interface SyllableGapButtonProps {
@@ -107,8 +108,8 @@ export function LineView({
   onDragLeaveCell,
   onDropCell,
 }: LineViewProps) {
-  const slotIds = getLineCellSlots(line, merges);
-  const units = getLineUnits(line, merges);
+  const slotIds = useMemo(() => getLineCellSlots(line, merges), [line, merges]);
+  const units = useMemo(() => getLineUnits(line, merges), [line, merges]);
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
 
   const mergedIds = new Set<string>();
@@ -120,7 +121,7 @@ export function LineView({
 
   const syllableEls = useRef(new Map<string, HTMLElement>());
   const syllableRowRef = useRef<HTMLDivElement>(null);
-  const [slotRects, setSlotRects] = useState<Record<string, { left: number; width: number }>>({});
+  const [slotRects, setSlotRects] = useState<Record<string, SlotRect>>({});
   const [annotationGapExtras, setAnnotationGapExtras] = useState<Record<string, number>>({});
   const annotationSpacingKeyRef = useRef<string | null>(null);
   const annotationSpacingKey = tracks
@@ -141,7 +142,7 @@ export function LineView({
       // `left: 0` lands flush with the row's own border edge — the same edge as this row's.
       const rowsLeft = rowEl.getBoundingClientRect().left;
 
-      const next: Record<string, { left: number; width: number }> = {};
+      const next: Record<string, SlotRect> = {};
 
       // Mirrors the end-of-line slot below: anchored off the first syllable's own left edge
       // instead of the last syllable's right edge, and growing further left (not right) as its
@@ -174,7 +175,7 @@ export function LineView({
       // syllable to give this slot breathing room — its annotation would otherwise sit flush
       // against the last syllable's own right edge.
       next[endSlotId(line.id)] = { left: Math.round(lastRight - rowsLeft) + minimumLabelGap, width: 14 };
-      setSlotRects(next);
+      setSlotRects((previous) => (haveEqualSlotRects(previous, next) ? previous : next));
     }
 
     measure();
