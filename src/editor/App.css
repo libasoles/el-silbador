@@ -547,6 +547,9 @@
   flex-direction: column;
   /* Keep the annotation baseline close to the lyric it belongs to. */
   gap: 0;
+  /* Anchors the read-only wrap overlay (extra chord/note rows for lines that wrap past the
+     first visual row) — see .line__wrap-row below. */
+  position: relative;
 }
 
 .line [contenteditable="false"] {
@@ -557,6 +560,37 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
+}
+
+/* Read-only lines (always true on mobile, see useIsMobile) wrap instead of overflowing the
+   viewport. --wrap-row-gap is set from JS to the combined height of this line's annotation
+   tracks, reserving room between wrapped visual rows for the extra .line__wrap-row overlays
+   that carry those tracks' cells for rows after the first. Editable lines keep the original
+   single-row, horizontally-overflowing layout above (wrapping mid-edit would fight the
+   annotation-gap measurement and caret/selection logic in SongView, which assume one DOM row
+   per model line). */
+.syllable-row--wrap {
+  flex-wrap: wrap;
+  white-space: normal;
+  row-gap: var(--wrap-row-gap, 0px);
+}
+
+/* Keeps a word's syllables (and the melisma-toggle buttons between them) from splitting across
+   a line wrap — only the buttons *between* words are valid break points. */
+.word-group {
+  display: inline-flex;
+  align-items: flex-end;
+  white-space: nowrap;
+}
+
+/* Absolutely positioned above (or below, for vocalNotes) a wrapped line's second-and-later
+   visual rows, holding that row's own chord/chordNotes/vocalNotes cells — the first row keeps
+   using the normal-flow track rows above/below .syllable-row. Positioned/sized entirely from
+   JS-measured geometry (see LineView's wrap-row effect). */
+.line__wrap-row {
+  position: absolute;
+  left: 0;
+  right: 0;
 }
 
 /* An explicit stand-in for the native caret on an empty lyric line, which Chrome does not
@@ -780,6 +814,18 @@
 .syllable-row {
   font-size: 1.2rem;
   align-items: flex-end;
+}
+
+/* Slightly smaller lyric and chord text on mobile leaves a bit more room before a line needs to
+   wrap at all. */
+@media (max-width: 30rem) {
+  .syllable-row {
+    font-size: 1.05rem;
+  }
+
+  .track-row[data-track="chords"] .track-cell {
+    font-size: 0.95rem;
+  }
 }
 
 /* Sits beside the (smaller) placeholder text, not among actual lyrics, so its caret must match

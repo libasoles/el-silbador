@@ -121,10 +121,24 @@ export function LineView({
 
   const syllableEls = useRef(new Map<string, HTMLElement>());
   const syllableRowRef = useRef<HTMLDivElement>(null);
+  const beforeGroupRef = useRef<HTMLDivElement>(null);
+  const afterGroupRef = useRef<HTMLDivElement>(null);
   const [slotRects, setSlotRects] = useState<Record<string, SlotRect>>({});
   const [annotationGapExtras, setAnnotationGapExtras] = useState<Record<string, number>>({});
   const annotationSpacingKeyRef = useRef<string | null>(null);
   const gapCorrectionAttemptsRef = useRef<Record<string, number>>({});
+  // Read-only lines (always true on mobile) wrap onto multiple visual rows instead of
+  // overflowing the viewport. When a line actually wraps, this holds each visual row's slot ids
+  // (annotation cells + the syllables they sit above) plus the geometry needed to place a
+  // wrap-row overlay (see the effect below and .line__wrap-row in App.css) directly above/below
+  // each row past the first. Stays null for single-row lines (the common case) and for editable
+  // lines, which keep today's single-row layout untouched.
+  const [wrapLayout, setWrapLayout] = useState<{
+    groups: string[][];
+    lineHeight: number;
+    beforeHeight: number;
+    afterHeight: number;
+  } | null>(null);
   const annotationSpacingKey = tracks
     .filter((track) => track.visible)
     .map((track) => `${track.id}:${units.map((unit) => getCell(cells, track.id, unit.slotId)).join("\u0001")}`)
@@ -264,6 +278,68 @@ export function LineView({
     if (changed) setAnnotationGapExtras(next);
   }, [annotationGapExtras, annotationSpacingKey, cells, slotIds, tracks, units]);
 
+  useLayoutEffect(() => {
+    if (!readOnly) return;
+
+    function measureWrap() {
+      const rowEl = syllableRowRef.current;
+      if (!rowEl || units.length === 0) {
+        setWrapLayout((previous) => (previous === null ? previous : null));
+        return;
+      }
+
+      // Flex-wrap always lays a line's rows out top to bottom, so each unit's row is just "did
+      // this syllable's top move down from the previous one" — no need to know the exact pixel
+      // gap between rows, which isn't settled yet (it depends on wrapLayout, computed below).
+      const rowsTop = rowEl.getBoundingClientRect().top;
+      let currentRow = 0;
+      let lastTop: number | null = null;
+      let lineHeight = 0;
+      const unitRows: number[] = units.map((unit) => {
+        const el = syllableEls.current.get(unit.syllableIds[0]);
+        if (!el) return currentRow;
+        const rect = el.getBoundingClientRect();
+        const top = Math.round(rect.top - rowsTop);
+        if (lastTop !== null && top > lastTop + 1) currentRow += 1;
+        lastTop = top;
+        lineHeight = Math.max(lineHeight, Math.round(rect.height));
+        return currentRow;
+      });
+      const rowCount = currentRow + 1;
+
+      if (rowCount <= 1) {
+        setWrapLayout((previous) => (previous === null ? previous : null));
+        return;
+      }
+
+      const groups: string[][] = Array.from({ length: rowCount }, () => []);
+      units.forEach((unit, index) => groups[unitRows[index]]!.push(unit.slotId));
+      groups[0]!.unshift(startSlotId(line.id));
+      groups[rowCount - 1]!.push(endSlotId(line.id));
+
+      const beforeHeight = beforeGroupRef.current?.getBoundingClientRect().height ?? 0;
+      const afterHeight = afterGroupRef.current?.getBoundingClientRect().height ?? 0;
+
+      setWrapLayout((previous) => {
+        const sameGroups =
+          previous !== null &&
+          previous.groups.length === groups.length &&
+          previous.groups.every((group, i) => group.length === groups[i]!.length && group.every((slot, j) => slot === groups[i]![j]));
+        if (sameGroups && previous!.lineHeight === lineHeight && previous!.beforeHeight === beforeHeight && previous!.afterHeight === afterHeight) {
+          return previous;
+        }
+        return { groups, lineHeight, beforeHeight, afterHeight };
+      });
+    }
+
+    measureWrap();
+    window.addEventListener("resize", measureWrap);
+    return () => window.removeEventListener("resize", measureWrap);
+    // slotRects is a dependency because a line only actually wraps once its syllables have their
+    // final on-screen positions — the same layout pass that measurement effect above produces.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readOnly, line, merges, units, tracks, slotRects]);
+
   const isDragging = dragSource !== null;
 
   // The slot being dragged over may belong to this line (or another one, since a chord can be
@@ -297,10 +373,14 @@ export function LineView({
     };
   }
 
-  function renderTrackRow(track: TrackDef) {
+  // `rowSlotIds` is the full line by default; a wrapped line's per-row overlays (below) pass just
+  // that row's own slots instead, so each visual row's chords only cover its own syllables.
+  function renderTrackRow(track: TrackDef, rowSlotIds: string[]) {
     if (track.id === "chordNotes") {
       // This derived, read-only row is up to four notes tall. Do not reserve that vertical space
-      // until this particular lyric line has an actual chord to describe.
+      // until this particular lyric line has an actual chord to describe. Checked against the
+      // whole line (not just this row) so every row reserves the same height — wrapLayout assumes
+      // a uniform row height when it places the row-1+ overlays.
       if (!slotIds.some((slotId) => chordToNoteNames(getCell(cells, "chords", slotId)))) {
         return null;
       }
@@ -308,7 +388,7 @@ export function LineView({
         <div key={track.id} contentEditable={false}>
           <ChordNotesRow
             label={track.label}
-            slotIds={slotIds}
+            slotIds={rowSlotIds}
             slotRects={slotRects}
             cells={cells}
             previousChordNotes={previousChordNotes}
@@ -329,7 +409,7 @@ export function LineView({
         <TrackRow
           trackId={track.id}
           label={track.label}
-          slotIds={slotIds}
+          slotIds={rowSlotIds}
           slotRects={slotRects}
           cells={cells}
           chordVariants={chordVariants}
@@ -342,16 +422,65 @@ export function LineView({
     );
   }
 
+  const beforeTracks = tracks.filter((track) => track.visible && track.id !== "vocalNotes");
+  const afterTracks = tracks.filter((track) => track.visible && track.id === "vocalNotes" && showUnderline);
+  const isWrapped = wrapLayout !== null;
+  const firstRowSlotIds = isWrapped ? wrapLayout.groups[0]! : slotIds;
+  const lastRowSlotIds = isWrapped ? wrapLayout.groups[wrapLayout.groups.length - 1]! : slotIds;
+  const wrapRowGap = isWrapped ? wrapLayout.beforeHeight + wrapLayout.afterHeight : 0;
+
+  function renderWordContent(word: Line["words"][number]) {
+    return word.syllables.map((syllable, index) => {
+      const previous = index > 0 ? word.syllables[index - 1] : null;
+      const merged = previous ? merges.has(mergeKey(previous.id, syllable.id)) : false;
+      return (
+        <Fragment key={syllable.id}>
+          {previous ? (
+            <SyllableGapButton
+              merged={merged}
+              dropTarget={dropTargetSyllableIds.has(previous.id) && dropTargetSyllableIds.has(syllable.id)}
+              fromText={previous.text}
+              toText={syllable.text}
+              disabled={!showUnderline || readOnly}
+              annotationGap={
+                syllableSlotId.get(previous.id) === syllableSlotId.get(syllable.id)
+                  ? 0
+                  : annotationGapExtras[syllableSlotId.get(previous.id) ?? ""]
+              }
+              onToggle={() => onToggleMerge(line.id, previous.id, syllable.id)}
+            />
+          ) : null}
+          <span
+            ref={(el) => registerSyllableRef(syllable.id, el)}
+            className={
+              "syllable" +
+              (Array.from(syllable.text).length === 1 ? " syllable--single-letter" : "") +
+              (mergedIds.has(syllable.id) ? " syllable--merged" : "") +
+              (dropTargetSyllableIds.has(syllable.id) ? " syllable--drop-target" : "")
+            }
+            {...syllableDragProps(syllable.id)}
+          >
+            {syllable.text}
+          </span>
+        </Fragment>
+      );
+    });
+  }
+
   return (
     <div
       className={
         "line" + (isDragging ? " line--dragging" : "") + (!chordsVisible ? " line--chords-hidden" : "")
       }
     >
-      {tracks
-        .filter((track) => track.visible && track.id !== "vocalNotes")
-        .map(renderTrackRow)}
-      <div className="syllable-row" role="textbox" data-lyrics-line ref={syllableRowRef}>
+      <div ref={beforeGroupRef}>{beforeTracks.map((track) => renderTrackRow(track, firstRowSlotIds))}</div>
+      <div
+        className={"syllable-row" + (readOnly ? " syllable-row--wrap" : "")}
+        role="textbox"
+        data-lyrics-line
+        ref={syllableRowRef}
+        style={readOnly ? ({ "--wrap-row-gap": `${wrapRowGap}px` } as React.CSSProperties) : undefined}
+      >
         {/* Chrome does not reliably paint its native caret on an otherwise-empty flex row, so the
             `<br>` gives the browser a real anchor and the explicit `.lyric-caret` bar is the
             visible indicator while this line holds the document caret. Both are excluded from the
@@ -387,43 +516,13 @@ export function LineView({
                   onToggle={() => onToggleMerge(line.id, prevSyllable.id, firstSyllable.id)}
                 />
               ) : null}
-              {word.syllables.map((syllable, index) => {
-                const previous = index > 0 ? word.syllables[index - 1] : null;
-                const merged = previous ? merges.has(mergeKey(previous.id, syllable.id)) : false;
-                return (
-                  <Fragment key={syllable.id}>
-                    {previous ? (
-                      <SyllableGapButton
-                        merged={merged}
-                        dropTarget={
-                          dropTargetSyllableIds.has(previous.id) && dropTargetSyllableIds.has(syllable.id)
-                        }
-                        fromText={previous.text}
-                        toText={syllable.text}
-                        disabled={!showUnderline || readOnly}
-                        annotationGap={
-                          syllableSlotId.get(previous.id) === syllableSlotId.get(syllable.id)
-                            ? 0
-                            : annotationGapExtras[syllableSlotId.get(previous.id) ?? ""]
-                        }
-                        onToggle={() => onToggleMerge(line.id, previous.id, syllable.id)}
-                      />
-                    ) : null}
-                    <span
-                      ref={(el) => registerSyllableRef(syllable.id, el)}
-                      className={
-                        "syllable" +
-                        (Array.from(syllable.text).length === 1 ? " syllable--single-letter" : "") +
-                        (mergedIds.has(syllable.id) ? " syllable--merged" : "") +
-                        (dropTargetSyllableIds.has(syllable.id) ? " syllable--drop-target" : "")
-                      }
-                      {...syllableDragProps(syllable.id)}
-                    >
-                      {syllable.text}
-                    </span>
-                  </Fragment>
-                );
-              })}
+              {/* A word's own syllables (and the merge buttons between them) never split across a
+                  wrap \u2014 only readOnly wraps at all, so only it needs the unbreakable wrapper. */}
+              {readOnly ? (
+                <span className="word-group">{renderWordContent(word)}</span>
+              ) : (
+                renderWordContent(word)
+              )}
             </Fragment>
           );
         })}
@@ -431,9 +530,39 @@ export function LineView({
             that space while syllabifying and the next typed word is appended to the previous one. */}
         {trailingWhitespace.replaceAll(/\s/g, "\u00a0")}
       </div>
-      {tracks
-        .filter((track) => track.visible && track.id === "vocalNotes" && showUnderline)
-        .map(renderTrackRow)}
+      <div ref={afterGroupRef}>{afterTracks.map((track) => renderTrackRow(track, lastRowSlotIds))}</div>
+      {isWrapped
+        ? wrapLayout.groups.flatMap((rowSlotIds, rowIndex) => {
+            const overlays = [];
+            if (rowIndex > 0) {
+              const top = rowIndex * (wrapLayout.lineHeight + wrapRowGap);
+              overlays.push(
+                <div
+                  key={`before-${rowIndex}`}
+                  className="line__wrap-row"
+                  contentEditable={false}
+                  style={{ top: `${top}px` }}
+                >
+                  {beforeTracks.map((track) => renderTrackRow(track, rowSlotIds))}
+                </div>,
+              );
+            }
+            if (rowIndex < wrapLayout.groups.length - 1 && afterTracks.length > 0) {
+              const top = wrapLayout.beforeHeight + rowIndex * (wrapLayout.lineHeight + wrapRowGap) + wrapLayout.lineHeight;
+              overlays.push(
+                <div
+                  key={`after-${rowIndex}`}
+                  className="line__wrap-row"
+                  contentEditable={false}
+                  style={{ top: `${top}px` }}
+                >
+                  {afterTracks.map((track) => renderTrackRow(track, rowSlotIds))}
+                </div>,
+              );
+            }
+            return overlays;
+          })
+        : null}
     </div>
   );
 }
