@@ -353,6 +353,20 @@ export function LineView({
   for (const unit of units) {
     for (const syllableId of unit.syllableIds) syllableSlotId.set(syllableId, unit.slotId);
   }
+  const chordSlotIds = new Set(
+    slotIds.filter((slotId) => getCell(cells, "chords", slotId).trim() !== ""),
+  );
+  const firstSyllableId = units[0]?.syllableIds[0];
+
+  function hasChordAtSyllable(syllableId: string) {
+    const slotId = syllableSlotId.get(syllableId);
+    // A chord before the first lyric syllable is stored in the line's start slot. It still
+    // belongs visually to that first syllable, even though it has no `before:<syllable>` slot.
+    return (
+      (slotId !== undefined && chordSlotIds.has(slotId)) ||
+      (syllableId === firstSyllableId && chordSlotIds.has(startSlotId(line.id)))
+    );
+  }
 
   function syllableDragProps(syllableId: string) {
     if (!dragSource) return undefined;
@@ -456,6 +470,7 @@ export function LineView({
               "syllable" +
               (Array.from(syllable.text).length === 1 ? " syllable--single-letter" : "") +
               (mergedIds.has(syllable.id) ? " syllable--merged" : "") +
+              (readOnly && hasChordAtSyllable(syllable.id) ? " syllable--has-chord" : "") +
               (dropTargetSyllableIds.has(syllable.id) ? " syllable--drop-target" : "")
             }
             {...syllableDragProps(syllable.id)}
@@ -470,7 +485,10 @@ export function LineView({
   return (
     <div
       className={
-        "line" + (isDragging ? " line--dragging" : "") + (!chordsVisible ? " line--chords-hidden" : "")
+        "line" +
+        (isDragging ? " line--dragging" : "") +
+        (!chordsVisible ? " line--chords-hidden" : "") +
+        (readOnly ? " line--chord-underlines-only" : "")
       }
     >
       <div ref={beforeGroupRef}>{beforeTracks.map((track) => renderTrackRow(track, firstRowSlotIds))}</div>

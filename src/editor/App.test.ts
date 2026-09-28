@@ -17,6 +17,7 @@ const darkFavicon = readFileSync(
 const layout = readFileSync(new URL("../../src/app/layout.tsx", import.meta.url), "utf8");
 const authModal = readFileSync(new URL("./components/AuthModal.tsx", import.meta.url), "utf8");
 const autosave = readFileSync(new URL("./useAutosave.ts", import.meta.url), "utf8");
+const lineView = readFileSync(new URL("./components/LineView.tsx", import.meta.url), "utf8");
 
 describe("underline visibility", () => {
   it("does not couple the underline to the chords track visibility", () => {
@@ -29,6 +30,17 @@ describe("underline visibility", () => {
     // be the only representation of a syllable underline in the generated PDF.
     expect(styles).toMatch(
       /@media print\s*\{[\s\S]*\.syllable::after,\s*\.syllable-gap--merged::after\s*\{[\s\S]*border-bottom:\s*2px solid var\(--syllable-underline\)/,
+    );
+  });
+
+  it("limits read-only underlines to syllables with a chord while keeping editor guides complete", () => {
+    expect(lineView).toContain('readOnly ? " line--chord-underlines-only" : ""');
+    expect(lineView).toContain('readOnly && hasChordAtSyllable(syllable.id) ? " syllable--has-chord" : ""');
+    expect(styles).toMatch(
+      /\.line--chord-underlines-only \.syllable::after,[\s\S]*\.line--chord-underlines-only \.syllable-gap--merged::after\s*\{\s*content: none/,
+    );
+    expect(styles).toMatch(
+      /\.line--chord-underlines-only \.syllable--has-chord::after\s*\{\s*content: ""/,
     );
   });
 });
