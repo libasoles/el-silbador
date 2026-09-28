@@ -72,9 +72,12 @@ describe("mobile sidebar menu", () => {
     expect(app).toContain('className="mobile-sidebar-menu"');
     expect(app).toContain('<MenuIcon />');
     expect(app).toContain('aria-controls="mobile-sidebar-menu-controls"');
+    expect(app).toContain('tooltip="Herramientas"');
+    expect(app).not.toContain('Herramientas de la canción');
     expect(app).toMatch(/mobile-sidebar-menu__controls[\s\S]*Exportar a PDF/);
     expect(styles).toMatch(/@media \(max-width: 30rem\)\s*\{[\s\S]*\.mobile-sidebar-menu\s*\{[\s\S]*top: 9rem/);
     expect(styles).toMatch(/@media \(max-width: 30rem\)\s*\{[\s\S]*\.track-toolbar,\s*\.action-toolbar\s*\{[\s\S]*display: none/);
+    expect(styles).toMatch(/\.mobile-sidebar-menu__controls\s*\{[\s\S]*top: calc\(100% \+ 0\.5rem\)[\s\S]*right: 0/);
   });
 });
 

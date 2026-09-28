@@ -274,8 +274,8 @@
 
   .mobile-sidebar-menu__controls {
     position: absolute;
-    top: 0;
-    right: calc(100% + 0.5rem);
+    top: calc(100% + 0.5rem);
+    right: 0;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
