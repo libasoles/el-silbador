@@ -229,6 +229,64 @@
   z-index: 5;
 }
 
+/* Mobile keeps these same controls out of the reading flow until the reader asks for them.
+   The trigger occupies the original top-of-sidebar position; the panel opens leftward from it,
+   leaving the page header and its close button entirely separate. */
+.mobile-sidebar-menu {
+  display: none;
+}
+
+@media (max-width: 30rem) {
+  .track-toolbar,
+  .action-toolbar {
+    display: none;
+  }
+
+  .mobile-sidebar-menu {
+    position: fixed;
+    top: 9rem;
+    right: var(--sidebar-right);
+    z-index: 5;
+    display: block;
+  }
+
+  .mobile-sidebar-menu__trigger {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--fg);
+    cursor: pointer;
+    opacity: 0.85;
+  }
+
+  .mobile-sidebar-menu__trigger:hover,
+  .mobile-sidebar-menu__trigger:focus-visible {
+    color: var(--accent);
+    opacity: 1;
+  }
+
+  .mobile-sidebar-menu__controls {
+    position: absolute;
+    top: 0;
+    right: calc(100% + 0.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.35rem;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background: var(--bg);
+    box-shadow: 0 0.5rem 1.5rem rgba(42, 38, 34, 0.15);
+  }
+}
+
 .track-toolbar__toggle {
   appearance: none;
   background: transparent;

@@ -65,6 +65,18 @@ describe("icon-button tooltips", () => {
   });
 });
 
+describe("mobile sidebar menu", () => {
+  it("keeps song controls collapsed behind a top-of-sidebar hamburger on mobile", () => {
+    expect(app).toContain('const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)');
+    expect(app).toContain('className="mobile-sidebar-menu"');
+    expect(app).toContain('<MenuIcon />');
+    expect(app).toContain('aria-controls="mobile-sidebar-menu-controls"');
+    expect(app).toMatch(/mobile-sidebar-menu__controls[\s\S]*Exportar a PDF/);
+    expect(styles).toMatch(/@media \(max-width: 30rem\)\s*\{[\s\S]*\.mobile-sidebar-menu\s*\{[\s\S]*top: 9rem/);
+    expect(styles).toMatch(/@media \(max-width: 30rem\)\s*\{[\s\S]*\.track-toolbar,\s*\.action-toolbar\s*\{[\s\S]*display: none/);
+  });
+});
+
 describe("fork source link", () => {
   it("places a fork icon before the title and explains that it navigates to the source song", () => {
     expect(app).toContain('className="fork-source-link"');
