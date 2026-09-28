@@ -124,6 +124,7 @@ export function LineView({
   const [slotRects, setSlotRects] = useState<Record<string, SlotRect>>({});
   const [annotationGapExtras, setAnnotationGapExtras] = useState<Record<string, number>>({});
   const annotationSpacingKeyRef = useRef<string | null>(null);
+  const gapCorrectionAttemptsRef = useRef<Record<string, number>>({});
   const annotationSpacingKey = tracks
     .filter((track) => track.visible)
     .map((track) => `${track.id}:${units.map((unit) => getCell(cells, track.id, unit.slotId)).join("\u0001")}`)
@@ -191,6 +192,7 @@ export function LineView({
     // A changed label or merge gets a fresh measurement from the unexpanded lyric layout.
     if (annotationSpacingKeyRef.current !== annotationSpacingKey) {
       annotationSpacingKeyRef.current = annotationSpacingKey;
+      gapCorrectionAttemptsRef.current = {};
       if (Object.keys(annotationGapExtras).length > 0) {
         setAnnotationGapExtras({});
         return;
@@ -227,13 +229,20 @@ export function LineView({
       // separate the lyrics, not prevent any annotation from overlapping another one.
       if (!width || !firstEl || !nextFirstEl || !labelWidths.has(nextUnit.slotId)) continue;
       // Rounded to match `width` (already an integer): comparing a fractional distance against
-      // an integer target never lands on exactly zero, so on some mobile browsers (where `em`
-      // in the CSS gap resolves to a slightly different px value than this measurement) the
-      // shortfall never fully closes — each pass adds a sliver more, forever re-triggering this
-      // effect and blowing React's update-depth guard.
+      // an integer target rarely lands on exactly zero, which would otherwise leave a shortfall
+      // that never fully closes.
       const distance = Math.round(nextFirstEl.getBoundingClientRect().left - firstEl.getBoundingClientRect().left);
       const additional = requiredAnnotationGap(width, distance);
-      if (additional > 0) next[unit.slotId] = (next[unit.slotId] ?? 0) + additional;
+      if (additional <= 0) continue;
+      // On some mobile browsers the CSS gap we request (an `em`-based calc()) doesn't render as
+      // the exact px we asked for, so `distance` never fully catches up no matter how much extra
+      // we add — without a cap this keeps compounding forever, re-triggering this effect until
+      // React's update-depth guard crashes the page. Capping attempts per slot accepts a
+      // possibly-imperfect gap instead of an infinite render loop.
+      const attempts = gapCorrectionAttemptsRef.current[unit.slotId] ?? 0;
+      if (attempts >= 4) continue;
+      gapCorrectionAttemptsRef.current[unit.slotId] = attempts + 1;
+      next[unit.slotId] = (next[unit.slotId] ?? 0) + additional;
     }
 
     // The start slot has no "next unit" to measure against — it grows left, away from the first
@@ -241,7 +250,15 @@ export function LineView({
     // extra offset the position effect above needs to keep it clear. It's always slotIds[0] (see
     // getLineCellSlots), which sidesteps re-deriving startSlotId(line.id) as a hook dependency.
     const startSlotKey = slotIds[0]!;
-    next[startSlotKey] = labelWidths.get(startSlotKey) ?? 0;
+    const startWidth = labelWidths.get(startSlotKey) ?? 0;
+    // Same cap as above: a measurement that keeps landing on a different value every pass (e.g.
+    // text metrics jittering by a sub-pixel on some mobile browsers) would otherwise re-trigger
+    // this effect forever instead of settling.
+    const startAttempts = gapCorrectionAttemptsRef.current[startSlotKey] ?? 0;
+    if (startWidth !== (next[startSlotKey] ?? 0) && startAttempts < 4) {
+      gapCorrectionAttemptsRef.current[startSlotKey] = startAttempts + 1;
+      next[startSlotKey] = startWidth;
+    }
 
     const changed = Object.keys(next).some((key) => next[key] !== annotationGapExtras[key]);
     if (changed) setAnnotationGapExtras(next);

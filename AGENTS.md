@@ -10,6 +10,11 @@ Every task must use its own git worktree and branch. Codex creates worktrees at
 `.agents/worktrees/<task-slug>`; this keeps all agent worktrees inside the repository. When the
 task is complete, merge the branch into `main`, then remove both the task branch and its worktree.
 
+## Versioning
+
+Increment the version in `package.json` (and its matching root entry in `package-lock.json`) on
+every commit. The index footer displays this version.
+
 ## UI components
 
 Build components as reusable, composable units whenever practical. Prefer Radix primitives as

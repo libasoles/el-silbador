@@ -231,6 +231,7 @@ function LibrarySection({
 }
 
 interface LibraryProps {
+  appVersion: string;
   /** Public songs fetched server-side (Next.js Server Component), so the very first render —
    *  including the one Next performs on the server to produce pre-rendered HTML for crawlers —
    *  already shows real content instead of a loading skeleton. */
@@ -239,7 +240,7 @@ interface LibraryProps {
   onNewSong?: () => void;
 }
 
-export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryProps) {
+export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong }: LibraryProps) {
   const { session, requireAuthentication } = useAuthRequired();
   const userId = session?.user.id;
   const authenticated = Boolean(session);
@@ -511,6 +512,8 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
           </a>
         </section>
       </div>
+
+      <footer className="library-version">v{appVersion}</footer>
 
       <ConfirmDialog
         open={songPendingDelete !== null}
