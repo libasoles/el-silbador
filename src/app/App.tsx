@@ -577,32 +577,29 @@ function App({
                 tooltip={
                   state.lyricsText.trim() === ""
                     ? "No hay letra que subrayar"
-                    : "Subrayado"
+                    : "Subrayado y notas de la melodía"
                 }
               >
                 <button
                   type="button"
                   className="track-toolbar__toggle"
                   aria-pressed={state.showUnderline}
-                  aria-label="Subrayado"
+                  aria-label="Subrayado y notas de la melodía"
                   disabled={state.lyricsText.trim() === ""}
-                  onClick={() => actions.setShowUnderline(!state.showUnderline)}
+                  onClick={() => {
+                    const next = !state.showUnderline;
+                    actions.setShowUnderline(next);
+                    const vocalNotes = state.tracks.find(
+                      (track) => track.id === "vocalNotes"
+                    );
+                    if (vocalNotes && vocalNotes.visible !== next) {
+                      actions.setTrackVisibility("vocalNotes", next);
+                    }
+                  }}
                 >
                   <UnderlineIcon />
                 </button>
               </IconButtonTooltip>
-              {state.tracks
-                .filter((track) => track.id === "vocalNotes")
-                .map((track) => (
-                  <TrackToggleButton
-                    key={track.id}
-                    track={track}
-                    cells={state.cells}
-                    onToggle={() =>
-                      actions.setTrackVisibility(track.id, !track.visible)
-                    }
-                  />
-                ))}
             </aside>
 
             {!contentLoaded ? (

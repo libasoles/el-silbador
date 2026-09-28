@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChordIcon, MelodyNoteIcon, NoteStackIcon, UnderlineIcon } from "./icons";
+import { ChordIcon, NoteStackIcon, UnderlineIcon } from "./icons";
 
 /** Subtle help entry point for the song editor, pinned to the corner of the screen so it stays
     reachable without competing with the editor toolbars. Clicking it reveals the tool
@@ -44,13 +44,9 @@ export function EditorHelp() {
             </li>
             <li>
               <UnderlineIcon />
-              <span>Muestra u oculta la línea debajo de cada sílaba.</span>
-            </li>
-            <li>
-              <MelodyNoteIcon />
               <span>
-                Deja escribir las notas de la melodía, debajo de la línea de
-                cada sílaba.
+                Muestra u oculta la línea debajo de cada sílaba y deja
+                escribir las notas de la melodía debajo de esa línea.
               </span>
             </li>
           </ul>
