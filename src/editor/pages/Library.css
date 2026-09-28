@@ -22,7 +22,9 @@
 .library-auth {
   position: fixed;
   top: 1rem;
-  right: 1rem;
+  /* Its inline padding adds 0.75rem after the label; offset the fixed box so the visible
+     content aligns with the page gutter. */
+  right: 0.5rem;
   z-index: 5;
   display: inline-flex;
   align-items: center;
