@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import App from "../../../editor/App";
 import { useAuthRequired } from "../../../editor/authRequiredContext";
 import type { EditorState } from "../../../core/types";
-import { SongNotFoundStatic } from "./SongNotFoundStatic";
+import { SongPageLoading } from "./SongPageLoading";
 import { StaticSongView } from "./StaticSongView";
 
 interface SongPageClientProps {
@@ -16,8 +16,9 @@ interface SongPageClientProps {
 }
 
 /**
- * Before the initial auth check resolves (`session === undefined`), visitors get exactly what the
- * server already rendered: no client-side fetch, no loading flash. Once it resolves — whether to
+ * Before the initial auth check resolves (`session === undefined`), show a loading state. A
+ * private song cannot be returned by the server's anonymous request, so its owner would otherwise
+ * briefly see an incorrect not-found message after a hard reload. Once auth resolves — whether to
  * a session or to confirmed signed-out — this hands off to `App`, which does its own fetch and —
  * unchanged from before this migration — renders the full editor (owner), a read-only view
  * (signed-in non-owner), or the same read-only view for an anonymous visitor, header/toolbar
@@ -30,7 +31,7 @@ export function SongPageClient({ slug, initialState }: SongPageClientProps) {
   const { session } = useAuthRequired();
 
   if (session === undefined) {
-    return initialState ? <StaticSongView state={initialState} /> : <SongNotFoundStatic />;
+    return initialState ? <StaticSongView state={initialState} /> : <SongPageLoading />;
   }
 
   return (
