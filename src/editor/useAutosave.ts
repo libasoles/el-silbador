@@ -34,12 +34,22 @@ export interface AutosaveHandle {
  * login/register modal) that gets the user authenticated in the first place. The moment
  * `authenticated` flips true, any pending dirty content saves immediately rather than waiting out
  * the usual debounce, so login visibly finishes the save the user asked for.
+ *
+ * `canPersist` (owner of this song, and not mobile) is deliberately a separate gate from
+ * `authenticated` (real sign-in state). `canPersist` often resolves a moment after `ready` —
+ * ownership isn't known until the song's owner id has been fetched — and if that resolution were
+ * folded into `authenticated` instead, its false→true flip would look identical to "the user just
+ * signed in" and fire an immediate, contentless save the instant ownership was confirmed. Instead
+ * a `canPersist` flip re-arms the same "skip the next change" latch `ready` uses. While
+ * `canPersist` is false — including the entire time spent viewing someone else's song — this hook
+ * never marks anything dirty or reaches the network, no matter what `content` or `authenticated` do.
  */
 export function useAutosave(
   content: SongContent,
   songId: string | undefined,
   ready: boolean,
   authenticated: boolean,
+  canPersist: boolean,
   onSlugResolved: (id: string, slug: string) => void,
 ): AutosaveHandle {
   const queryClient = useQueryClient();
@@ -51,6 +61,7 @@ export function useAutosave(
   const wasAuthenticated = useRef(authenticated);
   const lastRetryTick = useRef(retryTick);
   const wasReady = useRef(ready);
+  const wasCanPersist = useRef(canPersist);
   // Route callbacks may be recreated by their parent. They are navigation side effects, not
   // document input, so a changed callback must not re-arm the content debounce.
   const onSlugResolvedRef = useRef(onSlugResolved);
@@ -80,7 +91,16 @@ export function useAutosave(
   }, [ready]);
 
   useEffect(() => {
-    if (!ready) return;
+    if (canPersist && !wasCanPersist.current) {
+      skipNext.current = true;
+    }
+    wasCanPersist.current = canPersist;
+  }, [canPersist]);
+
+  useEffect(() => {
+    // Never even marks the content dirty while viewing a song that isn't yours (or on mobile):
+    // `canPersist` is the sole gate for that, kept independent of `authenticated` above.
+    if (!ready || !canPersist) return;
 
     const justAuthenticated = authenticated && !wasAuthenticated.current;
     const isRetry = retryTick !== lastRetryTick.current;
@@ -138,7 +158,7 @@ export function useAutosave(
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, ready, authenticated, retryTick, queryClient]);
+  }, [content, ready, authenticated, canPersist, retryTick, queryClient]);
 
   return { status, retry: () => setRetryTick((tick) => tick + 1) };
 }

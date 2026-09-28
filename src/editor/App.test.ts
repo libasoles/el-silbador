@@ -168,7 +168,7 @@ describe("autosave", () => {
     // a document edit, so neither may schedule another save one second later.
     expect(autosave).toContain("onSlugResolvedRef.current(saved.id, saved.slug)");
     expect(autosave).toContain(
-      "}, [content, ready, authenticated, retryTick, queryClient]);",
+      "}, [content, ready, authenticated, canPersist, retryTick, queryClient]);",
     );
     expect(autosave).toContain("const switchedExistingSong =");
   });

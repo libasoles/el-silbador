@@ -398,11 +398,14 @@ function App({
     content,
     songDbId,
     ready,
+    authenticated,
     // Never even attempt to persist a viewer's edits to a song they don't own — the DB's RLS
     // policy would reject the write anyway, and without this the debounce would surface a
     // perpetual "No se pudo guardar" error on every keystroke instead of silently doing nothing.
-    // Mobile is read-only, so autosave must stay off there too, even for the song's owner.
-    authenticated && isOwnSong && !isMobile,
+    // Mobile is read-only, so autosave must stay off there too, even for the song's owner. Kept as
+    // its own argument (not folded into `authenticated`) so ownership resolving late doesn't look
+    // like a sign-in edge and fire an immediate, contentless save — see useAutosave's docstring.
+    isOwnSong && !isMobile,
     handleSongCreated,
   );
   const pendingChanges = autosaveStatus === "dirty" || autosaveStatus === "error";
