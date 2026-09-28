@@ -7,6 +7,17 @@
   padding: 1.25rem 2rem 6rem;
 }
 
+/* Horizontal and top spacing are the page-shell layout's job on mobile (see globals.css) — zeroed
+   here so they aren't applied twice. Bottom padding stays: it clears the fixed .action-toolbar
+   regardless of viewport. */
+@media (max-width: 30rem) {
+  .app {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+  }
+}
+
 /* The tooltip's containing block must occupy the same fixed corner as its link. Otherwise the
    link's own fixed positioning takes it out of the wrapper's layout and the tooltip is anchored
    at the page content instead of beside the X. */
@@ -314,6 +325,14 @@
 .action-toolbar__button--inactive {
   opacity: 0.3;
   color: var(--border-strong);
+}
+
+/* Forking is a secondary action that crowds the already-tight mobile action toolbar, so it's
+   hidden there — still reachable from the desktop layout. */
+@media (max-width: 30rem) {
+  .action-toolbar__fork-tooltip {
+    display: none;
+  }
 }
 
 .spinner-icon {

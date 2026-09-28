@@ -673,10 +673,13 @@ function App({
                 </IconButtonTooltip>
               )}
               {songDbId && !isOwnSong && (
-                <IconButtonTooltip tooltip={forking ? "Versionando…" : "Versionar canción"}>
+                <IconButtonTooltip
+                  className="action-toolbar__fork-tooltip"
+                  tooltip={forking ? "Versionando…" : "Versionar canción"}
+                >
                   <button
                     type="button"
-                    className="action-toolbar__button"
+                    className="action-toolbar__button action-toolbar__button--fork"
                     aria-label="Versionar canción"
                     disabled={forking}
                     onClick={handleForkClick}

@@ -9,6 +9,16 @@
   padding: 1.25rem 2rem 6rem;
 }
 
+/* Horizontal and top spacing are the page-shell layout's job on mobile (see globals.css) — zeroed
+   here so they aren't applied twice. Bottom padding is untouched. */
+@media (max-width: 30rem) {
+  .library {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+  }
+}
+
 .library-auth {
   position: fixed;
   top: 1rem;
