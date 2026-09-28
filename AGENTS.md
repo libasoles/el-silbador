@@ -13,7 +13,7 @@ task is complete, merge the branch into `main`, then remove both the task branch
 ## Versioning
 
 Increment the version in `package.json` (and its matching root entry in `package-lock.json`) on
-every commit. The index footer displays this version.
+every commit. The index footer displays every version as `v<version> alfa`.
 
 ## UI components
 
