@@ -37,7 +37,14 @@ export function SongPageClient({ slug, initialState }: SongPageClientProps) {
   return (
     <App
       songSlug={slug}
-      onSongCreated={(_id, newSlug) => router.replace(`/cancion/${newSlug}`)}
+      onSongCreated={(_id, newSlug) => {
+        // `onSongCreated` fires after every autosave, not just when the slug actually changed
+        // (see useAutosave.ts) — skip the navigation entirely when it didn't, and suppress the
+        // scroll-to-top when it did, so a save in the background doesn't yank the editor's
+        // scroll position back up mid-edit.
+        if (newSlug === slug) return;
+        router.replace(`/cancion/${newSlug}`, { scroll: false });
+      }}
       onDeleted={() => router.replace("/")}
     />
   );

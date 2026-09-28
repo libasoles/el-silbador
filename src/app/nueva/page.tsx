@@ -8,7 +8,7 @@ export default function NuevaPage() {
 
   return (
     <App
-      onSongCreated={(_id, slug) => router.replace(`/cancion/${slug}`)}
+      onSongCreated={(_id, slug) => router.replace(`/cancion/${slug}`, { scroll: false })}
       onDeleted={() => router.replace("/")}
     />
   );
