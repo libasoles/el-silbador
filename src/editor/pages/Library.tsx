@@ -424,6 +424,15 @@ export function Library({ initialPublicSongs, onOpenSong, onNewSong }: LibraryPr
           onOpenSong={handleOpen}
           onToggleFavorite={handleToggleFavorite}
         />
+
+        <section className="library-section">
+          <div className="library-section__head">
+            <h2 className="library-section__title">Estudio</h2>
+          </div>
+          <a className="library-study-link" href="https://acordesdeguitarra.com.ar/">
+            acordesdeguitarra.com.ar
+          </a>
+        </section>
       </div>
 
       <ConfirmDialog

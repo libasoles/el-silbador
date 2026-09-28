@@ -139,6 +139,20 @@
   color: var(--muted);
 }
 
+.library-study-link {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: var(--fg);
+  text-decoration: none;
+  transition: color 140ms ease;
+}
+
+.library-study-link:hover,
+.library-study-link:focus-visible {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 .library-list {
   display: flex;
   flex-direction: column;
