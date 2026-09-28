@@ -94,6 +94,10 @@
   height: 100%;
 }
 
+.toast__icon--artwork + .toast__body {
+  align-self: center;
+}
+
 .toast--info .toast__icon {
   color: var(--accent);
 }

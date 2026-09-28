@@ -401,7 +401,6 @@ export function Library({ appVersion, initialPublicSongs, onOpenSong, onNewSong 
             variant: "success",
             icon: <img src="/04-happy.svg" alt="" />,
             title: "Hasta pronto",
-            description: "Gracias por pasar por El Silbador.",
           });
         })
         .catch((error: unknown) => {
