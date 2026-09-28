@@ -27,6 +27,7 @@ import {
   DownloadIcon,
   ForkIcon,
   HatGlassesIcon,
+  MenuIcon,
   SaveIcon,
   SilbadorIcon,
   SpinnerIcon,
@@ -159,6 +160,7 @@ function App({
   const authenticated = Boolean(session);
   const { showToast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [forking, setForking] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [songIsPublic, setSongIsPublic] = useState(() => initialSong?.isPublic ?? false);
@@ -192,6 +194,12 @@ function App({
   // default that `useEditor` applies when loading content.
   const isMobile = useIsMobile();
   const { state, actions } = useEditor((restoredDraft ?? initialSong)?.content, isMobile);
+
+  // A song can change without remounting the editor during client navigation. Treat that the
+  // same as opening a fresh page: its mobile tools must start tucked away.
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [songSlug]);
   // Only an existing song (songSlug set, no restored draft, no server-fetched content) has content
   // worth waiting on; anything else starts "loaded" with its editor state already in place.
   const [contentLoaded, setContentLoaded] = useState(
@@ -607,6 +615,84 @@ function App({
           )}
 
           <div className="workspace">
+            {isMobile && (
+              <aside className="mobile-sidebar-menu" aria-label="Herramientas de la canción">
+                <IconButtonTooltip tooltip="Herramientas de la canción">
+                  <button
+                    type="button"
+                    className="mobile-sidebar-menu__trigger"
+                    aria-expanded={mobileSidebarOpen}
+                    aria-controls="mobile-sidebar-menu-controls"
+                    aria-label={mobileSidebarOpen ? "Cerrar herramientas de la canción" : "Abrir herramientas de la canción"}
+                    onClick={() => setMobileSidebarOpen((open) => !open)}
+                  >
+                    <MenuIcon />
+                  </button>
+                </IconButtonTooltip>
+                {mobileSidebarOpen && (
+                  <div id="mobile-sidebar-menu-controls" className="mobile-sidebar-menu__controls">
+                    {state.tracks
+                      .filter((track) => track.id !== "vocalNotes")
+                      .map((track) => (
+                        <TrackToggleButton
+                          key={track.id}
+                          track={track}
+                          cells={state.cells}
+                          onToggle={() => actions.setTrackVisibility(track.id, !track.visible)}
+                        />
+                      ))}
+                    <IconButtonTooltip
+                      tooltip={
+                        state.lyricsText.trim() === ""
+                          ? "No hay letra que subrayar"
+                          : "Subrayado y notas de la melodía"
+                      }
+                    >
+                      <button
+                        type="button"
+                        className="track-toolbar__toggle"
+                        aria-pressed={state.showUnderline}
+                        aria-label="Subrayado y notas de la melodía"
+                        disabled={state.lyricsText.trim() === ""}
+                        onClick={() => {
+                          const next = !state.showUnderline;
+                          actions.setShowUnderline(next);
+                          const vocalNotes = state.tracks.find(
+                            (track) => track.id === "vocalNotes"
+                          );
+                          if (vocalNotes && vocalNotes.visible !== next) {
+                            actions.setTrackVisibility("vocalNotes", next);
+                          }
+                        }}
+                      >
+                        <UnderlineIcon />
+                      </button>
+                    </IconButtonTooltip>
+                    <IconButtonTooltip
+                      tooltip={
+                        state.lyricsText.trim() === ""
+                          ? "No hay letra que exportar"
+                          : "Exportar a PDF"
+                      }
+                    >
+                      <button
+                        type="button"
+                        className="action-toolbar__button"
+                        aria-label="Exportar a PDF"
+                        disabled={state.lyricsText.trim() === ""}
+                        onClick={() => {
+                          setMobileSidebarOpen(false);
+                          handleExportPdf();
+                        }}
+                      >
+                        <DownloadIcon />
+                      </button>
+                    </IconButtonTooltip>
+                  </div>
+                )}
+              </aside>
+            )}
+
             <aside className="track-toolbar" aria-label="Visibilidad de pistas">
               {state.tracks
                 .filter((track) => track.id !== "vocalNotes")
@@ -730,23 +816,25 @@ function App({
                   </button>
                 </IconButtonTooltip>
               )}
-              <IconButtonTooltip
-                tooltip={
-                  state.lyricsText.trim() === ""
-                    ? "No hay letra que exportar"
-                    : "Exportar a PDF"
-                }
-              >
-                <button
-                  type="button"
-                  className="action-toolbar__button"
-                  aria-label="Exportar a PDF"
-                  disabled={state.lyricsText.trim() === ""}
-                  onClick={handleExportPdf}
+              {!isMobile && (
+                <IconButtonTooltip
+                  tooltip={
+                    state.lyricsText.trim() === ""
+                      ? "No hay letra que exportar"
+                      : "Exportar a PDF"
+                  }
                 >
-                  <DownloadIcon />
-                </button>
-              </IconButtonTooltip>
+                  <button
+                    type="button"
+                    className="action-toolbar__button"
+                    aria-label="Exportar a PDF"
+                    disabled={state.lyricsText.trim() === ""}
+                    onClick={handleExportPdf}
+                  >
+                    <DownloadIcon />
+                  </button>
+                </IconButtonTooltip>
+              )}
               {isOwnSong && !isMobile && (
                 <IconButtonTooltip
                   tooltip={songDbId ? "Eliminar canción" : "No hay canción guardada para eliminar"}
