@@ -172,6 +172,11 @@ function App({
     () => initialSong?.youtubeUrl ?? null,
   );
   const [youtubeDialogOpen, setYoutubeDialogOpen] = useState(false);
+  // The YouTube link is part of a brand-new song's "creation form" and must be settable before
+  // the song has ever been saved — unlike the public/private toggle, it isn't gated behind
+  // songDbId existing. Set only while a link was entered before autosave created the row; the
+  // effect below flushes it as a real write the moment songDbId becomes available.
+  const [pendingYoutubeUrl, setPendingYoutubeUrl] = useState<string | null | undefined>(undefined);
   // Fork relationships are stored by database id, but navigation uses slugs. Resolve the source
   // song separately so the title-area link always points to its canonical URL.
   const [forkedFrom, setForkedFrom] = useState<string | null>(() => initialSong?.forkedFrom ?? null);
@@ -501,7 +506,13 @@ function App({
   };
 
   const handleSaveYoutubeUrl = async (url: string | null) => {
-    if (!songDbId) return;
+    // No row to write to yet (a brand-new, still-unsaved song): hold the value locally and let
+    // the effect below persist it once autosave creates the row.
+    if (!songDbId) {
+      setSongYoutubeUrlState(url);
+      setPendingYoutubeUrl(url);
+      return;
+    }
     const updated = await setSongYoutubeUrl(songDbId, url);
     setSongYoutubeUrlState(updated.youtubeUrl);
     showToast({
@@ -512,6 +523,24 @@ function App({
         : "Ya no se muestra ningún video debajo de la letra.",
     });
   };
+
+  // Flushes a YouTube link entered before this song had a database id (see handleSaveYoutubeUrl)
+  // as soon as autosave creates that row.
+  useEffect(() => {
+    if (!songDbId || pendingYoutubeUrl === undefined) return;
+    const url = pendingYoutubeUrl;
+    setPendingYoutubeUrl(undefined);
+    setSongYoutubeUrl(songDbId, url)
+      .then((updated) => setSongYoutubeUrlState(updated.youtubeUrl))
+      .catch((error: unknown) => {
+        console.error("No se pudo guardar el link de YouTube.", error);
+        showToast({
+          variant: "error",
+          title: "No se pudo guardar el link de YouTube",
+          description: "Volvé a intentarlo desde el botón de YouTube.",
+        });
+      });
+  }, [songDbId, pendingYoutubeUrl, showToast]);
 
   const handleForkClick = () => {
     if (!songDbId) return;
@@ -755,6 +784,21 @@ function App({
                   <UnderlineIcon />
                 </button>
               </IconButtonTooltip>
+              {isAdmin && !isMobile && (
+                <IconButtonTooltip
+                  tooltip={songYoutubeUrl ? "Editar link de YouTube" : "Agregar link de YouTube"}
+                >
+                  <button
+                    type="button"
+                    className="track-toolbar__toggle"
+                    aria-pressed={songYoutubeUrl !== null}
+                    aria-label={songYoutubeUrl ? "Editar link de YouTube" : "Agregar link de YouTube"}
+                    onClick={() => setYoutubeDialogOpen(true)}
+                  >
+                    <YoutubeIcon />
+                  </button>
+                </IconButtonTooltip>
+              )}
             </aside>
 
             {!contentLoaded ? (
@@ -780,24 +824,6 @@ function App({
             )}
 
             <aside className="action-toolbar" aria-label="Acciones">
-              {isAdmin && songDbId && !isMobile && (
-                <IconButtonTooltip
-                  tooltip={songYoutubeUrl ? "Editar link de YouTube" : "Agregar link de YouTube"}
-                >
-                  <button
-                    type="button"
-                    className={
-                      songYoutubeUrl
-                        ? "action-toolbar__button"
-                        : "action-toolbar__button action-toolbar__button--inactive"
-                    }
-                    aria-label={songYoutubeUrl ? "Editar link de YouTube" : "Agregar link de YouTube"}
-                    onClick={() => setYoutubeDialogOpen(true)}
-                  >
-                    <YoutubeIcon />
-                  </button>
-                </IconButtonTooltip>
-              )}
               {isAdmin && songDbId && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
@@ -903,7 +929,7 @@ function App({
             onCancel={() => setDeleteDialogOpen(false)}
           />
 
-          {isAdmin && songDbId && !isMobile && (
+          {isAdmin && !isMobile && (
             <YoutubeLinkDialog
               open={youtubeDialogOpen}
               currentUrl={songYoutubeUrl}
