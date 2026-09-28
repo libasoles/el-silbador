@@ -6,6 +6,11 @@ Every task must use its own git worktree and branch. Codex creates worktrees at
 `.agents/worktrees/<task-slug>`; this keeps all agent worktrees inside the repository. When the
 task is complete, merge the branch into `main`, then remove both the task branch and its worktree.
 
+## UI components
+
+Build components as reusable, composable units whenever practical. Prefer Radix primitives as
+their foundation when a suitable primitive exists.
+
 ### Issue tracker
 
 Local markdown — issues/specs live under `.scratch/<feature-slug>/`. See `docs/agents/issue-tracker.md`.
