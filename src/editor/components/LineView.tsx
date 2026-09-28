@@ -432,7 +432,7 @@ export function LineView({
         {trailingWhitespace.replaceAll(/\s/g, "\u00a0")}
       </div>
       {tracks
-        .filter((track) => track.visible && track.id === "vocalNotes")
+        .filter((track) => track.visible && track.id === "vocalNotes" && showUnderline)
         .map(renderTrackRow)}
     </div>
   );
