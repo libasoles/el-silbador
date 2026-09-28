@@ -352,6 +352,14 @@ export function SongView({
 }: SongViewProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const pendingCaret = useRef<CaretPosition | null>(null);
+  // Some browsers still mutate the DOM themselves after `beforeinput`'s `preventDefault()` —
+  // notably Chromium deleting a selection that spans one of the non-editable syllable-gap
+  // buttons — firing a native `input` event on top of it. `handleBeforeInput` has already applied
+  // that edit through the document model by then, so letting `onInput`'s `commit()` run again
+  // would re-read a DOM the browser just corrupted and re-apply the same edit on top of it,
+  // producing duplicated text. Skip exactly the one `input` event that follows a handled
+  // `beforeinput`.
+  const suppressNextInput = useRef(false);
   const hasVisibleAnnotations = tracks.some(
     (track) => track.visible && track.id !== "chordNotes",
   );
@@ -544,6 +552,7 @@ export function SongView({
         : NATIVE_FAST_PATH_TYPES.has(inputType)
           ? (event.data ?? "")
           : "";
+    suppressNextInput.current = true;
     replaceRange(start, end, replacement);
   }
 
@@ -707,6 +716,10 @@ export function SongView({
         onInput={(event) => {
           if (!canEdit) return;
           if ((event.target as HTMLElement).closest("[data-track]")) return;
+          if (suppressNextInput.current) {
+            suppressNextInput.current = false;
+            return;
+          }
           commit();
         }}
         onKeyDownCapture={handleKeyDown}
