@@ -10,15 +10,15 @@ body {
   padding: 1.5rem;
 }
 
-/* On mobile the horizontal gutter is wasted space, and the fixed .app-mark logo (theme.css:
-   top: 1rem, height: 3.25rem, so its bottom edge sits at 4.25rem) needs clear room below it so
-   page content — the song title, the library heading — never renders under or too close to it.
-   Both page-level paddings (.app, .library) are zeroed at this breakpoint so this is the single
-   place either dimension is set. */
+/* On mobile the logo (theme.css: top: 1rem, height: 3.25rem, so its bottom edge sits at 4.25rem)
+   needs clear room below it so page content — the song title, the library heading — never
+   renders under or too close to it. Both page-level paddings (.app, .library) are zeroed at this
+   breakpoint so this is the single place either dimension is set. A small horizontal gutter is
+   kept so content doesn't run edge-to-edge against the screen. */
 @media (max-width: 30rem) {
   .page-shell {
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
     padding-top: 5.5rem;
   }
 }
