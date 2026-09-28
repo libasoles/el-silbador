@@ -35,7 +35,9 @@ export async function generateMetadata({
   if (!song) return { title: "Canción" };
 
   const title = song.title || "Canción sin título";
-  const description = song.author ? `${title}, por ${song.author} — Silbador` : `${title} — Silbador`;
+  const description = song.author
+    ? `${title}, por ${song.author} — El Silbador`
+    : `${title} — El Silbador`;
   const url = `/cancion/${slug}`;
 
   return {
