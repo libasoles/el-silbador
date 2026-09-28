@@ -8,7 +8,15 @@ describe("song page authentication handoff", () => {
     // A private song cannot be returned by the server's anonymous request. During a page reload,
     // its owner is briefly in this state until the browser restores their session.
     expect(songPageClient).toMatch(
-      /if \(session === undefined\) \{\s*return initialState \? <StaticSongView state=\{initialState\} \/> : <SongPageLoading \/>;\s*\}/,
+      /if \(!initialSong && session === undefined\) \{\s*return <SongPageLoading \/>;\s*\}/,
     );
+  });
+
+  it("mounts App exactly once, seeded with initialSong, instead of swapping trees on auth", () => {
+    // Regression guard for the mobile crash this replaced: rendering a separate read-only tree
+    // first and swapping to `App` once auth resolved meant fully unmounting and rebuilding a
+    // potentially large SongView/LineView tree right after first paint.
+    expect(songPageClient).not.toMatch(/StaticSongView/);
+    expect(songPageClient).toMatch(/<App\s+songSlug=\{slug\}\s+initialSong=\{initialSong\}/);
   });
 });

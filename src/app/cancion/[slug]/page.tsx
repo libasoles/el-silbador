@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { getSongBySlug, listPublicSongs } from "../../../data/songs";
 import type { SongDetail } from "../../../data/types";
-import { createInitialState, editorReducer } from "../../../core/state";
-import type { EditorState } from "../../../core/types";
 import { SongPageClient } from "./SongPageClient";
 
 // Public songs are read here with the anon key, so RLS (see
@@ -14,10 +12,6 @@ async function fetchPublicSong(slug: string): Promise<SongDetail | null> {
   } catch {
     return null;
   }
-}
-
-function stateFromSong(song: SongDetail): EditorState {
-  return editorReducer(createInitialState(), { type: "loadContent", content: song.content });
 }
 
 export async function generateStaticParams() {
@@ -57,5 +51,5 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const song = await fetchPublicSong(slug);
 
-  return <SongPageClient slug={slug} initialState={song ? stateFromSong(song) : null} />;
+  return <SongPageClient slug={slug} initialSong={song} />;
 }

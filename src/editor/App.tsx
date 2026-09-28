@@ -15,7 +15,7 @@ import {
   setSongPublic,
 } from "../data";
 import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
-import type { SongContent } from "../data/types";
+import type { SongContent, SongDetail } from "../data/types";
 import { revalidatePublicSongs } from "../app/actions";
 import { TransposeWidget } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
@@ -96,6 +96,14 @@ interface AppProps {
   accentColor?: string;
   /** Slug of the song being edited, from the /cancion/:slug route. Absent for a new, unsaved song. */
   songSlug?: string;
+  /** The song's full detail as already fetched anonymously on the server (see
+   *  `SongPage`/`SongPageClient`), when public. Seeds every piece of state this component would
+   *  otherwise wait on a client fetch for, so the first render already has real content instead of
+   *  a skeleton — critical on mobile, where mounting the full editor tree once with this seed
+   *  (instead of an empty one now and a full remount once auth resolves) avoids briefly doubling
+   *  the DOM/listener footprint of a long song and crashing the tab. `null` covers "doesn't exist"
+   *  and "private, not mine" the same way, since RLS makes them indistinguishable. */
+  initialSong?: SongDetail | null;
   /** Called after every successful save with the song's id and current slug, so the URL can adopt
       it — fires both when autosave first creates the row and whenever a title edit later
       regenerates an existing song's slug. */
@@ -141,11 +149,11 @@ function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
 function App({
   accentColor = DEFAULT_ACCENT_COLOR,
   songSlug,
+  initialSong,
   onSongCreated,
   onDeleted,
 }: AppProps) {
   const queryClient = useQueryClient();
-  const { state, actions } = useEditor();
   const [loadError, setLoadError] = useState<{ songSlug: string } | null>(null);
   const { session, requireAuthentication } = useAuthRequired();
   const authenticated = Boolean(session);
@@ -153,16 +161,16 @@ function App({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [forking, setForking] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [songIsPublic, setSongIsPublic] = useState(false);
+  const [songIsPublic, setSongIsPublic] = useState(() => initialSong?.isPublic ?? false);
   const [togglingPublic, setTogglingPublic] = useState(false);
   // Fork relationships are stored by database id, but navigation uses slugs. Resolve the source
   // song separately so the title-area link always points to its canonical URL.
-  const [forkedFrom, setForkedFrom] = useState<string | null>(null);
+  const [forkedFrom, setForkedFrom] = useState<string | null>(() => initialSong?.forkedFrom ?? null);
   const [forkSourceSlug, setForkSourceSlug] = useState<string | null>(null);
   // The song's real database id, resolved from `songSlug` once `getSongBySlug` returns (or set
   // directly once autosave creates a brand-new song). Needed because writes (save/delete) still
   // key off the stable id rather than the slug.
-  const [songDbId, setSongDbId] = useState<string | undefined>(undefined);
+  const [songDbId, setSongDbId] = useState<string | undefined>(() => initialSong?.id);
   // Latest `songDbId`, readable from the load effect below without adding it to that effect's
   // dependencies (it intentionally only reruns for `songSlug` changes — see the effect's comment).
   const songDbIdRef = useRef(songDbId);
@@ -174,12 +182,21 @@ function App({
   // `App` is server-rendered once (for the client hydration it produces — see
   // SongPageClient/NuevaPage), and `localStorage` doesn't exist on the server.
   const [restoredDraft] = useState(() => (typeof window === "undefined" ? null : readDraft(songSlug)));
-  // Only an existing song (songSlug set, no restored draft) has content worth waiting on; a new
-  // song, or one whose draft was already restored, starts "loaded" with its editor state in place.
-  const [contentLoaded, setContentLoaded] = useState(() => !songSlug || Boolean(restoredDraft));
+  // A local draft always wins over the server's anonymous fetch: it's strictly newer (typed after
+  // that fetch resolved). Passed to `useEditor` as this mount's one-time seed for the reducer's
+  // initial state, so the very first render already shows real content instead of a skeleton —
+  // avoiding a second, later mount of the full (potentially large) `SongView`/`LineView` tree,
+  // which on mobile is what briefly doubles memory pressure enough to crash the tab (see
+  // `SongPageClient`).
+  const { state, actions } = useEditor((restoredDraft ?? initialSong)?.content);
+  // Only an existing song (songSlug set, no restored draft, no server-fetched content) has content
+  // worth waiting on; anything else starts "loaded" with its editor state already in place.
+  const [contentLoaded, setContentLoaded] = useState(
+    () => !songSlug || Boolean(restoredDraft) || Boolean(initialSong),
+  );
   // `undefined` while an existing song's owner is still unknown (fetch in flight); a brand-new
   // song has no owner yet, so it's implicitly "mine" until it's first saved.
-  const [ownerId, setOwnerId] = useState<string | undefined>(undefined);
+  const [ownerId, setOwnerId] = useState<string | undefined>(() => initialSong?.ownerId);
   useEffect(() => {
     if (restoredDraft) {
       actions.loadContent(restoredDraft.content);
