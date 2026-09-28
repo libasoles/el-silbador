@@ -43,6 +43,7 @@ import { clearPendingAuthAction, readPendingAuthAction } from "./pendingAuthActi
 import { consumeJustForked, saveJustForked } from "./justForkedStorage";
 import { pdfDocumentTitle } from "./pdfFilename";
 import { useToast } from "./toastContext";
+import { useIsMobile } from "./useIsMobile";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
 
@@ -352,6 +353,11 @@ function App({
   // forker, so a viewed fork satisfies this the same way any other owned song does).
   const isOwnSong =
     !songSlug || Boolean(restoredDraft) || (ownerId !== undefined && ownerId === session?.user.id);
+  const isMobile = useIsMobile();
+  // Mobile is read-only by product rule: no title/author/content editing and no forking, even for
+  // the song's owner. Favoriting, chord/underline toggles, PDF export and transposition stay
+  // available on mobile and must not be gated here.
+  const canEditOnThisDevice = isOwnSong && !isMobile;
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
     songDbId,
@@ -558,7 +564,7 @@ function App({
                 placeholder="Título"
                 value={state.title}
                 onChange={(event) => actions.setTitle(event.target.value)}
-                readOnly={!isOwnSong}
+                readOnly={!canEditOnThisDevice}
                 aria-label="Título"
               />
             </div>
@@ -569,7 +575,7 @@ function App({
                 placeholder="Autor o intérprete"
                 value={state.author}
                 onChange={(event) => actions.setAuthor(event.target.value)}
-                readOnly={!isOwnSong}
+                readOnly={!canEditOnThisDevice}
                 aria-label="Autor o intérprete"
               />
             )}
@@ -635,7 +641,7 @@ function App({
                 cells={state.cells}
                 chordVariants={state.chordVariants}
                 showUnderline={state.showUnderline}
-                canEdit={isOwnSong}
+                canEdit={canEditOnThisDevice}
                 onSetCellText={actions.setCellText}
                 onSetChordVariant={actions.setChordVariant}
                 onToggleMerge={actions.toggleSyllableMerge}
@@ -672,7 +678,7 @@ function App({
                   </button>
                 </IconButtonTooltip>
               )}
-              {songDbId && !isOwnSong && (
+              {songDbId && !isOwnSong && !isMobile && (
                 <IconButtonTooltip
                   className="action-toolbar__fork-tooltip"
                   tooltip={forking ? "Versionando…" : "Versionar canción"}
