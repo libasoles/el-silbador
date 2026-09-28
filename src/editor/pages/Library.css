@@ -313,9 +313,27 @@
   max-width: 26rem;
 }
 
+/* The dotted leader and inline author only make sense on a single line; on narrow screens there
+   isn't room for both next to the title without colliding with the favorite star, so the author
+   drops to its own line below the title instead. */
 @media (max-width: 30rem) {
+  .library-row__open {
+    flex-wrap: wrap;
+    row-gap: 0.1rem;
+  }
+
   .library-row__title {
-    max-width: 55%;
+    max-width: 100%;
+    flex-basis: 100%;
+  }
+
+  .library-row__leader {
+    display: none;
+  }
+
+  .library-row__author {
+    flex-basis: 100%;
+    font-size: 0.85rem;
   }
 }
 
