@@ -5,7 +5,8 @@
 export { Trash2 as TrashIcon } from "lucide-react";
 export { CheckCircle2 as CheckCircleIcon } from "lucide-react";
 export { Info as InfoIcon } from "lucide-react";
-export { HatGlasses as HatGlassesIcon } from "lucide-react";
+export { Lock as PrivacyLockedIcon } from "lucide-react";
+export { LockOpen as PrivacyUnlockedIcon } from "lucide-react";
 export { ChevronLeft as ChevronLeftIcon } from "lucide-react";
 export { ChevronRight as ChevronRightIcon } from "lucide-react";
 export { Mail as MailIcon } from "lucide-react";

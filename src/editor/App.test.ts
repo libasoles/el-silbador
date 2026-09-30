@@ -71,6 +71,14 @@ describe("lyric caret visibility", () => {
 });
 
 describe("icon-button tooltips", () => {
+  it("uses a lock that reflects the song's current privacy", () => {
+    expect(app).toContain("PrivacyLockedIcon");
+    expect(app).toContain("PrivacyUnlockedIcon");
+    expect(app).toMatch(
+      /songIsPublic \? \(\s*<PrivacyUnlockedIcon \/>\s*\) : \(\s*<PrivacyLockedIcon \/>/,
+    );
+  });
+
   it("renders a visible tooltip from a hoverable wrapper", () => {
     expect(iconButtonTooltip).toContain("function IconButtonTooltip");
     expect(iconButtonTooltip).toContain("icon-button-tooltip");

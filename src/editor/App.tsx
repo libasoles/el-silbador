@@ -28,8 +28,9 @@ import { YoutubeLinkDialog } from "./components/YoutubeLinkDialog";
 import {
   DownloadIcon,
   ForkIcon,
-  HatGlassesIcon,
   MenuIcon,
+  PrivacyLockedIcon,
+  PrivacyUnlockedIcon,
   SaveIcon,
   SilbadorIcon,
   SpinnerIcon,
@@ -929,7 +930,13 @@ function App({
                     disabled={togglingPublic}
                     onClick={handleTogglePublicClick}
                   >
-                    {togglingPublic ? <SpinnerIcon /> : <HatGlassesIcon />}
+                    {togglingPublic ? (
+                      <SpinnerIcon />
+                    ) : songIsPublic ? (
+                      <PrivacyUnlockedIcon />
+                    ) : (
+                      <PrivacyLockedIcon />
+                    )}
                   </button>
                 </IconButtonTooltip>
               )}
