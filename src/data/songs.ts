@@ -182,9 +182,6 @@ export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
       owner_id: userId,
       title: input.content.title || null,
       content: serializeContent(input.content),
-      // Public songs from non-admin accounts stay unlisted (enforced in the database), so their
-      // author can share the direct URL without adding it to the public cancionero.
-      ...(input.id ? {} : { is_public: true }),
     })
     .select("id, slug, updated_at")
     .single();
@@ -225,7 +222,7 @@ export async function forkSong(songId: string): Promise<SongDetail> {
       title: source.title,
       content: source.content,
       forked_from: songId,
-      is_public: true,
+      is_public: false,
     })
     .select(DETAIL_COLUMNS)
     .single();
@@ -285,11 +282,5 @@ export async function setSongYoutubeUrl(songId: string, youtubeUrl: string | nul
     .single();
   if (error) throw error;
 
-  const summary = toSummary(data as SongRow);
-  // Same admin-only guard as setSongPublic above, reverted silently by the DB trigger instead of
-  // raising (see supabase/migrations/0007_song_youtube_link.sql) — surface that as a rejection.
-  if (summary.youtubeUrl !== youtubeUrl) {
-    throw new Error("Not authorized to change this song's YouTube link.");
-  }
-  return summary;
+  return toSummary(data as SongRow);
 }

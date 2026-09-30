@@ -181,10 +181,8 @@ function App({
     () => initialSong?.youtubeUrl ?? null,
   );
   const [youtubeDialogOpen, setYoutubeDialogOpen] = useState(false);
-  // The YouTube link is part of a brand-new song's "creation form" and must be settable before
-  // the song has ever been saved — unlike the public/private toggle, it isn't gated behind
-  // songDbId existing. Set only while a link was entered before autosave created the row; the
-  // effect below flushes it as a real write the moment songDbId becomes available.
+  // Administrators may set a YouTube link before a new song is first saved. For other authors,
+  // the control becomes available once their song has a database id.
   const [pendingYoutubeUrl, setPendingYoutubeUrl] = useState<
     string | null | undefined
   >(undefined);
@@ -256,8 +254,8 @@ function App({
     applyTheme(deriveTheme(accentColor));
   }, [accentColor]);
 
-  // Admin-only actions (such as attaching a YouTube link) need to know the signed-in user's
-  // role, which isn't part of the auth session itself — resolved separately from `profiles.role`.
+  // Administrators may attach a YouTube link before a new song has been saved, so their role is
+  // resolved separately from the auth session.
   useEffect(() => {
     const userId = session?.user.id;
     if (!userId) {
@@ -424,9 +422,6 @@ function App({
   const handleSongCreated = useCallback(
     (id: string, slug: string) => {
       setSongDbId(id);
-      // New songs are public by default. For non-admin authors this means shareable by URL but
-      // not discoverable in the library or by search engines (enforced by is_listed on the DB).
-      setSongIsPublic(true);
       onSongCreated?.(id, slug);
     },
     [onSongCreated],
@@ -861,7 +856,7 @@ function App({
                   <UnderlineIcon />
                 </button>
               </IconButtonTooltip>
-              {isAdmin && !isMobile && (
+              {(isAdmin || (songDbId && isOwnSong)) && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
                     songYoutubeUrl
@@ -1020,7 +1015,7 @@ function App({
             onCancel={() => setDeleteDialogOpen(false)}
           />
 
-          {isAdmin && !isMobile && (
+          {(isAdmin || (songDbId && isOwnSong)) && !isMobile && (
             <YoutubeLinkDialog
               open={youtubeDialogOpen}
               currentUrl={songYoutubeUrl}
