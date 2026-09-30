@@ -38,3 +38,18 @@ npm run supabase:stop    # lo apaga
 Con el stack corriendo, abrí Studio en [http://localhost:54323](http://localhost:54323). Ver `supabase/README.md` para instrucciones de migraciones.
 
 Los correos que genera Supabase local —por ejemplo, los enlaces mágicos para iniciar sesión— no se envían a una casilla real. Podés recibirlos e inspeccionar sus enlaces en [http://127.0.0.1:54324/](http://127.0.0.1:54324/), la bandeja de entrada local que se inicia junto con el stack.
+
+#### Si Docker está activo pero `127.0.0.1:54321` rechaza la conexión
+
+Esto puede ocurrir después de mover o renombrar el directorio del proyecto: un contenedor local
+puede conservar una ruta anterior y el gateway de Supabase no llega a iniciar. Recreá los
+contenedores sin borrar la base local:
+
+```
+npm run supabase:stop
+npm run supabase:start
+```
+
+No agregues `--no-backup` al comando de stop, porque elimina los volúmenes con los datos locales.
+Finalmente, reiniciá `npm run dev`. `npx supabase status` debe mostrar todos los servicios activos,
+incluido `supabase_kong_<project-id>`.
