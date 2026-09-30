@@ -7,4 +7,8 @@ import { revalidatePath } from "next/cache";
 // that cache — call this right after a successful visibility change.
 export async function revalidatePublicSongs() {
   revalidatePath("/");
+  revalidatePath("/sitemap.xml");
+  // A visibility change also changes a song page's robots metadata. This route pattern clears
+  // every cached song page, including one whose slug was regenerated after a title edit.
+  revalidatePath("/cancion/[slug]", "page");
 }

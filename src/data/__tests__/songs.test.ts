@@ -115,22 +115,34 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
     expect(mine.some((song) => song.id === saved.id)).toBe(true);
   });
 
-  it("lists only the caller's own songs, never another user's private songs", async () => {
+  it("keeps a non-admin's public song out of the library while allowing its direct URL", async () => {
     await signInAs(userA);
     const own = await saveSong({ content: makeContent({ title: "A privada" }) });
     createdSongIds.push(own.id);
 
     await signInAs(userB);
-    const otherPrivate = await saveSong({ content: makeContent({ title: "B privada" }) });
-    createdSongIds.push(otherPrivate.id);
+    const otherPublic = await saveSong({ content: makeContent({ title: "B pública no listada" }) });
+    createdSongIds.push(otherPublic.id);
 
     await signInAs(userA);
     const mine = await listMySongs();
     expect(mine.some((song) => song.id === own.id)).toBe(true);
-    expect(mine.some((song) => song.id === otherPrivate.id)).toBe(false);
+    expect(mine.some((song) => song.id === otherPublic.id)).toBe(false);
 
     const publicSongs = await listPublicSongs();
-    expect(publicSongs.some((song) => song.id === otherPrivate.id)).toBe(false);
+    expect(publicSongs.some((song) => song.id === otherPublic.id)).toBe(false);
+    expect((await getSong(otherPublic.id)).isPublic).toBe(true);
+  });
+
+  it("lists a public song created by an admin", async () => {
+    await signInAs(adminUser);
+    const adminSong = await saveSong({ content: makeContent({ title: "Administrada" }) });
+    createdSongIds.push(adminSong.id);
+
+    expect((await getSong(adminSong.id)).isListed).toBe(true);
+
+    await signInAs(userA);
+    expect((await listPublicSongs()).some((song) => song.id === adminSong.id)).toBe(true);
   });
 
   it("prevents a non-owner from updating or deleting another user's song", async () => {
@@ -151,22 +163,24 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
     expect(stillThere?.title).toBe("Solo de A");
   });
 
-  it("rejects setSongPublic from a non-admin, but allows it from an admin", async () => {
+  it("lets a non-admin change their song's direct-link visibility without listing it", async () => {
     await signInAs(userA);
     const saved = await saveSong({ content: makeContent({ title: "Para publicar" }) });
     createdSongIds.push(saved.id);
 
-    await expect(setSongPublic(saved.id, true)).rejects.toThrow();
+    const privateSong = await setSongPublic(saved.id, false);
+    expect(privateSong.isPublic).toBe(false);
 
-    await signInAs(adminUser);
     const published = await setSongPublic(saved.id, true);
     expect(published.isPublic).toBe(true);
+    expect(published.isListed).toBe(false);
   });
 
   it("only allows favoriting a public song", async () => {
     await signInAs(userA);
     const privateSong = await saveSong({ content: makeContent({ title: "Privada" }) });
     createdSongIds.push(privateSong.id);
+    await setSongPublic(privateSong.id, false);
 
     await signInAs(userB);
     await expect(toggleFavorite(privateSong.id)).rejects.toThrow();
@@ -176,6 +190,7 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
     await signInAs(userA);
     const privateSong = await saveSong({ content: makeContent({ title: "Privada" }) });
     createdSongIds.push(privateSong.id);
+    await setSongPublic(privateSong.id, false);
 
     await signInAs(userB);
     await expect(forkSong(privateSong.id)).rejects.toThrow();
@@ -185,9 +200,6 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
     await signInAs(userA);
     const song = await saveSong({ content: makeContent({ title: "Para favoritos" }) });
     createdSongIds.push(song.id);
-
-    await signInAs(adminUser);
-    await setSongPublic(song.id, true);
 
     await signInAs(userB);
     await toggleFavorite(song.id);
@@ -209,15 +221,13 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
       });
       createdSongIds.push(original.id);
 
-      await signInAs(adminUser);
-      await setSongPublic(original.id, true);
-
       await signInAs(userB);
       const fork = await forkSong(original.id);
       createdSongIds.push(fork.id);
 
       expect(fork.forkedFrom).toBe(original.id);
-      expect(fork.isPublic).toBe(false);
+      expect(fork.isPublic).toBe(true);
+      expect(fork.isListed).toBe(false);
       expect(fork.content.lyricsText).toBe("la la la");
       expect(fork.content.merges).toEqual(new Set(["x|y"]));
 

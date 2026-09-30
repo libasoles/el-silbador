@@ -11,6 +11,7 @@ function makeSong(overrides: Partial<SongSummary> = {}): SongSummary {
     author: "Mercedes Sosa",
     ownerId: "owner-1",
     isPublic: false,
+    isListed: false,
     youtubeUrl: null,
     forkedFrom: null,
     createdAt: "2026-01-01T00:00:00.000Z",

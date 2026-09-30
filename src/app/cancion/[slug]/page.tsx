@@ -46,6 +46,9 @@ export async function generateMetadata({
     alternates: { canonical: url },
     openGraph: { title, description, url },
     twitter: { title, description },
+    // A public song by a non-admin is deliberately shareable only by its direct URL. Keep it
+    // crawlable so Google can process this directive, but do not let it enter search results.
+    robots: song.isListed ? undefined : { index: false, follow: false },
   };
 }
 

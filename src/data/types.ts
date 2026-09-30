@@ -21,6 +21,9 @@ export interface SongSummary {
   author: string;
   ownerId: string;
   isPublic: boolean;
+  /** Whether this public song is discoverable in El Silbador's library and sitemap. Only songs
+   *  created by admins are listed; other public songs are available by their direct URL only. */
+  isListed: boolean;
   /** Set by an admin only (see supabase/migrations/0007_song_youtube_link.sql); rendered below
    *  the lyrics on the song page. `null` when no link has been attached. */
   youtubeUrl: string | null;

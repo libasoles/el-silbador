@@ -256,8 +256,8 @@ function App({
     applyTheme(deriveTheme(accentColor));
   }, [accentColor]);
 
-  // Admin-only actions (e.g. publishing a song) need to know the signed-in user's role, which
-  // isn't part of the auth session itself — resolved separately from `profiles.role`.
+  // Admin-only actions (such as attaching a YouTube link) need to know the signed-in user's
+  // role, which isn't part of the auth session itself — resolved separately from `profiles.role`.
   useEffect(() => {
     const userId = session?.user.id;
     if (!userId) {
@@ -424,6 +424,9 @@ function App({
   const handleSongCreated = useCallback(
     (id: string, slug: string) => {
       setSongDbId(id);
+      // New songs are public by default. For non-admin authors this means shareable by URL but
+      // not discoverable in the library or by search engines (enforced by is_listed on the DB).
+      setSongIsPublic(true);
       onSongCreated?.(id, slug);
     },
     [onSongCreated],
@@ -667,10 +670,7 @@ function App({
         <SilbadorIcon />
       </a>
 
-      <IconButtonTooltip
-        className="app-close-tooltip"
-        tooltip="Volver al índice"
-      >
+      <IconButtonTooltip className="app-close-tooltip" tooltip="Volver al índice">
         <a className="app-close" href="/" aria-label="Volver al índice">
           <XIcon size={26} />
         </a>
@@ -909,7 +909,7 @@ function App({
             )}
 
             <aside className="action-toolbar" aria-label="Acciones">
-              {isAdmin && songDbId && !isMobile && (
+              {songDbId && (isAdmin || isOwnSong) && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
                     togglingPublic

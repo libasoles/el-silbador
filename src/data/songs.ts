@@ -26,6 +26,7 @@ interface SongRow {
   owner_id: string;
   content: StoredSongContent;
   is_public: boolean;
+  is_listed: boolean;
   youtube_url: string | null;
   forked_from: string | null;
   created_at: string;
@@ -39,7 +40,7 @@ interface FavoriteRow {
 // The author belongs to the song content rather than the owner profile, so summaries include the
 // content needed to show the work's own author or performer in the index.
 const SUMMARY_COLUMNS =
-  "id, slug, title, owner_id, content, is_public, youtube_url, forked_from, created_at, updated_at";
+  "id, slug, title, owner_id, content, is_public, is_listed, youtube_url, forked_from, created_at, updated_at";
 const DETAIL_COLUMNS = SUMMARY_COLUMNS;
 
 export function serializeContent(content: SongContent): StoredSongContent {
@@ -75,6 +76,7 @@ function toSummary(row: SongRow): SongSummary {
     author: row.content.author ?? "",
     ownerId: row.owner_id,
     isPublic: row.is_public,
+    isListed: row.is_listed,
     youtubeUrl: row.youtube_url,
     forkedFrom: row.forked_from,
     createdAt: row.created_at,
@@ -115,6 +117,7 @@ export async function listPublicSongs(): Promise<SongSummary[]> {
     .from("songs")
     .select(SUMMARY_COLUMNS)
     .eq("is_public", true)
+    .eq("is_listed", true)
     .order("updated_at", { ascending: false });
   if (error) throw error;
 
@@ -179,6 +182,9 @@ export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
       owner_id: userId,
       title: input.content.title || null,
       content: serializeContent(input.content),
+      // Public songs from non-admin accounts stay unlisted (enforced in the database), so their
+      // author can share the direct URL without adding it to the public cancionero.
+      ...(input.id ? {} : { is_public: true }),
     })
     .select("id, slug, updated_at")
     .single();
@@ -219,7 +225,7 @@ export async function forkSong(songId: string): Promise<SongDetail> {
       title: source.title,
       content: source.content,
       forked_from: songId,
-      is_public: false,
+      is_public: true,
     })
     .select(DETAIL_COLUMNS)
     .single();
@@ -265,12 +271,6 @@ export async function setSongPublic(songId: string, isPublic: boolean): Promise<
   if (error) throw error;
 
   const summary = toSummary(data as SongRow);
-  // The DB trigger silently reverts is_public instead of raising when the caller isn't an admin
-  // (see supabase/migrations/0001_init.sql, guard_song_publication) — surface that as a rejection
-  // here so callers don't mistake a no-op for success.
-  if (summary.isPublic !== isPublic) {
-    throw new Error("Not authorized to change this song's visibility.");
-  }
   return summary;
 }
 
