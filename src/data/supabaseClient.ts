@@ -2,6 +2,41 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let client: SupabaseClient | undefined;
 
+function isLocalSupabaseUrl(url: string): boolean {
+  const parsedUrl = new URL(url);
+  return (parsedUrl.hostname === "127.0.0.1" || parsedUrl.hostname === "localhost") && parsedUrl.port === "54321";
+}
+
+function isConnectionRefused(error: unknown): boolean {
+  if (!(error instanceof Error) || typeof error.cause !== "object" || error.cause === null) return false;
+  return "code" in error.cause && error.cause.code === "ECONNREFUSED";
+}
+
+/**
+ * Adds an actionable diagnostic to the otherwise opaque "fetch failed" error emitted when the
+ * configured local Supabase endpoint is down. It works in both the browser console and Next's
+ * server console.
+ */
+export function createSupabaseFetch(supabaseUrl: string, baseFetch: typeof fetch = fetch): typeof fetch {
+  let hasReportedUnavailableLocalSupabase = false;
+
+  return async (input, init) => {
+    try {
+      return await baseFetch(input, init);
+    } catch (error) {
+      if (isLocalSupabaseUrl(supabaseUrl) && isConnectionRefused(error) && !hasReportedUnavailableLocalSupabase) {
+        hasReportedUnavailableLocalSupabase = true;
+        console.error(
+          "\n⚠️  Supabase local no está disponible en 127.0.0.1:54321.\n" +
+            "Docker no está corriendo o Supabase local no fue iniciado. Abrí Docker y ejecutá: npm run supabase:start\n" +
+            "Para usar el proyecto remoto, quitá la URL local de .env.local y reiniciá npm run dev.\n",
+        );
+      }
+      throw error;
+    }
+  };
+}
+
 /**
  * Lazily creates the shared Supabase client, so importing this module (or anything that imports
  * it, like the data-access functions) never fails just because env vars aren't set — only calling
@@ -19,6 +54,6 @@ export function getSupabaseClient(): SupabaseClient {
     );
   }
 
-  client = createClient(url, anonKey);
+  client = createClient(url, anonKey, { global: { fetch: createSupabaseFetch(url) } });
   return client;
 }
