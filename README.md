@@ -39,6 +39,27 @@ Con el stack corriendo, abrí Studio en [http://localhost:54323](http://localhos
 
 Los correos que genera Supabase local —por ejemplo, los enlaces mágicos para iniciar sesión— no se envían a una casilla real. Podés recibirlos e inspeccionar sus enlaces en [http://127.0.0.1:54324/](http://127.0.0.1:54324/), la bandeja de entrada local que se inicia junto con el stack.
 
+#### Migraciones
+
+Con el stack local iniciado, aplicá únicamente las migraciones pendientes a tu base local:
+
+```
+npx supabase migration up --local
+```
+
+Para comprobar cuáles están aplicadas localmente, usá `npx supabase migration list --local`.
+
+Para aplicar las migraciones pendientes al proyecto de producción, primero verificá que el repo
+esté vinculado al proyecto correcto y después ejecutá:
+
+```
+npx supabase link
+npx supabase db push
+```
+
+`supabase db push` modifica la base remota. Revisá las migraciones pendientes antes de confirmarlo;
+no uses `--local` para producción.
+
 #### Si Docker está activo pero `127.0.0.1:54321` rechaza la conexión
 
 Esto puede ocurrir después de mover o renombrar el directorio del proyecto: un contenedor local
