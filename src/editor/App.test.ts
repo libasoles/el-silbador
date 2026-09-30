@@ -55,6 +55,13 @@ describe("PDF export layout", () => {
       /@media print\s*\{[\s\S]*\.page-shell\s*\{[\s\S]*padding:\s*0/,
     );
   });
+
+  it("replaces editor save state with the El Silbador URL in the lower-right corner", () => {
+    expect(app).toContain('className="print-site-url">elsilbador.com.ar</p>');
+    expect(styles).toMatch(
+      /@media print\s*\{[\s\S]*\.autosave-status,[\s\S]*\.print-site-url\s*\{[\s\S]*position: fixed[\s\S]*right: 1\.5cm[\s\S]*bottom: 1\.5cm/,
+    );
+  });
 });
 
 describe("lyric caret visibility", () => {

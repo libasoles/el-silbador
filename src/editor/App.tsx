@@ -727,6 +727,7 @@ function App({
               {AUTOSAVE_STATUS_LABEL[autosaveStatus]}
             </p>
           )}
+          <p className="print-site-url">elsilbador.com.ar</p>
 
           <div className="workspace">
             {isMobile && (

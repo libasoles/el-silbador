@@ -152,6 +152,10 @@
   color: var(--highlight);
 }
 
+.print-site-url {
+  display: none;
+}
+
 .song-not-found {
   display: flex;
   flex-direction: column;
@@ -433,9 +437,20 @@
   .action-toolbar,
   .app-mark,
   .app-close,
+  .autosave-status,
   .transpose-widget,
   .youtube-embed {
     display: none;
+  }
+
+  .print-site-url {
+    display: block;
+    position: fixed;
+    right: 1.5cm;
+    bottom: 1.5cm;
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--muted);
   }
 
   body,
