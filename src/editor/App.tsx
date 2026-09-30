@@ -546,7 +546,7 @@ function App({
           ? "Canción publicada"
           : "Canción marcada como privada",
         description: updated.isPublic
-          ? "Ahora cualquiera puede verla en el cancionero público."
+          ? "Ahora podés compartir el enlace a esta canción."
           : "Ya no aparece en el cancionero público.",
       });
     } catch (error) {
