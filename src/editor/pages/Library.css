@@ -220,14 +220,38 @@
 
 .library-row__title {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   max-width: 70%;
+  min-width: 0;
+  color: var(--fg);
+}
+
+.library-row__title-text {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--serif);
   font-size: 1.05rem;
-  color: var(--fg);
   transition: color 140ms ease;
+}
+
+.library-row__privacy-tooltip {
+  flex: none;
+}
+
+.library-row__privacy-tooltip::after {
+  top: calc(100% + 0.45rem);
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.library-row__privacy {
+  display: inline-flex;
+  color: var(--muted);
 }
 
 .library-row__match {

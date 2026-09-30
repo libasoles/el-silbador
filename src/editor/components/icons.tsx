@@ -10,6 +10,7 @@ export { ChevronLeft as ChevronLeftIcon } from "lucide-react";
 export { ChevronRight as ChevronRightIcon } from "lucide-react";
 export { Mail as MailIcon } from "lucide-react";
 export { Menu as MenuIcon } from "lucide-react";
+export { LockKeyhole as PrivacyIcon } from "lucide-react";
 
 /** The Silbador mark: a singer with the sound of their voice. */
 export function SilbadorIcon() {

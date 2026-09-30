@@ -5,6 +5,7 @@ export interface LibrarySong {
   slug: string;
   title: string;
   author: string | null;
+  isPublic: boolean;
 }
 
 export function toLibrarySong(song: SongSummary): LibrarySong {
@@ -13,6 +14,7 @@ export function toLibrarySong(song: SongSummary): LibrarySong {
     slug: song.slug,
     title: song.title ?? "Sin título",
     author: song.author || null,
+    isPublic: song.isPublic,
   };
 }
 
@@ -22,5 +24,6 @@ export function toPublicLibrarySong(song: SongSummary): LibrarySong {
     slug: song.slug,
     title: song.title ?? "Sin título",
     author: song.author || null,
+    isPublic: song.isPublic,
   };
 }

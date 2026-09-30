@@ -25,6 +25,7 @@ describe("toLibrarySong", () => {
     expect(toLibrarySong(makeSong())).toMatchObject({
       title: "Canción",
       author: "Mercedes Sosa",
+      isPublic: false,
     });
   });
 

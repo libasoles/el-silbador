@@ -11,6 +11,7 @@ import {
   LogOutIcon,
   NeutralIllustrationIcon,
   PlusIcon,
+  PrivacyIcon,
   SearchIcon,
   SilbadorIcon,
   SpinnerIcon,
@@ -53,6 +54,7 @@ interface SongRowProps {
   fadeIn: boolean;
   showFavorite: boolean;
   showDelete: boolean;
+  showPrivacy: boolean;
   onOpen: () => void;
   onToggleFavorite: () => void;
   onDelete: () => void;
@@ -66,6 +68,7 @@ function SongRow({
   fadeIn,
   showFavorite,
   showDelete,
+  showPrivacy,
   onOpen,
   onToggleFavorite,
   onDelete,
@@ -77,14 +80,26 @@ function SongRow({
     <li className={fadeIn ? "library-row library-row--fade-in" : "library-row"}>
       <button type="button" className="library-row__open" onClick={onOpen}>
         <span className="library-row__title">
-          {titleParts.map((part, index) =>
-            part.matches ? (
-              <mark className="library-row__match" key={index}>
-                {part.text}
-              </mark>
-            ) : (
-              part.text
-            ),
+          <span className="library-row__title-text">
+            {titleParts.map((part, index) =>
+              part.matches ? (
+                <mark className="library-row__match" key={index}>
+                  {part.text}
+                </mark>
+              ) : (
+                part.text
+              ),
+            )}
+          </span>
+          {showPrivacy && !song.isPublic && (
+            <IconButtonTooltip
+              tooltip="Privada"
+              className="library-row__privacy-tooltip"
+            >
+              <span className="library-row__privacy" aria-label="Privada">
+                <PrivacyIcon size={15} strokeWidth={1.8} aria-hidden="true" />
+              </span>
+            </IconButtonTooltip>
           )}
         </span>
         <span className="library-row__leader" aria-hidden="true" />
@@ -181,6 +196,7 @@ interface LibrarySectionProps {
   fadeInSongId?: string;
   showFavorite?: boolean;
   showDelete?: boolean;
+  showPrivacy?: boolean;
   loading?: boolean;
   onOpenSong: (song: LibrarySong) => void;
   onToggleFavorite: (song: LibrarySong) => void;
@@ -198,6 +214,7 @@ function LibrarySection({
   fadeInSongId,
   showFavorite = true,
   showDelete = false,
+  showPrivacy = false,
   loading = false,
   onOpenSong,
   onToggleFavorite,
@@ -236,6 +253,7 @@ function LibrarySection({
               fadeIn={fadeInSongId === song.id}
               showFavorite={showFavorite}
               showDelete={showDelete}
+              showPrivacy={showPrivacy}
               onOpen={() => onOpenSong(song)}
               onToggleFavorite={() => onToggleFavorite(song)}
               onDelete={() => onDeleteSong?.(song)}
@@ -516,6 +534,7 @@ export function Library({
             favoritePendingSongId={favoritePendingSongId ?? undefined}
             showFavorite={false}
             showDelete={!isMobile}
+            showPrivacy
             loading={myLibraryLoading}
             onOpenSong={handleOpen}
             onToggleFavorite={handleToggleFavorite}
