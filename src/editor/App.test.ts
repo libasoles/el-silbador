@@ -79,6 +79,13 @@ describe("icon-button tooltips", () => {
     );
   });
 
+  it("uses a keyhole for private songs and a visibly detached shackle for public ones", () => {
+    const icons = readFileSync(new URL("./components/icons.tsx", import.meta.url), "utf8");
+
+    expect(icons).toContain("LockKeyhole as PrivacyLockedIcon");
+    expect(icons).toMatch(/function PrivacyUnlockedIcon\(\)[\s\S]*<path d="M8 10V6a4 4 0 0 1 7\.2-2\.4" \/>/);
+  });
+
   it("renders a visible tooltip from a hoverable wrapper", () => {
     expect(iconButtonTooltip).toContain("function IconButtonTooltip");
     expect(iconButtonTooltip).toContain("icon-button-tooltip");

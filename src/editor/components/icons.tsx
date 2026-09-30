@@ -5,13 +5,33 @@
 export { Trash2 as TrashIcon } from "lucide-react";
 export { CheckCircle2 as CheckCircleIcon } from "lucide-react";
 export { Info as InfoIcon } from "lucide-react";
-export { Lock as PrivacyLockedIcon } from "lucide-react";
-export { LockOpen as PrivacyUnlockedIcon } from "lucide-react";
+export { LockKeyhole as PrivacyLockedIcon } from "lucide-react";
 export { ChevronLeft as ChevronLeftIcon } from "lucide-react";
 export { ChevronRight as ChevronRightIcon } from "lucide-react";
 export { Mail as MailIcon } from "lucide-react";
 export { Menu as MenuIcon } from "lucide-react";
 export { LockKeyhole as PrivacyIcon } from "lucide-react";
+
+/** A deliberately detached shackle makes the public-state lock unmistakably open at toolbar size. */
+export function PrivacyUnlockedIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="4" y="10" width="16" height="10" rx="2" />
+      <path d="M8 10V6a4 4 0 0 1 7.2-2.4" />
+    </svg>
+  );
+}
 
 /** The Silbador mark: a singer with the sound of their voice. */
 export function SilbadorIcon() {
