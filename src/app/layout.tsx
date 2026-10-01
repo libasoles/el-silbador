@@ -3,9 +3,9 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 const SITE_URL = "https://elsilbador.com.ar";
-const TITLE = "El Silbador — Acordes de Guitarra para Folklore";
+const TITLE = "Acordes de Canciones para Guitarra y Folklore | El Silbador";
 const DESCRIPTION =
-  "Acordes de Guitarra para Folklore: editor visual para silabear letras y anotar acordes, notas de canto y más, línea por línea. Gratis, sin instalar nada.";
+  "Acordes de canciones para guitarra, folklore argentino y más. El Silbador es un cancionero para encontrar, crear y compartir letras con acordes.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
