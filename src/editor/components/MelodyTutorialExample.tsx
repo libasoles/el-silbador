@@ -1,5 +1,8 @@
+import { Fragment } from "react";
+
 interface MelodyTutorialExampleProps {
   joined?: boolean;
+  animateNotes?: boolean;
 }
 
 interface ExampleSyllable {
@@ -9,15 +12,18 @@ interface ExampleSyllable {
 }
 
 /** A small, genuine HTML rendering of the syllable/note relationship taught by the tutorials. */
-export function MelodyTutorialExample({ joined = false }: MelodyTutorialExampleProps) {
+export function MelodyTutorialExample({
+  joined = false,
+  animateNotes = false,
+}: MelodyTutorialExampleProps) {
   const syllables: ExampleSyllable[] = joined
     ? [
         { text: "y", note: "sol", wordEnd: true },
         { text: "a", note: "mi" },
         { text: "yu", note: "" },
         { text: "da", note: "" },
-        { text: "me", note: "", wordEnd: true },
-        { text: "a", note: "re", wordEnd: true },
+        { text: "me", note: "" },
+        { text: "a", note: "" },
         { text: "en", note: "" },
         { text: "con", note: "mi" },
       ]
@@ -37,7 +43,7 @@ export function MelodyTutorialExample({ joined = false }: MelodyTutorialExampleP
 
   return (
     <span
-      className="melody-tutorial-example"
+      className={"melody-tutorial-example" + (animateNotes ? " melody-tutorial-example--typing" : "")}
       aria-label={joined ? "Ejemplo de sílabas unidas" : "Ejemplo de notas de la melodía"}
     >
       {syllables.map((syllable, index) => {
@@ -55,11 +61,35 @@ export function MelodyTutorialExample({ joined = false }: MelodyTutorialExampleP
           );
         }
         if (joined && index === 3) return null;
+        if (joined && index === 4) {
+          return (
+            <Fragment key="me-a-en">
+              <span className="melody-tutorial-example__merged-unit">
+                <span className="melody-tutorial-example__lyric">me</span>
+                <span className="melody-tutorial-example__gap melody-tutorial-example__gap--merged" />
+                <span className="melody-tutorial-example__lyric">a</span>
+                <span className="melody-tutorial-example__gap melody-tutorial-example__gap--merged" />
+                <span className="melody-tutorial-example__lyric">en</span>
+                <span className="melody-tutorial-example__note">re</span>
+              </span>
+              <span className="melody-tutorial-example__gap" />
+            </Fragment>
+          );
+        }
+        if (joined && (index === 5 || index === 6)) return null;
         return (
           <Fragment key={`${syllable.text}-${index}`}>
             <span className="melody-tutorial-example__syllable">
               <span className="melody-tutorial-example__lyric">{syllable.text}</span>
-              <span className="melody-tutorial-example__note">{syllable.note}</span>
+              <span
+                className={
+                  "melody-tutorial-example__note" +
+                  (animateNotes && syllable.note ? " melody-tutorial-example__note--typing" : "")
+                }
+                style={animateNotes && syllable.note ? { animationDelay: `${index * 360}ms` } : undefined}
+              >
+                {syllable.note}
+              </span>
             </span>
             {index < syllables.length - 1 && (
               <span
@@ -75,4 +105,3 @@ export function MelodyTutorialExample({ joined = false }: MelodyTutorialExampleP
     </span>
   );
 }
-import { Fragment } from "react";

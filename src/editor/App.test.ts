@@ -219,13 +219,20 @@ describe("melody notes tutorials", () => {
       new URL("./components/MelodyTutorialExample.tsx", import.meta.url),
       "utf8",
     );
-    expect(app).toContain("<MelodyTutorialExample />");
+    expect(app).toContain("<MelodyTutorialExample animateNotes />");
     expect(app).toContain("<MelodyTutorialExample joined />");
-    expect(melodyExample).toContain('className="melody-tutorial-example"');
+    expect(melodyExample).toContain("melody-tutorial-example");
     expect(toastStyles).toContain(".melody-tutorial-example__note");
     expect(toastStyles).toContain("background: var(--syllable-underline)");
     expect(toastStyles).toContain("height: 2px");
     expect(toastStyles).toContain("left: 0.14em");
+    expect(melodyExample).toContain('key="me-a-en"');
+    expect(melodyExample).toContain("melody-tutorial-example--typing");
+    expect(toastStyles).toContain("melody-tutorial-note-appear");
+  });
+
+  it("omits the default info icon from tutorials without artwork", () => {
+    expect(toastProvider).toContain("toast.icon || !toast.tutorialId");
   });
 });
 

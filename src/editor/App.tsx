@@ -716,7 +716,7 @@ function App({
           <>
             Podés hacer click debajo de una sílaba para escribir las notas de
             la melodía.
-            <MelodyTutorialExample />
+            <MelodyTutorialExample animateNotes />
           </>
         ),
       });

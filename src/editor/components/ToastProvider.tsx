@@ -102,9 +102,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             duration={toast.duration}
             onOpenChange={(open) => handleOpenChange(toast.id, open)}
           >
-            <div className={toast.icon ? "toast__icon toast__icon--artwork" : "toast__icon"}>
-              {toast.icon ?? VARIANT_ICONS[toast.variant]}
-            </div>
+            {(toast.icon || !toast.tutorialId) && (
+              <div className={toast.icon ? "toast__icon toast__icon--artwork" : "toast__icon"}>
+                {toast.icon ?? VARIANT_ICONS[toast.variant]}
+              </div>
+            )}
             <div className="toast__body">
               <RadixToast.Title className="toast__title">{toast.title}</RadixToast.Title>
               {toast.description && (

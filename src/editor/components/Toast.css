@@ -160,7 +160,6 @@
 
 .melody-tutorial-example__lyric {
   position: relative;
-  line-height: 1;
 }
 
 .melody-tutorial-example__lyric::after {
@@ -220,6 +219,22 @@
   background: var(--syllable-underline);
 }
 
+.melody-tutorial-example--typing .melody-tutorial-example__note--typing {
+  opacity: 0;
+  animation: melody-tutorial-note-appear 160ms ease-out forwards;
+}
+
+@keyframes melody-tutorial-note-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-0.15em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .toast__close {
   position: absolute;
   top: 0.5rem;
@@ -265,5 +280,9 @@
   .toast,
   .toast__timer {
     animation: none !important;
+  }
+
+  .melody-tutorial-example--typing .melody-tutorial-example__note--typing {
+    opacity: 1;
   }
 }
