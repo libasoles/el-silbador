@@ -116,7 +116,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               )}
             </div>
             <RadixToast.Close className="toast__close" aria-label="Cerrar">
-              <XIcon size={16} />
+              <XIcon size={22} />
             </RadixToast.Close>
             {!toast.tutorialId && (
               <div className="toast__timer" style={{ animationDuration: `${toast.duration}ms` }} />
