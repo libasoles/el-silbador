@@ -226,6 +226,9 @@ describe("melody notes tutorials", () => {
     expect(toastStyles).toContain("background: var(--syllable-underline)");
     expect(toastStyles).toContain("height: 2px");
     expect(toastStyles).toContain("left: 0.14em");
+    expect(toastStyles).toMatch(/\.melody-tutorial-example__lyric\s*\{[\s\S]*display: inline-block[\s\S]*line-height: 1\.1/);
+    expect(toastStyles).toMatch(/\.melody-tutorial-example__merged-unit\s*\{[\s\S]*align-items: baseline/);
+    expect(toastStyles).toMatch(/\.melody-tutorial-example__merged-unit \.melody-tutorial-example__note\s*\{[\s\S]*text-align: left/);
     expect(melodyExample).toContain('key="me-a-en"');
     expect(melodyExample).toContain("melody-tutorial-example__gap--merged melody-tutorial-example__gap--word-boundary");
     expect(melodyExample).toContain("melody-tutorial-example--typing");

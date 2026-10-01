@@ -155,11 +155,13 @@
   display: inline-flex;
   flex: none;
   flex-direction: column;
-  align-items: stretch;
+  align-items: flex-start;
 }
 
 .melody-tutorial-example__lyric {
   position: relative;
+  display: inline-block;
+  line-height: 1.1;
 }
 
 .melody-tutorial-example__lyric::after {
@@ -197,7 +199,7 @@
   position: relative;
   display: inline-flex;
   flex: none;
-  align-items: flex-start;
+  align-items: baseline;
   padding-bottom: 1.12em;
 }
 
@@ -206,7 +208,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  text-align: center;
+  text-align: left;
 }
 
 .melody-tutorial-example__gap--merged::after {
