@@ -715,7 +715,7 @@ function App({
     if (vocalNotes && vocalNotes.visible !== next) {
       actions.setTrackVisibility("vocalNotes", next);
     }
-    if (next) {
+    if (next && canEditOnThisDevice) {
       showTutorial({
         tutorialId: "melody-notes-write",
         title: "Notas de la melodía",

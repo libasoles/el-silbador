@@ -150,17 +150,21 @@
   white-space: nowrap;
 }
 
-.melody-tutorial-example__syllable {
-  position: relative;
-  display: inline-flex;
+.melody-tutorial-example__unit {
+  display: inline-grid;
   flex: none;
-  flex-direction: column;
-  align-items: flex-start;
+  grid-template-rows: 1.1em 1.35em;
+  align-items: start;
+}
+
+.melody-tutorial-example__lyrics {
+  display: flex;
+  align-items: baseline;
+  height: 1.1em;
 }
 
 .melody-tutorial-example__lyric {
   position: relative;
-  display: inline-block;
   line-height: 1.1;
 }
 
@@ -175,40 +179,24 @@
 }
 
 .melody-tutorial-example__note {
-  min-height: 1em;
   padding-top: 0.14rem;
   color: var(--accent);
   font-family: var(--sans);
   font-size: 0.85rem;
   font-weight: 500;
   line-height: 1.15;
+  text-align: left;
 }
 
 .melody-tutorial-example__gap {
   position: relative;
   flex: none;
   width: 0.04em;
-  height: 1em;
+  height: 1.1em;
 }
 
 .melody-tutorial-example__gap--word-boundary {
   width: 0.3em;
-}
-
-.melody-tutorial-example__merged-unit {
-  position: relative;
-  display: inline-flex;
-  flex: none;
-  align-items: baseline;
-  padding-bottom: 1.12em;
-}
-
-.melody-tutorial-example__merged-unit .melody-tutorial-example__note {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  text-align: left;
 }
 
 .melody-tutorial-example__gap--merged::after {

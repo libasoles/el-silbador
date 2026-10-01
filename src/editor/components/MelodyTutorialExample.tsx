@@ -7,38 +7,51 @@ interface MelodyTutorialExampleProps {
 
 interface ExampleSyllable {
   text: string;
-  note: string;
-  wordEnd?: boolean;
+  mergedAfter?: boolean;
+  wordBoundaryAfter?: boolean;
 }
 
-/** A small, genuine HTML rendering of the syllable/note relationship taught by the tutorials. */
+interface ExampleUnit {
+  syllables: ExampleSyllable[];
+  note: string;
+  wordBoundaryAfter?: boolean;
+}
+
+/** A tiny editor-like line: notes occupy their own row and begin at the unit's first syllable. */
 export function MelodyTutorialExample({
   joined = false,
   animateNotes = false,
 }: MelodyTutorialExampleProps) {
-  const syllables: ExampleSyllable[] = joined
+  const units: ExampleUnit[] = joined
     ? [
-        { text: "y", note: "sol", wordEnd: true },
-        { text: "a", note: "mi" },
-        { text: "yu", note: "" },
-        { text: "da", note: "" },
-        { text: "me", note: "" },
-        { text: "a", note: "" },
-        { text: "en", note: "" },
-        { text: "con", note: "mi" },
+        { syllables: [{ text: "y" }], note: "sol", wordBoundaryAfter: true },
+        { syllables: [{ text: "a" }], note: "mi" },
+        {
+          syllables: [{ text: "yu", mergedAfter: true }, { text: "da" }],
+          note: "mi",
+        },
+        {
+          syllables: [
+            { text: "me", mergedAfter: true, wordBoundaryAfter: true },
+            { text: "a", mergedAfter: true, wordBoundaryAfter: true },
+            { text: "en" },
+          ],
+          note: "re",
+        },
+        { syllables: [{ text: "con" }], note: "mi" },
       ]
     : [
-        { text: "Tú", note: "si", wordEnd: true },
-        { text: "can", note: "re" },
-        { text: "ta", note: "fa" },
-        { text: "bas", note: "re", wordEnd: true },
-        { text: "tris", note: "la" },
-        { text: "te", note: "la", wordEnd: true },
-        { text: "por", note: "sol", wordEnd: true },
-        { text: "el", note: "fa", wordEnd: true },
-        { text: "ca", note: "re" },
-        { text: "mi", note: "la" },
-        { text: "no", note: "la" },
+        { syllables: [{ text: "Tú" }], note: "si", wordBoundaryAfter: true },
+        { syllables: [{ text: "can" }], note: "re" },
+        { syllables: [{ text: "ta" }], note: "fa" },
+        { syllables: [{ text: "bas" }], note: "re", wordBoundaryAfter: true },
+        { syllables: [{ text: "tris" }], note: "la" },
+        { syllables: [{ text: "te" }], note: "la", wordBoundaryAfter: true },
+        { syllables: [{ text: "por" }], note: "sol", wordBoundaryAfter: true },
+        { syllables: [{ text: "el" }], note: "fa", wordBoundaryAfter: true },
+        { syllables: [{ text: "ca" }], note: "re" },
+        { syllables: [{ text: "mi" }], note: "la" },
+        { syllables: [{ text: "no" }], note: "la" },
       ];
 
   return (
@@ -46,62 +59,44 @@ export function MelodyTutorialExample({
       className={"melody-tutorial-example" + (animateNotes ? " melody-tutorial-example--typing" : "")}
       aria-label={joined ? "Ejemplo de sílabas unidas" : "Ejemplo de notas de la melodía"}
     >
-      {syllables.map((syllable, index) => {
-        if (joined && index === 2) {
-          return (
-            <Fragment key="yu-da">
-              <span className="melody-tutorial-example__merged-unit">
-                <span className="melody-tutorial-example__lyric">yu</span>
-                <span className="melody-tutorial-example__gap melody-tutorial-example__gap--merged" />
-                <span className="melody-tutorial-example__lyric">da</span>
-                <span className="melody-tutorial-example__note">mi</span>
-              </span>
-              <span className="melody-tutorial-example__gap" />
-            </Fragment>
-          );
-        }
-        if (joined && index === 3) return null;
-        if (joined && index === 4) {
-          return (
-            <Fragment key="me-a-en">
-              <span className="melody-tutorial-example__merged-unit">
-                <span className="melody-tutorial-example__lyric">me</span>
-                <span className="melody-tutorial-example__gap melody-tutorial-example__gap--merged melody-tutorial-example__gap--word-boundary" />
-                <span className="melody-tutorial-example__lyric">a</span>
-                <span className="melody-tutorial-example__gap melody-tutorial-example__gap--merged melody-tutorial-example__gap--word-boundary" />
-                <span className="melody-tutorial-example__lyric">en</span>
-                <span className="melody-tutorial-example__note">re</span>
-              </span>
-              <span className="melody-tutorial-example__gap" />
-            </Fragment>
-          );
-        }
-        if (joined && (index === 5 || index === 6)) return null;
-        return (
-          <Fragment key={`${syllable.text}-${index}`}>
-            <span className="melody-tutorial-example__syllable">
-              <span className="melody-tutorial-example__lyric">{syllable.text}</span>
-              <span
-                className={
-                  "melody-tutorial-example__note" +
-                  (animateNotes && syllable.note ? " melody-tutorial-example__note--typing" : "")
-                }
-                style={animateNotes && syllable.note ? { animationDelay: `${index * 360}ms` } : undefined}
-              >
-                {syllable.note}
-              </span>
+      {units.map((unit, unitIndex) => (
+        <Fragment key={`${unit.syllables[0]!.text}-${unitIndex}`}>
+          <span className="melody-tutorial-example__unit">
+            <span className="melody-tutorial-example__lyrics">
+              {unit.syllables.map((syllable, syllableIndex) => (
+                <Fragment key={`${syllable.text}-${syllableIndex}`}>
+                  <span className="melody-tutorial-example__lyric">{syllable.text}</span>
+                  {syllable.mergedAfter ? (
+                    <span
+                      className={
+                        "melody-tutorial-example__gap melody-tutorial-example__gap--merged" +
+                        (syllable.wordBoundaryAfter ? " melody-tutorial-example__gap--word-boundary" : "")
+                      }
+                    />
+                  ) : null}
+                </Fragment>
+              ))}
             </span>
-            {index < syllables.length - 1 && (
-              <span
-                className={
-                  "melody-tutorial-example__gap" +
-                  (syllable.wordEnd ? " melody-tutorial-example__gap--word-boundary" : "")
-                }
-              />
-            )}
-          </Fragment>
-        );
-      })}
+            <span
+              className={
+                "melody-tutorial-example__note" +
+                (animateNotes ? " melody-tutorial-example__note--typing" : "")
+              }
+              style={animateNotes ? { animationDelay: `${unitIndex * 360}ms` } : undefined}
+            >
+              {unit.note}
+            </span>
+          </span>
+          {unitIndex < units.length - 1 ? (
+            <span
+              className={
+                "melody-tutorial-example__gap" +
+                (unit.wordBoundaryAfter ? " melody-tutorial-example__gap--word-boundary" : "")
+              }
+            />
+          ) : null}
+        </Fragment>
+      ))}
     </span>
   );
 }
