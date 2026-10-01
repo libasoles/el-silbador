@@ -61,6 +61,7 @@ interface DragCell {
 interface EdgeDropZoneProps {
   edge: "start" | "end";
   dropTarget: boolean;
+  rect?: SlotRect;
   dragProps?: {
     onDragOver: (event: React.DragEvent) => void;
     onDragEnter: () => void;
@@ -69,18 +70,21 @@ interface EdgeDropZoneProps {
   };
 }
 
-/** A normally weightless zone just before a line's first syllable (`edge: "start"`) or just after
- *  its last (`edge: "end"`), standing in for that line's edge annotation slot while a chord is
- *  being dragged. That slot is a tiny fixed-width cell in the row above — easy to miss — so this
- *  gives the same drop a much bigger target, right where the chord will visually land, with the
- *  same underline treatment every other dropzone on the line uses. It always targets the nearest
+/** A zone standing in for a line's current leading/trailing target slot while a chord is being
+ *  dragged — that slot is a tiny fixed-width cell in the row above, easy to miss, so this gives
+ *  the same drop a much bigger target, right where the chord will visually land, with the same
+ *  underline treatment every other dropzone on the line uses. It always targets the nearest
  *  still-empty slot in its direction, so a second (or third) leading/trailing chord drops here
- *  too, once the first one's already-filled slot stops being a target itself. */
-function EdgeDropZone({ edge, dropTarget, dragProps }: EdgeDropZoneProps) {
+ *  too, once the first one's already-filled slot stops being a target itself. `rect` is that
+ *  target slot's own measured position (see `slotRects`), so the hit area and its underline move
+ *  outward with the target instead of always sitting right next to the syllable. */
+function EdgeDropZone({ edge, dropTarget, rect, dragProps }: EdgeDropZoneProps) {
+  const style = rect ? { left: `${rect.left}px`, width: `${rect.width}px` } : undefined;
   return (
     <span
       contentEditable={false}
       className={`line-edge-drop line-edge-drop--${edge}` + (dropTarget ? " line-edge-drop--active" : "")}
+      style={style}
       {...dragProps}
     />
   );
@@ -582,6 +586,7 @@ export function LineView({
           <EdgeDropZone
             edge="start"
             dropTarget={dropTarget?.slotId === startTargetSlotId}
+            rect={slotRects[startTargetSlotId]}
             dragProps={edgeDragProps(startTargetSlotId)}
           />
         ) : null}
@@ -624,6 +629,7 @@ export function LineView({
           <EdgeDropZone
             edge="end"
             dropTarget={dropTarget?.slotId === endTargetSlotId}
+            rect={slotRects[endTargetSlotId]}
             dragProps={edgeDragProps(endTargetSlotId)}
           />
         ) : null}
