@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { beforeSlotId, flattenSyllables, getLineCellSlots, getLineUnits } from "../model";
+import { beforeSlotId, flattenSyllables, getLineCellSlots, getLineUnits, startSlotId } from "../model";
 import { YPACARAI_LYRICS } from "../fixtures/ypacarai";
 import { createInitialState, editorReducer, getCell, type Action } from "../state";
 import type { EditorState } from "../types";
@@ -144,6 +144,45 @@ describe("cell tracks (pista Acordes)", () => {
 
     expect(getCell(state.cells, "chords", pre)).toBe("");
     expect(getCell(state.cells, "chords", post)).toBe("G7");
+  });
+
+  it("compacts leading slots after moving the nearest chord away", () => {
+    const line = state.song[0]!;
+    const nearest = startSlotId(line.id);
+    const next = startSlotId(line.id, 1);
+    const third = startSlotId(line.id, 2);
+    const firstSyllableSlot = beforeSlotId(flattenSyllables(line)[0]!.id);
+
+    state = reduce(
+      state,
+      { type: "setCellText", trackId: "chords", slotId: nearest, text: "C" },
+      { type: "setCellText", trackId: "chords", slotId: next, text: "G" },
+      { type: "setCellText", trackId: "chords", slotId: third, text: "Am" },
+      { type: "setChordVariant", slotId: next, index: 1 },
+      { type: "moveCellText", trackId: "chords", fromSlotId: nearest, toSlotId: firstSyllableSlot },
+    );
+
+    expect(getCell(state.cells, "chords", nearest)).toBe("G");
+    expect(getCell(state.cells, "chords", next)).toBe("Am");
+    expect(getCell(state.cells, "chords", third)).toBe("");
+    expect(state.chordVariants[nearest]).toBe(1);
+    expect(state.chordVariants[next]).toBeUndefined();
+  });
+
+  it("compacts leading slots after clearing the nearest chord", () => {
+    const line = state.song[0]!;
+    const nearest = startSlotId(line.id);
+    const next = startSlotId(line.id, 1);
+
+    state = reduce(
+      state,
+      { type: "setCellText", trackId: "chords", slotId: nearest, text: "C" },
+      { type: "setCellText", trackId: "chords", slotId: next, text: "G" },
+      { type: "setCellText", trackId: "chords", slotId: nearest, text: "" },
+    );
+
+    expect(getCell(state.cells, "chords", nearest)).toBe("G");
+    expect(getCell(state.cells, "chords", next)).toBe("");
   });
 });
 

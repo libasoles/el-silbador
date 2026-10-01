@@ -5,7 +5,7 @@ import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
 import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
-import { haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
+import { edgeDropZoneRect, haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
 
 interface SyllableGapButtonProps {
@@ -79,7 +79,8 @@ interface EdgeDropZoneProps {
  *  target slot's own measured position (see `slotRects`), so the hit area and its underline move
  *  outward with the target instead of always sitting right next to the syllable. */
 function EdgeDropZone({ edge, dropTarget, rect, dragProps }: EdgeDropZoneProps) {
-  const style = rect ? { left: `${rect.left}px`, width: `${rect.width}px` } : undefined;
+  const dropRect = rect ? edgeDropZoneRect(edge, rect) : undefined;
+  const style = dropRect ? { left: `${dropRect.left}px`, width: `${dropRect.width}px` } : undefined;
   return (
     <span
       contentEditable={false}
