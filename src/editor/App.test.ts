@@ -193,7 +193,7 @@ describe("chord notes tutorial", () => {
   it("appears when the chord-notes track is activated and illustrates one shared note", () => {
     expect(app).toContain('tutorialId: "chord-notes-shared"');
     expect(app).toContain('icon: <NoteStackIcon boldNotes={["sol"]} />');
-    expect(app).toContain("Las notas en negrita también están en el acorde anterior.");
+    expect(app).toContain("Las notas en negrita significan que también están en el acorde anterior.");
   });
 
   it("keeps tutorials open until dismissal and records that dismissal", () => {
@@ -204,12 +204,14 @@ describe("chord notes tutorial", () => {
 });
 
 describe("melody notes tutorials", () => {
-  it("introduces writing melody notes before explaining how to join syllables", () => {
+  it("shows the writing and joining tutorials together when the underline is activated", () => {
     expect(app).toContain('tutorialId: "melody-notes-write"');
-    expect(app).toContain("Podés hacer click debajo de una sílaba para escribir las notas de la melodía.");
-    expect(app).toContain("onDismiss: showMelodyJoinTutorial");
+    expect(app).toMatch(/Podés hacer click debajo de una sílaba para escribir las notas de\s+la melodía\./);
     expect(app).toContain('tutorialId: "melody-notes-join-syllables"');
-    expect(app).toContain("Podés hacer click entre dos sílabas para unirlas y asignarles una sola nota.");
+    expect(app).toMatch(/Podés hacer click entre dos sílabas para unirlas y asignarles una sola\s+nota\./);
+    expect(app).toMatch(/showTutorial\(\{[\s\S]*tutorialId: "melody-notes-write"[\s\S]*\}\);\s*showMelodyJoinTutorial\(\)/);
+    expect(app).not.toContain("onDismiss: showMelodyJoinTutorial");
+    expect(app).not.toMatch(/icon: <UnderlineIcon \/>/);
   });
 
   it("uses real HTML notation examples beneath both explanations", () => {
@@ -221,6 +223,9 @@ describe("melody notes tutorials", () => {
     expect(app).toContain("<MelodyTutorialExample joined />");
     expect(melodyExample).toContain('className="melody-tutorial-example"');
     expect(toastStyles).toContain(".melody-tutorial-example__note");
+    expect(toastStyles).toContain("background: var(--syllable-underline)");
+    expect(toastStyles).toContain("height: 2px");
+    expect(toastStyles).toContain("left: 0.14em");
   });
 });
 

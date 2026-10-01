@@ -16,7 +16,6 @@ interface ToastItem extends Required<Omit<ToastOptions, "description" | "icon">>
   description?: ReactNode;
   open: boolean;
   tutorialId?: string;
-  onDismiss?: () => void;
 }
 
 const DEFAULT_DURATION = 5000;
@@ -71,7 +70,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             // Radix treats Infinity as an explicitly non-expiring toast.
             duration: Infinity,
             tutorialId: options.tutorialId,
-            onDismiss: options.onDismiss,
             open: true,
           },
         ];
@@ -85,7 +83,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((current) => {
       const dismissed = current.find((toast) => toast.id === id);
       if (dismissed?.tutorialId) markTutorialSeen(dismissed.tutorialId);
-      if (dismissed?.onDismiss) setTimeout(dismissed.onDismiss, EXIT_ANIMATION_MS);
       return current.map((toast) => (toast.id === id ? { ...toast, open } : toast));
     });
     setTimeout(() => {

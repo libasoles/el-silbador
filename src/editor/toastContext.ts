@@ -16,8 +16,6 @@ export interface TutorialToastOptions extends ToastOptions {
   /** A durable identifier for a tutorial that is shown until it is closed, then never again in
    *  this browser. */
   tutorialId: string;
-  /** Runs once the tutorial is dismissed, after its close animation. */
-  onDismiss?: () => void;
 }
 
 export interface ToastContextValue {

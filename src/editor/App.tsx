@@ -52,7 +52,6 @@ import {
   readPendingAuthAction,
 } from "./pendingAuthActionStorage";
 import { consumeJustForked, saveJustForked } from "./justForkedStorage";
-import { hasSeenTutorial } from "./tutorialStorage";
 import { pdfDocumentTitle } from "./pdfFilename";
 import { useToast } from "./toastContext";
 import { useIsMobile } from "./useIsMobile";
@@ -681,7 +680,8 @@ function App({
       showTutorial({
         tutorialId: "chord-notes-shared",
         title: "Notas compartidas",
-        description: "Las notas en negrita también están en el acorde anterior.",
+        description:
+          "Las notas en negrita significan que también están en el acorde anterior.",
         icon: <NoteStackIcon boldNotes={["sol"]} />,
       });
     }
@@ -693,11 +693,11 @@ function App({
       title: "Una nota para dos sílabas",
       description: (
         <>
-          Podés hacer click entre dos sílabas para unirlas y asignarles una sola nota.
+          Podés hacer click entre dos sílabas para unirlas y asignarles una sola
+          nota.
           <MelodyTutorialExample joined />
         </>
       ),
-      icon: <UnderlineIcon />,
     });
   };
 
@@ -709,22 +709,18 @@ function App({
       actions.setTrackVisibility("vocalNotes", next);
     }
     if (next) {
-      if (hasSeenTutorial("melody-notes-write")) {
-        showMelodyJoinTutorial();
-      } else {
-        showTutorial({
-          tutorialId: "melody-notes-write",
-          title: "Notas de la melodía",
-          description: (
-            <>
-              Podés hacer click debajo de una sílaba para escribir las notas de la melodía.
-              <MelodyTutorialExample />
-            </>
-          ),
-          icon: <UnderlineIcon />,
-          onDismiss: showMelodyJoinTutorial,
-        });
-      }
+      showTutorial({
+        tutorialId: "melody-notes-write",
+        title: "Notas de la melodía",
+        description: (
+          <>
+            Podés hacer click debajo de una sílaba para escribir las notas de
+            la melodía.
+            <MelodyTutorialExample />
+          </>
+        ),
+      });
+      showMelodyJoinTutorial();
     }
   };
 
