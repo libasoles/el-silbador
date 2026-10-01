@@ -205,7 +205,7 @@ function clipboardTextForRange(
     const modelLine = song[lineIndex];
     const tokens: { column: number; chord: string }[] = [];
     if (modelLine) {
-      for (const slotId of getLineCellSlots(modelLine, merges)) {
+      for (const slotId of getLineCellSlots(modelLine, merges, cells)) {
         const chord = getCell(cells, "chords", slotId);
         if (!chord) continue;
         const column = columnForSlot(modelLine, slotId) - lineStartCol;
@@ -390,7 +390,7 @@ export function SongView({
 
   // Flattened in song order (not per line) so a chord at the start of one line can still be
   // compared against the last chord of the previous line.
-  const chordSlotOrder = song.flatMap((line) => getLineCellSlots(line, merges));
+  const chordSlotOrder = song.flatMap((line) => getLineCellSlots(line, merges, cells));
   const previousChordNotes = previousChordNotesBySlot(
     chordSlotOrder,
     (slotId) => getCell(cells, "chords", slotId),

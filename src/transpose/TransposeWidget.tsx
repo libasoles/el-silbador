@@ -1,31 +1,47 @@
 import { useState } from "react";
 import "./TransposeWidget.css";
-import { decideUseFlats, transposeChord } from "./transpose";
+import { decideUseFlats, transposeChord, transposeNote } from "./transpose";
 
 interface TransposeWidgetProps {
   /** Chord text per slot id, as currently shown (cells.chords). */
   chordCells: Record<string, string> | undefined;
+  /** Melody-note text per slot id, as currently shown (cells.vocalNotes). */
+  noteCells: Record<string, string> | undefined;
   /** Writes a chord slot's transposed text back to wherever chords are stored. */
   onTransposeCell: (slotId: string, text: string) => void;
+  /** Writes a melody-note slot's transposed text back to wherever notes are stored. */
+  onTransposeNoteCell: (slotId: string, text: string) => void;
 }
 
 /**
  * Transposes every chord up or down by semitones, same widget as cancionero's (assets/song-sheet.js),
  * minus the localStorage persistence: the offset lives only in this component's state and resets
  * on reload, by design (see AGENTS note on decoupling this from the syllabifier).
+ *
+ * The melody-notes track is transposed alongside the chords, using the same sharp/flat choice, so
+ * the two tracks stay in the same key.
  */
-export function TransposeWidget({ chordCells, onTransposeCell }: TransposeWidgetProps) {
+export function TransposeWidget({
+  chordCells,
+  noteCells,
+  onTransposeCell,
+  onTransposeNoteCell,
+}: TransposeWidgetProps) {
   const [offset, setOffset] = useState(0);
   const [useFlats, setUseFlats] = useState(false);
 
-  const entries = Object.entries(chordCells ?? {}).filter(([, text]) => text.trim() !== "");
-  if (entries.length === 0) return null;
+  const chordEntries = Object.entries(chordCells ?? {}).filter(([, text]) => text.trim() !== "");
+  const noteEntries = Object.entries(noteCells ?? {}).filter(([, text]) => text.trim() !== "");
+  if (chordEntries.length === 0 && noteEntries.length === 0) return null;
 
   function shift(semitones: number) {
-    const flats = offset === 0 ? decideUseFlats(entries.map(([, text]) => text)) : useFlats;
+    const flats = offset === 0 ? decideUseFlats(chordEntries.map(([, text]) => text)) : useFlats;
     if (offset === 0) setUseFlats(flats);
-    for (const [slotId, text] of entries) {
+    for (const [slotId, text] of chordEntries) {
       onTransposeCell(slotId, transposeChord(text, semitones, flats));
+    }
+    for (const [slotId, text] of noteEntries) {
+      onTransposeNoteCell(slotId, transposeNote(text, semitones, flats));
     }
     setOffset((current) => current + semitones);
   }

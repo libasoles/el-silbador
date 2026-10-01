@@ -1,14 +1,21 @@
 import * as RadixToast from "@radix-ui/react-toast";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import "./Toast.css";
-import { ToastContext, type ToastOptions, type ToastVariant } from "../toastContext";
+import {
+  ToastContext,
+  type ToastOptions,
+  type ToastVariant,
+  type TutorialToastOptions,
+} from "../toastContext";
 import { AlertCircleIcon, CheckCircleIcon, InfoIcon, XIcon } from "./icons";
+import { hasSeenTutorial, markTutorialSeen } from "../tutorialStorage";
 
 interface ToastItem extends Required<Omit<ToastOptions, "description" | "icon">> {
   icon?: ReactNode;
   id: number;
-  description?: string;
+  description?: ReactNode;
   open: boolean;
+  tutorialId?: string;
 }
 
 const DEFAULT_DURATION = 5000;
@@ -46,16 +53,45 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     ]);
   }, []);
 
+  const showTutorial = useCallback(
+    (options: TutorialToastOptions) => {
+      if (hasSeenTutorial(options.tutorialId)) return;
+      setToasts((current) => {
+        if (current.some((toast) => toast.tutorialId === options.tutorialId)) return current;
+        const id = ++nextId.current;
+        return [
+          ...current,
+          {
+            id,
+            variant: options.variant ?? "info",
+            icon: options.icon,
+            title: options.title,
+            description: options.description,
+            // Radix treats Infinity as an explicitly non-expiring toast.
+            duration: Infinity,
+            tutorialId: options.tutorialId,
+            open: true,
+          },
+        ];
+      });
+    },
+    [],
+  );
+
   const handleOpenChange = useCallback((id: number, open: boolean) => {
     if (open) return;
-    setToasts((current) => current.map((toast) => (toast.id === id ? { ...toast, open } : toast)));
+    setToasts((current) => {
+      const dismissed = current.find((toast) => toast.id === id);
+      if (dismissed?.tutorialId) markTutorialSeen(dismissed.tutorialId);
+      return current.map((toast) => (toast.id === id ? { ...toast, open } : toast));
+    });
     setTimeout(() => {
       setToasts((current) => current.filter((toast) => toast.id !== id));
     }, EXIT_ANIMATION_MS);
   }, []);
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, showTutorial }}>
       <RadixToast.Provider swipeDirection="right" duration={DEFAULT_DURATION}>
         {children}
         {toasts.map((toast) => (
@@ -66,9 +102,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             duration={toast.duration}
             onOpenChange={(open) => handleOpenChange(toast.id, open)}
           >
-            <div className={toast.icon ? "toast__icon toast__icon--artwork" : "toast__icon"}>
-              {toast.icon ?? VARIANT_ICONS[toast.variant]}
-            </div>
+            {(toast.icon || !toast.tutorialId) && (
+              <div className={toast.icon ? "toast__icon toast__icon--artwork" : "toast__icon"}>
+                {toast.icon ?? VARIANT_ICONS[toast.variant]}
+              </div>
+            )}
             <div className="toast__body">
               <RadixToast.Title className="toast__title">{toast.title}</RadixToast.Title>
               {toast.description && (
@@ -80,7 +118,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <RadixToast.Close className="toast__close" aria-label="Cerrar">
               <XIcon size={16} />
             </RadixToast.Close>
-            <div className="toast__timer" style={{ animationDuration: `${toast.duration}ms` }} />
+            {!toast.tutorialId && (
+              <div className="toast__timer" style={{ animationDuration: `${toast.duration}ms` }} />
+            )}
           </RadixToast.Root>
         ))}
         <RadixToast.Viewport className="toast-viewport" />

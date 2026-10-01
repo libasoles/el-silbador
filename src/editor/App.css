@@ -667,6 +667,9 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
+  /* Anchors .line-edge-drop, whose left/width come inline from the same slotRects measurement
+     the real (tiny) annotation cell above uses — see LineView. */
+  position: relative;
 }
 
 /* Read-only lines (always true on mobile, see useIsMobile) wrap instead of overflowing the
@@ -1002,6 +1005,39 @@
 .syllable-gap--drop-target.syllable-gap--merged::after {
   background: var(--highlight);
   height: 3px;
+}
+
+/* Doubles as a dropzone for the chord that would sit in the line's current leading/trailing
+   target slot — the real annotation slot is a tiny fixed-width cell in the row above, easy to
+   miss while dragging. Positioned via inline left/width (see EdgeDropZone/`rect` in LineView),
+   the same slotRects measurement the real annotation cell above it uses, so this tracks whichever
+   slot is next in the chain instead of always sitting right next to the syllable. Removed from
+   flow (absolute) so it never nudges the syllables; ::before widens it into a real hit area
+   reaching past its own slot's narrow width, and ::after only lights up once it's the active
+   drop target. */
+.line-edge-drop {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.line-edge-drop::before {
+  content: "";
+  position: absolute;
+  top: -0.3em;
+  bottom: -0.3em;
+  left: -0.45em;
+  right: -0.45em;
+}
+
+.line-edge-drop--active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.05em;
+  height: 3px;
+  background: var(--highlight);
 }
 
 .syllable-gap {

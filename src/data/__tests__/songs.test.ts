@@ -63,7 +63,7 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
   }
 
   async function signInAs(user: TestUser): Promise<void> {
-    const { error } = await getSupabaseClient().auth.signInWithPassword({
+    const { error } = await (await getSupabaseClient()).auth.signInWithPassword({
       email: user.email,
       password: user.password,
     });

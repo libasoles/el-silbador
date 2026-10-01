@@ -139,6 +139,102 @@
   color: var(--muted);
 }
 
+.melody-tutorial-example {
+  display: flex;
+  width: 100%;
+  margin-top: 0.65rem;
+  overflow: hidden;
+  color: var(--fg);
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+
+.melody-tutorial-example__syllable {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.melody-tutorial-example__lyric {
+  position: relative;
+}
+
+.melody-tutorial-example__lyric::after {
+  content: "";
+  position: absolute;
+  left: 0.14em;
+  right: 0.14em;
+  bottom: 0.05em;
+  height: 2px;
+  background: var(--syllable-underline);
+}
+
+.melody-tutorial-example__note {
+  min-height: 1em;
+  padding-top: 0.14rem;
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.melody-tutorial-example__gap {
+  position: relative;
+  flex: none;
+  width: 0.04em;
+  height: 1em;
+}
+
+.melody-tutorial-example__gap--word-boundary {
+  width: 0.3em;
+}
+
+.melody-tutorial-example__merged-unit {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: flex-start;
+  padding-bottom: 1.12em;
+}
+
+.melody-tutorial-example__merged-unit .melody-tutorial-example__note {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  text-align: center;
+}
+
+.melody-tutorial-example__gap--merged::after {
+  content: "";
+  position: absolute;
+  right: -0.14em;
+  bottom: 0.05em;
+  left: -0.14em;
+  height: 2px;
+  background: var(--syllable-underline);
+}
+
+.melody-tutorial-example--typing .melody-tutorial-example__note--typing {
+  opacity: 0;
+  animation: melody-tutorial-note-appear 160ms ease-out forwards;
+}
+
+@keyframes melody-tutorial-note-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-0.15em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .toast__close {
   position: absolute;
   top: 0.5rem;
@@ -184,5 +280,9 @@
   .toast,
   .toast__timer {
     animation: none !important;
+  }
+
+  .melody-tutorial-example--typing .melody-tutorial-example__note--typing {
+    opacity: 1;
   }
 }

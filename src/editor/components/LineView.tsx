@@ -1,11 +1,11 @@
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { chordToNoteNames } from "../../core/chordNotes";
-import { endSlotId, gapSlotId, getLineCellSlots, getLineGaps, getLineUnits, mergeKey, startSlotId } from "../../core/model";
+import { endSlotIds, gapSlotId, getLineCellSlots, getLineGaps, getLineUnits, mergeKey, startSlotIds } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
 import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
-import { haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
+import { edgeDropZoneRect, haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
 
 interface SyllableGapButtonProps {
@@ -61,6 +61,39 @@ interface DragCell {
   slotId: string;
 }
 
+interface EdgeDropZoneProps {
+  edge: "start" | "end";
+  dropTarget: boolean;
+  rect?: SlotRect;
+  dragProps?: {
+    onDragOver: (event: React.DragEvent) => void;
+    onDragEnter: () => void;
+    onDragLeave: () => void;
+    onDrop: (event: React.DragEvent) => void;
+  };
+}
+
+/** A zone standing in for a line's current leading/trailing target slot while a chord is being
+ *  dragged — that slot is a tiny fixed-width cell in the row above, easy to miss, so this gives
+ *  the same drop a much bigger target, right where the chord will visually land, with the same
+ *  underline treatment every other dropzone on the line uses. It always targets the nearest
+ *  still-empty slot in its direction, so a second (or third) leading/trailing chord drops here
+ *  too, once the first one's already-filled slot stops being a target itself. `rect` is that
+ *  target slot's own measured position (see `slotRects`), so the hit area and its underline move
+ *  outward with the target instead of always sitting right next to the syllable. */
+function EdgeDropZone({ edge, dropTarget, rect, dragProps }: EdgeDropZoneProps) {
+  const dropRect = rect ? edgeDropZoneRect(edge, rect) : undefined;
+  const style = dropRect ? { left: `${dropRect.left}px`, width: `${dropRect.width}px` } : undefined;
+  return (
+    <span
+      contentEditable={false}
+      className={`line-edge-drop line-edge-drop--${edge}` + (dropTarget ? " line-edge-drop--active" : "")}
+      style={style}
+      {...dragProps}
+    />
+  );
+}
+
 interface LineViewProps {
   line: Line;
   /** Whitespace at the end of the raw lyric line, which the syllable model does not retain. */
@@ -111,7 +144,12 @@ export function LineView({
   onDragLeaveCell,
   onDropCell,
 }: LineViewProps) {
-  const slotIds = useMemo(() => getLineCellSlots(line, merges), [line, merges]);
+  const slotIds = useMemo(() => getLineCellSlots(line, merges, cells), [line, merges, cells]);
+  // Nearest-to-syllable first, same order `startSlotIds`/`endSlotIds` produce — used below to
+  // chain each leading/trailing chord's position off its neighbor's, and to find the next empty
+  // slot a dragged or typed chord should land in.
+  const lineStartSlots = useMemo(() => startSlotIds(line, cells), [line, cells]);
+  const lineEndSlots = useMemo(() => endSlotIds(line, cells), [line, cells]);
   const units = useMemo(() => getLineUnits(line, merges), [line, merges]);
   const gaps = useMemo(() => getLineGaps(line, merges), [line, merges]);
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
@@ -178,19 +216,23 @@ export function LineView({
 
       const next: Record<string, SlotRect> = {};
 
-      // Mirrors the end-of-line slot below: anchored off the first syllable's own left edge
-      // instead of the last syllable's right edge, and growing further left (not right) as its
-      // own label needs more room — annotationGapExtras holds that measured label width. Always
-      // computed (even on an empty line, falling back to the row's own left edge), so this slot's
-      // rect is never missing — TrackRow blanks out a whole row's layout if any slot's rect is.
+      // Anchored off the first syllable's own left edge instead of the last syllable's right
+      // edge, and growing further left (not right) as each one's own label needs more room —
+      // annotationGapExtras holds that measured label width, accumulated outward across the
+      // whole leading chain so a second (or third) leading chord never overlaps the one nearer
+      // the syllable. Always computed (even on an empty line, falling back to the row's own left
+      // edge), so these slots' rects are never missing — TrackRow blanks out a whole row's layout
+      // if any slot's rect is.
       const firstUnit = units[0];
       const firstEl = firstUnit && syllableEls.current.get(firstUnit.syllableIds[0]);
       const firstLeft = firstEl ? firstEl.getBoundingClientRect().left - rowsLeft : 0;
-      const startLabelWidth = annotationGapExtras[startSlotId(line.id)] ?? 0;
-      next[startSlotId(line.id)] = {
-        left: Math.round(firstLeft - minimumLabelGap - startLabelWidth),
-        width: 14,
-      };
+      for (const slotId of lineStartSlots) {
+        const extra = annotationGapExtras[slotId] ?? 0;
+        next[slotId] = {
+          left: Math.round(firstLeft - minimumLabelGap - extra),
+          width: 14,
+        };
+      }
 
       for (const gap of gaps) {
         const gapEl = gapEls.current.get(gap.afterSyllableId);
@@ -221,9 +263,15 @@ export function LineView({
         lastRight = b.right;
       }
       // Unlike the gaps between syllables, there's no button element after the line's last
-      // syllable to give this slot breathing room — its annotation would otherwise sit flush
-      // against the last syllable's own right edge.
-      next[endSlotId(line.id)] = { left: Math.round(lastRight - rowsLeft) + minimumLabelGap, width: 14 };
+      // syllable to give these slots breathing room — the first one's annotation would otherwise
+      // sit flush against the last syllable's own right edge. Each subsequent trailing chord is
+      // pushed further right by annotationGapExtras, built from the ones nearer the syllable's
+      // own measured widths, so they stack without overlapping instead of all starting at the
+      // same spot.
+      for (const slotId of lineEndSlots) {
+        const extra = annotationGapExtras[slotId] ?? 0;
+        next[slotId] = { left: Math.round(lastRight - rowsLeft) + minimumLabelGap + extra, width: 14 };
+      }
       setSlotRects((previous) => (haveEqualSlotRects(previous, next) ? previous : next));
     }
 
@@ -234,7 +282,7 @@ export function LineView({
     // rendered width of word-boundary gaps (see App.css) — without it, showing/hiding the chords
     // track after text already exists leaves every annotation position stale.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [line, merges, annotationGapExtras, chordsVisible]);
+  }, [line, merges, annotationGapExtras, chordsVisible, lineStartSlots, lineEndSlots]);
 
   useLayoutEffect(() => {
     // A changed label or merge gets a fresh measurement from the unexpanded lyric layout.
@@ -280,7 +328,7 @@ export function LineView({
       const unitSlot = unitSlotBySyllable.get(gap.afterSyllableId);
       return gapEl.getBoundingClientRect().left + (unitSlot ? (annotationGapExtras[unitSlot] ?? 0) : 0);
     };
-    const anchorSlots = slotIds.slice(1, -1);
+    const anchorSlots = slotIds.slice(lineStartSlots.length, slotIds.length - lineEndSlots.length);
     for (let index = 0; index < anchorSlots.length - 1; index++) {
       const slotId = anchorSlots[index]!;
       const nextSlotId = anchorSlots[index + 1]!;
@@ -307,24 +355,27 @@ export function LineView({
       next[slotId] = (next[slotId] ?? 0) + additional;
     }
 
-    // The start slot has no "next unit" to measure against — it grows left, away from the first
-    // syllable, so its own rendered label width (not an overlap-avoidance delta) is exactly the
-    // extra offset the position effect above needs to keep it clear. It's always slotIds[0] (see
-    // getLineCellSlots), which sidesteps re-deriving startSlotId(line.id) as a hook dependency.
-    const startSlotKey = slotIds[0]!;
-    const startWidth = labelWidths.get(startSlotKey) ?? 0;
-    // Same cap as above: a measurement that keeps landing on a different value every pass (e.g.
-    // text metrics jittering by a sub-pixel on some mobile browsers) would otherwise re-trigger
-    // this effect forever instead of settling.
-    const startAttempts = gapCorrectionAttemptsRef.current[startSlotKey] ?? 0;
-    if (startWidth !== (next[startSlotKey] ?? 0) && startAttempts < 4) {
-      gapCorrectionAttemptsRef.current[startSlotKey] = startAttempts + 1;
-      next[startSlotKey] = startWidth;
+    // The leading chain has no "next unit" to measure against — each slot grows left, away from
+    // the first syllable, stacking outward by its own rendered label width plus however much room
+    // the slot(s) nearer the syllable already claimed. The trailing chain mirrors this, growing
+    // right instead. Both are a direct function of today's measured widths (unlike the inter-unit
+    // gaps above, which chase a moving on-screen distance), so no attempt cap is needed to keep
+    // them from compounding.
+    let leadingCumulative = 0;
+    for (const slotId of lineStartSlots) {
+      leadingCumulative += labelWidths.get(slotId) ?? 0;
+      next[slotId] = leadingCumulative;
+      leadingCumulative += minimumLabelGap;
+    }
+    let trailingCumulative = 0;
+    for (const slotId of lineEndSlots) {
+      next[slotId] = trailingCumulative;
+      trailingCumulative += (labelWidths.get(slotId) ?? 0) + minimumLabelGap;
     }
 
     const changed = Object.keys(next).some((key) => next[key] !== annotationGapExtras[key]);
     if (changed) setAnnotationGapExtras(next);
-  }, [annotationGapExtras, annotationSpacingKey, cells, slotIds, tracks, units, gaps, unitSlotBySyllable]);
+  }, [annotationGapExtras, annotationSpacingKey, cells, slotIds, tracks, units, gaps, unitSlotBySyllable, lineStartSlots, lineEndSlots]);
 
   useLayoutEffect(() => {
     if (!readOnly) return;
@@ -367,8 +418,8 @@ export function LineView({
         const gapSlot = gapAfter.get(unit.syllableIds[unit.syllableIds.length - 1]!);
         if (gapSlot) groups[unitRows[index]]!.push(gapSlot);
       });
-      groups[0]!.unshift(startSlotId(line.id));
-      groups[rowCount - 1]!.push(endSlotId(line.id));
+      groups[0]!.unshift(...lineStartSlots.slice().reverse());
+      groups[rowCount - 1]!.push(...lineEndSlots);
 
       const beforeHeight = beforeGroupRef.current?.getBoundingClientRect().height ?? 0;
       const afterHeight = afterGroupRef.current?.getBoundingClientRect().height ?? 0;
@@ -391,7 +442,7 @@ export function LineView({
     // slotRects is a dependency because a line only actually wraps once its syllables have their
     // final on-screen positions — the same layout pass that measurement effect above produces.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [readOnly, line, merges, units, gaps, tracks, slotRects]);
+  }, [readOnly, line, merges, units, gaps, tracks, slotRects, lineStartSlots, lineEndSlots]);
 
   const isDragging = dragSource !== null;
 
@@ -417,7 +468,7 @@ export function LineView({
     // belongs visually to that first syllable, even though it has no `before:<syllable>` slot.
     return (
       (slotId !== undefined && chordSlotIds.has(slotId)) ||
-      (syllableId === firstSyllableId && chordSlotIds.has(startSlotId(line.id)))
+      (syllableId === firstSyllableId && chordSlotIds.has(lineStartSlots[0]!))
     );
   }
 
@@ -436,6 +487,29 @@ export function LineView({
       onDrop: (event: React.DragEvent) => {
         event.preventDefault();
         onDropCell(trackId, slotId);
+      },
+    };
+  }
+
+  // The dropzone before the first syllable / after the last always targets the nearest still-empty
+  // slot in that direction — the one `lineStartSlots`/`lineEndSlots` already append once every
+  // nearer slot is filled (see `startSlotIds`/`endSlotIds`).
+  const startTargetSlotId = lineStartSlots[lineStartSlots.length - 1]!;
+  const endTargetSlotId = lineEndSlots[lineEndSlots.length - 1]!;
+
+  function edgeDragProps(targetSlotId: string) {
+    if (!dragSource) return undefined;
+    const trackId = dragSource.trackId;
+    return {
+      onDragOver: (event: React.DragEvent) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      },
+      onDragEnter: () => onDragEnterCell(trackId, targetSlotId),
+      onDragLeave: () => onDragLeaveCell(trackId, targetSlotId),
+      onDrop: (event: React.DragEvent) => {
+        event.preventDefault();
+        onDropCell(trackId, targetSlotId);
       },
     };
   }
@@ -562,6 +636,14 @@ export function LineView({
             {showEmptyCaret ? <span className="lyric-caret" aria-hidden="true" /> : null}
           </>
         ) : null}
+        {line.words.length > 0 && !readOnly ? (
+          <EdgeDropZone
+            edge="start"
+            dropTarget={dropTarget?.slotId === startTargetSlotId}
+            rect={slotRects[startTargetSlotId]}
+            dragProps={edgeDragProps(startTargetSlotId)}
+          />
+        ) : null}
         {line.words.map((word, wIndex) => {
           const firstSyllable = word.syllables[0];
           const prevWord = wIndex > 0 ? line.words[wIndex - 1] : null;
@@ -602,6 +684,14 @@ export function LineView({
             </Fragment>
           );
         })}
+        {line.words.length > 0 && !readOnly ? (
+          <EdgeDropZone
+            edge="end"
+            dropTarget={dropTarget?.slotId === endTargetSlotId}
+            rect={slotRects[endTargetSlotId]}
+            dragProps={edgeDragProps(endTargetSlotId)}
+          />
+        ) : null}
         {/* Keep a React-owned caret anchor after a trailing space. Without it, the model drops
             that space while syllabifying and the next typed word is appended to the previous one. */}
         {trailingWhitespace.replaceAll(/\s/g, "\u00a0")}

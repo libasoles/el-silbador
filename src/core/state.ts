@@ -3,12 +3,13 @@ import {
   beforeSlotId,
   buildSong,
   chordSlotForColumn,
-  endSlotId,
   gapSlotId,
   flattenSyllables,
+  isLineEdgeSlot,
   mergeKey,
   pruneMerges,
   reconcileWordSyllables,
+  endSlotId,
   startSlotId,
 } from "./model";
 import type { ChordPlacement } from "./chordSheet";
@@ -99,10 +100,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
       return applyToggleSyllableMerge(state, action.lineId, action.aId, action.bId);
 
     case "setCellText":
-      return {
-        ...state,
-        cells: setCell(state.cells, action.trackId, action.slotId, action.text),
-      };
+      return applySetCellText(state, action.trackId, action.slotId, action.text);
 
     case "moveCellText":
       return applyMoveCellText(state, action.trackId, action.fromSlotId, action.toSlotId);
@@ -199,7 +197,7 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
   let chordVariants = state.chordVariants;
   for (const line of previous) {
     if (!retainedLineIds.has(line.id)) {
-      for (const slotId of [startSlotId(line.id), endSlotId(line.id)]) {
+      for (const slotId of collectLineEdgeSlotIds(state.tracks, cells, chordVariants, line.id)) {
         cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
         chordVariants = deleteChordVariant(chordVariants, slotId);
       }
@@ -307,6 +305,27 @@ function deleteCell(cells: CellsByTrack, trackId: TrackId, slotId: string): Cell
   return { ...cells, [trackId]: nextTrackCells };
 }
 
+/** Every start/end slot id a deleted line left behind, at whatever indices it had accumulated
+ *  (see `startSlotIds`/`endSlotIds`) — gathered from wherever they might still be referenced,
+ *  since a line can carry more than one leading/trailing chord. */
+function collectLineEdgeSlotIds(
+  tracks: EditorState["tracks"],
+  cells: CellsByTrack,
+  chordVariants: Record<string, number>,
+  lineId: string,
+): string[] {
+  const slotIds = new Set<string>();
+  for (const track of tracks) {
+    for (const slotId of Object.keys(cells[track.id] ?? {})) {
+      if (isLineEdgeSlot(lineId, slotId)) slotIds.add(slotId);
+    }
+  }
+  for (const slotId of Object.keys(chordVariants)) {
+    if (isLineEdgeSlot(lineId, slotId)) slotIds.add(slotId);
+  }
+  return Array.from(slotIds);
+}
+
 function deleteCellAcrossTracks(tracks: EditorState["tracks"], cells: CellsByTrack, slotId: string): CellsByTrack {
   let next = cells;
   for (const track of tracks) {
@@ -331,6 +350,71 @@ function moveChordVariant(
   const next = deleteChordVariant({ ...chordVariants }, fromSlotId);
   next[toSlotId] = chordVariants[fromSlotId];
   return next;
+}
+
+/** The zero-indexed edge slot is the one closest to the lyric. Once it is emptied, every
+ * following edge slot moves one step inward so the visible chain remains contiguous. */
+function compactEdgeSlots(
+  state: EditorState,
+  trackId: TrackId,
+  cells: CellsByTrack,
+  chordVariants: Record<string, number>,
+  slotId: string,
+): Pick<EditorState, "cells" | "chordVariants"> {
+  const edge = state.song.flatMap((line) => [
+    { baseSlotId: startSlotId(line.id), slotAt: (index: number) => startSlotId(line.id, index) },
+    { baseSlotId: endSlotId(line.id), slotAt: (index: number) => endSlotId(line.id, index) },
+  ]).find(({ baseSlotId }) => baseSlotId === slotId);
+  if (!edge) return { cells, chordVariants };
+
+  const trackCells = cells[trackId] ?? {};
+  const edgeIndices = new Set<number>();
+  const edgeIndex = (candidate: string) => {
+    const suffix = candidate.slice(edge.baseSlotId.length + 1);
+    if (!candidate.startsWith(`${edge.baseSlotId}:`) || !/^\d+$/.test(suffix)) return null;
+    return Number(suffix);
+  };
+  for (const candidate of Object.keys(trackCells)) {
+    const index = edgeIndex(candidate);
+    if (index !== null && index > 0) edgeIndices.add(index);
+  }
+  if (trackId === "chords") {
+    for (const candidate of Object.keys(chordVariants)) {
+      const index = edgeIndex(candidate);
+      if (index !== null && index > 0) edgeIndices.add(index);
+    }
+  }
+  const highestIndex = Math.max(0, ...edgeIndices);
+  if (highestIndex === 0) return { cells, chordVariants };
+
+  const nextTrackCells = { ...trackCells };
+  const nextChordVariants = { ...chordVariants };
+  for (let index = 0; index < highestIndex; index += 1) {
+    const destination = edge.slotAt(index);
+    const source = edge.slotAt(index + 1);
+    const text = trackCells[source];
+    if (text) nextTrackCells[destination] = text;
+    else delete nextTrackCells[destination];
+
+    if (trackId === "chords") {
+      if (source in chordVariants) nextChordVariants[destination] = chordVariants[source]!;
+      else delete nextChordVariants[destination];
+    }
+  }
+  delete nextTrackCells[edge.slotAt(highestIndex)];
+  if (trackId === "chords") delete nextChordVariants[edge.slotAt(highestIndex)];
+
+  return {
+    cells: { ...cells, [trackId]: nextTrackCells },
+    chordVariants: trackId === "chords" ? nextChordVariants : chordVariants,
+  };
+}
+
+function applySetCellText(state: EditorState, trackId: TrackId, slotId: string, text: string): EditorState {
+  const cells = setCell(state.cells, trackId, slotId, text);
+  if (text !== "") return { ...state, cells };
+  const compacted = compactEdgeSlots(state, trackId, cells, state.chordVariants, slotId);
+  return { ...state, ...compacted };
 }
 
 function applyResyllabify(state: EditorState, lineId: string, wordId: string, newText: string): EditorState {
@@ -431,8 +515,9 @@ function applyMoveCellText(
 
   const chordVariants =
     trackId === "chords" ? moveChordVariant(state.chordVariants, fromSlotId, toSlotId) : state.chordVariants;
+  const compacted = compactEdgeSlots(state, trackId, cells, chordVariants, fromSlotId);
 
-  return { ...state, cells, chordVariants };
+  return { ...state, ...compacted };
 }
 
 export { getCell };

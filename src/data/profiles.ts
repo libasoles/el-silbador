@@ -1,7 +1,7 @@
 import { getSupabaseClient } from "./supabaseClient";
 
 export async function setUsername(username: string): Promise<{ username: string }> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
@@ -26,7 +26,7 @@ export async function setUsername(username: string): Promise<{ username: string 
  *  `public.is_admin()` in supabase/migrations/0001_init.sql, which server-side writes enforce
  *  the same way). Returns false rather than throwing when signed out. */
 export async function isCurrentUserAdmin(): Promise<boolean> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;

@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useIsRestoring,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 import { trackEvent } from "../analytics";
@@ -289,6 +294,10 @@ export function Library({
   // Mobile is read-only by product rule: no deleting from the index, even for the user's own
   // songs. Favoriting stays available on mobile and must not be gated here.
   const isMobile = useIsMobile();
+  // While the persisted query cache is still being read back from localStorage, react-query
+  // reports every query as not-fetching (fetchStatus "idle") even though it has no data yet, so
+  // `isLoading` alone would flash the empty state before the restored/refetched list lands.
+  const isRestoring = useIsRestoring();
   const [query, setQuery] = useState("");
   const [songPendingDelete, setSongPendingDelete] =
     useState<LibrarySong | null>(null);
@@ -308,7 +317,8 @@ export function Library({
   // still read as loading rather than flashing an empty "no songs" state; `null` (confirmed
   // signed out) never fetches, so it isn't "loading" even though the query itself stays disabled.
   const myLibraryLoading =
-    session === undefined || (Boolean(userId) && myQueryLoading);
+    session === undefined ||
+    (Boolean(userId) && (myQueryLoading || isRestoring));
 
   const { data: publicLibrarySongs = [], isLoading: publicLibraryLoading } =
     useQuery({
@@ -324,7 +334,8 @@ export function Library({
       enabled: Boolean(userId),
     });
   const favoritesLoading =
-    session === undefined || (Boolean(userId) && favoritesQueryLoading);
+    session === undefined ||
+    (Boolean(userId) && (favoritesQueryLoading || isRestoring));
 
   const deleteMutation = useMutation({
     mutationFn: deleteSong,

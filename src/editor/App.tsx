@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
@@ -18,13 +19,14 @@ import {
 import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent, SongDetail } from "../data/types";
 import { revalidatePublicSongs } from "../app/actions";
-import { TransposeWidget } from "../transpose/TransposeWidget";
+import type { TransposeWidget as TransposeWidgetComponent } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
 import { useAuthRequired } from "./authRequiredContext";
-import { ConfirmDialog } from "./components/ConfirmDialog";
+import type { ConfirmDialog as ConfirmDialogComponent } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
+import { MelodyTutorialExample } from "./components/MelodyTutorialExample";
 import { SongView } from "./components/SongView";
-import { YoutubeLinkDialog } from "./components/YoutubeLinkDialog";
+import type { YoutubeLinkDialog as YoutubeLinkDialogComponent } from "./components/YoutubeLinkDialog";
 import {
   DownloadIcon,
   ForkIcon,
@@ -34,6 +36,7 @@ import {
   SaveIcon,
   SilbadorIcon,
   SpinnerIcon,
+  NoteStackIcon,
   TrackIcon,
   TrashIcon,
   UnderlineIcon,
@@ -54,6 +57,28 @@ import { useToast } from "./toastContext";
 import { useIsMobile } from "./useIsMobile";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
+
+type ConfirmDialogProps = ComponentProps<typeof ConfirmDialogComponent>;
+type YoutubeLinkDialogProps = ComponentProps<typeof YoutubeLinkDialogComponent>;
+type TransposeWidgetProps = ComponentProps<typeof TransposeWidgetComponent>;
+
+const ConfirmDialog = dynamic<ConfirmDialogProps>(() =>
+  import("./components/ConfirmDialog").then((mod) => ({
+    default: mod.ConfirmDialog,
+  })),
+);
+
+const YoutubeLinkDialog = dynamic<YoutubeLinkDialogProps>(() =>
+  import("./components/YoutubeLinkDialog").then((mod) => ({
+    default: mod.YoutubeLinkDialog,
+  })),
+);
+
+const TransposeWidget = dynamic<TransposeWidgetProps>(() =>
+  import("../transpose/TransposeWidget").then((mod) => ({
+    default: mod.TransposeWidget,
+  })),
+);
 
 const AUTOSAVE_STATUS_LABEL: Record<"saving" | "saved" | "error", string> = {
   saving: "Guardando…",
@@ -169,7 +194,7 @@ function App({
   const [loadError, setLoadError] = useState<{ songSlug: string } | null>(null);
   const { session, requireAuthentication } = useAuthRequired();
   const authenticated = Boolean(session);
-  const { showToast } = useToast();
+  const { showToast, showTutorial } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [forking, setForking] = useState(false);
@@ -648,6 +673,57 @@ function App({
     retrySave();
   };
 
+  const handleTrackToggle = (track: TrackDef) => {
+    const nextVisible = !track.visible;
+    actions.setTrackVisibility(track.id, nextVisible);
+    if (track.id === "chordNotes" && nextVisible) {
+      showTutorial({
+        tutorialId: "chord-notes-shared",
+        title: "Notas compartidas",
+        description:
+          "Las notas en negrita significan que también están en el acorde anterior.",
+        icon: <NoteStackIcon boldNotes={["sol"]} />,
+      });
+    }
+  };
+
+  const showMelodyJoinTutorial = () => {
+    showTutorial({
+      tutorialId: "melody-notes-join-syllables",
+      title: "Una nota para dos sílabas",
+      description: (
+        <>
+          Podés hacer click entre dos sílabas para unirlas y asignarles una sola
+          nota.
+          <MelodyTutorialExample joined />
+        </>
+      ),
+    });
+  };
+
+  const handleUnderlineToggle = () => {
+    const next = !state.showUnderline;
+    actions.setShowUnderline(next);
+    const vocalNotes = state.tracks.find((track) => track.id === "vocalNotes");
+    if (vocalNotes && vocalNotes.visible !== next) {
+      actions.setTrackVisibility("vocalNotes", next);
+    }
+    if (next) {
+      showTutorial({
+        tutorialId: "melody-notes-write",
+        title: "Notas de la melodía",
+        description: (
+          <>
+            Podés hacer click debajo de una sílaba para escribir las notas de
+            la melodía.
+            <MelodyTutorialExample animateNotes />
+          </>
+        ),
+      });
+      showMelodyJoinTutorial();
+    }
+  };
+
   const notFound = loadError !== null && loadError.songSlug === songSlug;
 
   const saveTooltip = saving
@@ -715,8 +791,12 @@ function App({
             )}
             <TransposeWidget
               chordCells={state.cells.chords}
+              noteCells={state.cells.vocalNotes}
               onTransposeCell={(slotId, text) =>
                 actions.setCellText("chords", slotId, text)
+              }
+              onTransposeNoteCell={(slotId, text) =>
+                actions.setCellText("vocalNotes", slotId, text)
               }
             />
           </div>
@@ -761,9 +841,7 @@ function App({
                           key={track.id}
                           track={track}
                           cells={state.cells}
-                          onToggle={() =>
-                            actions.setTrackVisibility(track.id, !track.visible)
-                          }
+                          onToggle={() => handleTrackToggle(track)}
                         />
                       ))}
                     <IconButtonTooltip
@@ -779,16 +857,7 @@ function App({
                         aria-pressed={state.showUnderline}
                         aria-label="Subrayado y notas de la melodía"
                         disabled={state.lyricsText.trim() === ""}
-                        onClick={() => {
-                          const next = !state.showUnderline;
-                          actions.setShowUnderline(next);
-                          const vocalNotes = state.tracks.find(
-                            (track) => track.id === "vocalNotes",
-                          );
-                          if (vocalNotes && vocalNotes.visible !== next) {
-                            actions.setTrackVisibility("vocalNotes", next);
-                          }
-                        }}
+                        onClick={handleUnderlineToggle}
                       >
                         <UnderlineIcon />
                       </button>
@@ -826,9 +895,7 @@ function App({
                     key={track.id}
                     track={track}
                     cells={state.cells}
-                    onToggle={() =>
-                      actions.setTrackVisibility(track.id, !track.visible)
-                    }
+                    onToggle={() => handleTrackToggle(track)}
                   />
                 ))}
               <IconButtonTooltip
@@ -844,16 +911,7 @@ function App({
                   aria-pressed={state.showUnderline}
                   aria-label="Subrayado y notas de la melodía"
                   disabled={state.lyricsText.trim() === ""}
-                  onClick={() => {
-                    const next = !state.showUnderline;
-                    actions.setShowUnderline(next);
-                    const vocalNotes = state.tracks.find(
-                      (track) => track.id === "vocalNotes",
-                    );
-                    if (vocalNotes && vocalNotes.visible !== next) {
-                      actions.setTrackVisibility("vocalNotes", next);
-                    }
-                  }}
+                  onClick={handleUnderlineToggle}
                 >
                   <UnderlineIcon />
                 </button>

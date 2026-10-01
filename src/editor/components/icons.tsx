@@ -121,7 +121,8 @@ export function ChordIcon() {
 
 /** The words "sol", "mi", "do" stacked top to bottom — the same order the notes track itself
  *  shows a chord's notes in. */
-export function NoteStackIcon() {
+export function NoteStackIcon({ boldNotes }: { boldNotes?: readonly string[] } = {}) {
+  const isBold = (note: string) => boldNotes?.includes(note) ?? true;
   return (
     <svg viewBox="0 0 24 36" width="24" height="36" aria-hidden="true" focusable="false">
       <text
@@ -130,7 +131,7 @@ export function NoteStackIcon() {
         textAnchor="middle"
         dominantBaseline="central"
         fontSize="12"
-        fontWeight="700"
+        fontWeight={isBold("sol") ? "700" : "500"}
         letterSpacing="-0.5"
         fill="currentColor"
       >
@@ -142,7 +143,7 @@ export function NoteStackIcon() {
         textAnchor="middle"
         dominantBaseline="central"
         fontSize="12"
-        fontWeight="700"
+        fontWeight={isBold("mi") ? "700" : "500"}
         fill="currentColor"
       >
         mi
@@ -153,7 +154,7 @@ export function NoteStackIcon() {
         textAnchor="middle"
         dominantBaseline="central"
         fontSize="12"
-        fontWeight="700"
+        fontWeight={isBold("do") ? "700" : "500"}
         fill="currentColor"
       >
         do

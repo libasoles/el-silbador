@@ -20,6 +20,10 @@ const autosave = readFileSync(new URL("./useAutosave.ts", import.meta.url), "utf
 const lineView = readFileSync(new URL("./components/LineView.tsx", import.meta.url), "utf8");
 const toastStyles = readFileSync(new URL("./components/Toast.css", import.meta.url), "utf8");
 const providers = readFileSync(new URL("../app/providers.tsx", import.meta.url), "utf8");
+const toastProvider = readFileSync(
+  new URL("./components/ToastProvider.tsx", import.meta.url),
+  "utf8",
+);
 
 describe("underline visibility", () => {
   it("does not couple the underline to the chords track visibility", () => {
@@ -182,6 +186,54 @@ describe("magic-link callback errors", () => {
   it("shows Supabase callback errors as a ten-second error toast", () => {
     expect(providers).toContain("<AuthCallbackErrorToast />");
     expect(toastStyles).toMatch(/\.toast--error\s*\{[\s\S]*background: #fff1f1[\s\S]*border: 1px solid #bd2d2d/);
+  });
+});
+
+describe("chord notes tutorial", () => {
+  it("appears when the chord-notes track is activated and illustrates one shared note", () => {
+    expect(app).toContain('tutorialId: "chord-notes-shared"');
+    expect(app).toContain('icon: <NoteStackIcon boldNotes={["sol"]} />');
+    expect(app).toContain("Las notas en negrita significan que también están en el acorde anterior.");
+  });
+
+  it("keeps tutorials open until dismissal and records that dismissal", () => {
+    expect(toastProvider).toContain("duration: Infinity");
+    expect(toastProvider).toContain("markTutorialSeen(dismissed.tutorialId)");
+    expect(toastProvider).toContain("!toast.tutorialId &&");
+  });
+});
+
+describe("melody notes tutorials", () => {
+  it("shows the writing and joining tutorials together when the underline is activated", () => {
+    expect(app).toContain('tutorialId: "melody-notes-write"');
+    expect(app).toMatch(/Podés hacer click debajo de una sílaba para escribir las notas de\s+la melodía\./);
+    expect(app).toContain('tutorialId: "melody-notes-join-syllables"');
+    expect(app).toMatch(/Podés hacer click entre dos sílabas para unirlas y asignarles una sola\s+nota\./);
+    expect(app).toMatch(/showTutorial\(\{[\s\S]*tutorialId: "melody-notes-write"[\s\S]*\}\);\s*showMelodyJoinTutorial\(\)/);
+    expect(app).not.toContain("onDismiss: showMelodyJoinTutorial");
+    expect(app).not.toMatch(/icon: <UnderlineIcon \/>/);
+  });
+
+  it("uses real HTML notation examples beneath both explanations", () => {
+    const melodyExample = readFileSync(
+      new URL("./components/MelodyTutorialExample.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(app).toContain("<MelodyTutorialExample animateNotes />");
+    expect(app).toContain("<MelodyTutorialExample joined />");
+    expect(melodyExample).toContain("melody-tutorial-example");
+    expect(toastStyles).toContain(".melody-tutorial-example__note");
+    expect(toastStyles).toContain("background: var(--syllable-underline)");
+    expect(toastStyles).toContain("height: 2px");
+    expect(toastStyles).toContain("left: 0.14em");
+    expect(melodyExample).toContain('key="me-a-en"');
+    expect(melodyExample).toContain("melody-tutorial-example__gap--merged melody-tutorial-example__gap--word-boundary");
+    expect(melodyExample).toContain("melody-tutorial-example--typing");
+    expect(toastStyles).toContain("melody-tutorial-note-appear");
+  });
+
+  it("omits the default info icon from tutorials without artwork", () => {
+    expect(toastProvider).toContain("toast.icon || !toast.tutorialId");
   });
 });
 
