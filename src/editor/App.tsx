@@ -35,6 +35,7 @@ import {
   SaveIcon,
   SilbadorIcon,
   SpinnerIcon,
+  NoteStackIcon,
   TrackIcon,
   TrashIcon,
   UnderlineIcon,
@@ -192,7 +193,7 @@ function App({
   const [loadError, setLoadError] = useState<{ songSlug: string } | null>(null);
   const { session, requireAuthentication } = useAuthRequired();
   const authenticated = Boolean(session);
-  const { showToast } = useToast();
+  const { showToast, showTutorial } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [forking, setForking] = useState(false);
@@ -671,6 +672,19 @@ function App({
     retrySave();
   };
 
+  const handleTrackToggle = (track: TrackDef) => {
+    const nextVisible = !track.visible;
+    actions.setTrackVisibility(track.id, nextVisible);
+    if (track.id === "chordNotes" && nextVisible) {
+      showTutorial({
+        tutorialId: "chord-notes-shared",
+        title: "Notas compartidas",
+        description: "Las notas en negrita también están en el acorde anterior.",
+        icon: <NoteStackIcon boldNotes={["sol"]} />,
+      });
+    }
+  };
+
   const notFound = loadError !== null && loadError.songSlug === songSlug;
 
   const saveTooltip = saving
@@ -788,9 +802,7 @@ function App({
                           key={track.id}
                           track={track}
                           cells={state.cells}
-                          onToggle={() =>
-                            actions.setTrackVisibility(track.id, !track.visible)
-                          }
+                          onToggle={() => handleTrackToggle(track)}
                         />
                       ))}
                     <IconButtonTooltip
@@ -853,9 +865,7 @@ function App({
                     key={track.id}
                     track={track}
                     cells={state.cells}
-                    onToggle={() =>
-                      actions.setTrackVisibility(track.id, !track.visible)
-                    }
+                    onToggle={() => handleTrackToggle(track)}
                   />
                 ))}
               <IconButtonTooltip

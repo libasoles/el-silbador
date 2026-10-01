@@ -12,10 +12,18 @@ export interface ToastOptions {
   duration?: number;
 }
 
+export interface TutorialToastOptions extends ToastOptions {
+  /** A durable identifier for a tutorial that is shown until it is closed, then never again in
+   *  this browser. */
+  tutorialId: string;
+}
+
 export interface ToastContextValue {
   /** Queues a toast in the bottom-right corner; it auto-dismisses after `duration` unless the
    *  user hovers/focuses it or closes it manually. */
   showToast: (options: ToastOptions) => void;
+  /** Shows a no-time-limit tutorial at most once, recording it only after dismissal. */
+  showTutorial: (options: TutorialToastOptions) => void;
 }
 
 export const ToastContext = createContext<ToastContextValue | null>(null);

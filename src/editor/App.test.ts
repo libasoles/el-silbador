@@ -20,6 +20,10 @@ const autosave = readFileSync(new URL("./useAutosave.ts", import.meta.url), "utf
 const lineView = readFileSync(new URL("./components/LineView.tsx", import.meta.url), "utf8");
 const toastStyles = readFileSync(new URL("./components/Toast.css", import.meta.url), "utf8");
 const providers = readFileSync(new URL("../app/providers.tsx", import.meta.url), "utf8");
+const toastProvider = readFileSync(
+  new URL("./components/ToastProvider.tsx", import.meta.url),
+  "utf8",
+);
 
 describe("underline visibility", () => {
   it("does not couple the underline to the chords track visibility", () => {
@@ -182,6 +186,20 @@ describe("magic-link callback errors", () => {
   it("shows Supabase callback errors as a ten-second error toast", () => {
     expect(providers).toContain("<AuthCallbackErrorToast />");
     expect(toastStyles).toMatch(/\.toast--error\s*\{[\s\S]*background: #fff1f1[\s\S]*border: 1px solid #bd2d2d/);
+  });
+});
+
+describe("chord notes tutorial", () => {
+  it("appears when the chord-notes track is activated and illustrates one shared note", () => {
+    expect(app).toContain('tutorialId: "chord-notes-shared"');
+    expect(app).toContain('icon: <NoteStackIcon boldNotes={["sol"]} />');
+    expect(app).toContain("Las notas en negrita también están en el acorde anterior.");
+  });
+
+  it("keeps tutorials open until dismissal and records that dismissal", () => {
+    expect(toastProvider).toContain("duration: Infinity");
+    expect(toastProvider).toContain("markTutorialSeen(dismissed.tutorialId)");
+    expect(toastProvider).toContain("!toast.tutorialId &&");
   });
 });
 
