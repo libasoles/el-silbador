@@ -3,9 +3,9 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 const SITE_URL = "https://elsilbador.com.ar";
-const TITLE = "El Silbador — editor de canciones para guitarra";
+const TITLE = "El Silbador — Acordes de Guitarra para Folklore";
 const DESCRIPTION =
-  "Editor visual para silabear la letra de una canción y anotar acordes, notas de canto y más, línea por línea. Gratis, sin instalar nada.";
+  "Acordes de Guitarra para Folklore: editor visual para silabear letras y anotar acordes, notas de canto y más, línea por línea. Gratis, sin instalar nada.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
