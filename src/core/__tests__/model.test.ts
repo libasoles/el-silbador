@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  beforeSlotId,
   buildSong,
+  chordSlotForColumn,
   columnForSlot,
   endSlotId,
   endSlotIds,
+  flattenSyllables,
+  gapSlotId,
   getLineCellSlots,
   isLineEdgeSlot,
+  mergeKey,
   startSlotId,
   startSlotIds,
 } from "../model";
@@ -26,7 +31,8 @@ describe("columnForSlot", () => {
       (slotId) => slotId !== startSlotId(line.id) && slotId !== endSlotId(line.id),
     );
     const columns = syllableSlots.map((slotId) => columnForSlot(line, slotId));
-    expect(columns).toEqual([0, 2, 4, 7, 11, 14, 17, 19]);
+    // 6, 10 and 13 are the whitespace gaps after "Deliro", "con" and "la".
+    expect(columns).toEqual([0, 2, 4, 6, 7, 10, 11, 13, 14, 17, 19]);
   });
 
   it("returns the full line length for the end slot", () => {
@@ -96,5 +102,36 @@ describe("isLineEdgeSlot", () => {
     expect(isLineEdgeSlot(line.id, endSlotId(line.id, 2))).toBe(true);
     expect(isLineEdgeSlot(line.id, "before:someSyllable")).toBe(false);
     expect(isLineEdgeSlot(line.id, startSlotId("other-line"))).toBe(false);
+  });
+});
+
+describe("word-gap slots", () => {
+  it("adds one slot per whitespace gap, right after the word before it", () => {
+    const [line] = buildSong("uno dos");
+    const syllables = flattenSyllables(line);
+    const lastOfUno = line.words[0].syllables.at(-1)!;
+    expect(getLineCellSlots(line, new Set())).toEqual([
+      startSlotId(line.id),
+      ...syllables.slice(0, line.words[0].syllables.length).map((s) => beforeSlotId(s.id)),
+      gapSlotId(lastOfUno.id),
+      ...syllables.slice(line.words[0].syllables.length).map((s) => beforeSlotId(s.id)),
+      endSlotId(line.id),
+    ]);
+  });
+
+  it("has no gap slot where a melisma joins two words", () => {
+    const [line] = buildSong("uno dos");
+    const lastOfUno = line.words[0].syllables.at(-1)!;
+    const firstOfDos = line.words[1].syllables[0];
+    const slots = getLineCellSlots(line, new Set([mergeKey(lastOfUno.id, firstOfDos.id)]));
+    expect(slots).not.toContain(gapSlotId(lastOfUno.id));
+  });
+
+  it("maps a chord written over the whitespace between words to that gap", () => {
+    const text = "uno dos";
+    const [line] = buildSong(text);
+    const lastOfUno = line.words[0].syllables.at(-1)!;
+    expect(chordSlotForColumn(line, text, 3)).toBe(gapSlotId(lastOfUno.id));
+    expect(chordSlotForColumn(line, text, 4)).toBe(beforeSlotId(line.words[1].syllables[0].id));
   });
 });

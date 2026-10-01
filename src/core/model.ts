@@ -85,10 +85,16 @@ export function beforeSlotId(syllableId: string): string {
   return `before:${syllableId}`;
 }
 
+/** The slot for the whitespace between two words, keyed by the last syllable of the word before
+ * it (the same retained-id anchor `beforeSlotId` uses, so it survives edits to later words). */
+export function gapSlotId(afterSyllableId: string): string {
+  return `gap:${afterSyllableId}`;
+}
+
 /** The chord-track slot for a chord written at `column` above `rawLineText`, the exact text a
  * lyric line was built from. Walks the line's words/syllables left to right (in the same order
  * `buildLine` produced them from that text) and picks the last syllable starting at or before the
- * chord's column — i.e. the syllable the chord sits over, or the next one if it sits in a gap. */
+ * chord's column — i.e. the syllable the chord sits over, or the gap slot if it sits over the whitespace between two words. */
 export function chordSlotForColumn(line: Line, rawLineText: string, column: number): string {
   const wordStarts = [...rawLineText.matchAll(/\S+/g)].map((match) => match.index);
   let bestSlotId: string | null = null;
@@ -98,6 +104,11 @@ export function chordSlotForColumn(line: Line, rawLineText: string, column: numb
     for (const syllable of line.words[i].syllables) {
       if (offset <= column) bestSlotId = beforeSlotId(syllable.id);
       offset += syllable.text.length;
+    }
+    // A chord written over the whitespace between this word and the next belongs to that gap.
+    const lastSyllable = line.words[i].syllables[line.words[i].syllables.length - 1];
+    if (lastSyllable && i + 1 < wordStarts.length && i + 1 < line.words.length) {
+      if (column >= offset && column < wordStarts[i + 1]) return gapSlotId(lastSyllable.id);
     }
   }
 
@@ -120,6 +131,8 @@ export function columnForSlot(line: Line, slotId: string): number {
       if (beforeSlotId(syllable.id) === slotId) return offset;
       offset += syllable.text.length;
     }
+    const lastSyllable = line.words[i].syllables[line.words[i].syllables.length - 1];
+    if (lastSyllable && gapSlotId(lastSyllable.id) === slotId) return offset;
   }
   return offset;
 }
@@ -145,16 +158,39 @@ export function getLineUnits(line: Line, merges: ReadonlySet<string>): SyllableU
   return units;
 }
 
+/** The whitespace slots between adjacent words, in order. A boundary joined by an active melisma
+ * is one unit with no gap of its own, so it has no slot. */
+export function getLineGaps(
+  line: Line,
+  merges: ReadonlySet<string>,
+): { slotId: string; afterSyllableId: string }[] {
+  const gaps: { slotId: string; afterSyllableId: string }[] = [];
+  for (let i = 0; i + 1 < line.words.length; i++) {
+    const last = line.words[i].syllables[line.words[i].syllables.length - 1];
+    const next = line.words[i + 1].syllables[0];
+    if (!last || !next || merges.has(mergeKey(last.id, next.id))) continue;
+    gaps.push({ slotId: gapSlotId(last.id), afterSyllableId: last.id });
+  }
+  return gaps;
+}
+
 /** All addressable annotation cell slots for a line, in left-to-right order. `cells` determines
  *  how many leading/trailing slots a line has (see `startSlotIds`/`endSlotIds`); omitting it
- *  falls back to exactly one of each, as if the line carried no leading/trailing chords yet. */
+ *  falls back to exactly one of each, as if the line carried no leading/trailing chords yet.
+ *  Word gaps sit between the units on either side of the whitespace they represent. */
 export function getLineCellSlots(line: Line, merges: ReadonlySet<string>, cells: CellsByTrack = {}): string[] {
-  const units = getLineUnits(line, merges);
+  const gapAfter = new Map(getLineGaps(line, merges).map((gap) => [gap.afterSyllableId, gap.slotId]));
   const starts = startSlotIds(line, cells);
   const ends = endSlotIds(line, cells);
+  const middle: string[] = [];
+  for (const unit of getLineUnits(line, merges)) {
+    middle.push(unit.slotId);
+    const gapSlot = gapAfter.get(unit.syllableIds[unit.syllableIds.length - 1]!);
+    if (gapSlot) middle.push(gapSlot);
+  }
   // starts/ends are nearest-to-syllable first; the leading group renders farthest-first so the
   // newest (still-empty) leading slot sits at the line's outer edge, same as the trailing group.
-  return [...starts.slice().reverse(), ...units.map((unit) => unit.slotId), ...ends];
+  return [...starts.slice().reverse(), ...middle, ...ends];
 }
 
 /** Whether two syllable ids are adjacent (in that order) in the line's flat sequence. */
