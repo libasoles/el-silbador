@@ -123,10 +123,13 @@ export function LineView({
     }
   }
 
-  const unitSlotBySyllable = new Map<string, string>();
-  for (const unit of units) {
-    for (const id of unit.syllableIds) unitSlotBySyllable.set(id, unit.slotId);
-  }
+  const unitSlotBySyllable = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const unit of units) {
+      for (const id of unit.syllableIds) map.set(id, unit.slotId);
+    }
+    return map;
+  }, [units]);
   const syllableEls = useRef(new Map<string, HTMLElement>());
   // The word-boundary button after each syllable that ends a word, keyed by that syllable's id —
   // it is the on-screen box of that word gap's chord slot.
@@ -321,7 +324,7 @@ export function LineView({
 
     const changed = Object.keys(next).some((key) => next[key] !== annotationGapExtras[key]);
     if (changed) setAnnotationGapExtras(next);
-  }, [annotationGapExtras, annotationSpacingKey, cells, slotIds, tracks, units, gaps]);
+  }, [annotationGapExtras, annotationSpacingKey, cells, slotIds, tracks, units, gaps, unitSlotBySyllable]);
 
   useLayoutEffect(() => {
     if (!readOnly) return;
