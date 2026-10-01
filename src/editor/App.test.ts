@@ -209,7 +209,7 @@ describe("melody notes tutorials", () => {
     expect(app).toMatch(/Podés hacer click debajo de una sílaba para escribir las notas de\s+la melodía\./);
     expect(app).toContain('tutorialId: "melody-notes-join-syllables"');
     expect(app).toMatch(/Podés hacer click entre dos sílabas para unirlas y asignarles una sola\s+nota\./);
-    expect(app).toMatch(/showTutorial\(\{[\s\S]*tutorialId: "melody-notes-write"[\s\S]*\}\);\s*showMelodyJoinTutorial\(\)/);
+    expect(app).toMatch(/if \(next && canEditOnThisDevice\) \{[\s\S]*showTutorial\(\{[\s\S]*tutorialId: "melody-notes-write"[\s\S]*\}\);\s*showMelodyJoinTutorial\(\)/);
     expect(app).not.toContain("onDismiss: showMelodyJoinTutorial");
     expect(app).not.toMatch(/icon: <UnderlineIcon \/>/);
   });
@@ -226,11 +226,11 @@ describe("melody notes tutorials", () => {
     expect(toastStyles).toContain("background: var(--syllable-underline)");
     expect(toastStyles).toContain("height: 2px");
     expect(toastStyles).toContain("left: 0.14em");
-    expect(toastStyles).toMatch(/\.melody-tutorial-example__lyric\s*\{[\s\S]*display: inline-block[\s\S]*line-height: 1\.1/);
-    expect(toastStyles).toMatch(/\.melody-tutorial-example__merged-unit\s*\{[\s\S]*align-items: baseline/);
-    expect(toastStyles).toMatch(/\.melody-tutorial-example__merged-unit \.melody-tutorial-example__note\s*\{[\s\S]*text-align: left/);
-    expect(melodyExample).toContain('key="me-a-en"');
-    expect(melodyExample).toContain("melody-tutorial-example__gap--merged melody-tutorial-example__gap--word-boundary");
+    expect(toastStyles).toMatch(/\.melody-tutorial-example__unit\s*\{[\s\S]*display: inline-grid[\s\S]*grid-template-rows: 1\.1em 1\.35em/);
+    expect(toastStyles).toMatch(/\.melody-tutorial-example__lyrics\s*\{[\s\S]*align-items: baseline/);
+    expect(toastStyles).toMatch(/\.melody-tutorial-example__note\s*\{[\s\S]*text-align: left/);
+    expect(melodyExample).toContain("mergedAfter");
+    expect(melodyExample).toContain('wordBoundaryAfter ? " melody-tutorial-example__gap--word-boundary"');
     expect(melodyExample).toContain("melody-tutorial-example--typing");
     expect(toastStyles).toContain("melody-tutorial-note-appear");
   });
