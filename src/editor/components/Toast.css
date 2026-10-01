@@ -223,6 +223,20 @@
   animation: melody-tutorial-note-appear 160ms ease-out forwards;
 }
 
+.melody-tutorial-example__note--blink {
+  animation: melody-tutorial-note-blink 2.4s ease-in-out infinite;
+}
+
+@keyframes melody-tutorial-note-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
 @keyframes melody-tutorial-note-appear {
   from {
     opacity: 0;
@@ -277,7 +291,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .toast,
-  .toast__timer {
+  .toast__timer,
+  .melody-tutorial-example__note--blink {
     animation: none !important;
   }
 
