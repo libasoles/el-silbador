@@ -1119,6 +1119,14 @@
   bottom: -0.3em;
 }
 
+/* While a chord is dragged, a word gap is a dropzone for its own slot. Its click-target
+   extension must not reach sideways into the neighboring syllables then, or it would steal the
+   drops that belong to them; it keeps the extra height so the gap stays easy to hit. */
+.line--dragging .syllable-gap--word-boundary::before {
+  left: 0;
+  right: 0;
+}
+
 /* Hover/focus preview uses the same bottom offset as the real underline (::after above and
    .syllable::after) so it never appears to sit at a different height. Lives on ::after (rather
    than the ::before above) so it doesn't fight with the enlarged hit area, and only applies while

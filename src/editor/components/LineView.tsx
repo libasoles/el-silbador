@@ -23,6 +23,9 @@ interface SyllableGapButtonProps {
   disabled: boolean;
   onToggle: () => void;
   buttonRef?: (el: HTMLButtonElement | null) => void;
+  /** Present while a chord is being dragged and this gap is a word gap: makes the whole gap a
+   *  dropzone for its slot, like the syllables around it. */
+  dragProps?: Pick<React.DOMAttributes<HTMLButtonElement>, "onDragOver" | "onDragEnter" | "onDragLeave" | "onDrop">;
 }
 
 /** The clickable gap between two adjacent syllables that toggles a melisma merge. Inert while
@@ -39,13 +42,16 @@ function SyllableGapButton({
   disabled,
   onToggle,
   buttonRef,
+  dragProps,
 }: SyllableGapButtonProps) {
   return (
     <button
       ref={buttonRef}
       type="button"
       contentEditable={false}
-      disabled={disabled}
+      // Disabled buttons don't receive drag events, and no click can happen mid-drag anyway.
+      disabled={disabled && !dragProps}
+      {...dragProps}
       className={
         "syllable-gap" +
         (wordBoundary ? " syllable-gap--word-boundary" : "") +
@@ -166,6 +172,7 @@ export function LineView({
   const lineEndSlots = useMemo(() => endSlotIds(line, cells), [line, cells]);
   const units = useMemo(() => getLineUnits(line, merges), [line, merges]);
   const gaps = useMemo(() => getLineGaps(line, merges), [line, merges]);
+  const gapSlotIds = useMemo(() => new Set(gaps.map((gap) => gap.slotId)), [gaps]);
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
 
   const mergedIds = new Set<string>();
@@ -487,9 +494,14 @@ export function LineView({
   }
 
   function syllableDragProps(syllableId: string) {
-    if (!dragSource) return undefined;
     const slotId = syllableSlotId.get(syllableId);
-    if (slotId === undefined) return undefined;
+    return slotId === undefined ? undefined : slotDragProps(slotId);
+  }
+
+  // Dropzone handlers for any on-screen element standing in for `slotId` — a syllable, or the
+  // whitespace between two words — so the chord track's cell isn't the only place a drop lands.
+  function slotDragProps(slotId: string) {
+    if (!dragSource) return undefined;
     const trackId = dragSource.trackId;
     return {
       onDragOver: (event: React.DragEvent) => {
@@ -673,6 +685,9 @@ export function LineView({
                     dropTargetSyllableIds.has(prevSyllable.id) && dropTargetSyllableIds.has(firstSyllable.id)
                   }
                   slotDropTarget={dropTarget?.slotId === gapSlotId(prevSyllable.id)}
+                  dragProps={
+                    gapSlotIds.has(gapSlotId(prevSyllable.id)) ? slotDragProps(gapSlotId(prevSyllable.id)) : undefined
+                  }
                   slotInset={{
                     before: annotationGapExtras[syllableSlotId.get(prevSyllable.id) ?? ""] ?? 0,
                     after: annotationGapExtras[gapSlotId(prevSyllable.id)] ?? 0,
