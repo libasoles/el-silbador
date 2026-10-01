@@ -227,7 +227,7 @@ describe("melody notes tutorials", () => {
     expect(toastStyles).toContain("height: 2px");
     expect(toastStyles).toContain("left: 0.14em");
     expect(toastStyles).toMatch(/\.melody-tutorial-example__unit\s*\{[\s\S]*display: inline-grid[\s\S]*grid-template-rows: 1\.1em 1\.35em/);
-    expect(toastStyles).toMatch(/\.melody-tutorial-example__lyrics\s*\{[\s\S]*align-items: baseline/);
+    expect(toastStyles).toMatch(/\.melody-tutorial-example__lyrics\s*\{[\s\S]*align-items: flex-end/);
     expect(toastStyles).toMatch(/\.melody-tutorial-example__note\s*\{[\s\S]*text-align: left/);
     expect(melodyExample).toContain("mergedAfter");
     expect(melodyExample).toContain('wordBoundaryAfter ? " melody-tutorial-example__gap--word-boundary"');
