@@ -97,7 +97,7 @@ async function requireUserId(supabase: SupabaseClient): Promise<string> {
 }
 
 export async function listMySongs(): Promise<SongSummary[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const userId = await requireUserId(supabase);
 
   const { data, error } = await supabase
@@ -111,7 +111,7 @@ export async function listMySongs(): Promise<SongSummary[]> {
 }
 
 export async function listPublicSongs(): Promise<SongSummary[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase
     .from("songs")
@@ -125,7 +125,7 @@ export async function listPublicSongs(): Promise<SongSummary[]> {
 }
 
 export async function listFavorites(): Promise<SongSummary[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const userId = await requireUserId(supabase);
 
   const { data, error } = await supabase
@@ -141,7 +141,7 @@ export async function listFavorites(): Promise<SongSummary[]> {
 }
 
 export async function getSong(songId: string): Promise<SongDetail> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase.from("songs").select(DETAIL_COLUMNS).eq("id", songId).single();
   if (error) throw error;
@@ -151,7 +151,7 @@ export async function getSong(songId: string): Promise<SongDetail> {
 
 /** Looks a song up by its URL-facing slug (see /cancion/:slug in Root.tsx) rather than its id. */
 export async function getSongBySlug(slug: string): Promise<SongDetail> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase.from("songs").select(DETAIL_COLUMNS).eq("slug", slug).single();
   if (error) throw error;
@@ -160,7 +160,7 @@ export async function getSongBySlug(slug: string): Promise<SongDetail> {
 }
 
 export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const userId = await requireUserId(supabase);
 
   if (input.id) {
@@ -194,7 +194,7 @@ export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
 }
 
 export async function deleteSong(songId: string): Promise<void> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase.from("songs").delete().eq("id", songId).select("id");
   if (error) throw error;
@@ -204,7 +204,7 @@ export async function deleteSong(songId: string): Promise<void> {
 }
 
 export async function forkSong(songId: string): Promise<SongDetail> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const userId = await requireUserId(supabase);
 
   const { data: sourceData, error: sourceError } = await supabase
@@ -232,7 +232,7 @@ export async function forkSong(songId: string): Promise<SongDetail> {
 }
 
 export async function toggleFavorite(songId: string): Promise<void> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const userId = await requireUserId(supabase);
 
   const { data: existing, error: lookupError } = await supabase
@@ -257,7 +257,7 @@ export async function toggleFavorite(songId: string): Promise<void> {
 }
 
 export async function setSongPublic(songId: string, isPublic: boolean): Promise<SongSummary> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase
     .from("songs")
@@ -272,7 +272,7 @@ export async function setSongPublic(songId: string, isPublic: boolean): Promise<
 }
 
 export async function setSongYoutubeUrl(songId: string, youtubeUrl: string | null): Promise<SongSummary> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   const { data, error } = await supabase
     .from("songs")

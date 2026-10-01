@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { IsRestoringProvider, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  persistQueryClientRestore,
+  persistQueryClientSubscribe,
+  type PersistedQueryClientRestoreOptions,
+  type PersistedQueryClientSaveOptions,
+} from "@tanstack/query-persist-client-core";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { initAnalytics, trackPageView } from "../editor/analytics";
 import { AuthRequiredProvider } from "../editor/AuthRequired";
@@ -36,6 +41,51 @@ function getPersister() {
   });
 }
 
+type DeferredPersistOptions = PersistedQueryClientRestoreOptions & PersistedQueryClientSaveOptions;
+
+function scheduleIdle(callback: () => void): () => void {
+  if (typeof window.requestIdleCallback === "function") {
+    const handle = window.requestIdleCallback(callback);
+    return () => window.cancelIdleCallback(handle);
+  }
+  const handle = window.setTimeout(callback, 0);
+  return () => window.clearTimeout(handle);
+}
+
+/**
+ * Restores and persists the React Query cache like `PersistQueryClientProvider` does, but defers
+ * the synchronous JSON parse/stringify work to an idle moment (via `requestIdleCallback`, falling
+ * back to a macrotask) instead of running it inline in a mount effect, so it doesn't compete with
+ * the page's initial render and interactivity.
+ */
+function useDeferredPersistQueryClient(options: DeferredPersistOptions | undefined): boolean {
+  const [isRestoring, setIsRestoring] = useState(() => options !== undefined);
+
+  useEffect(() => {
+    if (!options) return;
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
+
+    const cancelIdle = scheduleIdle(() => {
+      persistQueryClientRestore(options)
+        .catch(() => undefined)
+        .finally(() => {
+          if (cancelled) return;
+          setIsRestoring(false);
+          unsubscribe = persistQueryClientSubscribe(options);
+        });
+    });
+
+    return () => {
+      cancelled = true;
+      cancelIdle();
+      unsubscribe?.();
+    };
+  }, [options]);
+
+  return isRestoring;
+}
+
 function AnalyticsTracker() {
   const pathname = usePathname();
 
@@ -56,47 +106,42 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // produce the initial HTML, so the persisted client can only be created once in the browser.
   const persister = useMemo(() => (typeof window === "undefined" ? undefined : getPersister()), []);
 
-  if (!persister) {
-    return (
-      <QueryClientProvider client={queryClient}>
+  const persistOptions = useMemo<DeferredPersistOptions | undefined>(() => {
+    if (!persister) return undefined;
+    return {
+      queryClient,
+      persister,
+      maxAge: ONE_DAY_MS,
+      // Bump this when a cached query's shape changes incompatibly, to drop old localStorage
+      // entries instead of feeding stale-shaped data into components expecting the new one.
+      buster: "v1",
+      dehydrateOptions: {
+        // Song *lists* (["songs", "mine", ...]) are plain, JSON-safe summaries — fine to
+        // persist. A song's own detail (["songs", "bySlug", ...]) carries its full editable
+        // content, which includes a native `Set` (SongContent.merges); the persister's default
+        // JSON serialization silently drops Set contents, so persisting it would hand the editor
+        // a corrupted, merge-less song on next reload. It stays cached in memory only.
+        shouldDehydrateQuery: (query) =>
+          query.state.status === "success" &&
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === "songs" &&
+          query.queryKey[1] !== "bySlug" &&
+          query.queryKey[1] !== "detail",
+      },
+    };
+  }, [persister]);
+
+  const isRestoring = useDeferredPersistQueryClient(persistOptions);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <IsRestoringProvider value={isRestoring}>
         <AnalyticsTracker />
         <ToastProvider>
           <AuthCallbackErrorToast />
           <AuthRequiredProvider session={session}>{children}</AuthRequiredProvider>
         </ToastProvider>
-      </QueryClientProvider>
-    );
-  }
-
-  return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{
-        persister,
-        maxAge: ONE_DAY_MS,
-        // Bump this when a cached query's shape changes incompatibly, to drop old localStorage
-        // entries instead of feeding stale-shaped data into components expecting the new one.
-        buster: "v1",
-        dehydrateOptions: {
-          // Song *lists* (["songs", "mine", ...]) are plain, JSON-safe summaries — fine to
-          // persist. A song's own detail (["songs", "bySlug", ...]) carries its full editable
-          // content, which includes a native `Set` (SongContent.merges); the persister's default
-          // JSON serialization silently drops Set contents, so persisting it would hand the editor
-          // a corrupted, merge-less song on next reload. It stays cached in memory only.
-          shouldDehydrateQuery: (query) =>
-            query.state.status === "success" &&
-            Array.isArray(query.queryKey) &&
-            query.queryKey[0] === "songs" &&
-            query.queryKey[1] !== "bySlug" &&
-            query.queryKey[1] !== "detail",
-        },
-      }}
-    >
-      <AnalyticsTracker />
-      <ToastProvider>
-        <AuthCallbackErrorToast />
-        <AuthRequiredProvider session={session}>{children}</AuthRequiredProvider>
-      </ToastProvider>
-    </PersistQueryClientProvider>
+      </IsRestoringProvider>
+    </QueryClientProvider>
   );
 }
