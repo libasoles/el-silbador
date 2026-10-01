@@ -19,6 +19,9 @@ import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent, SongDetail } from "../data/types";
 import { revalidatePublicSongs } from "../app/actions";
 import { TransposeWidget } from "../transpose/TransposeWidget";
+import { replayTransposeOffset } from "../transpose/transposeReplay";
+import { readTransposeOffset, saveTransposeOffset } from "../transpose/transposeOffsetStorage";
+import type { TransposeOffset } from "../transpose/transpose";
 import { trackEvent } from "./analytics";
 import { useAuthRequired } from "./authRequiredContext";
 import { ConfirmDialog } from "./components/ConfirmDialog";
@@ -439,6 +442,37 @@ function App({
   // the song's owner. Favoriting, chord/underline toggles, PDF export and transposition stay
   // available on mobile and must not be gated here.
   const canEditOnThisDevice = isOwnSong && !isMobile;
+
+  // Only a read-only viewer (not the owner, never on mobile — see ticket 01) gets their transpose
+  // offset persisted across reloads; the owner's own editing keeps going through autosave as
+  // usual, and this never runs on mobile at all.
+  const transposeOffsetEligible = Boolean(songDbId) && !isOwnSong && !isMobile;
+  const [restoredTransposeOffset, setRestoredTransposeOffset] =
+    useState<TransposeOffset | null>(null);
+  // Guards the one-time replay below from re-running on every render once it's done for a given
+  // song, and from ever running again for a song it already ran for.
+  const transposeReplayedForRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!transposeOffsetEligible || !contentLoaded || !songDbId) return;
+    if (transposeReplayedForRef.current === songDbId) return;
+    transposeReplayedForRef.current = songDbId;
+    const stored = readTransposeOffset(songDbId);
+    if (!stored) return;
+    // Transposes whatever `chords`/`vocalNotes` cells are live right now (not a saved snapshot),
+    // so content the owner added since this offset was saved comes out transposed too.
+    const replayed = replayTransposeOffset(state.cells.chords, state.cells.vocalNotes, stored);
+    for (const [slotId, text] of Object.entries(replayed.chords)) {
+      actions.setCellText("chords", slotId, text);
+    }
+    for (const [slotId, text] of Object.entries(replayed.vocalNotes)) {
+      actions.setCellText("vocalNotes", slotId, text);
+    }
+    setRestoredTransposeOffset(stored);
+    // `state.cells` is intentionally excluded: this must run once per song, not on every edit to
+    // its cells (including the ones this very effect just made).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transposeOffsetEligible, contentLoaded, songDbId, actions]);
+
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
     songDbId,
@@ -721,6 +755,12 @@ function App({
               }
               onTransposeNoteCell={(slotId, text) =>
                 actions.setCellText("vocalNotes", slotId, text)
+              }
+              restoredOffset={restoredTransposeOffset}
+              onOffsetChange={
+                transposeOffsetEligible && songDbId
+                  ? (offset) => saveTransposeOffset(songDbId, offset)
+                  : undefined
               }
             />
           </div>

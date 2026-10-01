@@ -116,3 +116,9 @@ export function transposeNote(text: string, semitones: number, useFlats: boolean
     : newName;
   return capitalized + suffix;
 }
+
+/** A transposition applied to a song: how many semitones, and which spelling to use. */
+export interface TransposeOffset {
+  semitones: number;
+  useFlats: boolean;
+}
