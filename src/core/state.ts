@@ -3,12 +3,11 @@ import {
   beforeSlotId,
   buildSong,
   chordSlotForColumn,
-  endSlotId,
   flattenSyllables,
+  isLineEdgeSlot,
   mergeKey,
   pruneMerges,
   reconcileWordSyllables,
-  startSlotId,
 } from "./model";
 import type { ChordPlacement } from "./chordSheet";
 import { hyphenateWord } from "./syllabify";
@@ -198,7 +197,7 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
   let chordVariants = state.chordVariants;
   for (const line of previous) {
     if (!retainedLineIds.has(line.id)) {
-      for (const slotId of [startSlotId(line.id), endSlotId(line.id)]) {
+      for (const slotId of collectLineEdgeSlotIds(state.tracks, cells, chordVariants, line.id)) {
         cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
         chordVariants = deleteChordVariant(chordVariants, slotId);
       }
@@ -303,6 +302,27 @@ function deleteCell(cells: CellsByTrack, trackId: TrackId, slotId: string): Cell
   const nextTrackCells = { ...cells[trackId] };
   delete nextTrackCells[slotId];
   return { ...cells, [trackId]: nextTrackCells };
+}
+
+/** Every start/end slot id a deleted line left behind, at whatever indices it had accumulated
+ *  (see `startSlotIds`/`endSlotIds`) — gathered from wherever they might still be referenced,
+ *  since a line can carry more than one leading/trailing chord. */
+function collectLineEdgeSlotIds(
+  tracks: EditorState["tracks"],
+  cells: CellsByTrack,
+  chordVariants: Record<string, number>,
+  lineId: string,
+): string[] {
+  const slotIds = new Set<string>();
+  for (const track of tracks) {
+    for (const slotId of Object.keys(cells[track.id] ?? {})) {
+      if (isLineEdgeSlot(lineId, slotId)) slotIds.add(slotId);
+    }
+  }
+  for (const slotId of Object.keys(chordVariants)) {
+    if (isLineEdgeSlot(lineId, slotId)) slotIds.add(slotId);
+  }
+  return Array.from(slotIds);
 }
 
 function deleteCellAcrossTracks(tracks: EditorState["tracks"], cells: CellsByTrack, slotId: string): CellsByTrack {

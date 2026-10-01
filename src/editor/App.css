@@ -1004,6 +1004,54 @@
   height: 3px;
 }
 
+/* The space before a line's first syllable (and after its last) doubles as a dropzone for the
+   chord that would sit there — the real annotation slot is a tiny fixed-width cell in the row
+   above, easy to miss while dragging. This stays weightless in the lyric layout (zero width) so
+   it never nudges the syllables; ::before gives it a real hit area reaching into the empty margin
+   beside the line, and ::after only lights up once it's the active drop target. */
+.line-edge-drop {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 1em;
+  vertical-align: bottom;
+}
+
+.line-edge-drop::before {
+  content: "";
+  position: absolute;
+  top: -0.3em;
+  bottom: -0.3em;
+}
+
+.line-edge-drop--start::before {
+  left: -0.9em;
+  right: 0;
+}
+
+.line-edge-drop--end::before {
+  left: 0;
+  right: -0.9em;
+}
+
+.line-edge-drop--active::after {
+  content: "";
+  position: absolute;
+  bottom: 0.05em;
+  height: 3px;
+  background: var(--highlight);
+}
+
+.line-edge-drop--start.line-edge-drop--active::after {
+  left: -0.9em;
+  right: 0;
+}
+
+.line-edge-drop--end.line-edge-drop--active::after {
+  left: 0;
+  right: -0.9em;
+}
+
 .syllable-gap {
   display: inline-block;
   width: calc(0.04em + var(--annotation-gap, 0px));
