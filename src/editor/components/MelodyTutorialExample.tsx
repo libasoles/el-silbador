@@ -66,9 +66,9 @@ export function MelodyTutorialExample({
             <Fragment key="me-a-en">
               <span className="melody-tutorial-example__merged-unit">
                 <span className="melody-tutorial-example__lyric">me</span>
-                <span className="melody-tutorial-example__gap melody-tutorial-example__gap--merged" />
+                <span className="melody-tutorial-example__gap melody-tutorial-example__gap--merged melody-tutorial-example__gap--word-boundary" />
                 <span className="melody-tutorial-example__lyric">a</span>
-                <span className="melody-tutorial-example__gap melody-tutorial-example__gap--merged" />
+                <span className="melody-tutorial-example__gap melody-tutorial-example__gap--merged melody-tutorial-example__gap--word-boundary" />
                 <span className="melody-tutorial-example__lyric">en</span>
                 <span className="melody-tutorial-example__note">re</span>
               </span>

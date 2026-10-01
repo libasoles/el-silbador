@@ -227,6 +227,7 @@ describe("melody notes tutorials", () => {
     expect(toastStyles).toContain("height: 2px");
     expect(toastStyles).toContain("left: 0.14em");
     expect(melodyExample).toContain('key="me-a-en"');
+    expect(melodyExample).toContain("melody-tutorial-example__gap--merged melody-tutorial-example__gap--word-boundary");
     expect(melodyExample).toContain("melody-tutorial-example--typing");
     expect(toastStyles).toContain("melody-tutorial-note-appear");
   });
