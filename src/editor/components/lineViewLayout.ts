@@ -3,17 +3,15 @@ export interface SlotRect {
   width: number;
 }
 
-const minimumEdgeDropZoneWidth = 40;
-
 /** The leading slot's annotation is onset-aligned, so its narrow measured cell can reach into
- * the first syllable. Give the drag affordance a generous area that grows outward instead. */
+ * the first syllable. Mirror the trailing slot's own width, but grow outward instead. */
 export function edgeDropZoneRect(edge: "start" | "end", rect: SlotRect): SlotRect {
-  if (edge === "end" || rect.width >= minimumEdgeDropZoneWidth) return rect;
+  if (edge === "end") return rect;
   return {
     // Its right edge stops at the annotation's left edge, rather than inheriting the measured
     // cell's right edge, which can extend into the lyric's first syllable.
-    left: rect.left - minimumEdgeDropZoneWidth,
-    width: minimumEdgeDropZoneWidth,
+    left: rect.left - rect.width,
+    width: rect.width,
   };
 }
 

@@ -13,7 +13,7 @@ describe("haveEqualSlotRects", () => {
 });
 
 describe("edgeDropZoneRect", () => {
-  it("expands a leading dropzone outward so its highlight cannot overlap the first syllable", () => {
-    expect(edgeDropZoneRect("start", { left: -6, width: 14 })).toEqual({ left: -46, width: 40 });
+  it("uses the trailing slot's width and grows the leading highlight outward", () => {
+    expect(edgeDropZoneRect("start", { left: -6, width: 14 })).toEqual({ left: -20, width: 14 });
   });
 });
