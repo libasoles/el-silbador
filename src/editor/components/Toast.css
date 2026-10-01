@@ -159,7 +159,7 @@
 
 .melody-tutorial-example__lyrics {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   height: 1.1em;
 }
 
@@ -178,6 +178,11 @@
   background: var(--syllable-underline);
 }
 
+.melody-tutorial-example__lyric--single-letter::after {
+  left: 0;
+  right: 0;
+}
+
 .melody-tutorial-example__note {
   padding-top: 0.14rem;
   color: var(--accent);
@@ -191,12 +196,16 @@
 .melody-tutorial-example__gap {
   position: relative;
   flex: none;
-  width: 0.04em;
+  width: 0.4em;
   height: 1.1em;
 }
 
+.melody-tutorial-example__gap--merged {
+  width: 0.04em;
+}
+
 .melody-tutorial-example__gap--word-boundary {
-  width: 0.3em;
+  width: 0.6em;
 }
 
 .melody-tutorial-example__gap--merged::after {
