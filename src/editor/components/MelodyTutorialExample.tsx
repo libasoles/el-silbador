@@ -37,6 +37,7 @@ export function MelodyTutorialExample({
             { text: "en" },
           ],
           note: "re",
+          wordBoundaryAfter: true,
         },
         { syllables: [{ text: "con" }], note: "mi" },
       ]
@@ -65,7 +66,14 @@ export function MelodyTutorialExample({
             <span className="melody-tutorial-example__lyrics">
               {unit.syllables.map((syllable, syllableIndex) => (
                 <Fragment key={`${syllable.text}-${syllableIndex}`}>
-                  <span className="melody-tutorial-example__lyric">{syllable.text}</span>
+                  <span
+                    className={
+                      "melody-tutorial-example__lyric" +
+                      (syllable.text.length === 1 ? " melody-tutorial-example__lyric--single-letter" : "")
+                    }
+                  >
+                    {syllable.text}
+                  </span>
                   {syllable.mergedAfter ? (
                     <span
                       className={
