@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+} from "react";
 import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
@@ -742,7 +749,10 @@ function App({
         <SilbadorIcon />
       </a>
 
-      <IconButtonTooltip className="app-close-tooltip" tooltip="Volver al índice">
+      <IconButtonTooltip
+        className="app-close-tooltip"
+        tooltip="Volver al índice"
+      >
         <a className="app-close" href="/" aria-label="Volver al índice">
           <XIcon size={26} />
         </a>
