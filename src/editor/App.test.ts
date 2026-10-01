@@ -203,6 +203,27 @@ describe("chord notes tutorial", () => {
   });
 });
 
+describe("melody notes tutorials", () => {
+  it("introduces writing melody notes before explaining how to join syllables", () => {
+    expect(app).toContain('tutorialId: "melody-notes-write"');
+    expect(app).toContain("Podés hacer click debajo de una sílaba para escribir las notas de la melodía.");
+    expect(app).toContain("onDismiss: showMelodyJoinTutorial");
+    expect(app).toContain('tutorialId: "melody-notes-join-syllables"');
+    expect(app).toContain("Podés hacer click entre dos sílabas para unirlas y asignarles una sola nota.");
+  });
+
+  it("uses real HTML notation examples beneath both explanations", () => {
+    const melodyExample = readFileSync(
+      new URL("./components/MelodyTutorialExample.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(app).toContain("<MelodyTutorialExample />");
+    expect(app).toContain("<MelodyTutorialExample joined />");
+    expect(melodyExample).toContain('className="melody-tutorial-example"');
+    expect(toastStyles).toContain(".melody-tutorial-example__note");
+  });
+});
+
 describe("autosave", () => {
   it("keeps its creation callback stable across status renders", () => {
     // `useAutosave` schedules a save whenever one of its effect dependencies changes. An inline

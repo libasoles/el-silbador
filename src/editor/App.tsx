@@ -24,6 +24,7 @@ import { trackEvent } from "./analytics";
 import { useAuthRequired } from "./authRequiredContext";
 import type { ConfirmDialog as ConfirmDialogComponent } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
+import { MelodyTutorialExample } from "./components/MelodyTutorialExample";
 import { SongView } from "./components/SongView";
 import type { YoutubeLinkDialog as YoutubeLinkDialogComponent } from "./components/YoutubeLinkDialog";
 import {
@@ -51,6 +52,7 @@ import {
   readPendingAuthAction,
 } from "./pendingAuthActionStorage";
 import { consumeJustForked, saveJustForked } from "./justForkedStorage";
+import { hasSeenTutorial } from "./tutorialStorage";
 import { pdfDocumentTitle } from "./pdfFilename";
 import { useToast } from "./toastContext";
 import { useIsMobile } from "./useIsMobile";
@@ -685,6 +687,47 @@ function App({
     }
   };
 
+  const showMelodyJoinTutorial = () => {
+    showTutorial({
+      tutorialId: "melody-notes-join-syllables",
+      title: "Una nota para dos sílabas",
+      description: (
+        <>
+          Podés hacer click entre dos sílabas para unirlas y asignarles una sola nota.
+          <MelodyTutorialExample joined />
+        </>
+      ),
+      icon: <UnderlineIcon />,
+    });
+  };
+
+  const handleUnderlineToggle = () => {
+    const next = !state.showUnderline;
+    actions.setShowUnderline(next);
+    const vocalNotes = state.tracks.find((track) => track.id === "vocalNotes");
+    if (vocalNotes && vocalNotes.visible !== next) {
+      actions.setTrackVisibility("vocalNotes", next);
+    }
+    if (next) {
+      if (hasSeenTutorial("melody-notes-write")) {
+        showMelodyJoinTutorial();
+      } else {
+        showTutorial({
+          tutorialId: "melody-notes-write",
+          title: "Notas de la melodía",
+          description: (
+            <>
+              Podés hacer click debajo de una sílaba para escribir las notas de la melodía.
+              <MelodyTutorialExample />
+            </>
+          ),
+          icon: <UnderlineIcon />,
+          onDismiss: showMelodyJoinTutorial,
+        });
+      }
+    }
+  };
+
   const notFound = loadError !== null && loadError.songSlug === songSlug;
 
   const saveTooltip = saving
@@ -818,16 +861,7 @@ function App({
                         aria-pressed={state.showUnderline}
                         aria-label="Subrayado y notas de la melodía"
                         disabled={state.lyricsText.trim() === ""}
-                        onClick={() => {
-                          const next = !state.showUnderline;
-                          actions.setShowUnderline(next);
-                          const vocalNotes = state.tracks.find(
-                            (track) => track.id === "vocalNotes",
-                          );
-                          if (vocalNotes && vocalNotes.visible !== next) {
-                            actions.setTrackVisibility("vocalNotes", next);
-                          }
-                        }}
+                        onClick={handleUnderlineToggle}
                       >
                         <UnderlineIcon />
                       </button>
@@ -881,16 +915,7 @@ function App({
                   aria-pressed={state.showUnderline}
                   aria-label="Subrayado y notas de la melodía"
                   disabled={state.lyricsText.trim() === ""}
-                  onClick={() => {
-                    const next = !state.showUnderline;
-                    actions.setShowUnderline(next);
-                    const vocalNotes = state.tracks.find(
-                      (track) => track.id === "vocalNotes",
-                    );
-                    if (vocalNotes && vocalNotes.visible !== next) {
-                      actions.setTrackVisibility("vocalNotes", next);
-                    }
-                  }}
+                  onClick={handleUnderlineToggle}
                 >
                   <UnderlineIcon />
                 </button>
