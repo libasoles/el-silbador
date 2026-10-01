@@ -1,6 +1,6 @@
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { chordToNoteNames } from "../../core/chordNotes";
-import { endSlotId, getLineCellSlots, getLineUnits, mergeKey, startSlotId } from "../../core/model";
+import { endSlotId, gapSlotId, getLineCellSlots, getLineGaps, getLineUnits, mergeKey, startSlotId } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
 import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
@@ -17,6 +17,7 @@ interface SyllableGapButtonProps {
   annotationGap?: number;
   disabled: boolean;
   onToggle: () => void;
+  buttonRef?: (el: HTMLButtonElement | null) => void;
 }
 
 /** The clickable gap between two adjacent syllables that toggles a melisma merge. Inert while
@@ -30,9 +31,11 @@ function SyllableGapButton({
   annotationGap = 0,
   disabled,
   onToggle,
+  buttonRef,
 }: SyllableGapButtonProps) {
   return (
     <button
+      ref={buttonRef}
       type="button"
       contentEditable={false}
       disabled={disabled}
@@ -110,6 +113,7 @@ export function LineView({
 }: LineViewProps) {
   const slotIds = useMemo(() => getLineCellSlots(line, merges), [line, merges]);
   const units = useMemo(() => getLineUnits(line, merges), [line, merges]);
+  const gaps = useMemo(() => getLineGaps(line, merges), [line, merges]);
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
 
   const mergedIds = new Set<string>();
@@ -119,7 +123,14 @@ export function LineView({
     }
   }
 
+  const unitSlotBySyllable = new Map<string, string>();
+  for (const unit of units) {
+    for (const id of unit.syllableIds) unitSlotBySyllable.set(id, unit.slotId);
+  }
   const syllableEls = useRef(new Map<string, HTMLElement>());
+  // The word-boundary button after each syllable that ends a word, keyed by that syllable's id —
+  // it is the on-screen box of that word gap's chord slot.
+  const gapEls = useRef(new Map<string, HTMLElement>());
   const syllableRowRef = useRef<HTMLDivElement>(null);
   const beforeGroupRef = useRef<HTMLDivElement>(null);
   const afterGroupRef = useRef<HTMLDivElement>(null);
@@ -141,7 +152,12 @@ export function LineView({
   } | null>(null);
   const annotationSpacingKey = tracks
     .filter((track) => track.visible)
-    .map((track) => `${track.id}:${units.map((unit) => getCell(cells, track.id, unit.slotId)).join("\u0001")}`)
+    .map(
+      (track) =>
+        `${track.id}:${[...units.map((unit) => unit.slotId), ...gaps.map((gap) => gap.slotId)]
+          .map((slotId) => getCell(cells, track.id, slotId))
+          .join("\u0001")}`,
+    )
     .join("\u0002");
 
   function registerSyllableRef(syllableId: string, el: HTMLElement | null) {
@@ -172,6 +188,21 @@ export function LineView({
         left: Math.round(firstLeft - minimumLabelGap - startLabelWidth),
         width: 14,
       };
+
+      for (const gap of gaps) {
+        const gapEl = gapEls.current.get(gap.afterSyllableId);
+        if (!gapEl) continue;
+        const rect = gapEl.getBoundingClientRect();
+        const unitSlot = unitSlotBySyllable.get(gap.afterSyllableId);
+        const before = unitSlot ? (annotationGapExtras[unitSlot] ?? 0) : 0;
+        const own = annotationGapExtras[gap.slotId] ?? 0;
+        // The button is widened by the previous unit's label and by this gap's own label, so the
+        // slot sits after the former and spans only what is left of the base width.
+        next[gap.slotId] = {
+          left: Math.round(rect.left - rowsLeft + before),
+          width: Math.max(6, Math.round(rect.width - before - own)),
+        };
+      }
 
       let lastRight = rowsLeft;
       for (const unit of units) {
@@ -233,19 +264,33 @@ export function LineView({
     }
 
     const next = { ...annotationGapExtras };
-    for (let index = 0; index < units.length - 1; index++) {
-      const unit = units[index]!;
-      const nextUnit = units[index + 1]!;
-      const width = labelWidths.get(unit.slotId);
-      const firstEl = syllableEls.current.get(unit.syllableIds[0]);
-      const nextFirstEl = syllableEls.current.get(nextUnit.syllableIds[0]);
-      // A bare next syllable has no label to protect — widening the gap here would only
+    // Every slot between the start and end bookends, in order: syllable units and word gaps. Each
+    // one's label must clear the next slot's left edge; a shortfall widens the space after it.
+    const unitBySlot = new Map(units.map((unit) => [unit.slotId, unit]));
+    const gapBySlot = new Map(gaps.map((gap) => [gap.slotId, gap]));
+    const anchorLeft = (slotId: string): number | null => {
+      const unit = unitBySlot.get(slotId);
+      if (unit) return syllableEls.current.get(unit.syllableIds[0])?.getBoundingClientRect().left ?? null;
+      const gap = gapBySlot.get(slotId);
+      const gapEl = gap && gapEls.current.get(gap.afterSyllableId);
+      if (!gap || !gapEl) return null;
+      const unitSlot = unitSlotBySyllable.get(gap.afterSyllableId);
+      return gapEl.getBoundingClientRect().left + (unitSlot ? (annotationGapExtras[unitSlot] ?? 0) : 0);
+    };
+    const anchorSlots = slotIds.slice(1, -1);
+    for (let index = 0; index < anchorSlots.length - 1; index++) {
+      const slotId = anchorSlots[index]!;
+      const nextSlotId = anchorSlots[index + 1]!;
+      const width = labelWidths.get(slotId);
+      const left = anchorLeft(slotId);
+      const nextLeft = anchorLeft(nextSlotId);
+      // A bare next slot has no label to protect — widening the gap here would only
       // separate the lyrics, not prevent any annotation from overlapping another one.
-      if (!width || !firstEl || !nextFirstEl || !labelWidths.has(nextUnit.slotId)) continue;
+      if (!width || left === null || nextLeft === null || !labelWidths.has(nextSlotId)) continue;
       // Rounded to match `width` (already an integer): comparing a fractional distance against
       // an integer target rarely lands on exactly zero, which would otherwise leave a shortfall
       // that never fully closes.
-      const distance = Math.round(nextFirstEl.getBoundingClientRect().left - firstEl.getBoundingClientRect().left);
+      const distance = Math.round(nextLeft - left);
       const additional = requiredAnnotationGap(width, distance);
       if (additional <= 0) continue;
       // On some mobile browsers the CSS gap we request (an `em`-based calc()) doesn't render as
@@ -253,10 +298,10 @@ export function LineView({
       // we add — without a cap this keeps compounding forever, re-triggering this effect until
       // React's update-depth guard crashes the page. Capping attempts per slot accepts a
       // possibly-imperfect gap instead of an infinite render loop.
-      const attempts = gapCorrectionAttemptsRef.current[unit.slotId] ?? 0;
+      const attempts = gapCorrectionAttemptsRef.current[slotId] ?? 0;
       if (attempts >= 4) continue;
-      gapCorrectionAttemptsRef.current[unit.slotId] = attempts + 1;
-      next[unit.slotId] = (next[unit.slotId] ?? 0) + additional;
+      gapCorrectionAttemptsRef.current[slotId] = attempts + 1;
+      next[slotId] = (next[slotId] ?? 0) + additional;
     }
 
     // The start slot has no "next unit" to measure against — it grows left, away from the first
@@ -276,7 +321,7 @@ export function LineView({
 
     const changed = Object.keys(next).some((key) => next[key] !== annotationGapExtras[key]);
     if (changed) setAnnotationGapExtras(next);
-  }, [annotationGapExtras, annotationSpacingKey, cells, slotIds, tracks, units]);
+  }, [annotationGapExtras, annotationSpacingKey, cells, slotIds, tracks, units, gaps]);
 
   useLayoutEffect(() => {
     if (!readOnly) return;
@@ -313,7 +358,12 @@ export function LineView({
       }
 
       const groups: string[][] = Array.from({ length: rowCount }, () => []);
-      units.forEach((unit, index) => groups[unitRows[index]]!.push(unit.slotId));
+      const gapAfter = new Map(gaps.map((gap) => [gap.afterSyllableId, gap.slotId]));
+      units.forEach((unit, index) => {
+        groups[unitRows[index]]!.push(unit.slotId);
+        const gapSlot = gapAfter.get(unit.syllableIds[unit.syllableIds.length - 1]!);
+        if (gapSlot) groups[unitRows[index]]!.push(gapSlot);
+      });
       groups[0]!.unshift(startSlotId(line.id));
       groups[rowCount - 1]!.push(endSlotId(line.id));
 
@@ -338,7 +388,7 @@ export function LineView({
     // slotRects is a dependency because a line only actually wraps once its syllables have their
     // final on-screen positions — the same layout pass that measurement effect above produces.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [readOnly, line, merges, units, tracks, slotRects]);
+  }, [readOnly, line, merges, units, gaps, tracks, slotRects]);
 
   const isDragging = dragSource !== null;
 
@@ -529,8 +579,13 @@ export function LineView({
                   annotationGap={
                     syllableSlotId.get(prevSyllable.id) === syllableSlotId.get(firstSyllable.id)
                       ? 0
-                      : annotationGapExtras[syllableSlotId.get(prevSyllable.id) ?? ""]
+                      : (annotationGapExtras[syllableSlotId.get(prevSyllable.id) ?? ""] ?? 0) +
+                        (annotationGapExtras[gapSlotId(prevSyllable.id)] ?? 0)
                   }
+                  buttonRef={(el) => {
+                    if (el) gapEls.current.set(prevSyllable.id, el);
+                    else gapEls.current.delete(prevSyllable.id);
+                  }}
                   onToggle={() => onToggleMerge(line.id, prevSyllable.id, firstSyllable.id)}
                 />
               ) : null}

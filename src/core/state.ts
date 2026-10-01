@@ -4,6 +4,7 @@ import {
   buildSong,
   chordSlotForColumn,
   endSlotId,
+  gapSlotId,
   flattenSyllables,
   mergeKey,
   pruneMerges,
@@ -205,9 +206,10 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
     }
     for (const syllable of flattenSyllables(line)) {
       if (!retainedSyllableIds.has(syllable.id)) {
-        const slotId = beforeSlotId(syllable.id);
-        cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
-        chordVariants = deleteChordVariant(chordVariants, slotId);
+        for (const slotId of [beforeSlotId(syllable.id), gapSlotId(syllable.id)]) {
+          cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
+          chordVariants = deleteChordVariant(chordVariants, slotId);
+        }
       }
     }
   }
@@ -348,9 +350,10 @@ function applyResyllabify(state: EditorState, lineId: string, wordId: string, ne
   let cells = state.cells;
   let chordVariants = state.chordVariants;
   for (const droppedId of droppedIds) {
-    const slotId = beforeSlotId(droppedId);
-    cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
-    chordVariants = deleteChordVariant(chordVariants, slotId);
+    for (const slotId of [beforeSlotId(droppedId), gapSlotId(droppedId)]) {
+      cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
+      chordVariants = deleteChordVariant(chordVariants, slotId);
+    }
   }
 
   const merges = pruneMerges(song, state.merges);
@@ -395,6 +398,10 @@ function applyToggleSyllableMerge(state: EditorState, lineId: string, aId: strin
     for (const id of restIds) {
       cells = deleteCell(cells, track.id, beforeSlotId(id));
     }
+    // The joined run no longer has whitespace slots between its syllables.
+    for (const id of groupIds.slice(0, -1)) {
+      cells = deleteCell(cells, track.id, gapSlotId(id));
+    }
   }
 
   let chordVariants = state.chordVariants;
@@ -404,6 +411,9 @@ function applyToggleSyllableMerge(state: EditorState, lineId: string, aId: strin
   }
   for (const id of restIds) {
     chordVariants = deleteChordVariant(chordVariants, beforeSlotId(id));
+  }
+  for (const id of groupIds.slice(0, -1)) {
+    chordVariants = deleteChordVariant(chordVariants, gapSlotId(id));
   }
 
   return { ...state, merges, cells, chordVariants };
