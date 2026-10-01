@@ -12,6 +12,11 @@ interface SyllableGapButtonProps {
   merged: boolean;
   wordBoundary?: boolean;
   dropTarget?: boolean;
+  /** This gap is itself the chord slot being dragged over (a word gap, not a melisma bridge). */
+  slotDropTarget?: boolean;
+  /** Space the previous unit's label and this gap's own label add to the button, so the slot
+   *  underline can cover only the slot's own part of it. */
+  slotInset?: { before: number; after: number };
   fromText: string;
   toText: string;
   annotationGap?: number;
@@ -26,6 +31,8 @@ function SyllableGapButton({
   merged,
   wordBoundary = false,
   dropTarget = false,
+  slotDropTarget = false,
+  slotInset,
   fromText,
   toText,
   annotationGap = 0,
@@ -43,11 +50,18 @@ function SyllableGapButton({
         "syllable-gap" +
         (wordBoundary ? " syllable-gap--word-boundary" : "") +
         (merged ? " syllable-gap--merged" : "") +
-        (dropTarget ? " syllable-gap--drop-target" : "")
+        (dropTarget ? " syllable-gap--drop-target" : "") +
+        (slotDropTarget ? " syllable-gap--slot-drop-target" : "")
       }
       aria-pressed={merged}
       aria-label={merged ? `Separar sílabas "${fromText}" y "${toText}"` : `Unir sílabas "${fromText}" y "${toText}"`}
-      style={{ "--annotation-gap": `${annotationGap}px` } as React.CSSProperties}
+      style={
+        {
+          "--annotation-gap": `${annotationGap}px`,
+          "--slot-inset-before": `${slotInset?.before ?? 0}px`,
+          "--slot-inset-after": `${slotInset?.after ?? 0}px`,
+        } as React.CSSProperties
+      }
       onClick={(e) => {
         e.stopPropagation();
         onToggle();
@@ -658,6 +672,11 @@ export function LineView({
                   dropTarget={
                     dropTargetSyllableIds.has(prevSyllable.id) && dropTargetSyllableIds.has(firstSyllable.id)
                   }
+                  slotDropTarget={dropTarget?.slotId === gapSlotId(prevSyllable.id)}
+                  slotInset={{
+                    before: annotationGapExtras[syllableSlotId.get(prevSyllable.id) ?? ""] ?? 0,
+                    after: annotationGapExtras[gapSlotId(prevSyllable.id)] ?? 0,
+                  }}
                   fromText={prevSyllable.text}
                   toText={firstSyllable.text}
                   disabled={!showUnderline || readOnly}

@@ -1040,6 +1040,21 @@
   background: var(--highlight);
 }
 
+/* Dragging a chord over the whitespace between two words: that gap is the destination, so it gets
+   the same accent underline a destination syllable does, spanning just the slot's own part of the
+   gap (past the room the neighboring labels add). Shown even with the underline guide hidden,
+   since it is the only drop feedback a gap has. */
+.syllable-gap--slot-drop-target::after,
+.song--underline-hidden .syllable-gap--slot-drop-target::after {
+  content: "";
+  position: absolute;
+  left: var(--slot-inset-before, 0px);
+  right: var(--slot-inset-after, 0px);
+  bottom: 0.05em;
+  height: 3px;
+  background: var(--highlight);
+}
+
 .syllable-gap {
   display: inline-block;
   width: calc(0.04em + var(--annotation-gap, 0px));
