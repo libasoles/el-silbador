@@ -34,14 +34,19 @@ export async function generateMetadata({
   const song = await fetchPublicSong(slug);
   if (!song) return { title: "Canción" };
 
-  const title = song.title || "Canción sin título";
-  const description = song.author
-    ? `${title}, por ${song.author} — El Silbador`
-    : `${title} — El Silbador`;
+  const songTitle = song.title || "Canción sin título";
+  const artist = song.author.trim();
+  // Use an absolute title so the root layout's brand template does not displace the artist.
+  // The resulting title directly answers searches such as "letra de …" and "acordes de … para
+  // guitarra", while still retaining the song's primary identifying information first.
+  const title = `${artist ? `${songTitle} - ${artist}` : songTitle} | Letra y Acordes para Guitarra`;
+  const description = artist
+    ? `Letra y acordes para guitarra de ${songTitle}, de ${artist}. Consultá la canción en El Silbador.`
+    : `Letra y acordes para guitarra de ${songTitle}. Consultá la canción en El Silbador.`;
   const url = `/cancion/${slug}`;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: url },
     openGraph: { title, description, url },
