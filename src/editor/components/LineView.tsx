@@ -403,14 +403,17 @@ export function LineView({
     slotIds.filter((slotId) => getCell(cells, "chords", slotId).trim() !== ""),
   );
   const firstSyllableId = units[0]?.syllableIds[0];
+  const lastSyllableId = units[units.length - 1]?.syllableIds.at(-1);
 
   function hasChordAtSyllable(syllableId: string) {
     const slotId = syllableSlotId.get(syllableId);
-    // A chord before the first lyric syllable is stored in the line's start slot. It still
-    // belongs visually to that first syllable, even though it has no `before:<syllable>` slot.
+    // A chord before/after the line's lyrics is stored in the line's start/end slot chain (one
+    // or more chained slots, see `lineStartSlots`/`lineEndSlots`). It still belongs visually to
+    // the first/last syllable, even though it has no `before:<syllable>` slot of its own.
     return (
       (slotId !== undefined && chordSlotIds.has(slotId)) ||
-      (syllableId === firstSyllableId && chordSlotIds.has(lineStartSlots[0]!))
+      (syllableId === firstSyllableId && lineStartSlots.some((id) => chordSlotIds.has(id))) ||
+      (syllableId === lastSyllableId && lineEndSlots.some((id) => chordSlotIds.has(id)))
     );
   }
 
