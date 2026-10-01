@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
@@ -18,13 +19,13 @@ import {
 import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent, SongDetail } from "../data/types";
 import { revalidatePublicSongs } from "../app/actions";
-import { TransposeWidget } from "../transpose/TransposeWidget";
+import type { TransposeWidget as TransposeWidgetComponent } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
 import { useAuthRequired } from "./authRequiredContext";
-import { ConfirmDialog } from "./components/ConfirmDialog";
+import type { ConfirmDialog as ConfirmDialogComponent } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { SongView } from "./components/SongView";
-import { YoutubeLinkDialog } from "./components/YoutubeLinkDialog";
+import type { YoutubeLinkDialog as YoutubeLinkDialogComponent } from "./components/YoutubeLinkDialog";
 import {
   DownloadIcon,
   ForkIcon,
@@ -54,6 +55,28 @@ import { useToast } from "./toastContext";
 import { useIsMobile } from "./useIsMobile";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
+
+type ConfirmDialogProps = ComponentProps<typeof ConfirmDialogComponent>;
+type YoutubeLinkDialogProps = ComponentProps<typeof YoutubeLinkDialogComponent>;
+type TransposeWidgetProps = ComponentProps<typeof TransposeWidgetComponent>;
+
+const ConfirmDialog = dynamic<ConfirmDialogProps>(() =>
+  import("./components/ConfirmDialog").then((mod) => ({
+    default: mod.ConfirmDialog,
+  })),
+);
+
+const YoutubeLinkDialog = dynamic<YoutubeLinkDialogProps>(() =>
+  import("./components/YoutubeLinkDialog").then((mod) => ({
+    default: mod.YoutubeLinkDialog,
+  })),
+);
+
+const TransposeWidget = dynamic<TransposeWidgetProps>(() =>
+  import("../transpose/TransposeWidget").then((mod) => ({
+    default: mod.TransposeWidget,
+  })),
+);
 
 const AUTOSAVE_STATUS_LABEL: Record<"saving" | "saved" | "error", string> = {
   saving: "Guardando…",
