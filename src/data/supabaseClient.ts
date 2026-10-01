@@ -1,6 +1,7 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 let client: SupabaseClient | undefined;
+let clientPromise: Promise<SupabaseClient> | undefined;
 
 function isLocalSupabaseUrl(url: string): boolean {
   const parsedUrl = new URL(url);
@@ -42,18 +43,26 @@ export function createSupabaseFetch(supabaseUrl: string, baseFetch: typeof fetch
  * it, like the data-access functions) never fails just because env vars aren't set — only calling
  * a function that actually needs the client does. That keeps unit tests importable without
  * credentials, gating the network-touching parts instead of the imports.
+ *
+ * `@supabase/supabase-js` itself is dynamically imported here (rather than statically at module
+ * top-level) so it never ships in the initial bundle for routes that reach this module through the
+ * app-wide auth provider but haven't actually needed a Supabase call yet.
  */
-export function getSupabaseClient(): SupabaseClient {
+export async function getSupabaseClient(): Promise<SupabaseClient> {
   if (client) return client;
+  if (!clientPromise) {
+    clientPromise = import("@supabase/supabase-js").then(({ createClient }) => {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!url || !anonKey) {
+        throw new Error(
+          "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Set them in .env.local (see .env.example).",
+        );
+      }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Set them in .env.local (see .env.example).",
-    );
+      client = createClient(url, anonKey, { global: { fetch: createSupabaseFetch(url) } });
+      return client;
+    });
   }
-
-  client = createClient(url, anonKey, { global: { fetch: createSupabaseFetch(url) } });
-  return client;
+  return clientPromise;
 }
