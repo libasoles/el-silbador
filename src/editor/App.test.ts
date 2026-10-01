@@ -206,9 +206,9 @@ describe("chord notes tutorial", () => {
 describe("melody notes tutorials", () => {
   it("shows the writing and joining tutorials together when the underline is activated", () => {
     expect(app).toContain('tutorialId: "melody-notes-write"');
-    expect(app).toMatch(/Podés hacer click debajo de una sílaba para escribir las notas de\s+la melodía\./);
+    expect(app).toMatch(/Podés hacer click debajo de una sílaba para escribir las notas de la\s+melodía\./);
     expect(app).toContain('tutorialId: "melody-notes-join-syllables"');
-    expect(app).toMatch(/Podés hacer click entre dos sílabas para unirlas y asignarles una sola\s+nota\./);
+    expect(app).toMatch(/Podés hacer click entre dos o más sílabas para unirlas y asignarles\s+una sola nota\./);
     expect(app).toMatch(/if \(next && canEditOnThisDevice\) \{[\s\S]*showTutorial\(\{[\s\S]*tutorialId: "melody-notes-write"[\s\S]*\}\);\s*showMelodyJoinTutorial\(\)/);
     expect(app).not.toContain("onDismiss: showMelodyJoinTutorial");
     expect(app).not.toMatch(/icon: <UnderlineIcon \/>/);
@@ -230,7 +230,7 @@ describe("melody notes tutorials", () => {
     expect(toastStyles).toMatch(/\.melody-tutorial-example__lyrics\s*\{[\s\S]*align-items: flex-end/);
     expect(toastStyles).toMatch(/\.melody-tutorial-example__note\s*\{[\s\S]*text-align: left/);
     expect(melodyExample).toContain("mergedAfter");
-    expect(melodyExample).toContain('wordBoundaryAfter ? " melody-tutorial-example__gap--word-boundary"');
+    expect(melodyExample).toMatch(/wordBoundaryAfter\s*\?\s*" melody-tutorial-example__gap--word-boundary"/);
     expect(melodyExample).toContain("melody-tutorial-example--typing");
     expect(toastStyles).toContain("melody-tutorial-note-appear");
   });
