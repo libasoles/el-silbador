@@ -1,11 +1,6 @@
 import { useState } from "react";
 import "./TransposeWidget.css";
-import {
-  decideUseFlats,
-  transposeChord,
-  transposeNote,
-  type TransposeOffset,
-} from "./transpose";
+import { decideUseFlats, transposeChord, transposeNote } from "./transpose";
 
 interface TransposeWidgetProps {
   /** Chord text per slot id, as currently shown (cells.chords). */
@@ -16,25 +11,12 @@ interface TransposeWidgetProps {
   onTransposeCell: (slotId: string, text: string) => void;
   /** Writes a melody-note slot's transposed text back to wherever notes are stored. */
   onTransposeNoteCell: (slotId: string, text: string) => void;
-  /**
-   * An offset the caller has just replayed onto the live cells (e.g. one read back from
-   * localStorage for a read-only viewer) — adopted once, so the widget's own displayed offset
-   * matches content that's already transposed instead of showing "0" over it. `undefined`/`null`
-   * (no saved offset, or nothing to restore, e.g. the owner's own editing session) leaves the
-   * widget at its normal zeroed start.
-   */
-  restoredOffset?: TransposeOffset | null;
-  /** Called after every shift with the new cumulative offset, so the caller can persist it (e.g.
-   *  to localStorage for a read-only viewer). Omitted wherever nothing should be persisted. */
-  onOffsetChange?: (offset: TransposeOffset) => void;
 }
 
 /**
- * Transposes every chord up or down by semitones, same widget as cancionero's (assets/song-sheet.js).
- * The offset itself lives in this component's state; a caller that wants it to survive a reload
- * (e.g. a read-only viewer, via `transposeOffsetStorage`) passes it back in as `restoredOffset` and
- * is notified of further changes via `onOffsetChange` — this component never touches storage
- * itself, same separation as `justForkedStorage`/`draftStorage` living outside their UI.
+ * Transposes every chord up or down by semitones, same widget as cancionero's (assets/song-sheet.js),
+ * minus the localStorage persistence: the offset lives only in this component's state and resets
+ * on reload, by design (see AGENTS note on decoupling this from the syllabifier).
  *
  * The melody-notes track is transposed alongside the chords, using the same sharp/flat choice, so
  * the two tracks stay in the same key.
@@ -44,22 +26,9 @@ export function TransposeWidget({
   noteCells,
   onTransposeCell,
   onTransposeNoteCell,
-  restoredOffset,
-  onOffsetChange,
 }: TransposeWidgetProps) {
   const [offset, setOffset] = useState(0);
   const [useFlats, setUseFlats] = useState(false);
-  // Tracks which `restoredOffset` (by reference) has already been adopted into state above, so
-  // that adoption happens exactly once — right when the caller finishes replaying a saved offset
-  // onto the live cells — rather than on every render. Adjusting state during render in response
-  // to a changed prop, as React recommends, instead of in an effect: an effect would run one
-  // render late, letting the "0" label flash before the restored offset ever reaches state.
-  const [adoptedOffset, setAdoptedOffset] = useState<TransposeOffset | null | undefined>(undefined);
-  if (restoredOffset && restoredOffset !== adoptedOffset) {
-    setAdoptedOffset(restoredOffset);
-    setOffset(restoredOffset.semitones);
-    setUseFlats(restoredOffset.useFlats);
-  }
 
   const chordEntries = Object.entries(chordCells ?? {}).filter(([, text]) => text.trim() !== "");
   const noteEntries = Object.entries(noteCells ?? {}).filter(([, text]) => text.trim() !== "");
@@ -74,9 +43,7 @@ export function TransposeWidget({
     for (const [slotId, text] of noteEntries) {
       onTransposeNoteCell(slotId, transposeNote(text, semitones, flats));
     }
-    const newOffset = offset + semitones;
-    setOffset(newOffset);
-    onOffsetChange?.({ semitones: newOffset, useFlats: flats });
+    setOffset((current) => current + semitones);
   }
 
   const label = offset === 0 ? "0" : offset > 0 ? `+${offset}` : String(offset);
