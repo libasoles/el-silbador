@@ -700,8 +700,8 @@ function App({
       title: "Una nota para dos sílabas",
       description: (
         <>
-          Podés hacer click entre dos sílabas para unirlas y asignarles una sola
-          nota.
+          Podés hacer click entre dos o más sílabas para unirlas y asignarles
+          una sola nota.
           <MelodyTutorialExample joined />
         </>
       ),
@@ -721,8 +721,8 @@ function App({
         title: "Notas de la melodía",
         description: (
           <>
-            Podés hacer click debajo de una sílaba para escribir las notas de
-            la melodía.
+            Podés hacer click debajo de una sílaba para escribir las notas de la
+            melodía.
             <MelodyTutorialExample animateNotes />
           </>
         ),

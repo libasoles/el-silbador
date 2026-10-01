@@ -50,17 +50,17 @@ export function MelodyTutorialExample({
         { syllables: [{ text: "bas" }], note: "re", wordBoundaryAfter: true },
         { syllables: [{ text: "tris" }], note: "la" },
         { syllables: [{ text: "te" }], note: "la", wordBoundaryAfter: true },
-        { syllables: [{ text: "por" }], note: "sol", wordBoundaryAfter: true },
-        { syllables: [{ text: "el" }], note: "fa", wordBoundaryAfter: true },
-        { syllables: [{ text: "ca" }], note: "re" },
-        { syllables: [{ text: "mi" }], note: "la" },
-        { syllables: [{ text: "no" }], note: "la" },
       ];
 
   return (
     <span
-      className={"melody-tutorial-example" + (animateNotes ? " melody-tutorial-example--typing" : "")}
-      aria-label={joined ? "Ejemplo de sílabas unidas" : "Ejemplo de notas de la melodía"}
+      className={
+        "melody-tutorial-example" +
+        (animateNotes ? " melody-tutorial-example--typing" : "")
+      }
+      aria-label={
+        joined ? "Ejemplo de sílabas unidas" : "Ejemplo de notas de la melodía"
+      }
     >
       {units.map((unit, unitIndex) => (
         <Fragment key={`${unit.syllables[0]!.text}-${unitIndex}`}>
@@ -71,7 +71,9 @@ export function MelodyTutorialExample({
                   <span
                     className={
                       "melody-tutorial-example__lyric" +
-                      (syllable.text.length === 1 ? " melody-tutorial-example__lyric--single-letter" : "")
+                      (syllable.text.length === 1
+                        ? " melody-tutorial-example__lyric--single-letter"
+                        : "")
                     }
                   >
                     {syllable.text}
@@ -80,7 +82,9 @@ export function MelodyTutorialExample({
                     <span
                       className={
                         "melody-tutorial-example__gap melody-tutorial-example__gap--merged" +
-                        (syllable.wordBoundaryAfter ? " melody-tutorial-example__gap--word-boundary" : "")
+                        (syllable.wordBoundaryAfter
+                          ? " melody-tutorial-example__gap--word-boundary"
+                          : "")
                       }
                     />
                   ) : null}
@@ -93,7 +97,11 @@ export function MelodyTutorialExample({
                 (animateNotes ? " melody-tutorial-example__note--typing" : "") +
                 (unit.blinkNote ? " melody-tutorial-example__note--blink" : "")
               }
-              style={animateNotes ? { animationDelay: `${unitIndex * 360}ms` } : undefined}
+              style={
+                animateNotes
+                  ? { animationDelay: `${unitIndex * 360}ms` }
+                  : undefined
+              }
             >
               {unit.note}
             </span>
@@ -102,7 +110,9 @@ export function MelodyTutorialExample({
             <span
               className={
                 "melody-tutorial-example__gap" +
-                (unit.wordBoundaryAfter ? " melody-tutorial-example__gap--word-boundary" : "")
+                (unit.wordBoundaryAfter
+                  ? " melody-tutorial-example__gap--word-boundary"
+                  : "")
               }
             />
           ) : null}
