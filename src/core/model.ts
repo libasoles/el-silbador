@@ -1,6 +1,6 @@
 import { nextId } from "./ids";
 import { hyphenateWord, splitIntoWords } from "./syllabify";
-import type { Line, Song, Syllable, SyllableUnit, Word } from "./types";
+import type { CellsByTrack, Line, Song, Syllable, SyllableUnit, TrackId, Word } from "./types";
 
 /** Builds a fresh, fully-hyphenated song from raw lyrics text. Every id is newly minted.
  *  An empty document has no lines at all (not one line with zero words), so consumers can
@@ -32,12 +32,53 @@ export function mergeKey(aId: string, bId: string): string {
   return `${aId}|${bId}`;
 }
 
-export function endSlotId(lineId: string): string {
-  return `end:${lineId}`;
+/** `index` 0 is the slot immediately after the line's last syllable; each higher index is one
+ *  more chord stacked further right, for lines that carry more than one trailing chord. */
+export function endSlotId(lineId: string, index = 0): string {
+  return index === 0 ? `end:${lineId}` : `end:${lineId}:${index}`;
 }
 
-export function startSlotId(lineId: string): string {
-  return `start:${lineId}`;
+/** `index` 0 is the slot immediately before the line's first syllable; each higher index is one
+ *  more chord stacked further left, for lines that carry more than one leading chord. */
+export function startSlotId(lineId: string, index = 0): string {
+  return index === 0 ? `start:${lineId}` : `start:${lineId}:${index}`;
+}
+
+/** Whether `slotId` is one of `lineId`'s start or end slots, at any index. Used to sweep up every
+ *  leading/trailing chord a line carries (e.g. when the line itself is deleted), without needing
+ *  to know how many of them it has. */
+export function isLineEdgeSlot(lineId: string, slotId: string): boolean {
+  return (
+    slotId === startSlotId(lineId) ||
+    slotId.startsWith(`start:${lineId}:`) ||
+    slotId === endSlotId(lineId) ||
+    slotId.startsWith(`end:${lineId}:`)
+  );
+}
+
+function cellText(cells: CellsByTrack, trackId: TrackId, slotId: string): string {
+  return cells[trackId]?.[slotId] ?? "";
+}
+
+/** The leading chord slots before `line`'s first syllable, nearest-to-syllable first: always at
+ *  least `[startSlotId(line.id)]`, plus one more trailing empty slot for every already-filled one
+ *  — the always-available dropzone for "one more chord before this one". */
+export function startSlotIds(line: Line, cells: CellsByTrack, trackId: TrackId = "chords"): string[] {
+  const ids = [startSlotId(line.id)];
+  while (cellText(cells, trackId, ids[ids.length - 1]!).trim() !== "") {
+    ids.push(startSlotId(line.id, ids.length));
+  }
+  return ids;
+}
+
+/** The trailing chord slots after `line`'s last syllable, nearest-to-syllable first. See
+ *  `startSlotIds`. */
+export function endSlotIds(line: Line, cells: CellsByTrack, trackId: TrackId = "chords"): string[] {
+  const ids = [endSlotId(line.id)];
+  while (cellText(cells, trackId, ids[ids.length - 1]!).trim() !== "") {
+    ids.push(endSlotId(line.id, ids.length));
+  }
+  return ids;
 }
 
 export function beforeSlotId(syllableId: string): string {
@@ -104,10 +145,16 @@ export function getLineUnits(line: Line, merges: ReadonlySet<string>): SyllableU
   return units;
 }
 
-/** All addressable annotation cell slots for a line, in left-to-right order. */
-export function getLineCellSlots(line: Line, merges: ReadonlySet<string>): string[] {
+/** All addressable annotation cell slots for a line, in left-to-right order. `cells` determines
+ *  how many leading/trailing slots a line has (see `startSlotIds`/`endSlotIds`); omitting it
+ *  falls back to exactly one of each, as if the line carried no leading/trailing chords yet. */
+export function getLineCellSlots(line: Line, merges: ReadonlySet<string>, cells: CellsByTrack = {}): string[] {
   const units = getLineUnits(line, merges);
-  return [startSlotId(line.id), ...units.map((unit) => unit.slotId), endSlotId(line.id)];
+  const starts = startSlotIds(line, cells);
+  const ends = endSlotIds(line, cells);
+  // starts/ends are nearest-to-syllable first; the leading group renders farthest-first so the
+  // newest (still-empty) leading slot sits at the line's outer edge, same as the trailing group.
+  return [...starts.slice().reverse(), ...units.map((unit) => unit.slotId), ...ends];
 }
 
 /** Whether two syllable ids are adjacent (in that order) in the line's flat sequence. */
