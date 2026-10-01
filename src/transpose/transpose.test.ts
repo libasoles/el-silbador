@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decideUseFlats, transposeChord } from "./transpose";
+import { decideUseFlats, transposeChord, transposeNote } from "./transpose";
 
 describe("transposeChord", () => {
   it("shifts a plain root up in sharps", () => {
@@ -43,5 +43,36 @@ describe("decideUseFlats", () => {
 
   it("defaults to sharps when nothing hints at either", () => {
     expect(decideUseFlats(["C", "G", "Am"])).toBe(false);
+  });
+});
+
+describe("transposeNote", () => {
+  it("shifts a solfège note up in sharps", () => {
+    expect(transposeNote("Do", 1, false)).toBe("Do#");
+  });
+
+  it("shifts a solfège note down, wrapping around", () => {
+    expect(transposeNote("Do", -1, false)).toBe("Si");
+  });
+
+  it("uses flat spellings when asked", () => {
+    expect(transposeNote("La", 1, true)).toBe("Sib");
+  });
+
+  it("preserves lowercase input", () => {
+    expect(transposeNote("re", 2, false)).toBe("mi");
+  });
+
+  it("keeps text after the note intact", () => {
+    expect(transposeNote("Sol#7", 1, false)).toBe("La7");
+  });
+
+  it("is a no-op for text with no recognizable note", () => {
+    expect(transposeNote("???", 3, false)).toBe("???");
+  });
+
+  it("round-trips back to the original after equal and opposite shifts", () => {
+    const up = transposeNote("Fa#", 5, false);
+    expect(transposeNote(up, -5, false)).toBe("Fa#");
   });
 });

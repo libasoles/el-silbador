@@ -68,3 +68,51 @@ export function decideUseFlats(chordTexts: string[]): boolean {
   }
   return hasSharp ? false : useFlats;
 }
+
+const SOLFEGE_SHARP_NAMES = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "sol#", "la", "la#", "si"];
+const SOLFEGE_FLAT_NAMES = ["do", "reb", "re", "mib", "mi", "fa", "solb", "sol", "lab", "la", "sib", "si"];
+
+const SOLFEGE_INDEX: Record<string, number> = {
+  do: 0,
+  "si#": 0,
+  "do#": 1,
+  reb: 1,
+  re: 2,
+  "re#": 3,
+  mib: 3,
+  mi: 4,
+  fab: 4,
+  fa: 5,
+  "mi#": 5,
+  "fa#": 6,
+  solb: 6,
+  sol: 7,
+  "sol#": 8,
+  lab: 8,
+  la: 9,
+  "la#": 10,
+  sib: 10,
+  si: 11,
+  dob: 11,
+};
+
+const SOLFEGE_ROOT_RE = /^(do|re|mi|fa|sol|la|si)(#|b)?/i;
+
+/** Transposes a melody note written in Spanish solfège (e.g. "Re#", "Lab"), used for the melody-
+ *  notes track. Case of the matched root is preserved (capitalized stays capitalized); anything
+ *  after the root (and text that isn't a recognizable solfège note) is left untouched. */
+export function transposeNote(text: string, semitones: number, useFlats: boolean): string {
+  const match = SOLFEGE_ROOT_RE.exec(text);
+  if (!match) return text;
+  const root = (match[1] + (match[2] ?? "")).toLowerCase();
+  const idx = SOLFEGE_INDEX[root];
+  if (idx === undefined) return text;
+  const suffix = text.slice(match[0].length);
+  const newIdx = (((idx + semitones) % 12) + 12) % 12;
+  const names = useFlats ? SOLFEGE_FLAT_NAMES : SOLFEGE_SHARP_NAMES;
+  const newName = names[newIdx]!;
+  const capitalized = /^[A-Z]/.test(match[0])
+    ? newName[0]!.toUpperCase() + newName.slice(1)
+    : newName;
+  return capitalized + suffix;
+}

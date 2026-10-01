@@ -715,8 +715,12 @@ function App({
             )}
             <TransposeWidget
               chordCells={state.cells.chords}
+              noteCells={state.cells.vocalNotes}
               onTransposeCell={(slotId, text) =>
                 actions.setCellText("chords", slotId, text)
+              }
+              onTransposeNoteCell={(slotId, text) =>
+                actions.setCellText("vocalNotes", slotId, text)
               }
             />
           </div>
