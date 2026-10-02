@@ -40,14 +40,14 @@ describe("underline visibility", () => {
     );
   });
 
-  it("limits read-only underlines to syllables with a chord while keeping editor guides complete", () => {
+  it("shows read-only underlines for chorded and merged syllables while keeping editor guides complete", () => {
     expect(lineView).toContain('readOnly ? " line--chord-underlines-only" : ""');
     expect(lineView).toContain('readOnly && hasChordAtSyllable(syllable.id) ? " syllable--has-chord" : ""');
     expect(styles).toMatch(
       /\.line--chord-underlines-only \.syllable::after,[\s\S]*\.line--chord-underlines-only \.syllable-gap--merged::after\s*\{\s*content: none/,
     );
     expect(styles).toMatch(
-      /\.line--chord-underlines-only \.syllable--has-chord::after\s*\{\s*content: ""/,
+      /\.line--chord-underlines-only \.syllable--has-chord::after,[\s\S]*\.line--chord-underlines-only \.syllable--merged::after,[\s\S]*\.line--chord-underlines-only \.syllable-gap--merged::after\s*\{\s*content: ""/,
     );
   });
 });
