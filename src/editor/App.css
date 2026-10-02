@@ -817,7 +817,9 @@
    rendered once a line has its first indicator, so lines without any reserve no extra space. */
 .pitch-direction-row {
   position: relative;
-  height: 1.1rem;
+  height: 0.85rem;
+  /* Pull the row up against the notes above it. */
+  margin-top: -0.3rem;
   pointer-events: none;
 }
 
@@ -825,9 +827,9 @@
   position: absolute;
   top: 0;
   display: inline-flex;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   line-height: 1;
-  color: var(--accent);
+  color: #000;
 }
 
 /* The notes track is read-only and taller than a single text row: each cell stacks up to four
