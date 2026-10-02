@@ -370,13 +370,14 @@ export function LineView({
     const anchorSlots = slotIds.slice(lineStartSlots.length, slotIds.length - lineEndSlots.length);
     for (let index = 0; index < anchorSlots.length - 1; index++) {
       const slotId = anchorSlots[index]!;
-      const nextSlotId = anchorSlots[index + 1]!;
       const width = labelWidths.get(slotId);
+      // A bare slot (e.g. an unlabeled word gap) has no label to protect, so look past it to the
+      // next slot that does have one — otherwise two labels either side of a bare gap, like the
+      // notes of "a" and "se", would never be checked against each other and could touch.
+      const nextSlotId = anchorSlots.slice(index + 1).find((id) => labelWidths.has(id));
       const left = anchorLeft(slotId);
-      const nextLeft = anchorLeft(nextSlotId);
-      // A bare next slot has no label to protect — widening the gap here would only
-      // separate the lyrics, not prevent any annotation from overlapping another one.
-      if (!width || left === null || nextLeft === null || !labelWidths.has(nextSlotId)) continue;
+      const nextLeft = nextSlotId === undefined ? null : anchorLeft(nextSlotId);
+      if (!width || left === null || nextLeft === null) continue;
       // Rounded to match `width` (already an integer): comparing a fractional distance against
       // an integer target rarely lands on exactly zero, which would otherwise leave a shortfall
       // that never fully closes.
