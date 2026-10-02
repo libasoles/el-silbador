@@ -99,6 +99,7 @@ export function TrackRow({
             onDrop={() => drag.onDrop(slotId)}
             readOnly={readOnly}
             revealIndex={trackId === "vocalNotes" ? index : undefined}
+            acceptDropAnywhere={trackId === "vocalNotes"}
           />
         );
       })}

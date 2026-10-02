@@ -33,6 +33,10 @@ interface TrackCellProps {
   onChangeChordVariant?: (index: number) => void;
   /** Sequence index for the melody row's left-to-right initial reveal. */
   revealIndex?: number;
+  /** True for cells whose drag, released outside any cell, sets a pitch direction indicator.
+   *  The drop is then accepted anywhere on the page so it takes effect at release, instead of
+   *  waiting out the browser's snap-back animation that precedes `dragend` for a refused drop. */
+  acceptDropAnywhere?: boolean;
 }
 
 /**
@@ -63,6 +67,7 @@ export function TrackCell({
   chordVariantIndex = 0,
   onChangeChordVariant,
   revealIndex,
+  acceptDropAnywhere = false,
 }: TrackCellProps) {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -78,14 +83,27 @@ export function TrackCell({
   const dragTrackRef = useRef<{
     start: { x: number; y: number };
     last: { x: number; y: number } | null;
+    /** The gesture was already reported from a document-level drop; `dragend` must not repeat it. */
+    reported: boolean;
     onDragOver: (event: DragEvent) => void;
+    onDrop: (event: DragEvent) => void;
   } | null>(null);
+  // The document listeners outlive the render that started the drag, so they report through this.
+  const onDragEndRef = useRef(onDragEnd);
+  onDragEndRef.current = onDragEnd;
 
   function stopTrackingDrag() {
     const track = dragTrackRef.current;
-    if (track) document.removeEventListener("dragover", track.onDragOver);
+    if (track) {
+      document.removeEventListener("dragover", track.onDragOver);
+      document.removeEventListener("drop", track.onDrop);
+    }
     dragTrackRef.current = null;
     return track;
+  }
+
+  function dragDeltaOf(track: NonNullable<typeof dragTrackRef.current>): DragDelta | null {
+    return track.last ? { dx: track.last.x - track.start.x, dy: track.last.y - track.start.y } : null;
   }
 
   useEffect(() => () => void stopTrackingDrag(), []);
@@ -139,20 +157,34 @@ export function TrackCell({
     const track: NonNullable<typeof dragTrackRef.current> = {
       start: { x: event.clientX, y: event.clientY },
       last: null,
+      reported: false,
       onDragOver: (moveEvent) => {
         track.last = { x: moveEvent.clientX, y: moveEvent.clientY };
+        if (acceptDropAnywhere) {
+          moveEvent.preventDefault();
+          if (moveEvent.dataTransfer) moveEvent.dataTransfer.dropEffect = "move";
+        }
+      },
+      onDrop: (dropEvent) => {
+        // A drop something else already handled (a cell, an edge zone) is left to `dragend`.
+        if (!acceptDropAnywhere || dropEvent.defaultPrevented) return;
+        // Also keeps the browser from inserting the dragged text wherever it landed.
+        dropEvent.preventDefault();
+        track.last = { x: dropEvent.clientX, y: dropEvent.clientY };
+        track.reported = true;
+        onDragEndRef.current?.(dragDeltaOf(track));
       },
     };
     dragTrackRef.current = track;
     document.addEventListener("dragover", track.onDragOver);
+    document.addEventListener("drop", track.onDrop);
     onDragStart?.();
   }
 
   function handleDragEnd() {
     const track = stopTrackingDrag();
-    onDragEnd?.(
-      track?.last ? { dx: track.last.x - track.start.x, dy: track.last.y - track.start.y } : null,
-    );
+    if (track?.reported) return;
+    onDragEnd?.(track ? dragDeltaOf(track) : null);
   }
 
   function handleDragOver(event: React.DragEvent<HTMLElement>) {
