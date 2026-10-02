@@ -202,6 +202,7 @@ function App({
   const { showToast, showTutorial } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const mobileSidebarMenuRef = useRef<HTMLElement>(null);
   const [forking, setForking] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [songIsPublic, setSongIsPublic] = useState(
@@ -261,6 +262,25 @@ function App({
   useEffect(() => {
     setMobileSidebarOpen(false);
   }, [songSlug]);
+
+  // Keep the compact mobile tools out of the reading flow once the reader taps back into it.
+  // Pointer events cover both touch and mouse input without closing the menu for its own controls.
+  useEffect(() => {
+    if (!isMobile || !mobileSidebarOpen) return;
+
+    const closeWhenClickingOutside = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !mobileSidebarMenuRef.current?.contains(event.target)
+      ) {
+        setMobileSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeWhenClickingOutside);
+    return () => document.removeEventListener("pointerdown", closeWhenClickingOutside);
+  }, [isMobile, mobileSidebarOpen]);
+
   // Only an existing song (songSlug set, no restored draft, no server-fetched content) has content
   // worth waiting on; anything else starts "loaded" with its editor state already in place.
   const [contentLoaded, setContentLoaded] = useState(
@@ -842,7 +862,11 @@ function App({
 
           <div className="workspace">
             {isMobile && (
-              <aside className="mobile-sidebar-menu" aria-label="Herramientas">
+              <aside
+                ref={mobileSidebarMenuRef}
+                className="mobile-sidebar-menu"
+                aria-label="Herramientas"
+              >
                 <IconButtonTooltip tooltip="Herramientas">
                   <button
                     type="button"

@@ -164,6 +164,9 @@ describe("mobile sidebar menu", () => {
     expect(app).toContain('className="mobile-sidebar-menu"');
     expect(app).toContain('<MenuIcon />');
     expect(app).toContain('aria-controls="mobile-sidebar-menu-controls"');
+    expect(app).toContain('ref={mobileSidebarMenuRef}');
+    expect(app).toContain('document.addEventListener("pointerdown", closeWhenClickingOutside)');
+    expect(app).toContain('!mobileSidebarMenuRef.current?.contains(event.target)');
     expect(app).toContain('tooltip="Herramientas"');
     expect(app).not.toContain('Herramientas de la canción');
     expect(app).toMatch(/mobile-sidebar-menu__controls[\s\S]*Exportar a PDF/);
