@@ -40,3 +40,4 @@ supabase/.temp/
 .env.sentry-build-plugin
 tsconfig.tsbuildinfo
 backups/
+el-silbador-31c8288764bb.json
