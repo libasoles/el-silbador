@@ -574,6 +574,8 @@ export function LineView({
         </div>
       );
     }
+    // Melody notes belong to syllables only; the whitespace gaps between words are chord-only slots.
+    const trackSlotIds = track.id === "vocalNotes" ? rowSlotIds.filter((slotId) => !gapSlotIds.has(slotId)) : rowSlotIds;
     const drag: CellDragHandlers = {
       draggedSlotId: dragSource && dragSource.trackId === track.id ? dragSource.slotId : null,
       onDragStart: (slotId) => onDragStartCell(track.id, slotId),
@@ -587,7 +589,7 @@ export function LineView({
         <TrackRow
           trackId={track.id}
           label={track.label}
-          slotIds={rowSlotIds}
+          slotIds={trackSlotIds}
           slotRects={slotRects}
           cells={cells}
           chordVariants={chordVariants}
@@ -599,7 +601,7 @@ export function LineView({
             track.id !== "vocalNotes" ||
             melodyRevealedRef.current ||
             (melodyRevealedRef.current =
-              areSlotRectsReady(rowSlotIds, slotRects) && slotRectsMeasuredFor === annotationGapExtrasKey)
+              areSlotRectsReady(trackSlotIds, slotRects) && slotRectsMeasuredFor === annotationGapExtrasKey)
           }
         />
       </div>

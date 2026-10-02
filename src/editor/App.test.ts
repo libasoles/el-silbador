@@ -76,7 +76,7 @@ describe("lyric caret visibility", () => {
 
 describe("melody-note layout reveal", () => {
   it("keeps melody notes invisible until their slots are measured, then reveals them left to right", () => {
-    expect(lineView).toContain("areSlotRectsReady(rowSlotIds, slotRects)");
+    expect(lineView).toContain("areSlotRectsReady(trackSlotIds, slotRects)");
     expect(lineView).toContain("slotRectsMeasuredFor === annotationGapExtrasKey");
     expect(styles).toMatch(
       /\.track-row\[data-track="vocalNotes"\]:not\(\.track-row--annotations-ready\) \.track-cell\s*\{\s*visibility: hidden/,
