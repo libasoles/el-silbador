@@ -1,3 +1,4 @@
+import { reserveIds } from "../core/ids";
 import type { CellsByTrack, Song } from "../core/types";
 import { getSupabaseClient, type SupabaseClient } from "./supabaseClient";
 import type {
@@ -55,6 +56,12 @@ export function serializeContent(content: SongContent): StoredSongContent {
 }
 
 export function deserializeContent(stored: StoredSongContent): SongContent {
+  reserveIds(
+    stored.song.flatMap((line) => [
+      line.id,
+      ...line.words.flatMap((word) => [word.id, ...word.syllables.map((syl) => syl.id)]),
+    ]),
+  );
   return {
     title: stored.title,
     author: stored.author,

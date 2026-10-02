@@ -7,6 +7,7 @@ import {
   type ComponentProps,
 } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import "./App.css";
 const neutralIllustration = "/03-neutral.svg";
@@ -122,9 +123,9 @@ function SongNotFound() {
         No encontramos esta canción. Puede que no exista, o que sea privada y
         solo la pueda ver quien la creó.
       </p>
-      <a className="song-not-found__link" href="/">
+      <Link className="song-not-found__link" href="/">
         Ir al cancionero
-      </a>
+      </Link>
     </div>
   );
 }
@@ -325,8 +326,7 @@ function App({
     const isSameSongAlreadyOpen = (detailId: string) =>
       detailId === songDbIdRef.current;
 
-    // A cache hit (from an earlier visit this session, or from the persisted cache surviving a
-    // reload) paints synchronously instead of showing the skeleton for a network round trip.
+    // A cache hit (from an earlier visit this session) paints synchronously instead of showing the skeleton for a network round trip.
     // `fetchQuery` — rather than the reactive `useQuery` — is deliberate: it resolves once and is
     // never subscribed to again, so a later background revalidation of this same query (e.g. from
     // Library re-fetching after a save) can't fire `actions.loadContent` a second time and clobber
@@ -741,17 +741,17 @@ function App({
 
   return (
     <main className="app">
-      <a className="app-mark" href="/" aria-label="Volver al índice">
+      <Link className="app-mark" href="/" aria-label="Volver al índice">
         <SilbadorIcon />
-      </a>
+      </Link>
 
       <IconButtonTooltip
         className="app-close-tooltip"
         tooltip="Volver al índice"
       >
-        <a className="app-close" href="/" aria-label="Volver al índice">
+        <Link className="app-close" href="/" aria-label="Volver al índice">
           <XIcon size={26} />
-        </a>
+        </Link>
       </IconButtonTooltip>
 
       {notFound ? (
