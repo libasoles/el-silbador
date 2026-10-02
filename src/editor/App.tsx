@@ -695,8 +695,7 @@ function App({
         title: "Mové los acordes",
         description: (
           <>
-            Arrastrá un acorde para moverlo: las sílabas donde va a caer se
-            resaltan.
+            Arrastrá un acorde para moverlo.
             <ChordDragTutorialExample />
           </>
         ),

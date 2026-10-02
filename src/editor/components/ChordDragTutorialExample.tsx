@@ -1,46 +1,55 @@
 import { Fragment, useLayoutEffect, useRef, type CSSProperties } from "react";
 
 interface ExampleUnit {
-  syllables: string[];
-  /** A chord that stays put, shown in the chord row above the unit. */
-  chord?: string;
+  syllable: string;
   wordBoundaryAfter?: boolean;
-  /** The unit the animated chord starts on. */
-  dragFrom?: boolean;
-  /** The unit the animated chord is dragged onto, lighting up like a real drop target. */
-  dragTo?: boolean;
+  /** Wide enough to hold a chord chip, so neighbouring chords never overlap. */
+  wide?: boolean;
+  /** Lights up like a real drop target while a chord hovers over it. */
+  dropTarget?: "lo" | "ma";
 }
 
 const UNITS: ExampleUnit[] = [
-  { syllables: ["Des"] },
-  { syllables: ["de"], dragFrom: true, wordBoundaryAfter: true },
-  { syllables: ["lo"], dragTo: true, wordBoundaryAfter: true },
-  { syllables: ["de"], wordBoundaryAfter: true },
-  { syllables: ["Bal"] },
-  { syllables: ["de"] },
-  { syllables: ["rra"], chord: "Am" },
-  { syllables: ["ma"], chord: "G7" },
+  { syllable: "Des" },
+  { syllable: "de", wordBoundaryAfter: true },
+  { syllable: "lo", wordBoundaryAfter: true, dropTarget: "lo" },
+  { syllable: "de", wordBoundaryAfter: true },
+  { syllable: "Bal" },
+  { syllable: "de" },
+  { syllable: "rra", wide: true },
+  { syllable: "ma", wide: true, dropTarget: "ma" },
 ];
 
-const DRAGGED_CHORD = "E7";
+/** The slot right after the phrase, where the last chord ends up. */
+const END_SLOT = UNITS.length;
 
-/** A tiny editor-like line that loops the chord drag gesture: E7 starts over "de" and is slowly
- *  dragged onto "lo", whose syllable lights up like a real drop target (see `.syllable--drop-target`
- *  in App.css). */
+/** Chords dragged one after another: E7 from "Des" onto "lo", G7 from "ma" to the first slot
+ *  after the phrase, then Am from "rra" onto the "ma" that G7 just left. */
+const DRAGS = [
+  { id: "e7", chord: "E7", from: 0, to: 2 },
+  { id: "g7", chord: "G7", from: 7, to: END_SLOT },
+  { id: "am", chord: "Am", from: 6, to: 7 },
+] as const;
+
+/** A tiny editor-like line that loops the chord drag gesture. Drop targets light up the way
+ *  `.syllable--drop-target` and `.line-edge-drop--active` do in App.css. */
 export function ChordDragTutorialExample() {
   const rootRef = useRef<HTMLSpanElement>(null);
-  const fromRef = useRef<HTMLSpanElement>(null);
-  const toRef = useRef<HTMLSpanElement>(null);
+  const unitRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
-  // The distance between the two syllables depends on the font, so it's measured rather than
-  // hard-coded; the keyframes read it through --chord-drag-distance.
+  // The distances depend on the font, so they're measured rather than hard-coded; the keyframes
+  // read them through --chord-drag-<id>.
   useLayoutEffect(() => {
     const measure = () => {
       const root = rootRef.current;
-      const from = fromRef.current;
-      const to = toRef.current;
-      if (!root || !from || !to) return;
-      root.style.setProperty("--chord-drag-distance", `${to.offsetLeft - from.offsetLeft}px`);
+      if (!root) return;
+      for (const drag of DRAGS) {
+        const from = unitRefs.current[drag.from];
+        const to = unitRefs.current[drag.to];
+        if (from && to) {
+          root.style.setProperty(`--chord-drag-${drag.id}`, `${to.offsetLeft - from.offsetLeft}px`);
+        }
+      }
     };
     measure();
     // Web fonts shift the syllable widths once they load.
@@ -53,42 +62,61 @@ export function ChordDragTutorialExample() {
     <span
       ref={rootRef}
       className="chord-tutorial-example"
-      style={{ "--chord-drag-distance": "3.5rem" } as CSSProperties}
-      aria-label="Ejemplo de un acorde arrastrado sobre una sílaba"
+      style={
+        {
+          "--chord-drag-e7": "3.5rem",
+          "--chord-drag-g7": "2.5rem",
+          "--chord-drag-am": "1.5rem",
+        } as CSSProperties
+      }
+      aria-label="Ejemplo de acordes arrastrados sobre la frase"
     >
       {UNITS.map((unit, unitIndex) => (
-        <Fragment key={`${unit.syllables[0]}-${unitIndex}`}>
+        <Fragment key={`${unit.syllable}-${unitIndex}`}>
           <span
-            ref={unit.dragFrom ? fromRef : unit.dragTo ? toRef : undefined}
-            className="chord-tutorial-example__unit"
+            ref={(el) => {
+              unitRefs.current[unitIndex] = el;
+            }}
+            className={
+              "chord-tutorial-example__unit" +
+              (unit.wide ? " chord-tutorial-example__unit--wide" : "")
+            }
           >
             <span className="chord-tutorial-example__chords">
-              {unit.chord}
-              {unit.dragFrom ? (
-                <span className="chord-tutorial-example__chord chord-tutorial-example__chord--dragged">
-                  {DRAGGED_CHORD}
+              {DRAGS.filter((drag) => drag.from === unitIndex).map((drag) => (
+                <span
+                  key={drag.id}
+                  className={`chord-tutorial-example__chord chord-tutorial-example__chord--${drag.id}`}
+                >
+                  {drag.chord}
                 </span>
-              ) : null}
+              ))}
             </span>
             <span
               className={
                 "chord-tutorial-example__lyric" +
-                (unit.dragTo ? " chord-tutorial-example__lyric--drop-target" : "")
+                (unit.dropTarget
+                  ? ` chord-tutorial-example__lyric--drop-target-${unit.dropTarget}`
+                  : "")
               }
             >
-              {unit.syllables.join("")}
+              {unit.syllable}
             </span>
           </span>
-          {unitIndex < UNITS.length - 1 ? (
-            <span
-              className={
-                "chord-tutorial-example__gap" +
-                (unit.wordBoundaryAfter ? " chord-tutorial-example__gap--word-boundary" : "")
-              }
-            />
-          ) : null}
+          <span
+            className={
+              "chord-tutorial-example__gap" +
+              (unit.wordBoundaryAfter ? " chord-tutorial-example__gap--word-boundary" : "")
+            }
+          />
         </Fragment>
       ))}
+      <span
+        ref={(el) => {
+          unitRefs.current[END_SLOT] = el;
+        }}
+        className="chord-tutorial-example__unit chord-tutorial-example__unit--wide chord-tutorial-example__end"
+      />
     </span>
   );
 }

@@ -249,7 +249,9 @@
 }
 
 .chord-tutorial-example {
-  --chord-drag-distance: 3.5rem;
+  --chord-drag-e7: 3.5rem;
+  --chord-drag-g7: 2.5rem;
+  --chord-drag-am: 1.5rem;
   display: flex;
   width: 100%;
   margin-top: 0.65rem;
@@ -268,26 +270,41 @@
   align-items: end;
 }
 
+.chord-tutorial-example__unit--wide {
+  min-width: 1.9rem;
+}
+
 .chord-tutorial-example__chords {
-  min-width: 0.6rem;
-  padding-right: 0.15em;
   color: var(--chord);
   font-family: var(--sans);
   font-size: 0.9rem;
   font-weight: 500;
   line-height: 1.3;
-  text-align: left;
 }
 
-.chord-tutorial-example__chord--dragged {
+/* Chips sit over the start of their syllable and are moved with a transform, so they never nudge
+   the layout. */
+.chord-tutorial-example__chord {
   position: absolute;
   top: 0;
   left: 0;
-  animation: chord-tutorial-drag 6s ease-in-out infinite;
+}
+
+.chord-tutorial-example__chord--e7 {
+  animation: chord-tutorial-e7 16s ease-in-out infinite;
+}
+
+.chord-tutorial-example__chord--g7 {
+  animation: chord-tutorial-g7 16s ease-in-out infinite;
+}
+
+.chord-tutorial-example__chord--am {
+  animation: chord-tutorial-am 16s ease-in-out infinite;
 }
 
 .chord-tutorial-example__lyric {
   position: relative;
+  justify-self: start;
   line-height: 1.1;
 }
 
@@ -301,13 +318,43 @@
   background: var(--syllable-underline);
 }
 
-/* Same look as .syllable--drop-target in App.css, switched on while the chip hovers over it. */
-.chord-tutorial-example__lyric--drop-target {
-  animation: chord-tutorial-drop-target 6s ease-in-out infinite;
+/* Drop-target look, as in .syllable--drop-target: accent text plus a thicker accent underline
+   (the ::before), switched on while a chip hovers over the syllable. */
+.chord-tutorial-example__lyric--drop-target-lo::before,
+.chord-tutorial-example__lyric--drop-target-ma::before,
+.chord-tutorial-example__end::after {
+  content: "";
+  position: absolute;
+  left: 0.14em;
+  right: 0.14em;
+  bottom: 0.05em;
+  height: 3px;
+  background: var(--highlight);
+  opacity: 0;
+  z-index: 1;
 }
 
-.chord-tutorial-example__lyric--drop-target::after {
-  animation: chord-tutorial-drop-target-underline 6s ease-in-out infinite;
+.chord-tutorial-example__lyric--drop-target-lo {
+  animation: chord-tutorial-lo-text 16s ease-in-out infinite;
+}
+
+.chord-tutorial-example__lyric--drop-target-lo::before {
+  animation: chord-tutorial-lo-line 16s ease-in-out infinite;
+}
+
+.chord-tutorial-example__lyric--drop-target-ma {
+  animation: chord-tutorial-ma-text 16s ease-in-out infinite;
+}
+
+.chord-tutorial-example__lyric--drop-target-ma::before {
+  animation: chord-tutorial-ma-line 16s ease-in-out infinite;
+}
+
+/* The empty slot after the phrase, like .line-edge-drop--active. */
+.chord-tutorial-example__end::after {
+  left: 0;
+  right: 0;
+  animation: chord-tutorial-end-line 16s ease-in-out infinite;
 }
 
 .chord-tutorial-example__gap {
@@ -319,22 +366,22 @@
   width: 0.6em;
 }
 
-@keyframes chord-tutorial-drag {
+@keyframes chord-tutorial-e7 {
   0%,
-  12% {
+  5% {
     opacity: 1;
     transform: translateX(0);
   }
-  62%,
-  85% {
+  22%,
+  90% {
     opacity: 1;
-    transform: translateX(var(--chord-drag-distance));
+    transform: translateX(var(--chord-drag-e7));
   }
-  92% {
+  95% {
     opacity: 0;
-    transform: translateX(var(--chord-drag-distance));
+    transform: translateX(var(--chord-drag-e7));
   }
-  92.01% {
+  95.01% {
     opacity: 0;
     transform: translateX(0);
   }
@@ -344,36 +391,128 @@
   }
 }
 
-@keyframes chord-tutorial-drop-target {
+@keyframes chord-tutorial-g7 {
   0%,
-  50% {
+  30% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  44%,
+  90% {
+    opacity: 1;
+    transform: translateX(var(--chord-drag-g7));
+  }
+  95% {
+    opacity: 0;
+    transform: translateX(var(--chord-drag-g7));
+  }
+  95.01% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes chord-tutorial-am {
+  0%,
+  52% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  66%,
+  90% {
+    opacity: 1;
+    transform: translateX(var(--chord-drag-am));
+  }
+  95% {
+    opacity: 0;
+    transform: translateX(var(--chord-drag-am));
+  }
+  95.01% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes chord-tutorial-lo-text {
+  0%,
+  13% {
     color: var(--fg);
   }
-  56%,
-  85% {
+  17%,
+  22% {
     color: var(--highlight);
   }
-  92%,
+  25%,
   100% {
     color: var(--fg);
   }
 }
 
-@keyframes chord-tutorial-drop-target-underline {
+@keyframes chord-tutorial-lo-line {
   0%,
-  50% {
-    height: 2px;
-    background: var(--syllable-underline);
+  13% {
+    opacity: 0;
   }
-  56%,
-  85% {
-    height: 3px;
-    background: var(--highlight);
+  17%,
+  22% {
+    opacity: 1;
   }
-  92%,
+  25%,
   100% {
-    height: 2px;
-    background: var(--syllable-underline);
+    opacity: 0;
+  }
+}
+
+@keyframes chord-tutorial-end-line {
+  0%,
+  34% {
+    opacity: 0;
+  }
+  38%,
+  44% {
+    opacity: 1;
+  }
+  47%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes chord-tutorial-ma-text {
+  0%,
+  56% {
+    color: var(--fg);
+  }
+  60%,
+  66% {
+    color: var(--highlight);
+  }
+  69%,
+  100% {
+    color: var(--fg);
+  }
+}
+
+@keyframes chord-tutorial-ma-line {
+  0%,
+  56% {
+    opacity: 0;
+  }
+  60%,
+  66% {
+    opacity: 1;
+  }
+  69%,
+  100% {
+    opacity: 0;
   }
 }
 
@@ -422,24 +561,24 @@
   .toast,
   .toast__timer,
   .melody-tutorial-example__note--blink,
-  .chord-tutorial-example__chord--dragged,
-  .chord-tutorial-example__lyric--drop-target,
-  .chord-tutorial-example__lyric--drop-target::after {
+  .chord-tutorial-example__chord,
+  .chord-tutorial-example__lyric,
+  .chord-tutorial-example__lyric::before,
+  .chord-tutorial-example__end::after {
     animation: none !important;
   }
 
-  /* Without motion, show the end of the gesture: the chord dropped on the highlighted syllable. */
-  .chord-tutorial-example__chord--dragged {
-    transform: translateX(var(--chord-drag-distance));
+  /* Without motion, show where every chord ends up. */
+  .chord-tutorial-example__chord--e7 {
+    transform: translateX(var(--chord-drag-e7));
   }
 
-  .chord-tutorial-example__lyric--drop-target {
-    color: var(--highlight);
+  .chord-tutorial-example__chord--g7 {
+    transform: translateX(var(--chord-drag-g7));
   }
 
-  .chord-tutorial-example__lyric--drop-target::after {
-    height: 3px;
-    background: var(--highlight);
+  .chord-tutorial-example__chord--am {
+    transform: translateX(var(--chord-drag-am));
   }
 
   .melody-tutorial-example--typing .melody-tutorial-example__note--typing {
