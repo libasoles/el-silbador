@@ -489,6 +489,27 @@ function App({
     autosaveStatus === "dirty" || autosaveStatus === "error";
   const saving = autosaveStatus === "saving";
 
+  // Once a song has a couple of chords in it, teach that they can be dragged. Detected from the
+  // content rather than a toggle, since chords are shown by default. Showing is a no-op once
+  // the tutorial has been dismissed.
+  const chordsTrackVisible = state.tracks.find((track) => track.id === "chords")?.visible;
+  const chordCount = Object.values(state.cells.chords ?? {}).filter(
+    (text) => text.trim() !== "",
+  ).length;
+  useEffect(() => {
+    if (!ready || !canEditOnThisDevice || !chordsTrackVisible || chordCount < 2) return;
+    showTutorial({
+      tutorialId: "chord-drag",
+      title: "Podés mover los acordes",
+      description: (
+        <>
+          Arrastrá un acorde para moverlo.
+          <ChordDragTutorialExample />
+        </>
+      ),
+    });
+  }, [ready, canEditOnThisDevice, chordsTrackVisible, chordCount, showTutorial]);
+
   useEffect(() => {
     if (autosaveStatus === "saved")
       trackEvent("song_saved", { song_id: songDbId });
@@ -687,18 +708,6 @@ function App({
         description:
           "Las notas en negrita significan que también están en el acorde anterior.",
         icon: <NoteStackIcon boldNotes={["sol"]} />,
-      });
-    }
-    if (track.id === "chords" && nextVisible && canEditOnThisDevice) {
-      showTutorial({
-        tutorialId: "chord-drag",
-        title: "Mové los acordes",
-        description: (
-          <>
-            Arrastrá un acorde para moverlo.
-            <ChordDragTutorialExample />
-          </>
-        ),
       });
     }
   };
