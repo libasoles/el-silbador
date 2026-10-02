@@ -203,6 +203,9 @@ export function LineView({
   const [annotationGapExtras, setAnnotationGapExtras] = useState<Record<string, number>>({});
   const annotationSpacingKeyRef = useRef<string | null>(null);
   const gapCorrectionAttemptsRef = useRef<Record<string, number>>({});
+  // The melody reveal animation is a page-load effect. Once a line's notes have been revealed,
+  // re-measuring after an edit must not hide them again, or every typed note replays the animation.
+  const melodyRevealedRef = useRef(false);
   // Read-only lines (always true on mobile) wrap onto multiple visual rows instead of
   // overflowing the viewport. When a line actually wraps, this holds each visual row's slot ids
   // (annotation cells + the syllables they sit above) plus the geometry needed to place a
@@ -594,7 +597,9 @@ export function LineView({
           readOnly={readOnly}
           annotationsReady={
             track.id !== "vocalNotes" ||
-            (areSlotRectsReady(rowSlotIds, slotRects) && slotRectsMeasuredFor === annotationGapExtrasKey)
+            melodyRevealedRef.current ||
+            (melodyRevealedRef.current =
+              areSlotRectsReady(rowSlotIds, slotRects) && slotRectsMeasuredFor === annotationGapExtrasKey)
           }
         />
       </div>
