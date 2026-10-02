@@ -330,8 +330,7 @@ function App({
     const isSameSongAlreadyOpen = (detailId: string) =>
       detailId === songDbIdRef.current;
 
-    // A cache hit (from an earlier visit this session, or from the persisted cache surviving a
-    // reload) paints synchronously instead of showing the skeleton for a network round trip.
+    // A cache hit (from an earlier visit this session) paints synchronously instead of showing the skeleton for a network round trip.
     // `fetchQuery` — rather than the reactive `useQuery` — is deliberate: it resolves once and is
     // never subscribed to again, so a later background revalidation of this same query (e.g. from
     // Library re-fetching after a save) can't fire `actions.loadContent` a second time and clobber
