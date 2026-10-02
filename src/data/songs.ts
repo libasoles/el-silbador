@@ -1,5 +1,5 @@
 import { nextId, reserveIds } from "../core/ids";
-import type { CellsByTrack, Song } from "../core/types";
+import type { CellsByTrack, PitchDirection, Song } from "../core/types";
 import { getSupabaseClient, type SupabaseClient } from "./supabaseClient";
 import type {
   SaveSongInput,
@@ -17,6 +17,8 @@ export interface StoredSongContent {
   merges: string[];
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
+  /** Absent on songs saved before pitch direction indicators existed. */
+  pitchDirections?: Record<string, PitchDirection>;
 }
 
 interface SongRow {
@@ -51,6 +53,7 @@ export function serializeContent(content: SongContent): StoredSongContent {
     song: content.song,
     cells: content.cells,
     chordVariants: content.chordVariants,
+    pitchDirections: content.pitchDirections,
     merges: [...content.merges],
   };
 }
@@ -85,6 +88,7 @@ export function deserializeContent(stored: StoredSongContent): SongContent {
     cells: stored.cells,
     // Songs saved before chord variants existed have no such column in their stored jsonb.
     chordVariants: stored.chordVariants ?? {},
+    pitchDirections: stored.pitchDirections ?? {},
     merges: new Set(stored.merges),
   };
 }

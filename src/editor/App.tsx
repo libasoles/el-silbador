@@ -429,6 +429,7 @@ function App({
       song: state.song,
       cells: state.cells,
       chordVariants: state.chordVariants,
+      pitchDirections: state.pitchDirections,
       merges: state.merges,
     }),
     [
@@ -438,6 +439,7 @@ function App({
       state.song,
       state.cells,
       state.chordVariants,
+      state.pitchDirections,
       state.merges,
     ],
   );
@@ -979,6 +981,7 @@ function App({
                 tracks={state.tracks}
                 cells={state.cells}
                 chordVariants={state.chordVariants}
+                pitchDirections={state.pitchDirections}
                 showUnderline={state.showUnderline}
                 youtubeUrl={songYoutubeUrl}
                 canEdit={canEditOnThisDevice}
@@ -986,6 +989,7 @@ function App({
                 onSetChordVariant={actions.setChordVariant}
                 onToggleMerge={actions.toggleSyllableMerge}
                 onMoveCellText={actions.moveCellText}
+                onDragPitchDirection={actions.dragPitchDirection}
                 onReconcileLyricsText={actions.reconcileLyricsText}
                 onPasteText={actions.pasteText}
               />

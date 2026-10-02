@@ -2,7 +2,8 @@ import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { chordToNoteNames } from "../../core/chordNotes";
 import { endSlotIds, gapSlotId, getLineCellSlots, getLineGaps, getLineUnits, mergeKey, startSlotIds } from "../../core/model";
 import { getCell } from "../../core/state";
-import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
+import type { CellsByTrack, Line, PitchDirection, TrackDef, TrackId } from "../../core/types";
+import type { DragDelta } from "../pitchDragGesture";
 import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
 import { areSlotRectsReady, edgeDropZoneRect, haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
@@ -123,6 +124,7 @@ interface LineViewProps {
   tracks: TrackDef[];
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
+  pitchDirections: Record<string, PitchDirection>;
   previousChordNotes: ReadonlyMap<string, string[]>;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onSetChordVariant: (slotId: string, index: number) => void;
@@ -136,7 +138,7 @@ interface LineViewProps {
   dragSource: DragCell | null;
   dropTarget: DragCell | null;
   onDragStartCell: (trackId: TrackId, slotId: string) => void;
-  onDragEndCell: () => void;
+  onDragEndCell: (trackId: TrackId, slotId: string, delta: DragDelta | null) => void;
   onDragEnterCell: (trackId: TrackId, slotId: string) => void;
   onDragLeaveCell: (trackId: TrackId, slotId: string) => void;
   onDropCell: (trackId: TrackId, slotId: string) => void;
@@ -150,6 +152,7 @@ export function LineView({
   tracks,
   cells,
   chordVariants,
+  pitchDirections,
   previousChordNotes,
   onSetCellText,
   onSetChordVariant,
@@ -595,7 +598,7 @@ export function LineView({
     const drag: CellDragHandlers = {
       draggedSlotId: dragSource && dragSource.trackId === track.id ? dragSource.slotId : null,
       onDragStart: (slotId) => onDragStartCell(track.id, slotId),
-      onDragEnd: onDragEndCell,
+      onDragEnd: (slotId, delta) => onDragEndCell(track.id, slotId, delta),
       onDragEnter: (slotId) => onDragEnterCell(track.id, slotId),
       onDragLeave: (slotId) => onDragLeaveCell(track.id, slotId),
       onDrop: (slotId) => onDropCell(track.id, slotId),
@@ -609,6 +612,10 @@ export function LineView({
           slotRects={slotRects}
           cells={cells}
           chordVariants={chordVariants}
+          pitchDirections={pitchDirections}
+          // The arrow row's height is reserved line-wide (not per wrapped row) so every row of a
+          // wrapped line stays the same height, as wrapLayout assumes.
+          reservePitchDirectionRow={slotIds.some((slotId) => pitchDirections[slotId] !== undefined)}
           onSetCellText={onSetCellText}
           onSetChordVariant={onSetChordVariant}
           drag={drag}

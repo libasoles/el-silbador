@@ -38,6 +38,7 @@ function makeContent(overrides: Partial<SongContent> = {}): SongContent {
     song: [],
     cells: {},
     chordVariants: {},
+    pitchDirections: {},
     merges: new Set(),
     ...overrides,
   };

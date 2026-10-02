@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getChordPositions } from "../../core/chordPositions";
 import { findChordShape } from "../../core/findChordShape";
+import type { DragDelta } from "../pitchDragGesture";
 import { ChordTooltip } from "./ChordTooltip";
 
 interface TrackCellProps {
@@ -14,7 +15,8 @@ interface TrackCellProps {
   draggable?: boolean;
   isDragging?: boolean;
   onDragStart?: () => void;
-  onDragEnd?: () => void;
+  /** `delta` is how far the pointer travelled during the drag, or null if it was never tracked. */
+  onDragEnd?: (delta: DragDelta | null) => void;
   onDragEnter?: () => void;
   onDragLeave?: () => void;
   onDrop?: () => void;
@@ -71,6 +73,22 @@ export function TrackCell({
   // would never fire. So mouse-originated focus is ignored here; onClick (which only fires when
   // no drag happened) starts editing instead. Keyboard-originated focus (Tab) still edits eagerly.
   const pointerDownRef = useRef(false);
+  // `dragover` is the one drag event that carries reliable pointer coordinates in every browser
+  // (dragend's are 0 in some), so it's sampled on the document for the length of a drag.
+  const dragTrackRef = useRef<{
+    start: { x: number; y: number };
+    last: { x: number; y: number } | null;
+    onDragOver: (event: DragEvent) => void;
+  } | null>(null);
+
+  function stopTrackingDrag() {
+    const track = dragTrackRef.current;
+    if (track) document.removeEventListener("dragover", track.onDragOver);
+    dragTrackRef.current = null;
+    return track;
+  }
+
+  useEffect(() => () => void stopTrackingDrag(), []);
 
   const chordShape = showChordDiagram ? findChordShape(value) : null;
   const chordPositions = chordShape ? getChordPositions(chordShape) : [];
@@ -117,7 +135,24 @@ export function TrackCell({
     document.body.appendChild(clone);
     event.dataTransfer.setDragImage(clone, rect.width / 2, rect.height / 2);
     window.setTimeout(() => clone.remove(), 0);
+    stopTrackingDrag();
+    const track: NonNullable<typeof dragTrackRef.current> = {
+      start: { x: event.clientX, y: event.clientY },
+      last: null,
+      onDragOver: (moveEvent) => {
+        track.last = { x: moveEvent.clientX, y: moveEvent.clientY };
+      },
+    };
+    dragTrackRef.current = track;
+    document.addEventListener("dragover", track.onDragOver);
     onDragStart?.();
+  }
+
+  function handleDragEnd() {
+    const track = stopTrackingDrag();
+    onDragEnd?.(
+      track?.last ? { dx: track.last.x - track.start.x, dy: track.last.y - track.start.y } : null,
+    );
   }
 
   function handleDragOver(event: React.DragEvent<HTMLElement>) {
@@ -181,7 +216,7 @@ export function TrackCell({
           }}
           draggable={draggable}
           onDragStart={handleDragStart}
-          onDragEnd={onDragEnd}
+          onDragEnd={handleDragEnd}
           onDragOver={handleDragOver}
           onDragEnter={onDragEnter}
           onDragLeave={onDragLeave}

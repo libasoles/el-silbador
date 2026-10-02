@@ -3,7 +3,8 @@ import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
 import { columnForSlot, getLineCellSlots } from "../../core/model";
 import { getCell } from "../../core/state";
-import type { CellsByTrack, Song, TrackDef, TrackId } from "../../core/types";
+import type { CellsByTrack, PitchDirection, Song, TrackDef, TrackId } from "../../core/types";
+import { pitchDirectionFromDrag, type DragDelta } from "../pitchDragGesture";
 import { EditorHelp } from "./EditorHelp";
 import { LineView } from "./LineView";
 import { YoutubeEmbed } from "./YoutubeEmbed";
@@ -20,6 +21,7 @@ interface SongViewProps {
   tracks: TrackDef[];
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
+  pitchDirections: Record<string, PitchDirection>;
   showUnderline: boolean;
   /** Admin-attached YouTube link (see App.tsx's track-toolbar button), rendered below the
    *  lyrics. `null`/`undefined` when none is set. */
@@ -36,6 +38,7 @@ interface SongViewProps {
     fromSlotId: string,
     toSlotId: string,
   ) => void;
+  onDragPitchDirection: (slotId: string, direction: PitchDirection) => void;
   onReconcileLyricsText: (text: string) => void;
   onPasteText: (
     text: string,
@@ -358,6 +361,7 @@ export function SongView({
   tracks,
   cells,
   chordVariants,
+  pitchDirections,
   showUnderline,
   youtubeUrl,
   canEdit,
@@ -365,6 +369,7 @@ export function SongView({
   onSetChordVariant,
   onToggleMerge,
   onMoveCellText,
+  onDragPitchDirection,
   onReconcileLyricsText,
   onPasteText,
 }: SongViewProps) {
@@ -416,13 +421,23 @@ export function SongView({
   const [dragSource, setDragSource] = useState<DragCell | null>(null);
   const [dropTarget, setDropTarget] = useState<DragCell | null>(null);
 
+  // A drag that ends without having moved its note is, for a vocal note, the gesture that sets
+  // its pitch direction indicator (see pitchDirectionFromDrag).
+  const movedByDropRef = useRef(false);
+
   function handleDragStartCell(trackId: TrackId, slotId: string) {
+    movedByDropRef.current = false;
     setDragSource({ trackId, slotId });
   }
 
-  function handleDragEndCell() {
+  function handleDragEndCell(trackId: TrackId, slotId: string, delta: DragDelta | null) {
+    const moved = movedByDropRef.current;
+    movedByDropRef.current = false;
     setDragSource(null);
     setDropTarget(null);
+    if (moved || trackId !== "vocalNotes" || !delta) return;
+    const direction = pitchDirectionFromDrag(delta);
+    if (direction) onDragPitchDirection(slotId, direction);
   }
 
   function handleDragEnterCell(trackId: TrackId, slotId: string) {
@@ -445,6 +460,7 @@ export function SongView({
       dragSource.slotId !== slotId
     ) {
       onMoveCellText(trackId, dragSource.slotId, slotId);
+      movedByDropRef.current = true;
     }
     setDragSource(null);
     setDropTarget(null);
@@ -841,6 +857,7 @@ export function SongView({
             tracks={tracks}
             cells={cells}
             chordVariants={chordVariants}
+            pitchDirections={pitchDirections}
             previousChordNotes={previousChordNotes}
             onSetCellText={onSetCellText}
             onSetChordVariant={onSetChordVariant}

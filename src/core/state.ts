@@ -15,7 +15,7 @@ import {
 } from "./model";
 import type { ChordPlacement } from "./chordSheet";
 import { hyphenateWord } from "./syllabify";
-import type { CellsByTrack, EditorState, TrackId } from "./types";
+import type { CellsByTrack, EditorState, PitchDirection, TrackId } from "./types";
 
 function trackHasContent(cells: CellsByTrack, trackId: TrackId): boolean {
   const trackCells = cells[trackId];
@@ -37,6 +37,7 @@ export function createInitialState(): EditorState {
     ],
     cells: {},
     chordVariants: {},
+    pitchDirections: {},
     showUnderline: true,
   };
 }
@@ -58,11 +59,15 @@ export type Action =
   | { type: "setCellText"; trackId: TrackId; slotId: string; text: string }
   | { type: "moveCellText"; trackId: TrackId; fromSlotId: string; toSlotId: string }
   | { type: "setChordVariant"; slotId: string; index: number }
+  | { type: "dragPitchDirection"; slotId: string; direction: PitchDirection }
   | { type: "setTrackVisibility"; trackId: TrackId; visible: boolean }
   | { type: "setShowUnderline"; visible: boolean }
   | {
       type: "loadContent";
-      content: Pick<EditorState, "title" | "author" | "lyricsText" | "song" | "cells" | "chordVariants"> & {
+      content: Pick<
+        EditorState,
+        "title" | "author" | "lyricsText" | "song" | "cells" | "chordVariants" | "pitchDirections"
+      > & {
         merges: Set<string>;
       };
       // Whether this load is happening on a mobile device. The underline-default-on-notes rule
@@ -86,6 +91,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         merges: new Set(),
         cells: {},
         chordVariants: {},
+        pitchDirections: {},
       };
 
     case "reconcileLyricsText":
@@ -112,6 +118,9 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         chordVariants: { ...state.chordVariants, [action.slotId]: action.index },
       };
 
+    case "dragPitchDirection":
+      return applyDragPitchDirection(state, action.slotId, action.direction);
+
     case "setTrackVisibility":
       return {
         ...state,
@@ -132,6 +141,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         song: action.content.song,
         cells: action.content.cells,
         chordVariants: action.content.chordVariants,
+        pitchDirections: action.content.pitchDirections,
         merges: action.content.merges,
         // Track controls are view state rather than saved song content. Opening an existing
         // song starts in the focused chords view, plus any other track that already has
@@ -197,14 +207,22 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
   const retainedLineIds = new Set(song.map((line) => line.id));
   let cells = state.cells;
   let chordVariants = state.chordVariants;
+  let pitchDirections = state.pitchDirections;
   for (const carryOver of carryOvers) {
-    ({ cells, chordVariants } = applyCarryOver(state.tracks, cells, chordVariants, carryOver));
+    ({ cells, chordVariants, pitchDirections } = applyCarryOver(
+      state.tracks,
+      cells,
+      chordVariants,
+      pitchDirections,
+      carryOver,
+    ));
   }
   for (const line of previous) {
     if (!retainedLineIds.has(line.id)) {
       for (const slotId of collectLineEdgeSlotIds(state.tracks, cells, chordVariants, line.id)) {
         cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
         chordVariants = deleteChordVariant(chordVariants, slotId);
+        pitchDirections = deletePitchDirection(pitchDirections, slotId);
       }
     }
     for (const syllable of flattenSyllables(line)) {
@@ -212,12 +230,21 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
         for (const slotId of [beforeSlotId(syllable.id), gapSlotId(syllable.id)]) {
           cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
           chordVariants = deleteChordVariant(chordVariants, slotId);
+          pitchDirections = deletePitchDirection(pitchDirections, slotId);
         }
       }
     }
   }
 
-  return { ...state, lyricsText: text, song, cells, chordVariants, merges: pruneMerges(song, state.merges) };
+  return {
+    ...state,
+    lyricsText: text,
+    song,
+    cells,
+    chordVariants,
+    pitchDirections,
+    merges: pruneMerges(song, state.merges),
+  };
 }
 
 /**
@@ -351,6 +378,44 @@ function deleteChordVariant(chordVariants: Record<string, number>, slotId: strin
   return next;
 }
 
+function deletePitchDirection(
+  pitchDirections: Record<string, PitchDirection>,
+  slotId: string,
+): Record<string, PitchDirection> {
+  if (!(slotId in pitchDirections)) return pitchDirections;
+  const next = { ...pitchDirections };
+  delete next[slotId];
+  return next;
+}
+
+/** The indicator travels with its note: the destination ends up with the source's indicator, or
+ *  none if the source had none (the note that used to be there is overwritten). */
+function movePitchDirection(
+  pitchDirections: Record<string, PitchDirection>,
+  fromSlotId: string,
+  toSlotId: string,
+): Record<string, PitchDirection> {
+  if (!(fromSlotId in pitchDirections)) return deletePitchDirection(pitchDirections, toSlotId);
+  const next = deletePitchDirection({ ...pitchDirections }, fromSlotId);
+  next[toSlotId] = pitchDirections[fromSlotId]!;
+  return next;
+}
+
+/**
+ * A drag on a note toward `direction`: sets the indicator when there is none, removes it when the
+ * drag opposes it, and leaves it alone when the drag agrees with it. Only a non-empty vocal note
+ * can carry one.
+ */
+function applyDragPitchDirection(state: EditorState, slotId: string, direction: PitchDirection): EditorState {
+  if (getCell(state.cells, "vocalNotes", slotId).trim() === "") return state;
+  const current = state.pitchDirections[slotId];
+  if (current === direction) return state;
+  if (current === undefined) {
+    return { ...state, pitchDirections: { ...state.pitchDirections, [slotId]: direction } };
+  }
+  return { ...state, pitchDirections: deletePitchDirection(state.pitchDirections, slotId) };
+}
+
 function moveChordVariant(
   chordVariants: Record<string, number>,
   fromSlotId: string,
@@ -369,13 +434,14 @@ function compactEdgeSlots(
   trackId: TrackId,
   cells: CellsByTrack,
   chordVariants: Record<string, number>,
+  pitchDirections: Record<string, PitchDirection>,
   slotId: string,
-): Pick<EditorState, "cells" | "chordVariants"> {
+): Pick<EditorState, "cells" | "chordVariants" | "pitchDirections"> {
   const edge = state.song.flatMap((line) => [
     { baseSlotId: startSlotId(line.id), slotAt: (index: number) => startSlotId(line.id, index) },
     { baseSlotId: endSlotId(line.id), slotAt: (index: number) => endSlotId(line.id, index) },
   ]).find(({ baseSlotId }) => baseSlotId === slotId);
-  if (!edge) return { cells, chordVariants };
+  if (!edge) return { cells, chordVariants, pitchDirections };
 
   const trackCells = cells[trackId] ?? {};
   const edgeIndices = new Set<number>();
@@ -395,10 +461,11 @@ function compactEdgeSlots(
     }
   }
   const highestIndex = Math.max(0, ...edgeIndices);
-  if (highestIndex === 0) return { cells, chordVariants };
+  if (highestIndex === 0) return { cells, chordVariants, pitchDirections };
 
   const nextTrackCells = { ...trackCells };
   const nextChordVariants = { ...chordVariants };
+  const nextPitchDirections = { ...pitchDirections };
   for (let index = 0; index < highestIndex; index += 1) {
     const destination = edge.slotAt(index);
     const source = edge.slotAt(index + 1);
@@ -410,20 +477,28 @@ function compactEdgeSlots(
       if (source in chordVariants) nextChordVariants[destination] = chordVariants[source]!;
       else delete nextChordVariants[destination];
     }
+    if (trackId === "vocalNotes") {
+      if (source in pitchDirections) nextPitchDirections[destination] = pitchDirections[source]!;
+      else delete nextPitchDirections[destination];
+    }
   }
   delete nextTrackCells[edge.slotAt(highestIndex)];
   if (trackId === "chords") delete nextChordVariants[edge.slotAt(highestIndex)];
+  if (trackId === "vocalNotes") delete nextPitchDirections[edge.slotAt(highestIndex)];
 
   return {
     cells: { ...cells, [trackId]: nextTrackCells },
     chordVariants: trackId === "chords" ? nextChordVariants : chordVariants,
+    pitchDirections: trackId === "vocalNotes" ? nextPitchDirections : pitchDirections,
   };
 }
 
 function applySetCellText(state: EditorState, trackId: TrackId, slotId: string, text: string): EditorState {
   const cells = setCell(state.cells, trackId, slotId, text);
   if (text !== "") return { ...state, cells };
-  const compacted = compactEdgeSlots(state, trackId, cells, state.chordVariants, slotId);
+  const pitchDirections =
+    trackId === "vocalNotes" ? deletePitchDirection(state.pitchDirections, slotId) : state.pitchDirections;
+  const compacted = compactEdgeSlots(state, trackId, cells, state.chordVariants, pitchDirections, slotId);
   return { ...state, ...compacted };
 }
 
@@ -436,8 +511,9 @@ function applyCarryOver(
   tracks: EditorState["tracks"],
   cells: CellsByTrack,
   chordVariants: Record<string, number>,
+  pitchDirections: Record<string, PitchDirection>,
   { fromId, toId }: CarryOver,
-): Pick<EditorState, "cells" | "chordVariants"> {
+): Pick<EditorState, "cells" | "chordVariants" | "pitchDirections"> {
   for (const slotFor of [beforeSlotId, gapSlotId]) {
     const from = slotFor(fromId);
     const to = slotFor(toId);
@@ -448,9 +524,10 @@ function applyCarryOver(
       if (track.id === "chords" && from in chordVariants) {
         chordVariants = moveChordVariant(chordVariants, from, to);
       }
+      if (track.id === "vocalNotes") pitchDirections = movePitchDirection(pitchDirections, from, to);
     }
   }
-  return { cells, chordVariants };
+  return { cells, chordVariants, pitchDirections };
 }
 
 function applyResyllabify(state: EditorState, lineId: string, wordId: string, newText: string): EditorState {
@@ -469,19 +546,27 @@ function applyResyllabify(state: EditorState, lineId: string, wordId: string, ne
 
   let cells = state.cells;
   let chordVariants = state.chordVariants;
+  let pitchDirections = state.pitchDirections;
   for (const carryOver of carryOvers) {
-    ({ cells, chordVariants } = applyCarryOver(state.tracks, cells, chordVariants, carryOver));
+    ({ cells, chordVariants, pitchDirections } = applyCarryOver(
+      state.tracks,
+      cells,
+      chordVariants,
+      pitchDirections,
+      carryOver,
+    ));
   }
   for (const droppedId of droppedIds) {
     for (const slotId of [beforeSlotId(droppedId), gapSlotId(droppedId)]) {
       cells = deleteCellAcrossTracks(state.tracks, cells, slotId);
       chordVariants = deleteChordVariant(chordVariants, slotId);
+      pitchDirections = deletePitchDirection(pitchDirections, slotId);
     }
   }
 
   const merges = pruneMerges(song, state.merges);
 
-  return { ...state, song, cells, chordVariants, merges };
+  return { ...state, song, cells, chordVariants, pitchDirections, merges };
 }
 
 function applyToggleSyllableMerge(state: EditorState, lineId: string, aId: string, bId: string): EditorState {
@@ -512,6 +597,19 @@ function applyToggleSyllableMerge(state: EditorState, lineId: string, aId: strin
   const [anchorId, ...restIds] = groupIds;
   const anchorSlot = beforeSlotId(anchorId);
 
+  // The indicator follows whichever vocal note survives in the anchor slot.
+  let pitchDirections = state.pitchDirections;
+  if (!getCell(state.cells, "vocalNotes", anchorSlot)) {
+    const carriedRestId = restIds.find((id) => getCell(state.cells, "vocalNotes", beforeSlotId(id)));
+    if (carriedRestId) pitchDirections = movePitchDirection(pitchDirections, beforeSlotId(carriedRestId), anchorSlot);
+  }
+  for (const id of restIds) {
+    pitchDirections = deletePitchDirection(pitchDirections, beforeSlotId(id));
+  }
+  for (const id of groupIds.slice(0, -1)) {
+    pitchDirections = deletePitchDirection(pitchDirections, gapSlotId(id));
+  }
+
   let cells = state.cells;
   for (const track of state.tracks) {
     if (!getCell(cells, track.id, anchorSlot)) {
@@ -539,7 +637,7 @@ function applyToggleSyllableMerge(state: EditorState, lineId: string, aId: strin
     chordVariants = deleteChordVariant(chordVariants, gapSlotId(id));
   }
 
-  return { ...state, merges, cells, chordVariants };
+  return { ...state, merges, cells, chordVariants, pitchDirections };
 }
 
 function applyMoveCellText(
@@ -554,7 +652,11 @@ function applyMoveCellText(
 
   const chordVariants =
     trackId === "chords" ? moveChordVariant(state.chordVariants, fromSlotId, toSlotId) : state.chordVariants;
-  const compacted = compactEdgeSlots(state, trackId, cells, chordVariants, fromSlotId);
+  const pitchDirections =
+    trackId === "vocalNotes"
+      ? movePitchDirection(state.pitchDirections, fromSlotId, toSlotId)
+      : state.pitchDirections;
+  const compacted = compactEdgeSlots(state, trackId, cells, chordVariants, pitchDirections, fromSlotId);
 
   return { ...state, ...compacted };
 }

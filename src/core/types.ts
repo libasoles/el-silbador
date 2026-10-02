@@ -35,6 +35,9 @@ export interface SyllableUnit {
 /** `cells[trackId][slotId]` holds the free text typed into that track's cell. Missing = empty. */
 export type CellsByTrack = Partial<Record<TrackId, Record<string, string>>>;
 
+/** Whether a vocal note is higher ("up") or lower ("down") than the previous one. */
+export type PitchDirection = "up" | "down";
+
 export interface EditorState {
   title: string;
   author: string;
@@ -47,5 +50,8 @@ export interface EditorState {
   /** `chordVariants[slotId]` is the index into `getChordPositions(shape)` chosen for that chords-
    *  track slot (see ChordDiagram's variant arrows). Missing = the chord's default position (0). */
   chordVariants: Record<string, number>;
+  /** `pitchDirections[slotId]` is the pitch direction indicator shown under that vocal-notes
+   *  slot's note. Missing = no indicator. Only ever set on a slot whose note is non-empty. */
+  pitchDirections: Record<string, PitchDirection>;
   showUnderline: boolean;
 }
