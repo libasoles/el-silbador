@@ -515,6 +515,13 @@ export function LineView({
     );
   }
 
+  // Melody notes belong to syllables only (see `renderTrackRow`): the word gaps and the line's
+  // start/end edges are chord-only, so a note dropped there would vanish into a slot that no
+  // melody row renders. Those areas simply aren't drop targets for a note.
+  function isDropAllowed(trackId: TrackId, slotId: string) {
+    return trackId !== "vocalNotes" || !chordOnlySlotIds.has(slotId);
+  }
+
   function syllableDragProps(syllableId: string) {
     const slotId = syllableSlotId.get(syllableId);
     return slotId === undefined ? undefined : slotDragProps(slotId);
@@ -523,7 +530,7 @@ export function LineView({
   // Dropzone handlers for any on-screen element standing in for `slotId` — a syllable, or the
   // whitespace between two words — so the chord track's cell isn't the only place a drop lands.
   function slotDragProps(slotId: string) {
-    if (!dragSource) return undefined;
+    if (!dragSource || !isDropAllowed(dragSource.trackId, slotId)) return undefined;
     const trackId = dragSource.trackId;
     return {
       onDragOver: (event: React.DragEvent) => {
@@ -546,7 +553,7 @@ export function LineView({
   const endTargetSlotId = lineEndSlots[lineEndSlots.length - 1]!;
 
   function edgeDragProps(targetSlotId: string) {
-    if (!dragSource) return undefined;
+    if (!dragSource || !isDropAllowed(dragSource.trackId, targetSlotId)) return undefined;
     const trackId = dragSource.trackId;
     return {
       onDragOver: (event: React.DragEvent) => {
