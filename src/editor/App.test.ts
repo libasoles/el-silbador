@@ -246,8 +246,10 @@ describe("melody notes tutorials", () => {
     expect(melodyExample).toMatch(/wordBoundaryAfter\s*\?\s*" melody-tutorial-example__gap--word-boundary"/);
     expect(melodyExample).toContain("melody-tutorial-example--typing");
     expect(toastStyles).toContain("melody-tutorial-note-appear");
-    expect(toastStyles).toMatch(/\.melody-tutorial-example--typing \.melody-tutorial-example__note--typing\s*\{[\s\S]*animation: melody-tutorial-note-appear 4s ease-out infinite both/);
-    expect(toastStyles).toMatch(/@keyframes melody-tutorial-note-appear\s*\{[\s\S]*0%,\s*4%[\s\S]*8%,\s*100%/);
+    expect(melodyExample).toContain("setInterval");
+    expect(melodyExample).toContain("}, 4_000)");
+    expect(melodyExample).toContain("key={animateNotes ? `${unitIndex}-${animationCycle}` : undefined}");
+    expect(toastStyles).toMatch(/\.melody-tutorial-example--typing \.melody-tutorial-example__note--typing\s*\{[\s\S]*animation: melody-tutorial-note-appear 160ms ease-out forwards/);
   });
 
   it("omits the default info icon from tutorials without artwork", () => {

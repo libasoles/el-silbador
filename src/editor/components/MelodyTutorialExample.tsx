@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 interface MelodyTutorialExampleProps {
   joined?: boolean;
@@ -23,6 +23,18 @@ export function MelodyTutorialExample({
   joined = false,
   animateNotes = false,
 }: MelodyTutorialExampleProps) {
+  const [animationCycle, setAnimationCycle] = useState(0);
+
+  useEffect(() => {
+    if (!animateNotes) return;
+
+    const interval = window.setInterval(() => {
+      setAnimationCycle((cycle) => cycle + 1);
+    }, 4_000);
+
+    return () => window.clearInterval(interval);
+  }, [animateNotes]);
+
   const units: ExampleUnit[] = joined
     ? [
         { syllables: [{ text: "y" }], note: "sol", wordBoundaryAfter: true },
@@ -92,6 +104,7 @@ export function MelodyTutorialExample({
               ))}
             </span>
             <span
+              key={animateNotes ? `${unitIndex}-${animationCycle}` : undefined}
               className={
                 "melody-tutorial-example__note" +
                 (animateNotes ? " melody-tutorial-example__note--typing" : "") +
