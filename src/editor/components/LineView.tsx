@@ -229,6 +229,8 @@ export function LineView({
   const [wrapLayout, setWrapLayout] = useState<{
     groups: string[][];
     lineHeight: number;
+    /** Measured top of each visual row relative to the first, so overlays follow the real row pitch. */
+    rowTops: number[];
     beforeHeight: number;
     afterHeight: number;
   } | null>(null);
@@ -455,17 +457,20 @@ export function LineView({
       let currentRow = 0;
       let lastTop: number | null = null;
       let lineHeight = 0;
+      const rowTops: number[] = [];
       const unitRows: number[] = units.map((unit) => {
         const el = syllableEls.current.get(unit.syllableIds[0]);
         if (!el) return currentRow;
         const rect = el.getBoundingClientRect();
         const top = Math.round(rect.top - rowsTop);
         if (lastTop !== null && top > lastTop + 1) currentRow += 1;
+        rowTops[currentRow] ??= top;
         lastTop = top;
         lineHeight = Math.max(lineHeight, Math.round(rect.height));
         return currentRow;
       });
       const rowCount = currentRow + 1;
+      const rowOffsets = rowTops.map((top) => top - rowTops[0]!);
 
       if (rowCount <= 1) {
         setWrapLayout((previous) => (previous === null ? previous : null));
@@ -490,16 +495,25 @@ export function LineView({
           previous !== null &&
           previous.groups.length === groups.length &&
           previous.groups.every((group, i) => group.length === groups[i]!.length && group.every((slot, j) => slot === groups[i]![j]));
-        if (sameGroups && previous!.lineHeight === lineHeight && previous!.beforeHeight === beforeHeight && previous!.afterHeight === afterHeight) {
+        if (sameGroups && previous!.lineHeight === lineHeight && previous!.rowTops.every((top, i) => top === rowOffsets[i]) && previous!.beforeHeight === beforeHeight && previous!.afterHeight === afterHeight) {
           return previous;
         }
-        return { groups, lineHeight, beforeHeight, afterHeight };
+        return { groups, lineHeight, rowTops: rowOffsets, beforeHeight, afterHeight };
       });
     }
 
     measureWrap();
     window.addEventListener("resize", measureWrap);
-    return () => window.removeEventListener("resize", measureWrap);
+    // The annotation groups' heights set the row gap, and they can change without any of the
+    // dependencies below changing (pitch arrows appearing, fonts loading, tracks toggled) —
+    // a stale gap lets the next row's overlay land on top of this row's tracks.
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measureWrap);
+    if (beforeGroupRef.current) observer?.observe(beforeGroupRef.current);
+    if (afterGroupRef.current) observer?.observe(afterGroupRef.current);
+    return () => {
+      window.removeEventListener("resize", measureWrap);
+      observer?.disconnect();
+    };
     // slotRects is a dependency because a line only actually wraps once its syllables have their
     // final on-screen positions — the same layout pass that measurement effect above produces.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -819,7 +833,7 @@ export function LineView({
         ? wrapLayout.groups.flatMap((rowSlotIds, rowIndex) => {
             const overlays = [];
             if (rowIndex > 0) {
-              const top = rowIndex * (wrapLayout.lineHeight + wrapRowGap);
+              const top = wrapLayout.rowTops[rowIndex]!;
               overlays.push(
                 <div
                   key={`before-${rowIndex}`}
@@ -832,7 +846,7 @@ export function LineView({
               );
             }
             if (rowIndex < wrapLayout.groups.length - 1 && afterTracks.length > 0) {
-              const top = wrapLayout.beforeHeight + rowIndex * (wrapLayout.lineHeight + wrapRowGap) + wrapLayout.lineHeight;
+              const top = wrapLayout.beforeHeight + wrapLayout.rowTops[rowIndex]! + wrapLayout.lineHeight;
               overlays.push(
                 <div
                   key={`after-${rowIndex}`}
