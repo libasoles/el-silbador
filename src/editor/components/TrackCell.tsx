@@ -29,6 +29,8 @@ interface TrackCellProps {
    *  the tooltip's prev/next arrows. Ignored when the chord has only one known position. */
   chordVariantIndex?: number;
   onChangeChordVariant?: (index: number) => void;
+  /** Sequence index for the melody row's left-to-right initial reveal. */
+  revealIndex?: number;
 }
 
 /**
@@ -58,6 +60,7 @@ export function TrackCell({
   showChordDiagram = false,
   chordVariantIndex = 0,
   onChangeChordVariant,
+  revealIndex,
 }: TrackCellProps) {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -90,7 +93,9 @@ export function TrackCell({
 
   const dragClassName = isDragging ? " track-cell--dragging" : "";
   const style =
-    left !== undefined && width !== undefined ? { left: `${left}px`, width: `${width}px` } : undefined;
+    left !== undefined && width !== undefined
+      ? ({ left: `${left}px`, width: `${width}px`, "--melody-note-index": revealIndex } as React.CSSProperties)
+      : undefined;
 
   function handleDragStart(event: React.DragEvent<HTMLElement>) {
     event.dataTransfer.effectAllowed = "move";

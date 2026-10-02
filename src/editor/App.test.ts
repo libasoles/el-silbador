@@ -74,6 +74,19 @@ describe("lyric caret visibility", () => {
   });
 });
 
+describe("melody-note layout reveal", () => {
+  it("keeps melody notes invisible until their slots are measured, then reveals them left to right", () => {
+    expect(lineView).toContain("areSlotRectsReady(rowSlotIds, slotRects)");
+    expect(lineView).toContain("slotRectsMeasuredFor === annotationGapExtrasKey");
+    expect(styles).toMatch(
+      /\.track-row\[data-track="vocalNotes"\]:not\(\.track-row--annotations-ready\) \.track-cell\s*\{\s*visibility: hidden/,
+    );
+    expect(styles).toMatch(
+      /\.track-row\[data-track="vocalNotes"\]\.track-row--annotations-ready \.track-cell\s*\{[\s\S]*animation: melody-note-reveal 120ms ease-out both[\s\S]*animation-delay: calc\(var\(--melody-note-index, 0\) \* 28ms\)/,
+    );
+  });
+});
+
 describe("icon-button tooltips", () => {
   it("uses a lock that reflects the song's current privacy", () => {
     expect(app).toContain("PrivacyLockedIcon");

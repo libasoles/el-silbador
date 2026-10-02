@@ -5,7 +5,7 @@ import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, TrackDef, TrackId } from "../../core/types";
 import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
-import { edgeDropZoneRect, haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
+import { areSlotRectsReady, edgeDropZoneRect, haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
 import { TrackRow, type CellDragHandlers } from "./TrackRow";
 
 interface SyllableGapButtonProps {
@@ -197,6 +197,9 @@ export function LineView({
   const beforeGroupRef = useRef<HTMLDivElement>(null);
   const afterGroupRef = useRef<HTMLDivElement>(null);
   const [slotRects, setSlotRects] = useState<Record<string, SlotRect>>({});
+  // A geometry measurement is only usable for the annotation-spacing state it was made with.
+  // When a long label expands a gap, wait for the following measurement before revealing notes.
+  const [slotRectsMeasuredFor, setSlotRectsMeasuredFor] = useState("");
   const [annotationGapExtras, setAnnotationGapExtras] = useState<Record<string, number>>({});
   const annotationSpacingKeyRef = useRef<string | null>(null);
   const gapCorrectionAttemptsRef = useRef<Record<string, number>>({});
@@ -221,6 +224,10 @@ export function LineView({
           .join("\u0001")}`,
     )
     .join("\u0002");
+  const annotationGapExtrasKey = Object.entries(annotationGapExtras)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([slotId, extra]) => `${slotId}:${extra}`)
+    .join("\u0001");
 
   function registerSyllableRef(syllableId: string, el: HTMLElement | null) {
     if (el) syllableEls.current.set(syllableId, el);
@@ -294,6 +301,7 @@ export function LineView({
         next[slotId] = { left: Math.round(lastRight - rowsLeft) + minimumLabelGap + extra, width: 14 };
       }
       setSlotRects((previous) => (haveEqualSlotRects(previous, next) ? previous : next));
+      setSlotRectsMeasuredFor((previous) => (previous === annotationGapExtrasKey ? previous : annotationGapExtrasKey));
     }
 
     measure();
@@ -303,7 +311,7 @@ export function LineView({
     // rendered width of word-boundary gaps (see App.css) — without it, showing/hiding the chords
     // track after text already exists leaves every annotation position stale.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [line, merges, annotationGapExtras, chordsVisible, lineStartSlots, lineEndSlots]);
+  }, [line, merges, annotationGapExtras, annotationGapExtrasKey, chordsVisible, lineStartSlots, lineEndSlots]);
 
   useLayoutEffect(() => {
     // A changed label or merge gets a fresh measurement from the unexpanded lyric layout.
@@ -584,6 +592,10 @@ export function LineView({
           onSetChordVariant={onSetChordVariant}
           drag={drag}
           readOnly={readOnly}
+          annotationsReady={
+            track.id !== "vocalNotes" ||
+            (areSlotRectsReady(rowSlotIds, slotRects) && slotRectsMeasuredFor === annotationGapExtrasKey)
+          }
         />
       </div>
     );

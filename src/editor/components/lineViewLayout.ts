@@ -3,6 +3,12 @@ export interface SlotRect {
   width: number;
 }
 
+/** Annotation cells are absolutely positioned, so rendering before every slot has been measured
+ * would place their labels at the same static position. */
+export function areSlotRectsReady(slotIds: string[], slotRects: Record<string, SlotRect>): boolean {
+  return slotIds.every((slotId) => slotRects[slotId] !== undefined);
+}
+
 /** The leading slot's annotation is onset-aligned, so its narrow measured cell can reach into
  * the first syllable. Mirror the trailing slot's own width, but grow outward instead. */
 export function edgeDropZoneRect(edge: "start" | "end", rect: SlotRect): SlotRect {

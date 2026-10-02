@@ -25,6 +25,8 @@ interface TrackRowProps {
   onSetChordVariant: (slotId: string, index: number) => void;
   drag: CellDragHandlers;
   readOnly?: boolean;
+  /** Melody notes must not be visible until their absolutely-positioned slots are measured. */
+  annotationsReady?: boolean;
 }
 
 export function TrackRow({
@@ -38,6 +40,7 @@ export function TrackRow({
   onSetChordVariant,
   drag,
   readOnly = false,
+  annotationsReady = true,
 }: TrackRowProps) {
   const cellRefs = useRef<Array<HTMLElement | null>>([]);
   const rects = slotIds.map((slotId) => slotRects[slotId]);
@@ -51,7 +54,12 @@ export function TrackRow({
   }
 
   return (
-    <div className="track-row" data-track={trackId} role="row" aria-label={label}>
+    <div
+      className={"track-row" + (trackId === "vocalNotes" && annotationsReady ? " track-row--annotations-ready" : "")}
+      data-track={trackId}
+      role="row"
+      aria-label={label}
+    >
       {slotIds.map((slotId, index) => {
         const value = getCell(cells, trackId, slotId);
         const rect = slotRects[slotId];
@@ -79,6 +87,7 @@ export function TrackRow({
             onDragLeave={() => drag.onDragLeave(slotId)}
             onDrop={() => drag.onDrop(slotId)}
             readOnly={readOnly}
+            revealIndex={trackId === "vocalNotes" ? index : undefined}
           />
         );
       })}
