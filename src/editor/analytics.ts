@@ -18,8 +18,11 @@ export function initAnalytics(): void {
   initialized = true;
 
   window.dataLayer = window.dataLayer ?? [];
-  window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer!.push(args);
+  // gtag.js only processes `Arguments` objects in dataLayer; pushing a plain array (e.g. rest
+  // args) makes it silently ignore every command, so no hits are ever sent.
+  window.gtag = function gtag() {
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer!.push(arguments);
   };
   window.gtag("js", new Date());
   // send_page_view is off by default; trackPageView drives page_view events explicitly so
