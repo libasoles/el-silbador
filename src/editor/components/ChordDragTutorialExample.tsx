@@ -6,12 +6,12 @@ interface ExampleUnit {
   /** Wide enough to hold a chord chip, so neighbouring chords never overlap. */
   wide?: boolean;
   /** Lights up like a real drop target while a chord hovers over it. */
-  dropTarget?: "lo" | "ma";
+  dropTarget?: "de" | "lo" | "ma";
 }
 
 const UNITS: ExampleUnit[] = [
   { syllable: "Des" },
-  { syllable: "de", wordBoundaryAfter: true },
+  { syllable: "de", wordBoundaryAfter: true, dropTarget: "de" },
   { syllable: "lo", wordBoundaryAfter: true, dropTarget: "lo" },
   { syllable: "de", wordBoundaryAfter: true },
   { syllable: "Bal" },
@@ -52,10 +52,11 @@ export function ChordDragTutorialExample() {
       }
     };
     measure();
-    // Web fonts shift the syllable widths once they load.
-    void document.fonts?.ready.then(measure);
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    // Web fonts shift the syllable widths once they load, which `fonts.ready` can miss when the
+    // font only starts loading after this first render; observing the units catches any reflow.
+    const observer = new ResizeObserver(measure);
+    for (const unit of unitRefs.current) if (unit) observer.observe(unit);
+    return () => observer.disconnect();
   }, []);
 
   return (

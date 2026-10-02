@@ -320,6 +320,7 @@
 
 /* Drop-target look, as in .syllable--drop-target: accent text plus a thicker accent underline
    (the ::before), switched on while a chip hovers over the syllable. */
+.chord-tutorial-example__lyric--drop-target-de::before,
 .chord-tutorial-example__lyric--drop-target-lo::before,
 .chord-tutorial-example__lyric--drop-target-ma::before,
 .chord-tutorial-example__end::after {
@@ -332,6 +333,14 @@
   background: var(--highlight);
   opacity: 0;
   z-index: 1;
+}
+
+.chord-tutorial-example__lyric--drop-target-de {
+  animation: chord-tutorial-de-text 16s ease-in-out infinite;
+}
+
+.chord-tutorial-example__lyric--drop-target-de::before {
+  animation: chord-tutorial-de-line 16s ease-in-out infinite;
 }
 
 .chord-tutorial-example__lyric--drop-target-lo {
@@ -441,16 +450,46 @@
   }
 }
 
-@keyframes chord-tutorial-lo-text {
+@keyframes chord-tutorial-de-text {
   0%,
-  13% {
+  12% {
     color: var(--fg);
   }
-  17%,
-  22% {
+  14%,
+  16% {
     color: var(--highlight);
   }
-  25%,
+  18%,
+  100% {
+    color: var(--fg);
+  }
+}
+
+@keyframes chord-tutorial-de-line {
+  0%,
+  12% {
+    opacity: 0;
+  }
+  14%,
+  16% {
+    opacity: 1;
+  }
+  18%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes chord-tutorial-lo-text {
+  0%,
+  18% {
+    color: var(--fg);
+  }
+  20%,
+  24% {
+    color: var(--highlight);
+  }
+  27%,
   100% {
     color: var(--fg);
   }
@@ -458,14 +497,14 @@
 
 @keyframes chord-tutorial-lo-line {
   0%,
-  13% {
+  18% {
     opacity: 0;
   }
-  17%,
-  22% {
+  20%,
+  24% {
     opacity: 1;
   }
-  25%,
+  27%,
   100% {
     opacity: 0;
   }
@@ -473,14 +512,14 @@
 
 @keyframes chord-tutorial-end-line {
   0%,
-  34% {
+  38% {
     opacity: 0;
   }
-  38%,
-  44% {
+  40%,
+  45% {
     opacity: 1;
   }
-  47%,
+  48%,
   100% {
     opacity: 0;
   }
@@ -488,14 +527,14 @@
 
 @keyframes chord-tutorial-ma-text {
   0%,
-  56% {
+  58% {
     color: var(--fg);
   }
   60%,
-  66% {
+  67% {
     color: var(--highlight);
   }
-  69%,
+  70%,
   100% {
     color: var(--fg);
   }
@@ -503,14 +542,14 @@
 
 @keyframes chord-tutorial-ma-line {
   0%,
-  56% {
+  58% {
     opacity: 0;
   }
   60%,
-  66% {
+  67% {
     opacity: 1;
   }
-  69%,
+  70%,
   100% {
     opacity: 0;
   }
