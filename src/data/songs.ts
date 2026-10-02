@@ -1,4 +1,4 @@
-import { reserveIds } from "../core/ids";
+import { nextId, reserveIds } from "../core/ids";
 import type { CellsByTrack, Song } from "../core/types";
 import { getSupabaseClient, type SupabaseClient } from "./supabaseClient";
 import type {
@@ -55,6 +55,21 @@ export function serializeContent(content: SongContent): StoredSongContent {
   };
 }
 
+/** Songs saved before ids were reserved on load can hold two lines with the same id, which React
+ * rejects as a duplicate key. Line ids are only used as keys, so the later duplicate gets a fresh one. */
+function withUniqueLineIds(song: Song): Song {
+  const seen = new Set<string>();
+  return song.map((line) => {
+    if (!seen.has(line.id)) {
+      seen.add(line.id);
+      return line;
+    }
+    const id = nextId("line");
+    seen.add(id);
+    return { ...line, id };
+  });
+}
+
 export function deserializeContent(stored: StoredSongContent): SongContent {
   reserveIds(
     stored.song.flatMap((line) => [
@@ -66,7 +81,7 @@ export function deserializeContent(stored: StoredSongContent): SongContent {
     title: stored.title,
     author: stored.author,
     lyricsText: stored.lyricsText,
-    song: stored.song,
+    song: withUniqueLineIds(stored.song),
     cells: stored.cells,
     // Songs saved before chord variants existed have no such column in their stored jsonb.
     chordVariants: stored.chordVariants ?? {},
