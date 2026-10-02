@@ -220,7 +220,9 @@
 
 .melody-tutorial-example--typing .melody-tutorial-example__note--typing {
   opacity: 0;
-  animation: melody-tutorial-note-appear 160ms ease-out forwards;
+  /* Each note has its own staggered delay, so a shared cycle replays the
+     left-to-right writing cue without keeping a timer in the toast component. */
+  animation: melody-tutorial-note-appear 4s ease-out infinite both;
 }
 
 .melody-tutorial-example__note--blink {
@@ -238,11 +240,13 @@
 }
 
 @keyframes melody-tutorial-note-appear {
-  from {
+  0%,
+  4% {
     opacity: 0;
     transform: translateY(-0.15em);
   }
-  to {
+  8%,
+  100% {
     opacity: 1;
     transform: translateY(0);
   }
