@@ -248,6 +248,17 @@ export function LineView({
     .map(([slotId, extra]) => `${slotId}:${extra}`)
     .join("\u0001");
 
+  const beforeTracks = tracks.filter(
+    (track) => track.visible && track.id !== "vocalNotes" && hasTrackContent(track),
+  );
+  const afterTracks = tracks.filter(
+    (track) => track.visible && track.id === "vocalNotes" && showUnderline && hasTrackContent(track),
+  );
+  // Which track rows are actually in the DOM matters as much as their text: the melody row only
+  // exists while the underline guide is on, so switching it on later adds labels that were never
+  // measured and would otherwise sit unspaced.
+  const renderedTracks = [...beforeTracks, ...afterTracks].map((track) => track.id).join(",");
+
   // Bumped when a syllable's rendered size changes without any resize event — a system text-size
   // change, browser zoom, or Android text autosizing kicking in after the first measurement. Every
   // slot position and gap correction was computed from the old sizes, so both measuring effects
@@ -367,7 +378,7 @@ export function LineView({
 
   useLayoutEffect(() => {
     // A changed label or merge gets a fresh measurement from the unexpanded lyric layout.
-    const spacingKey = `${annotationSpacingKey}|${layoutVersion}`;
+    const spacingKey = `${annotationSpacingKey}|${layoutVersion}|${renderedTracks}`;
     if (annotationSpacingKeyRef.current !== spacingKey) {
       annotationSpacingKeyRef.current = spacingKey;
       gapCorrectionAttemptsRef.current = {};
@@ -478,7 +489,7 @@ export function LineView({
 
     const changed = Object.keys(next).some((key) => next[key] !== annotationGapExtras[key]);
     if (changed) setAnnotationGapExtras(next);
-  }, [annotationGapExtras, annotationSpacingKey, layoutVersion, cells, slotIds, tracks, units, gaps, unitSlotBySyllable, lineStartSlots, lineEndSlots]);
+  }, [annotationGapExtras, annotationSpacingKey, layoutVersion, renderedTracks, cells, slotIds, tracks, units, gaps, unitSlotBySyllable, lineStartSlots, lineEndSlots]);
 
   useLayoutEffect(() => {
     if (!readOnly) return;
@@ -724,12 +735,6 @@ export function LineView({
     return trackSlotIds.some((slotId) => getCell(cells, track.id, slotId).trim() !== "");
   }
 
-  const beforeTracks = tracks.filter(
-    (track) => track.visible && track.id !== "vocalNotes" && hasTrackContent(track),
-  );
-  const afterTracks = tracks.filter(
-    (track) => track.visible && track.id === "vocalNotes" && showUnderline && hasTrackContent(track),
-  );
   const isWrapped = wrapLayout !== null;
   const firstRowSlotIds = isWrapped ? wrapLayout.groups[0]! : slotIds;
   const lastRowSlotIds = isWrapped ? wrapLayout.groups[wrapLayout.groups.length - 1]! : slotIds;
