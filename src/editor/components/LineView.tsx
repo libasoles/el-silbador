@@ -374,7 +374,6 @@ export function LineView({
       const rect = gapEl.getBoundingClientRect();
       return { left: rect.left + (unitSlot ? (annotationGapExtras[unitSlot] ?? 0) : 0), top: rect.top };
     };
-    const anchorLeft = (slotId: string): number | null => anchorPoint(slotId)?.left ?? null;
     const anchorSlots = slotIds.slice(lineStartSlots.length, slotIds.length - lineEndSlots.length);
     for (let index = 0; index < anchorSlots.length - 1; index++) {
       const slotId = anchorSlots[index]!;
