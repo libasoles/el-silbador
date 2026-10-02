@@ -17,6 +17,10 @@ it is on `main`. Never push from a local repository to
 Increment the version in `package.json` (and its matching root entry in `package-lock.json`) on
 every commit. The index footer displays every version as `v<version> alfa`.
 
+Use semantic version increments: bugs, visual improvements, and corrections increment the patch
+number (`x.y.z` → `x.y.(z+1)`); new features increment the minor number and reset the patch
+number (`x.y.z` → `x.(y+1).0`).
+
 ## UI components
 
 Build components as reusable, composable units whenever practical. Prefer Radix primitives as
