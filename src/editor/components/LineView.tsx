@@ -208,6 +208,10 @@ export function LineView({
   // When a long label expands a gap, wait for the following measurement before revealing notes.
   const [slotRectsMeasuredFor, setSlotRectsMeasuredFor] = useState("");
   const [annotationGapExtras, setAnnotationGapExtras] = useState<Record<string, number>>({});
+  // Leading chords sit left of the first syllable, which would put them off-screen (negative
+  // `left`) on a line that starts flush with the edge. This indents just this line's syllable row
+  // by the room those chords need; lines without leading chords stay flush.
+  const [leadingShift, setLeadingShift] = useState(0);
   const annotationSpacingKeyRef = useRef<string | null>(null);
   const gapCorrectionAttemptsRef = useRef<Record<string, number>>({});
   // The melody reveal animation is a page-load effect. Once a line's notes have been revealed,
@@ -415,11 +419,15 @@ export function LineView({
     // gaps above, which chase a moving on-screen distance), so no attempt cap is needed to keep
     // them from compounding.
     let leadingCumulative = 0;
+    let nextLeadingShift = 0;
     for (const slotId of lineStartSlots) {
-      leadingCumulative += labelWidths.get(slotId) ?? 0;
+      const labelWidth = labelWidths.get(slotId) ?? 0;
+      leadingCumulative += labelWidth;
       next[slotId] = leadingCumulative;
       leadingCumulative += minimumLabelGap;
+      if (labelWidth > 0) nextLeadingShift = leadingCumulative;
     }
+    setLeadingShift((previous) => (previous === nextLeadingShift ? previous : nextLeadingShift));
     let trailingCumulative = 0;
     for (const slotId of lineEndSlots) {
       next[slotId] = trailingCumulative;
@@ -721,7 +729,12 @@ export function LineView({
         role="textbox"
         data-lyrics-line
         ref={syllableRowRef}
-        style={readOnly ? ({ "--wrap-row-gap": `${wrapRowGap}px` } as React.CSSProperties) : undefined}
+        style={
+          {
+            ...(readOnly ? { "--wrap-row-gap": `${wrapRowGap}px` } : null),
+            ...(leadingShift > 0 ? { paddingLeft: `${leadingShift}px` } : null),
+          } as React.CSSProperties
+        }
       >
         {/* Chrome does not reliably paint its native caret on an otherwise-empty flex row, so the
             `<br>` gives the browser a real anchor and the explicit `.lyric-caret` bar is the
