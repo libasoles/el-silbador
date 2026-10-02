@@ -29,7 +29,25 @@ const DRAGS = [
   { id: "am", chord: "Am", from: 6, to: 7, start: 0.52, end: 0.66 },
 ] as const;
 
-const LOOP_MS = 13000;
+const LOOP_MS = 11000;
+/** The drag eases in and out like a hand picking the chord up and setting it down. */
+const DRAG_EASING = [0.42, 0, 0.58, 1] as const;
+
+/** Fraction of a drag's duration at which the chip has covered `progress` of its distance: the
+ *  inverse of the easing curve, so highlights can be timed to where the chip actually is. */
+function timeAtProgress(progress: number): number {
+  const [x1, y1, x2, y2] = DRAG_EASING;
+  const bezier = (u: number, a: number, b: number) =>
+    3 * (1 - u) ** 2 * u * a + 3 * (1 - u) * u ** 2 * b + u ** 3;
+  let low = 0;
+  let high = 1;
+  for (let i = 0; i < 40; i++) {
+    const mid = (low + high) / 2;
+    if (bezier(mid, y1, y2) < progress) low = mid;
+    else high = mid;
+  }
+  return bezier((low + high) / 2, x1, x2);
+}
 /** Everything fades out over this stretch at the end of the loop, then restarts from rest. */
 const FADE_OUT_START = 0.9;
 const FADE_OUT_END = 0.95;
@@ -76,7 +94,11 @@ export function ChordDragTutorialExample() {
           chip.animate(
             [
               { ...rest, offset: 0 },
-              { ...rest, offset: drag.start },
+              {
+                ...rest,
+                offset: drag.start,
+                easing: `cubic-bezier(${DRAG_EASING.join(", ")})`,
+              },
               { ...dropped, offset: drag.end },
               { ...dropped, offset: FADE_OUT_START },
               { ...dropped, opacity: 0, offset: FADE_OUT_END },
@@ -88,7 +110,7 @@ export function ChordDragTutorialExample() {
         );
 
         // The chord is "over" a destination while the chip's centre is inside its bounds. The
-        // drag is linear, so that position maps straight to a moment in the loop.
+        // easing curve maps that position to a moment in the loop.
         const centre = chip.offsetWidth / 2;
         for (let target = drag.from + 1; target <= drag.to; target++) {
           const unit = unitRefs.current[target]!;
@@ -98,8 +120,8 @@ export function ChordDragTutorialExample() {
           const enter = Math.max(0, (left - centre) / distance);
           const leave = target === drag.to ? 1 : Math.min(1, (left + width - centre) / distance);
           const span = drag.end - drag.start;
-          const enters = drag.start + enter * span;
-          const leaves = drag.start + leave * span + (target === drag.to ? DROP_LINGER : 0);
+          const enters = drag.start + timeAtProgress(enter) * span;
+          const leaves = drag.start + timeAtProgress(leave) * span + (target === drag.to ? DROP_LINGER : 0);
           windows.set(target, [...(windows.get(target) ?? []), [enters, Math.max(leaves, enters + HIGHLIGHT_RAMP)]]);
         }
       }
