@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { trackEvent } from "../analytics";
 import { ChordIcon, NoteStackIcon, UnderlineIcon } from "./icons";
 
 /** Subtle help entry point for the song editor, pinned to the corner of the screen so it stays
@@ -68,7 +69,10 @@ export function EditorHelp() {
         className="editor-help__button"
         aria-label="Ayuda"
         aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          trackEvent("help_click");
+          setOpen((value) => !value);
+        }}
       >
         ?
       </button>

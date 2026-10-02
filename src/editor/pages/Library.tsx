@@ -493,6 +493,9 @@ export function Library({
   };
 
   const handleToggleFavorite = (song: LibrarySong) => {
+    if (!favoriteIds.has(song.id)) {
+      trackEvent("add_favorite", { song_id: song.id });
+    }
     if (!authenticated) {
       requireAuthentication({ type: "toggle-favorite", songId: song.id });
       return;
@@ -611,6 +614,7 @@ export function Library({
           <a
             className="library-study-link"
             href="https://acordesdeguitarra.com.ar/"
+            onClick={() => trackEvent("acordesdeguitarra_link_click")}
           >
             acordesdeguitarra.com.ar
           </a>

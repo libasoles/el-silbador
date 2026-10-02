@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getChordPositions } from "../../core/chordPositions";
 import { findChordShape } from "../../core/findChordShape";
+import { trackEvent } from "../analytics";
 import type { DragDelta } from "../pitchDragGesture";
 import { ChordTooltip } from "./ChordTooltip";
 
@@ -117,6 +118,9 @@ export function TrackCell({
   // double-clicking (or clicking a chip with no known chord) edits it directly.
   function handleChipClick() {
     if (chordShape) {
+      if (!tooltipOpen) {
+        trackEvent("chord_diagram_open", { chord_name: value });
+      }
       setTooltipOpen((open) => !open);
       return;
     }
