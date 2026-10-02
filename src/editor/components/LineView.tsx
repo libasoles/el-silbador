@@ -369,18 +369,24 @@ export function LineView({
     // one's label must clear the next slot's left edge; a shortfall widens the space after it.
     const unitBySlot = new Map(units.map((unit) => [unit.slotId, unit]));
     const gapBySlot = new Map(gaps.map((gap) => [gap.slotId, gap]));
-    const anchorPoint = (slotId: string): { left: number; top: number } | null => {
+    // `middle`/`height` identify the visual row: a word-gap button is shorter than a syllable and
+    // sits at a different offset within the row, so their tops differ even on the same row.
+    const anchorPoint = (slotId: string): { left: number; middle: number; height: number } | null => {
       const unit = unitBySlot.get(slotId);
       if (unit) {
         const rect = syllableEls.current.get(unit.syllableIds[0])?.getBoundingClientRect();
-        return rect ? { left: rect.left, top: rect.top } : null;
+        return rect ? { left: rect.left, middle: rect.top + rect.height / 2, height: rect.height } : null;
       }
       const gap = gapBySlot.get(slotId);
       const gapEl = gap && gapEls.current.get(gap.afterSyllableId);
       if (!gap || !gapEl) return null;
       const unitSlot = unitSlotBySyllable.get(gap.afterSyllableId);
       const rect = gapEl.getBoundingClientRect();
-      return { left: rect.left + (unitSlot ? (annotationGapExtras[unitSlot] ?? 0) : 0), top: rect.top };
+      return {
+        left: rect.left + (unitSlot ? (annotationGapExtras[unitSlot] ?? 0) : 0),
+        middle: rect.top + rect.height / 2,
+        height: rect.height,
+      };
     };
     const anchorSlots = slotIds.slice(lineStartSlots.length, slotIds.length - lineEndSlots.length);
     for (let index = 0; index < anchorSlots.length - 1; index++) {
@@ -396,7 +402,7 @@ export function LineView({
       // A read-only line can wrap: a label whose next neighbour landed on a later visual row can
       // never collide with it, and the left-to-left distance across rows is meaningless (often
       // negative), so widening for it would only blow the gap up and overflow the viewport.
-      if (Math.abs(to.top - from.top) > 2) continue;
+      if (Math.abs(to.middle - from.middle) > Math.min(to.height, from.height) / 2) continue;
       const left = from.left;
       const nextLeft = to.left;
       // Rounded to match `width` (already an integer): comparing a fractional distance against
