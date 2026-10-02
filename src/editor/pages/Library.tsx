@@ -37,6 +37,10 @@ import {
 } from "./librarySongs";
 import { getHighlightParts } from "./searchHighlights";
 import { useIsMobile } from "../useIsMobile";
+import {
+  readLibrarySkeletonCounts,
+  saveLibrarySkeletonCount,
+} from "./librarySkeletonStorage";
 import "./Library.css";
 
 function matchesQuery(song: LibrarySong, query: string): boolean {
@@ -192,6 +196,7 @@ interface LibrarySectionProps {
   showDelete?: boolean;
   showPrivacy?: boolean;
   loading?: boolean;
+  skeletonRows?: number;
   onOpenSong: (song: LibrarySong) => void;
   onToggleFavorite: (song: LibrarySong) => void;
   onDeleteSong?: (song: LibrarySong) => void;
@@ -210,6 +215,7 @@ function LibrarySection({
   showDelete = false,
   showPrivacy = false,
   loading = false,
+  skeletonRows = 2,
   onOpenSong,
   onToggleFavorite,
   onDeleteSong,
@@ -223,8 +229,9 @@ function LibrarySection({
       )}
       {loading ? (
         <ul className="library-list">
-          <LibraryRowSkeleton />
-          <LibraryRowSkeleton />
+          {Array.from({ length: skeletonRows }, (_, index) => (
+            <LibraryRowSkeleton key={index} />
+          ))}
         </ul>
       ) : songs.length === 0 ? (
         <div className="library-section__empty">
@@ -291,7 +298,11 @@ export function Library({
     string | null
   >(null);
 
-  const { data: myLibrarySongs = [], isLoading: myQueryLoading } = useQuery({
+  const {
+    data: myLibrarySongs = [],
+    isLoading: myQueryLoading,
+    isSuccess: myQuerySuccess,
+  } = useQuery({
     queryKey: songQueryKeys.mine(userId ?? ""),
     queryFn: async () => (await listMySongs()).map(toLibrarySong),
     enabled: Boolean(userId),
@@ -309,14 +320,34 @@ export function Library({
       initialData: initialPublicSongs,
     });
 
-  const { data: favoriteLibrarySongs = [], isLoading: favoritesQueryLoading } =
-    useQuery({
+  const {
+    data: favoriteLibrarySongs = [],
+    isLoading: favoritesQueryLoading,
+    isSuccess: favoritesQuerySuccess,
+  } = useQuery({
       queryKey: songQueryKeys.favorites(userId ?? ""),
       queryFn: async () => (await listFavorites()).map(toLibrarySong),
       enabled: Boolean(userId),
     });
   const favoritesLoading =
     session === undefined || (Boolean(userId) && favoritesQueryLoading);
+
+  const skeletonCounts = useMemo(
+    () => (userId ? readLibrarySkeletonCounts(userId) : undefined),
+    [userId],
+  );
+
+  useEffect(() => {
+    if (userId && myQuerySuccess) {
+      saveLibrarySkeletonCount(userId, "mine", myLibrarySongs.length);
+    }
+  }, [myLibrarySongs.length, myQuerySuccess, userId]);
+
+  useEffect(() => {
+    if (userId && favoritesQuerySuccess) {
+      saveLibrarySkeletonCount(userId, "favorites", favoriteLibrarySongs.length);
+    }
+  }, [favoriteLibrarySongs.length, favoritesQuerySuccess, userId]);
 
   const deleteMutation = useMutation({
     mutationFn: deleteSong,
@@ -537,6 +568,7 @@ export function Library({
             showDelete={!isMobile}
             showPrivacy
             loading={myLibraryLoading}
+            skeletonRows={skeletonCounts?.mine}
             onOpenSong={handleOpen}
             onToggleFavorite={handleToggleFavorite}
             onDeleteSong={setSongPendingDelete}
@@ -553,6 +585,7 @@ export function Library({
             favoritePendingSongId={favoritePendingSongId ?? undefined}
             fadeInSongId={favoriteFadeInSongId ?? undefined}
             loading={favoritesLoading}
+            skeletonRows={skeletonCounts?.favorites}
             onOpenSong={handleOpen}
             onToggleFavorite={handleToggleFavorite}
           />
