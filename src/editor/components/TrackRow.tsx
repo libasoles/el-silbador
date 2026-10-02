@@ -118,7 +118,7 @@ export function TrackRow({
               role="img"
               aria-label={direction === "up" ? "Más agudo que la anterior" : "Más grave que la anterior"}
             >
-              <Icon size="1em" strokeWidth={1.75} aria-hidden="true" />
+              <Icon size="1em" strokeWidth={2} aria-hidden="true" />
             </span>
           );
         })}
