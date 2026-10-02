@@ -197,9 +197,14 @@ function clipboardTextForRange(
   end: CaretPosition,
 ): string {
   const outLines: string[] = [];
-  for (let lineIndex = start.lineIndex; lineIndex <= end.lineIndex; lineIndex++) {
+  for (
+    let lineIndex = start.lineIndex;
+    lineIndex <= end.lineIndex;
+    lineIndex++
+  ) {
     const lineStartCol = lineIndex === start.lineIndex ? start.offset : 0;
-    const lineEndCol = lineIndex === end.lineIndex ? end.offset : lines[lineIndex].length;
+    const lineEndCol =
+      lineIndex === end.lineIndex ? end.offset : lines[lineIndex].length;
     const lineSlice = lines[lineIndex].slice(lineStartCol, lineEndCol);
 
     const modelLine = song[lineIndex];
@@ -216,7 +221,8 @@ function clipboardTextForRange(
     if (tokens.length > 0) {
       tokens.sort((a, b) => a.column - b.column);
       let chordLine = "";
-      for (const token of tokens) chordLine = chordLine.padEnd(token.column, " ") + token.chord;
+      for (const token of tokens)
+        chordLine = chordLine.padEnd(token.column, " ") + token.chord;
       outLines.push(chordLine);
     }
     outLines.push(lineSlice);
@@ -281,7 +287,10 @@ function walkAndPlaceCaret(nodes: Node[], remaining: number): number {
     ) {
       if (remaining <= 0) {
         const parent = node.parentNode!;
-        placeCaretAt(parent, Array.from(parent.childNodes).indexOf(node as ChildNode));
+        placeCaretAt(
+          parent,
+          Array.from(parent.childNodes).indexOf(node as ChildNode),
+        );
         return -1;
       }
       remaining -= 1;
@@ -304,7 +313,8 @@ function walkAndPlaceCaret(nodes: Node[], remaining: number): number {
     rather than a plain text block — so a triple click is caught explicitly and replaced with this
     instead of trusting whatever the browser's own heuristic produced. */
 function selectLine(root: HTMLElement, lineIndex: number) {
-  const line = root.querySelectorAll<HTMLElement>("[data-lyrics-line]")[lineIndex];
+  const line =
+    root.querySelectorAll<HTMLElement>("[data-lyrics-line]")[lineIndex];
   if (!line) return;
   const range = document.createRange();
   range.selectNodeContents(line);
@@ -319,7 +329,10 @@ function restoreCaret(root: HTMLElement, position: CaretPosition) {
       position.lineIndex
     ];
   if (!line) return;
-  const remaining = walkAndPlaceCaret(Array.from(line.childNodes), position.offset);
+  const remaining = walkAndPlaceCaret(
+    Array.from(line.childNodes),
+    position.offset,
+  );
   if (remaining === -1) return;
   const range = document.createRange();
   range.selectNodeContents(line);
@@ -390,7 +403,9 @@ export function SongView({
 
   // Flattened in song order (not per line) so a chord at the start of one line can still be
   // compared against the last chord of the previous line.
-  const chordSlotOrder = song.flatMap((line) => getLineCellSlots(line, merges, cells));
+  const chordSlotOrder = song.flatMap((line) =>
+    getLineCellSlots(line, merges, cells),
+  );
   const previousChordNotes = previousChordNotesBySlot(
     chordSlotOrder,
     (slotId) => getCell(cells, "chords", slotId),
@@ -697,14 +712,18 @@ export function SongView({
           if (event.target !== event.currentTarget) return;
           focusDocument();
           setIsFocused(true);
-          setCaretLineIndex(captureCaret(event.currentTarget)?.lineIndex ?? null);
+          setCaretLineIndex(
+            captureCaret(event.currentTarget)?.lineIndex ?? null,
+          );
         }}
         onBlur={(event) => {
           if (event.target === event.currentTarget) setIsFocused(false);
         }}
         onClick={(event) => {
           if (event.detail >= 3) {
-            const line = (event.target as HTMLElement).closest("[data-lyrics-line]");
+            const line = (event.target as HTMLElement).closest(
+              "[data-lyrics-line]",
+            );
             const root = rootRef.current;
             if (line && root) {
               const lineIndex = Array.from(
@@ -736,7 +755,8 @@ export function SongView({
           if (!range) return;
           const lines = readDocument(root).split("\n");
           let { start, end } = range;
-          if (flatOffset(lines, start) > flatOffset(lines, end)) [start, end] = [end, start];
+          if (flatOffset(lines, start) > flatOffset(lines, end))
+            [start, end] = [end, start];
           event.clipboardData.setData(
             "text/plain",
             clipboardTextForRange(song, cells, merges, lines, start, end),
@@ -806,7 +826,9 @@ export function SongView({
         {song.length === 0 ? (
           <div className="syllable-row document-empty-line" data-lyrics-line>
             <br data-empty-line-caret />
-            {isFocused ? <span className="lyric-caret" aria-hidden="true" /> : null}
+            {isFocused ? (
+              <span className="lyric-caret" aria-hidden="true" />
+            ) : null}
           </div>
         ) : null}
         {song.map((line, index) => (
@@ -840,12 +862,12 @@ export function SongView({
           <p>Escribí o pegá la letra de una canción para empezar.</p>
           <p>
             También podés pegar el texto con los acordes ya incluidos, ubicados
-            arriba de la línea de letra que les corresponde, y El Silbador los va a
-            detectar solo. Por ejemplo:
+            arriba de la línea de letra que les corresponde, y El Silbador los
+            va a detectar solo. Por ejemplo:
           </p>
           <pre>
             {
-              "Bm              B7   Em\nPor mas que la dicha busco\nA7        D    F#7\nVivo penando"
+              "    Bm         B7    Em\nPor mas que la dicha busco\nA7     D\nVivo penando"
             }
           </pre>
         </div>
