@@ -1,7 +1,7 @@
 {
   "name": "silbador-editor",
   "private": true,
-  "version": "0.1.55",
+  "version": "0.1.56",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -12,6 +12,7 @@
     "test:integration:run": "vitest run src/data/__tests__/songs.test.ts",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
+    "supabase:backup": "mkdir -p backups && supabase db dump -f backups/backup-$(date +%Y-%m-%d_%H-%M-%S).sql",
     "start": "next start"
   },
   "dependencies": {
