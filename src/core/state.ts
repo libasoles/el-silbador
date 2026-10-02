@@ -1,3 +1,4 @@
+import type { CarryOver } from "./model";
 import {
   areAdjacent,
   beforeSlotId,
@@ -180,6 +181,7 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
     suffix += 1;
   }
 
+  const carryOvers: CarryOver[] = [];
   const song = candidate.map((nextLine, index) => {
     if (index < prefix) return previous[index];
     if (index >= candidate.length - suffix) {
@@ -188,13 +190,16 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
 
     const previousIndex = prefix + (index - prefix);
     const oldLine = previousIndex < previous.length - suffix ? previous[previousIndex] : undefined;
-    return oldLine ? reconcileLine(oldLine, nextLine) : nextLine;
+    return oldLine ? reconcileLine(oldLine, nextLine, carryOvers) : nextLine;
   });
 
   const retainedSyllableIds = new Set(song.flatMap(flattenSyllables).map((syllable) => syllable.id));
   const retainedLineIds = new Set(song.map((line) => line.id));
   let cells = state.cells;
   let chordVariants = state.chordVariants;
+  for (const carryOver of carryOvers) {
+    ({ cells, chordVariants } = applyCarryOver(state.tracks, cells, chordVariants, carryOver));
+  }
   for (const line of previous) {
     if (!retainedLineIds.has(line.id)) {
       for (const slotId of collectLineEdgeSlotIds(state.tracks, cells, chordVariants, line.id)) {
@@ -256,7 +261,11 @@ function lineText(line: EditorState["song"][number]): string {
   return line.words.map((word) => word.syllables.map((syllable) => syllable.text).join("")).join(" ");
 }
 
-function reconcileLine(oldLine: EditorState["song"][number], nextLine: EditorState["song"][number]) {
+function reconcileLine(
+  oldLine: EditorState["song"][number],
+  nextLine: EditorState["song"][number],
+  carryOvers: CarryOver[],
+) {
   const oldWords = oldLine.words;
   const nextWords = nextLine.words;
   const oldTexts = oldWords.map((word) => word.syllables.map((syllable) => syllable.text).join(""));
@@ -277,10 +286,11 @@ function reconcileLine(oldLine: EditorState["song"][number], nextLine: EditorSta
     const oldIndex = prefix + (index - prefix);
     const oldWord = oldIndex < oldWords.length - suffix ? oldWords[oldIndex] : undefined;
     if (!oldWord) return nextWord;
-    const { syllables } = reconcileWordSyllables(
+    const { syllables, carryOvers: wordCarryOvers } = reconcileWordSyllables(
       oldWord.syllables,
       nextWord.syllables.map((syllable) => syllable.text),
     );
+    carryOvers.push(...wordCarryOvers);
     return { ...oldWord, syllables };
   });
 
@@ -417,13 +427,39 @@ function applySetCellText(state: EditorState, trackId: TrackId, slotId: string, 
   return { ...state, ...compacted };
 }
 
+/**
+ * Moves the annotations of a deleted syllable onto the kept syllable that inherits them. The kept
+ * syllable's own annotation always wins: a track's cell only moves when the destination is empty
+ * there, and a chord's variant travels with the chord. Callers delete whatever is left behind.
+ */
+function applyCarryOver(
+  tracks: EditorState["tracks"],
+  cells: CellsByTrack,
+  chordVariants: Record<string, number>,
+  { fromId, toId }: CarryOver,
+): Pick<EditorState, "cells" | "chordVariants"> {
+  for (const slotFor of [beforeSlotId, gapSlotId]) {
+    const from = slotFor(fromId);
+    const to = slotFor(toId);
+    for (const track of tracks) {
+      const text = getCell(cells, track.id, from);
+      if (!text || getCell(cells, track.id, to)) continue;
+      cells = setCell(deleteCell(cells, track.id, from), track.id, to, text);
+      if (track.id === "chords" && from in chordVariants) {
+        chordVariants = moveChordVariant(chordVariants, from, to);
+      }
+    }
+  }
+  return { cells, chordVariants };
+}
+
 function applyResyllabify(state: EditorState, lineId: string, wordId: string, newText: string): EditorState {
   const line = state.song.find((l) => l.id === lineId);
   const word = line?.words.find((w) => w.id === wordId);
   if (!line || !word) return state;
 
   const newTexts = hyphenateWord(newText);
-  const { syllables, droppedIds } = reconcileWordSyllables(word.syllables, newTexts);
+  const { syllables, droppedIds, carryOvers } = reconcileWordSyllables(word.syllables, newTexts);
 
   const song = state.song.map((l) =>
     l.id !== lineId
@@ -433,6 +469,9 @@ function applyResyllabify(state: EditorState, lineId: string, wordId: string, ne
 
   let cells = state.cells;
   let chordVariants = state.chordVariants;
+  for (const carryOver of carryOvers) {
+    ({ cells, chordVariants } = applyCarryOver(state.tracks, cells, chordVariants, carryOver));
+  }
   for (const droppedId of droppedIds) {
     for (const slotId of [beforeSlotId(droppedId), gapSlotId(droppedId)]) {
       cells = deleteCellAcrossTracks(state.tracks, cells, slotId);

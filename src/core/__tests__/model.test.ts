@@ -11,6 +11,7 @@ import {
   getLineCellSlots,
   isLineEdgeSlot,
   mergeKey,
+  reconcileWordSyllables,
   startSlotId,
   startSlotIds,
 } from "../model";
@@ -133,5 +134,63 @@ describe("word-gap slots", () => {
     const lastOfUno = line.words[0].syllables.at(-1)!;
     expect(chordSlotForColumn(line, text, 3)).toBe(gapSlotId(lastOfUno.id));
     expect(chordSlotForColumn(line, text, 4)).toBe(beforeSlotId(line.words[1].syllables[0].id));
+  });
+});
+
+describe("reconcileWordSyllables", () => {
+  const syl = (id: string, text: string) => ({ id, text });
+
+  it("reuses the id of a syllable whose text changed in place", () => {
+    const old = [syl("a", "sas")];
+
+    const { syllables, droppedIds, carryOvers } = reconcileWordSyllables(old, ["as"]);
+
+    expect(syllables).toEqual([syl("a", "as")]);
+    expect(droppedIds).toEqual([]);
+    expect(carryOvers).toEqual([]);
+  });
+
+  it("reuses ids positionally in the changed middle and carries leftovers to the last reused syllable", () => {
+    const old = [syl("can", "can"), syl("cio", "cio"), syl("nes", "nes")];
+
+    const { syllables, droppedIds, carryOvers } = reconcileWordSyllables(old, ["can", "ción"]);
+
+    expect(syllables).toEqual([syl("can", "can"), syl("cio", "ción")]);
+    expect(droppedIds).toEqual(["nes"]);
+    expect(carryOvers).toEqual([{ fromId: "nes", toId: "cio" }]);
+  });
+
+  it("carries a trailing deleted syllable to the last kept syllable before it", () => {
+    const old = [syl("ma", "ma"), syl("ri", "ri"), syl("po", "po"), syl("sa", "sa")];
+
+    const { syllables, carryOvers } = reconcileWordSyllables(old, ["ma", "ri"]);
+
+    expect(syllables.map((s) => s.id)).toEqual(["ma", "ri"]);
+    expect(carryOvers).toEqual([
+      { fromId: "po", toId: "ri" },
+      { fromId: "sa", toId: "ri" },
+    ]);
+  });
+
+  it("carries a deleted first syllable to the next kept syllable", () => {
+    const old = [syl("a", "a"), syl("mor", "mor"), syl("ci", "ci"), syl("to", "to")];
+
+    const { syllables, droppedIds, carryOvers } = reconcileWordSyllables(old, ["mor", "ci", "to"]);
+
+    expect(syllables.map((s) => s.id)).toEqual(["mor", "ci", "to"]);
+    expect(droppedIds).toEqual(["a"]);
+    expect(carryOvers).toEqual([{ fromId: "a", toId: "mor" }]);
+  });
+
+  it("builds new syllables when the word gains syllables, reusing the old ids first", () => {
+    const old = [syl("pes", "pes"), syl("ca", "ca"), syl("dor", "dor")];
+
+    const { syllables, droppedIds, carryOvers } = reconcileWordSyllables(old, ["pes", "ca", "do", "res"]);
+
+    expect(syllables.map((s) => s.text)).toEqual(["pes", "ca", "do", "res"]);
+    expect(syllables.slice(0, 3).map((s) => s.id)).toEqual(["pes", "ca", "dor"]);
+    expect(syllables[3].id).not.toBe("dor");
+    expect(droppedIds).toEqual([]);
+    expect(carryOvers).toEqual([]);
   });
 });
