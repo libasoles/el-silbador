@@ -39,3 +39,4 @@ supabase/.temp/
 # Sentry Config File
 .env.sentry-build-plugin
 tsconfig.tsbuildinfo
+backups/
