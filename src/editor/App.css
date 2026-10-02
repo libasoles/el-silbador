@@ -469,6 +469,19 @@
     box-decoration-break: clone;
   }
 
+  /* A line's chord/note tracks must stay with its lyrics: without this, a page can end on a
+     chord row whose syllables start the next page. */
+  .line {
+    break-inside: avoid;
+  }
+
+  /* Scale the song down uniformly. zoom (rather than smaller font-sizes) keeps the chord cells'
+     JS-measured pixel offsets aligned with their syllables. Applied to .song, not .app, so the
+     page margin stays 1.5cm. */
+  .song {
+    zoom: 0.85;
+  }
+
   /* Print dialogs may omit element backgrounds. Draw the syllable guides as borders instead,
      so exporting preserves an active underline even with background graphics disabled. */
   .syllable::after,
