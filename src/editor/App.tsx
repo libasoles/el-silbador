@@ -8,8 +8,6 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import { useQueryClient } from "@tanstack/react-query";
-import { Skeleton, Theme } from "@radix-ui/themes";
-import "@radix-ui/themes/styles.css";
 import "./App.css";
 const neutralIllustration = "/03-neutral.svg";
 import { chordToNoteNames } from "../core/chordNotes";
@@ -98,19 +96,17 @@ const AUTOSAVE_STATUS_LABEL: Record<"saving" | "saved" | "error", string> = {
     author, and toolbars render normally throughout — only the editor area itself is replaced. */
 function SongViewSkeleton() {
   return (
-    <Theme hasBackground={false}>
-      <div className="song-wrapper song-view-skeleton">
-        {[
-          "Primera línea de ejemplo",
-          "Segunda línea, un poco más larga",
-          "Tercera línea",
-        ].map((line, index) => (
-          <Skeleton key={index}>
-            <span className="song-view-skeleton__line">{line}</span>
-          </Skeleton>
-        ))}
-      </div>
-    </Theme>
+    <div className="song-wrapper song-view-skeleton">
+      {[
+        "Primera línea de ejemplo",
+        "Segunda línea, un poco más larga",
+        "Tercera línea",
+      ].map((line, index) => (
+        <span key={index} aria-hidden="true" className="skeleton song-view-skeleton__line">
+          {line}
+        </span>
+      ))}
+    </div>
   );
 }
 

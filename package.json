@@ -1,7 +1,7 @@
 {
   "name": "silbador-editor",
   "private": true,
-  "version": "0.1.36",
+  "version": "0.1.37",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -17,7 +17,6 @@
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-toast": "^1.2.23",
-    "@radix-ui/themes": "^3.3.0",
     "@sentry/nextjs": "^11.1.0",
     "@supabase/supabase-js": "^2.117.2",
     "@tanstack/query-sync-storage-persister": "^5.104.0",

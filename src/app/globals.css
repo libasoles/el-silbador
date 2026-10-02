@@ -48,3 +48,25 @@ body {
     padding: 0;
   }
 }
+
+/* Loading placeholder. Replicates Radix Themes' <Skeleton> (indigo accent → slate gray, light
+   scheme) so we don't ship its ~800 KB render-blocking stylesheet for two placeholders. The
+   line-height matches the 1.5 that Radix's <Theme> wrapper used to inherit into the text. */
+.skeleton {
+  border-radius: 3px;
+  line-height: 1.5;
+  color: transparent;
+  pointer-events: none;
+  user-select: none;
+  cursor: default;
+  animation: skeleton-pulse 1000ms infinite alternate-reverse;
+}
+
+@keyframes skeleton-pulse {
+  from {
+    background-color: #0000330f;
+  }
+  to {
+    background-color: #00002d17;
+  }
+}

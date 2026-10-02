@@ -5,8 +5,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Skeleton, Theme } from "@radix-ui/themes";
-import "@radix-ui/themes/styles.css";
 import { trackEvent } from "../analytics";
 import { useAuthRequired } from "../authRequiredContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -178,13 +176,13 @@ function LibraryRowSkeleton() {
   return (
     <li className="library-row">
       <div className="library-row__open">
-        <Skeleton>
-          <span className="library-row__title">Título de ejemplo</span>
-        </Skeleton>
+        <span aria-hidden="true" className="skeleton library-row__title">
+          Título de ejemplo
+        </span>
         <span className="library-row__leader" aria-hidden="true" />
-        <Skeleton>
-          <span className="library-row__author">Autor de ejemplo</span>
-        </Skeleton>
+        <span aria-hidden="true" className="skeleton library-row__author">
+          Autor de ejemplo
+        </span>
       </div>
     </li>
   );
@@ -233,12 +231,10 @@ function LibrarySection({
         </div>
       )}
       {loading ? (
-        <Theme hasBackground={false}>
-          <ul className="library-list">
-            <LibraryRowSkeleton />
-            <LibraryRowSkeleton />
-          </ul>
-        </Theme>
+        <ul className="library-list">
+          <LibraryRowSkeleton />
+          <LibraryRowSkeleton />
+        </ul>
       ) : songs.length === 0 ? (
         <div className="library-section__empty">
           <span className="library-section__empty-mark" aria-hidden="true">
