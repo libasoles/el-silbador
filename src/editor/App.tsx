@@ -30,6 +30,7 @@ import { trackEvent } from "./analytics";
 import { useAuthRequired } from "./authRequiredContext";
 import type { ConfirmDialog as ConfirmDialogComponent } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
+import { ChordDragTutorialExample } from "./components/ChordDragTutorialExample";
 import { MelodyTutorialExample } from "./components/MelodyTutorialExample";
 import { SongView } from "./components/SongView";
 import type { YoutubeLinkDialog as YoutubeLinkDialogComponent } from "./components/YoutubeLinkDialog";
@@ -686,6 +687,19 @@ function App({
         description:
           "Las notas en negrita significan que también están en el acorde anterior.",
         icon: <NoteStackIcon boldNotes={["sol"]} />,
+      });
+    }
+    if (track.id === "chords" && nextVisible && canEditOnThisDevice) {
+      showTutorial({
+        tutorialId: "chord-drag",
+        title: "Mové los acordes",
+        description: (
+          <>
+            Arrastrá un acorde para moverlo: las sílabas donde va a caer se
+            resaltan.
+            <ChordDragTutorialExample />
+          </>
+        ),
       });
     }
   };

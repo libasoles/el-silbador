@@ -248,6 +248,135 @@
   }
 }
 
+.chord-tutorial-example {
+  --chord-drag-distance: 3.5rem;
+  display: flex;
+  width: 100%;
+  margin-top: 0.65rem;
+  overflow: hidden;
+  color: var(--fg);
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+
+.chord-tutorial-example__unit {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  grid-template-rows: 1.5em 1.1em;
+  align-items: end;
+}
+
+.chord-tutorial-example__chords {
+  min-width: 0.6rem;
+  padding-right: 0.15em;
+  color: var(--chord);
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.chord-tutorial-example__chord--dragged {
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: chord-tutorial-drag 6s ease-in-out infinite;
+}
+
+.chord-tutorial-example__lyric {
+  position: relative;
+  line-height: 1.1;
+}
+
+.chord-tutorial-example__lyric::after {
+  content: "";
+  position: absolute;
+  left: 0.14em;
+  right: 0.14em;
+  bottom: 0.05em;
+  height: 2px;
+  background: var(--syllable-underline);
+}
+
+/* Same look as .syllable--drop-target in App.css, switched on while the chip hovers over it. */
+.chord-tutorial-example__lyric--drop-target {
+  animation: chord-tutorial-drop-target 6s ease-in-out infinite;
+}
+
+.chord-tutorial-example__lyric--drop-target::after {
+  animation: chord-tutorial-drop-target-underline 6s ease-in-out infinite;
+}
+
+.chord-tutorial-example__gap {
+  flex: none;
+  width: 0.4em;
+}
+
+.chord-tutorial-example__gap--word-boundary {
+  width: 0.6em;
+}
+
+@keyframes chord-tutorial-drag {
+  0%,
+  12% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  62%,
+  85% {
+    opacity: 1;
+    transform: translateX(var(--chord-drag-distance));
+  }
+  92% {
+    opacity: 0;
+    transform: translateX(var(--chord-drag-distance));
+  }
+  92.01% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes chord-tutorial-drop-target {
+  0%,
+  50% {
+    color: var(--fg);
+  }
+  56%,
+  85% {
+    color: var(--highlight);
+  }
+  92%,
+  100% {
+    color: var(--fg);
+  }
+}
+
+@keyframes chord-tutorial-drop-target-underline {
+  0%,
+  50% {
+    height: 2px;
+    background: var(--syllable-underline);
+  }
+  56%,
+  85% {
+    height: 3px;
+    background: var(--highlight);
+  }
+  92%,
+  100% {
+    height: 2px;
+    background: var(--syllable-underline);
+  }
+}
+
 .toast__close {
   position: absolute;
   top: 0.4rem;
@@ -292,8 +421,25 @@
 @media (prefers-reduced-motion: reduce) {
   .toast,
   .toast__timer,
-  .melody-tutorial-example__note--blink {
+  .melody-tutorial-example__note--blink,
+  .chord-tutorial-example__chord--dragged,
+  .chord-tutorial-example__lyric--drop-target,
+  .chord-tutorial-example__lyric--drop-target::after {
     animation: none !important;
+  }
+
+  /* Without motion, show the end of the gesture: the chord dropped on the highlighted syllable. */
+  .chord-tutorial-example__chord--dragged {
+    transform: translateX(var(--chord-drag-distance));
+  }
+
+  .chord-tutorial-example__lyric--drop-target {
+    color: var(--highlight);
+  }
+
+  .chord-tutorial-example__lyric--drop-target::after {
+    height: 3px;
+    background: var(--highlight);
   }
 
   .melody-tutorial-example--typing .melody-tutorial-example__note--typing {
