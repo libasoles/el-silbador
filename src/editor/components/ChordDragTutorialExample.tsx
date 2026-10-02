@@ -29,7 +29,7 @@ const DRAGS = [
   { id: "am", chord: "Am", from: 6, to: 7, start: 0.52, end: 0.66 },
 ] as const;
 
-const LOOP_MS = 16000;
+const LOOP_MS = 13000;
 /** Everything fades out over this stretch at the end of the loop, then restarts from rest. */
 const FADE_OUT_START = 0.9;
 const FADE_OUT_END = 0.95;
