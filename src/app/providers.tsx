@@ -8,6 +8,7 @@ import { AuthRequiredProvider } from "../editor/AuthRequired";
 import { AuthCallbackErrorToast } from "../editor/components/AuthCallbackErrorToast";
 import { ToastProvider } from "../editor/components/ToastProvider";
 import { useAuth } from "../editor/useAuth";
+import { useLoginTracking } from "../editor/loginTracking";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -75,6 +76,7 @@ function ServiceWorkerRegistrar() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const session = useAuth();
+  useLoginTracking(session);
   const [queryClient] = useState(getQueryClient);
 
   return (

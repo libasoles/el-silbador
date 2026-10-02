@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { trackEvent } from "../analytics";
 import { signInWithMagicLink } from "../../data/auth";
 import { translateAuthError } from "../../data/authErrorMessages";
 import "./AuthModal.css";
@@ -17,12 +18,17 @@ export function AuthModal({ onClose }: AuthModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [linkSent, setLinkSent] = useState(false);
 
+  useEffect(() => {
+    trackEvent("login_view");
+  }, []);
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
     try {
       await signInWithMagicLink(email);
+      trackEvent("login_link_sent", { method: "magic_link" });
       setLinkSent(true);
     } catch (err) {
       setError(translateAuthError(err));
