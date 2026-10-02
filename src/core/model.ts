@@ -214,15 +214,26 @@ export function pruneMerges(song: Song, merges: ReadonlySet<string>): Set<string
   return pruned;
 }
 
+/** An annotation to move off a deleted syllable onto a kept one, when the target is free. */
+export interface CarryOver {
+  fromId: string;
+  toId: string;
+}
+
 export interface ReconcileResult {
   syllables: Syllable[];
   droppedIds: string[];
+  /** One entry per dropped syllable, naming the kept syllable that may inherit its annotations. */
+  carryOvers: CarryOver[];
 }
 
 /**
- * Matches old syllables to a word's newly-hyphenated syllable texts by prefix/suffix, so that
- * syllables unaffected by the edit keep their id (and therefore their annotations). Syllables in
- * the ambiguous middle are treated as brand new and lose any prior annotation.
+ * Matches old syllables to a word's newly-hyphenated syllable texts so annotations survive the
+ * edit. Syllables whose text is unchanged at the front or back (prefix/suffix) keep their id; in
+ * the changed middle, old and new syllables are paired by position and the old id is reused with
+ * its new text. Only when the word loses syllables are the leftover old ones dropped, and each
+ * reports a `carryOver` to the nearest kept syllable before it (or the next one, if it was first)
+ * so its annotations can move there instead of vanishing.
  */
 export function reconcileWordSyllables(oldSyllables: Syllable[], newTexts: string[]): ReconcileResult {
   const n = oldSyllables.length;
@@ -242,13 +253,20 @@ export function reconcileWordSyllables(oldSyllables: Syllable[], newTexts: strin
     suffix += 1;
   }
 
+  const oldMiddle = oldSyllables.slice(prefix, n - suffix);
+  const newMiddle = newTexts.slice(prefix, m - suffix);
+
   const syllables: Syllable[] = [];
   for (let i = 0; i < prefix; i += 1) syllables.push(oldSyllables[i]);
-  for (let i = prefix; i < m - suffix; i += 1) syllables.push(buildSyllable(newTexts[i]));
+  newMiddle.forEach((text, i) => {
+    const reused = oldMiddle[i];
+    syllables.push(reused ? { ...reused, text } : buildSyllable(text));
+  });
   for (let i = 0; i < suffix; i += 1) syllables.push(oldSyllables[n - suffix + i]);
 
-  const keptIds = new Set(syllables.map((s) => s.id));
-  const droppedIds = oldSyllables.filter((s) => !keptIds.has(s.id)).map((s) => s.id);
+  const droppedIds = oldMiddle.slice(newMiddle.length).map((s) => s.id);
+  const target = syllables[Math.max(0, prefix + newMiddle.length - 1)];
+  const carryOvers: CarryOver[] = target ? droppedIds.map((fromId) => ({ fromId, toId: target.id })) : [];
 
-  return { syllables, droppedIds };
+  return { syllables, droppedIds, carryOvers };
 }

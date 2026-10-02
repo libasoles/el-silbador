@@ -319,12 +319,79 @@ describe("resyllabify + reconciliation", () => {
     const newWord = state.song[0].words[0];
     expect(newWord.syllables.map((s) => s.text)).toEqual(["pes", "ca", "do", "res"]);
     // "pes" and "ca" match the front, so they keep their id and annotation; "dor" has no
-    // suffix match against "res", so it - and its annotation - is dropped; "do"/"res" are new.
+    // suffix match against "res", but it lines up positionally with "do", so it keeps its id
+    // (and its chord); "res" is new.
     expect(newWord.syllables[0].id).toBe(pesId);
     expect(newWord.syllables[1].id).toBe(caId);
+    expect(newWord.syllables[2].id).toBe(dorId);
     expect(getCell(state.cells, "chords", beforeSlotId(pesId))).toBe("G7");
     expect(getCell(state.cells, "chords", beforeSlotId(caId))).toBe("Dm");
-    expect(getCell(state.cells, "chords", beforeSlotId(dorId))).toBe("");
+    expect(getCell(state.cells, "chords", beforeSlotId(dorId))).toBe("F");
+  });
+
+  it("keeps the chord when a syllable is corrected in place (sas -> as)", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "sas" });
+    const line = state.song[0];
+    const word = line.words[0];
+    const slot = beforeSlotId(word.syllables[0].id);
+    state = reduce(state, { type: "setCellText", trackId: "chords", slotId: slot, text: "Am" });
+
+    state = reduce(state, { type: "resyllabify", lineId: line.id, wordId: word.id, newText: "as" });
+
+    expect(state.song[0].words[0].syllables.map((s) => s.text)).toEqual(["as"]);
+    expect(getCell(state.cells, "chords", slot)).toBe("Am");
+  });
+
+  it("moves the chord of a deleted first syllable onto the next syllable", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "amorcito" });
+    const line = state.song[0];
+    const word = line.words[0];
+    const [aId, morId] = word.syllables.map((s) => s.id);
+    expect(word.syllables.map((s) => s.text)).toEqual(["a", "mor", "ci", "to"]);
+    state = reduce(
+      state,
+      { type: "setCellText", trackId: "chords", slotId: beforeSlotId(aId), text: "D" },
+      { type: "setChordVariant", slotId: beforeSlotId(aId), index: 2 },
+    );
+
+    state = reduce(state, { type: "resyllabify", lineId: line.id, wordId: word.id, newText: "morcito" });
+
+    expect(state.song[0].words[0].syllables[0].id).toBe(morId);
+    expect(getCell(state.cells, "chords", beforeSlotId(morId))).toBe("D");
+    expect(getCell(state.cells, "chords", beforeSlotId(aId))).toBe("");
+    expect(state.chordVariants[beforeSlotId(morId)]).toBe(2);
+    expect(beforeSlotId(aId) in state.chordVariants).toBe(false);
+  });
+
+  it("lets the chord of a kept syllable win over one carried from a deleted syllable", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "amorcito" });
+    const line = state.song[0];
+    const word = line.words[0];
+    const [aId, morId] = word.syllables.map((s) => s.id);
+    state = reduce(
+      state,
+      { type: "setCellText", trackId: "chords", slotId: beforeSlotId(aId), text: "D" },
+      { type: "setCellText", trackId: "chords", slotId: beforeSlotId(morId), text: "G" },
+    );
+
+    state = reduce(state, { type: "resyllabify", lineId: line.id, wordId: word.id, newText: "morcito" });
+
+    expect(getCell(state.cells, "chords", beforeSlotId(morId))).toBe("G");
+    expect(getCell(state.cells, "chords", beforeSlotId(aId))).toBe("");
+  });
+
+  it("carries the chord of a trailing deleted syllable to the last kept syllable", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "mariposa" });
+    const line = state.song[0];
+    const word = line.words[0];
+    const ids = word.syllables.map((s) => s.id);
+    expect(word.syllables.map((s) => s.text)).toEqual(["ma", "ri", "po", "sa"]);
+    state = reduce(state, { type: "setCellText", trackId: "chords", slotId: beforeSlotId(ids[3]), text: "E" });
+
+    state = reduce(state, { type: "resyllabify", lineId: line.id, wordId: word.id, newText: "mari" });
+
+    expect(getCell(state.cells, "chords", beforeSlotId(ids[1]))).toBe("E");
+    expect(getCell(state.cells, "chords", beforeSlotId(ids[3]))).toBe("");
   });
 
   it("does not double-dispatch resyllabify for the same edit across word-boundary and debounce", async () => {
@@ -357,6 +424,27 @@ describe("resyllabify + reconciliation", () => {
 });
 
 describe("reconcileLyricsText", () => {
+  it("keeps the chord when a word is corrected in place through free-form editing", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "sas" });
+    const slot = beforeSlotId(state.song[0].words[0].syllables[0].id);
+    state = reduce(state, { type: "setCellText", trackId: "chords", slotId: slot, text: "Am" });
+
+    state = reduce(state, { type: "reconcileLyricsText", text: "as" });
+
+    expect(getCell(state.cells, "chords", slot)).toBe("Am");
+  });
+
+  it("moves the chord of a deleted first syllable through free-form editing", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "amorcito" });
+    const [aId, morId] = state.song[0].words[0].syllables.map((s) => s.id);
+    state = reduce(state, { type: "setCellText", trackId: "chords", slotId: beforeSlotId(aId), text: "D" });
+
+    state = reduce(state, { type: "reconcileLyricsText", text: "morcito" });
+
+    expect(getCell(state.cells, "chords", beforeSlotId(morId))).toBe("D");
+    expect(getCell(state.cells, "chords", beforeSlotId(aId))).toBe("");
+  });
+
   it("keeps an annotation on an equivalent syllable after an in-place word correction", () => {
     let state = reduce(createInitialState(), { type: "setLyricsText", text: "cansión" });
     const original = state.song[0].words[0].syllables[0];
