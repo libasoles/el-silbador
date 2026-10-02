@@ -8,7 +8,8 @@ Silabeo/El Silbador is a **cancionero** (songbook) app. The site's name is alway
 
 Every task must use its own git worktree and branch. Codex creates worktrees at
 `.agents/worktrees/<task-slug>`; this keeps all agent worktrees inside the repository. When the
-task is complete, merge the branch into `main` locally. Never push from a local repository to
+task is complete, always merge the branch into `main` locally — a finished task is not done until
+it is on `main`. Never push from a local repository to
 `origin`; after merging, remove both the task branch and its worktree.
 
 ## Versioning
