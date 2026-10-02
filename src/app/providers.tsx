@@ -100,6 +100,15 @@ function AnalyticsTracker() {
   return null;
 }
 
+function ServiceWorkerRegistrar() {
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+  }, []);
+
+  return null;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const session = useAuth();
   // `localStorage` doesn't exist during SSR — this component still renders on the server to
@@ -137,6 +146,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <IsRestoringProvider value={isRestoring}>
         <AnalyticsTracker />
+        <ServiceWorkerRegistrar />
         <ToastProvider>
           <AuthCallbackErrorToast />
           <AuthRequiredProvider session={session}>{children}</AuthRequiredProvider>
