@@ -173,6 +173,10 @@ export function LineView({
   const units = useMemo(() => getLineUnits(line, merges), [line, merges]);
   const gaps = useMemo(() => getLineGaps(line, merges), [line, merges]);
   const gapSlotIds = useMemo(() => new Set(gaps.map((gap) => gap.slotId)), [gaps]);
+  const chordOnlySlotIds = useMemo(
+    () => new Set([...gapSlotIds, ...lineStartSlots, ...lineEndSlots]),
+    [gapSlotIds, lineStartSlots, lineEndSlots],
+  );
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
 
   const mergedIds = new Set<string>();
@@ -577,8 +581,9 @@ export function LineView({
         </div>
       );
     }
-    // Melody notes belong to syllables only; the whitespace gaps between words are chord-only slots.
-    const trackSlotIds = track.id === "vocalNotes" ? rowSlotIds.filter((slotId) => !gapSlotIds.has(slotId)) : rowSlotIds;
+    // Melody notes belong to syllables only; word gaps and the leading/trailing edge slots are chord-only.
+    const trackSlotIds =
+      track.id === "vocalNotes" ? rowSlotIds.filter((slotId) => !chordOnlySlotIds.has(slotId)) : rowSlotIds;
     const measured = areSlotRectsReady(trackSlotIds, slotRects) && slotRectsMeasuredFor === annotationGapExtrasKey;
     const annotationsReady =
       track.id === "vocalNotes"
