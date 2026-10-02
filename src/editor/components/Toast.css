@@ -249,9 +249,6 @@
 }
 
 .chord-tutorial-example {
-  --chord-drag-e7: 3.5rem;
-  --chord-drag-g7: 2.5rem;
-  --chord-drag-am: 1.5rem;
   display: flex;
   width: 100%;
   margin-top: 0.65rem;
@@ -282,24 +279,12 @@
   line-height: 1.3;
 }
 
-/* Chips sit over the start of their syllable and are moved with a transform, so they never nudge
-   the layout. */
+/* Chips sit over the start of their syllable and are moved with a transform (see
+   ChordDragTutorialExample), so they never nudge the layout. */
 .chord-tutorial-example__chord {
   position: absolute;
   top: 0;
   left: 0;
-}
-
-.chord-tutorial-example__chord--e7 {
-  animation: chord-tutorial-e7 16s ease-in-out infinite;
-}
-
-.chord-tutorial-example__chord--g7 {
-  animation: chord-tutorial-g7 16s ease-in-out infinite;
-}
-
-.chord-tutorial-example__chord--am {
-  animation: chord-tutorial-am 16s ease-in-out infinite;
 }
 
 .chord-tutorial-example__lyric {
@@ -318,13 +303,9 @@
   background: var(--syllable-underline);
 }
 
-/* Drop-target look, as in .syllable--drop-target: accent text plus a thicker accent underline
-   (the ::before), switched on while a chip hovers over the syllable. */
-.chord-tutorial-example__lyric--drop-target-de::before,
-.chord-tutorial-example__lyric--drop-target-lo::before,
-.chord-tutorial-example__lyric--drop-target-ma::before,
-.chord-tutorial-example__end::after {
-  content: "";
+/* The drop-target underline, as in .syllable--drop-target / .line-edge-drop--active: a thicker
+   accent line over the normal one, faded in while a chip hovers over its syllable or slot. */
+.chord-tutorial-example__drop {
   position: absolute;
   left: 0.14em;
   right: 0.14em;
@@ -332,38 +313,12 @@
   height: 3px;
   background: var(--highlight);
   opacity: 0;
-  z-index: 1;
+  pointer-events: none;
 }
 
-.chord-tutorial-example__lyric--drop-target-de {
-  animation: chord-tutorial-de-text 16s ease-in-out infinite;
-}
-
-.chord-tutorial-example__lyric--drop-target-de::before {
-  animation: chord-tutorial-de-line 16s ease-in-out infinite;
-}
-
-.chord-tutorial-example__lyric--drop-target-lo {
-  animation: chord-tutorial-lo-text 16s ease-in-out infinite;
-}
-
-.chord-tutorial-example__lyric--drop-target-lo::before {
-  animation: chord-tutorial-lo-line 16s ease-in-out infinite;
-}
-
-.chord-tutorial-example__lyric--drop-target-ma {
-  animation: chord-tutorial-ma-text 16s ease-in-out infinite;
-}
-
-.chord-tutorial-example__lyric--drop-target-ma::before {
-  animation: chord-tutorial-ma-line 16s ease-in-out infinite;
-}
-
-/* The empty slot after the phrase, like .line-edge-drop--active. */
-.chord-tutorial-example__end::after {
+.chord-tutorial-example__end .chord-tutorial-example__drop {
   left: 0;
   right: 0;
-  animation: chord-tutorial-end-line 16s ease-in-out infinite;
 }
 
 .chord-tutorial-example__gap {
@@ -373,186 +328,6 @@
 
 .chord-tutorial-example__gap--word-boundary {
   width: 0.6em;
-}
-
-@keyframes chord-tutorial-e7 {
-  0%,
-  5% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  22%,
-  90% {
-    opacity: 1;
-    transform: translateX(var(--chord-drag-e7));
-  }
-  95% {
-    opacity: 0;
-    transform: translateX(var(--chord-drag-e7));
-  }
-  95.01% {
-    opacity: 0;
-    transform: translateX(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes chord-tutorial-g7 {
-  0%,
-  30% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  44%,
-  90% {
-    opacity: 1;
-    transform: translateX(var(--chord-drag-g7));
-  }
-  95% {
-    opacity: 0;
-    transform: translateX(var(--chord-drag-g7));
-  }
-  95.01% {
-    opacity: 0;
-    transform: translateX(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes chord-tutorial-am {
-  0%,
-  52% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  66%,
-  90% {
-    opacity: 1;
-    transform: translateX(var(--chord-drag-am));
-  }
-  95% {
-    opacity: 0;
-    transform: translateX(var(--chord-drag-am));
-  }
-  95.01% {
-    opacity: 0;
-    transform: translateX(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes chord-tutorial-de-text {
-  0%,
-  12% {
-    color: var(--fg);
-  }
-  14%,
-  16% {
-    color: var(--highlight);
-  }
-  18%,
-  100% {
-    color: var(--fg);
-  }
-}
-
-@keyframes chord-tutorial-de-line {
-  0%,
-  12% {
-    opacity: 0;
-  }
-  14%,
-  16% {
-    opacity: 1;
-  }
-  18%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes chord-tutorial-lo-text {
-  0%,
-  18% {
-    color: var(--fg);
-  }
-  20%,
-  24% {
-    color: var(--highlight);
-  }
-  27%,
-  100% {
-    color: var(--fg);
-  }
-}
-
-@keyframes chord-tutorial-lo-line {
-  0%,
-  18% {
-    opacity: 0;
-  }
-  20%,
-  24% {
-    opacity: 1;
-  }
-  27%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes chord-tutorial-end-line {
-  0%,
-  38% {
-    opacity: 0;
-  }
-  40%,
-  45% {
-    opacity: 1;
-  }
-  48%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes chord-tutorial-ma-text {
-  0%,
-  58% {
-    color: var(--fg);
-  }
-  60%,
-  67% {
-    color: var(--highlight);
-  }
-  70%,
-  100% {
-    color: var(--fg);
-  }
-}
-
-@keyframes chord-tutorial-ma-line {
-  0%,
-  58% {
-    opacity: 0;
-  }
-  60%,
-  67% {
-    opacity: 1;
-  }
-  70%,
-  100% {
-    opacity: 0;
-  }
 }
 
 .toast__close {
@@ -599,25 +374,8 @@
 @media (prefers-reduced-motion: reduce) {
   .toast,
   .toast__timer,
-  .melody-tutorial-example__note--blink,
-  .chord-tutorial-example__chord,
-  .chord-tutorial-example__lyric,
-  .chord-tutorial-example__lyric::before,
-  .chord-tutorial-example__end::after {
+  .melody-tutorial-example__note--blink {
     animation: none !important;
-  }
-
-  /* Without motion, show where every chord ends up. */
-  .chord-tutorial-example__chord--e7 {
-    transform: translateX(var(--chord-drag-e7));
-  }
-
-  .chord-tutorial-example__chord--g7 {
-    transform: translateX(var(--chord-drag-g7));
-  }
-
-  .chord-tutorial-example__chord--am {
-    transform: translateX(var(--chord-drag-am));
   }
 
   .melody-tutorial-example--typing .melody-tutorial-example__note--typing {
