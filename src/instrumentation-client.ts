@@ -2,51 +2,65 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import * as Sentry from "@sentry/nextjs";
+import type * as SentryNamespace from "@sentry/nextjs";
+import { runWhenIdleOrInteracted } from "./deferThirdParty";
 
-Sentry.init({
-  dsn: "https://2395f27c5b645be6dcaccce4af731d9b@o4512165598527488.ingest.us.sentry.io/4512165610979329",
+// The Sentry SDK is ~400 KB of JS that parses/executes on the main thread, so it's loaded lazily
+// (first interaction, or a few seconds after `load`) instead of with the initial bundle. Errors
+// thrown before it's ready are buffered below and reported once it initializes.
+type Sentry = typeof SentryNamespace;
+type RouterTransitionArgs = Parameters<Sentry["captureRouterTransitionStart"]>;
 
-  // Session replay is loaded lazily below (after idle / on first error) so its
-  // DOM-mutation recording machinery doesn't ship in the initial page bundle.
+const MAX_BUFFERED_ERRORS = 10;
+const bufferedErrors: unknown[] = [];
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 0.1,
+function bufferError(event: ErrorEvent | PromiseRejectionEvent) {
+  if (bufferedErrors.length >= MAX_BUFFERED_ERRORS) return;
+  bufferedErrors.push("reason" in event ? event.reason : (event.error ?? event.message));
+}
 
-  // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: 0.1,
+let sentryReady: Promise<Sentry> | undefined;
 
-  // Define how likely Replay events are sampled when an error occurs.
-  replaysOnErrorSampleRate: 1.0,
+function loadSentry(): Promise<Sentry> {
+  sentryReady ??= import("@sentry/nextjs").then((Sentry) => {
+    Sentry.init({
+      dsn: "https://2395f27c5b645be6dcaccce4af731d9b@o4512165598527488.ingest.us.sentry.io/4512165610979329",
 
-  dataCollection: {
-    // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
-    // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#dataCollection
-    // userInfo: false,
-    // httpBodies: [],
-  },
-});
+      // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
+      tracesSampleRate: 0.1,
 
-// Defer loading the Replay integration (and its DOM-mutation recording code)
-// off the critical path. It's only added once the browser goes idle, instead
-// of being bundled into the eagerly-executed Sentry.init() call above.
-// `./sentry-lazy-replay` is never statically imported anywhere, so this
-// dynamic import() is a genuine chunk-splitting boundary — unlike importing
-// "@sentry/nextjs" itself again here, which the bundler would just resolve
-// from the copy already loaded synchronously by the `import * as Sentry`
-// above, defeating the point.
-function loadReplayIntegration() {
-  import("./sentry-lazy-replay").then(({ startReplay }) => startReplay());
+      // Define how likely Replay events are sampled.
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+
+      dataCollection: {
+        // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
+        // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#dataCollection
+        // userInfo: false,
+        // httpBodies: [],
+      },
+    });
+
+    window.removeEventListener("error", bufferError);
+    window.removeEventListener("unhandledrejection", bufferError);
+    for (const error of bufferedErrors.splice(0)) Sentry.captureException(error);
+
+    // Session replay is split into its own chunk (see sentry-lazy-replay.ts) so its DOM-mutation
+    // recording code only loads once Sentry itself is up.
+    import("./sentry-lazy-replay").then(({ startReplay }) => startReplay());
+
+    return Sentry;
+  });
+  return sentryReady;
 }
 
 if (typeof window !== "undefined") {
-  if (typeof window.requestIdleCallback === "function") {
-    window.requestIdleCallback(loadReplayIntegration);
-  } else {
-    setTimeout(loadReplayIntegration, 2000);
-  }
+  window.addEventListener("error", bufferError);
+  window.addEventListener("unhandledrejection", bufferError);
+  runWhenIdleOrInteracted(() => void loadSentry());
 }
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+export const onRouterTransitionStart = (...args: RouterTransitionArgs) => {
+  // Only forward transitions once Sentry has loaded; earlier ones aren't worth forcing it in.
+  sentryReady?.then((Sentry) => Sentry.captureRouterTransitionStart(...args));
+};
