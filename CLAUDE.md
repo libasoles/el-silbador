@@ -19,3 +19,7 @@ Allowed on mobile (do not gate these):
 - Chord transposition
 
 CSS `display: none` alone does not enforce these rules — it hides the control visually but leaves the underlying handler mounted and reachable. Gate at the render/prop level with `useIsMobile`, not just with CSS.
+
+## Git workflow
+
+Always merge finished work into `main` locally (in the main checkout), without being asked, then delete the task branch and its worktree. Never push to `origin`. See AGENTS.md.
