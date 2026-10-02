@@ -27,7 +27,8 @@ next-env.d.ts
 
 # Skill installs, reproducible from skills-lock.json
 .agents/
-.claude/skills/
+.claude/skills/*
+!.claude/skills/ga-login-funnel/
 .hermes/
 TODO.md
 .env
