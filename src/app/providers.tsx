@@ -20,19 +20,33 @@ import { useAuth } from "../editor/useAuth";
 // a query from memory (and skips persisting it) before it'd otherwise expire.
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    // Data comes from Supabase and only changes through our own mutations (save/delete/fork/
-    // favorite), which invalidate their queries explicitly — so there's no need to refetch just
-    // because the window regained focus or the network reconnected.
-    queries: {
-      staleTime: 60_000,
-      gcTime: ONE_DAY_MS,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
+function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      // Data comes from Supabase and only changes through our own mutations (save/delete/fork/
+      // favorite), which invalidate their queries explicitly — so there's no need to refetch just
+      // because the window regained focus or the network reconnected.
+      queries: {
+        staleTime: 60_000,
+        gcTime: ONE_DAY_MS,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+      },
     },
-  },
-});
+  });
+}
+
+let browserQueryClient: QueryClient | undefined;
+
+// On the server a module-level client would be shared across requests: the first request's
+// `initialData` would stick in its cache and later requests would SSR that stale list while the
+// client hydrates from fresh props, causing a hydration text mismatch. So the server gets a
+// fresh client per render and only the browser reuses a singleton.
+function getQueryClient() {
+  if (typeof window === "undefined") return makeQueryClient();
+  browserQueryClient ??= makeQueryClient();
+  return browserQueryClient;
+}
 
 function getPersister() {
   return createSyncStoragePersister({
@@ -111,6 +125,7 @@ function ServiceWorkerRegistrar() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const session = useAuth();
+  const [queryClient] = useState(getQueryClient);
   // `localStorage` doesn't exist during SSR — this component still renders on the server to
   // produce the initial HTML, so the persisted client can only be created once in the browser.
   const persister = useMemo(() => (typeof window === "undefined" ? undefined : getPersister()), []);
@@ -138,7 +153,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           query.queryKey[1] !== "detail",
       },
     };
-  }, [persister]);
+  }, [persister, queryClient]);
 
   const isRestoring = useDeferredPersistQueryClient(persistOptions);
 
