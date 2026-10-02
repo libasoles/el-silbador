@@ -29,9 +29,9 @@ const DRAGS = [
   { id: "am", chord: "Am", from: 6, to: 7, start: 0.52, end: 0.66 },
 ] as const;
 
-const LOOP_MS = 11000;
-/** The drag eases in and out like a hand picking the chord up and setting it down. */
-const DRAG_EASING = [0.42, 0, 0.58, 1] as const;
+const LOOP_MS = 9000;
+/** The drag starts fast and slows down as the chord is about to be dropped. */
+const DRAG_EASING = [0.1, 0.6, 0.3, 1] as const;
 
 /** Fraction of a drag's duration at which the chip has covered `progress` of its distance: the
  *  inverse of the easing curve, so highlights can be timed to where the chip actually is. */
