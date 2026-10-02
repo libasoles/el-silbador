@@ -4,6 +4,7 @@ import { endSlotIds, gapSlotId, getLineCellSlots, getLineGaps, getLineUnits, mer
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, PitchDirection, TrackDef, TrackId } from "../../core/types";
 import type { DragDelta } from "../pitchDragGesture";
+import { useIsMobile } from "../useIsMobile";
 import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
 import { areSlotRectsReady, edgeDropZoneRect, haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
@@ -209,8 +210,9 @@ export function LineView({
   const [slotRectsMeasuredFor, setSlotRectsMeasuredFor] = useState("");
   const [annotationGapExtras, setAnnotationGapExtras] = useState<Record<string, number>>({});
   // Leading chords sit left of the first syllable, which would put them off-screen (negative
-  // `left`) on a line that starts flush with the edge. This indents just this line's syllable row
-  // by the room those chords need; lines without leading chords stay flush.
+  // `left`) on a line that starts flush with the edge. On mobile only, this indents just this
+  // line's syllable row by the room those chords need; lines without leading chords stay flush.
+  const isMobile = useIsMobile();
   const [leadingShift, setLeadingShift] = useState(0);
   const annotationSpacingKeyRef = useRef<string | null>(null);
   const gapCorrectionAttemptsRef = useRef<Record<string, number>>({});
@@ -746,7 +748,7 @@ export function LineView({
         style={
           {
             ...(readOnly ? { "--wrap-row-gap": `${wrapRowGap}px` } : null),
-            ...(leadingShift > 0 ? { paddingLeft: `${leadingShift}px` } : null),
+            ...(isMobile && leadingShift > 0 ? { paddingLeft: `${leadingShift}px` } : null),
           } as React.CSSProperties
         }
       >
