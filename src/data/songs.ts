@@ -1,6 +1,5 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CellsByTrack, Song } from "../core/types";
-import { getSupabaseClient } from "./supabaseClient";
+import { getSupabaseClient, type SupabaseClient } from "./supabaseClient";
 import type {
   SaveSongInput,
   SavedSong,
