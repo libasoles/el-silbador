@@ -361,15 +361,20 @@ export function LineView({
     // one's label must clear the next slot's left edge; a shortfall widens the space after it.
     const unitBySlot = new Map(units.map((unit) => [unit.slotId, unit]));
     const gapBySlot = new Map(gaps.map((gap) => [gap.slotId, gap]));
-    const anchorLeft = (slotId: string): number | null => {
+    const anchorPoint = (slotId: string): { left: number; top: number } | null => {
       const unit = unitBySlot.get(slotId);
-      if (unit) return syllableEls.current.get(unit.syllableIds[0])?.getBoundingClientRect().left ?? null;
+      if (unit) {
+        const rect = syllableEls.current.get(unit.syllableIds[0])?.getBoundingClientRect();
+        return rect ? { left: rect.left, top: rect.top } : null;
+      }
       const gap = gapBySlot.get(slotId);
       const gapEl = gap && gapEls.current.get(gap.afterSyllableId);
       if (!gap || !gapEl) return null;
       const unitSlot = unitSlotBySyllable.get(gap.afterSyllableId);
-      return gapEl.getBoundingClientRect().left + (unitSlot ? (annotationGapExtras[unitSlot] ?? 0) : 0);
+      const rect = gapEl.getBoundingClientRect();
+      return { left: rect.left + (unitSlot ? (annotationGapExtras[unitSlot] ?? 0) : 0), top: rect.top };
     };
+    const anchorLeft = (slotId: string): number | null => anchorPoint(slotId)?.left ?? null;
     const anchorSlots = slotIds.slice(lineStartSlots.length, slotIds.length - lineEndSlots.length);
     for (let index = 0; index < anchorSlots.length - 1; index++) {
       const slotId = anchorSlots[index]!;
@@ -378,9 +383,15 @@ export function LineView({
       // next slot that does have one — otherwise two labels either side of a bare gap, like the
       // notes of "a" and "se", would never be checked against each other and could touch.
       const nextSlotId = anchorSlots.slice(index + 1).find((id) => labelWidths.has(id));
-      const left = anchorLeft(slotId);
-      const nextLeft = nextSlotId === undefined ? null : anchorLeft(nextSlotId);
-      if (!width || left === null || nextLeft === null) continue;
+      const from = anchorPoint(slotId);
+      const to = nextSlotId === undefined ? null : anchorPoint(nextSlotId);
+      if (!width || !from || !to) continue;
+      // A read-only line can wrap: a label whose next neighbour landed on a later visual row can
+      // never collide with it, and the left-to-left distance across rows is meaningless (often
+      // negative), so widening for it would only blow the gap up and overflow the viewport.
+      if (Math.abs(to.top - from.top) > 2) continue;
+      const left = from.left;
+      const nextLeft = to.left;
       // Rounded to match `width` (already an integer): comparing a fractional distance against
       // an integer target rarely lands on exactly zero, which would otherwise leave a shortfall
       // that never fully closes.
