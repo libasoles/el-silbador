@@ -1,6 +1,6 @@
 {
-  "name": "Silbador",
-  "short_name": "Silbador",
+  "name": "El Silbador",
+  "short_name": "El Silbador",
   "description": "Editor de canciones para guitarra: silabeá la letra y anotá acordes y notas de canto.",
   "start_url": "/",
   "display": "standalone",
