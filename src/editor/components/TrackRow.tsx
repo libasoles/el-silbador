@@ -44,6 +44,7 @@ export function TrackRow({
 }: TrackRowProps) {
   const cellRefs = useRef<Array<HTMLElement | null>>([]);
   const rects = slotIds.map((slotId) => slotRects[slotId]);
+  const hasContent = slotIds.some((slotId) => getCell(cells, trackId, slotId).trim() !== "");
   const annotationLefts = rects.every((rect) => rect !== undefined)
     ? layoutAnnotationLabels(rects as { left: number; width: number }[])
     : [];
@@ -57,6 +58,7 @@ export function TrackRow({
     <div
       className={"track-row" + (annotationsReady ? " track-row--annotations-ready" : "")}
       data-track={trackId}
+      data-empty={!hasContent}
       role="row"
       aria-label={label}
     >

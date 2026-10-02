@@ -18,6 +18,7 @@ const layout = readFileSync(new URL("../../src/app/layout.tsx", import.meta.url)
 const authModal = readFileSync(new URL("./components/AuthModal.tsx", import.meta.url), "utf8");
 const autosave = readFileSync(new URL("./useAutosave.ts", import.meta.url), "utf8");
 const lineView = readFileSync(new URL("./components/LineView.tsx", import.meta.url), "utf8");
+const trackRow = readFileSync(new URL("./components/TrackRow.tsx", import.meta.url), "utf8");
 const toastStyles = readFileSync(new URL("./components/Toast.css", import.meta.url), "utf8");
 const providers = readFileSync(new URL("../app/providers.tsx", import.meta.url), "utf8");
 const toastProvider = readFileSync(
@@ -95,6 +96,22 @@ describe("chord layout loading", () => {
       /\.track-row\[data-track="chords"\]:not\(\.track-row--annotations-ready\) \.track-cell\s*\{\s*visibility: hidden/,
     );
     expect(styles).not.toMatch(/\.track-row\[data-track="chords"\]\.track-row--annotations-ready \.track-cell\s*\{[\s\S]*animation:/);
+  });
+});
+
+describe("empty annotation rows", () => {
+  it("omits every empty track in read-only lines", () => {
+    expect(lineView).toContain("if (!readOnly) return true;");
+    expect(lineView).toContain('trackSlotIds.some((slotId) => getCell(cells, track.id, slotId).trim() !== "")');
+    expect(lineView).toContain('if (track.id === "chordNotes")');
+    expect(lineView).toContain('track.visible && track.id !== "vocalNotes" && hasTrackContent(track)');
+    expect(lineView).toContain('track.visible && track.id === "vocalNotes" && showUnderline && hasTrackContent(track)');
+  });
+
+  it("keeps blank rows available while editing but removes them from PDF exports", () => {
+    expect(lineView).toContain("if (!readOnly) return true;");
+    expect(trackRow).toContain('data-empty={!hasContent}');
+    expect(styles).toMatch(/@media print\s*\{[\s\S]*\.track-row\[data-empty="true"\]\s*\{\s*display: none/);
   });
 });
 

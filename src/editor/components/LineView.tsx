@@ -619,8 +619,25 @@ export function LineView({
     );
   }
 
-  const beforeTracks = tracks.filter((track) => track.visible && track.id !== "vocalNotes");
-  const afterTracks = tracks.filter((track) => track.visible && track.id === "vocalNotes" && showUnderline);
+  // In read mode, a line should not carry an empty annotation row. Keep blank rows in the editor:
+  // their cells are where authors add the next annotation. `chordNotes` is derived from chords,
+  // so it has content only when a chord can actually be described.
+  function hasTrackContent(track: TrackDef) {
+    if (!readOnly) return true;
+    const trackSlotIds =
+      track.id === "vocalNotes" ? slotIds.filter((slotId) => !chordOnlySlotIds.has(slotId)) : slotIds;
+    if (track.id === "chordNotes") {
+      return trackSlotIds.some((slotId) => chordToNoteNames(getCell(cells, "chords", slotId)) !== null);
+    }
+    return trackSlotIds.some((slotId) => getCell(cells, track.id, slotId).trim() !== "");
+  }
+
+  const beforeTracks = tracks.filter(
+    (track) => track.visible && track.id !== "vocalNotes" && hasTrackContent(track),
+  );
+  const afterTracks = tracks.filter(
+    (track) => track.visible && track.id === "vocalNotes" && showUnderline && hasTrackContent(track),
+  );
   const isWrapped = wrapLayout !== null;
   const firstRowSlotIds = isWrapped ? wrapLayout.groups[0]! : slotIds;
   const lastRowSlotIds = isWrapped ? wrapLayout.groups[wrapLayout.groups.length - 1]! : slotIds;

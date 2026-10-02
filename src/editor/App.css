@@ -737,6 +737,14 @@
   height: 1.25em;
 }
 
+/* Printing can start while an owner is editing, so it cannot rely on LineView's read-only
+   filtering. Empty annotation rows never belong in the exported sheet. */
+@media print {
+  .track-row[data-empty="true"] {
+    display: none;
+  }
+}
+
 /* Subtle annotation cells: no boxes, just onset-aligned text that sits above its syllable. Each
    is pinned (via inline left/width, computed from the rendered syllable geometry) so chord/note
    marks begin at the sound they belong to, and stay put — position never changes on focus. */
