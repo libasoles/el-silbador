@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer } from "react";
 import { createInitialState, editorReducer } from "../core/state";
 import type { Action } from "../core/state";
 import type { ChordPlacement } from "../core/chordSheet";
-import type { EditorState, TrackId } from "../core/types";
+import type { EditorState, PitchDirection, TrackId } from "../core/types";
 import type { SongContent } from "../data/types";
 
 const HISTORY_LIMIT = 200;
@@ -123,6 +123,8 @@ export function useEditor(initialContent: SongContent | undefined, isMobile: boo
         dispatch({ type: "setCellText", trackId, slotId, text }),
       moveCellText: (trackId: TrackId, fromSlotId: string, toSlotId: string) =>
         dispatch({ type: "moveCellText", trackId, fromSlotId, toSlotId }),
+      dragPitchDirection: (slotId: string, direction: PitchDirection) =>
+        dispatch({ type: "dragPitchDirection", slotId, direction }),
       setChordVariant: (slotId: string, index: number) => dispatch({ type: "setChordVariant", slotId, index }),
       setTrackVisibility: (trackId: TrackId, visible: boolean) =>
         dispatch({ type: "setTrackVisibility", trackId, visible }),

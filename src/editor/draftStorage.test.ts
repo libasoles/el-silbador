@@ -10,6 +10,7 @@ function createContent(overrides: Partial<SongContent> = {}): SongContent {
     song: [],
     cells: {},
     chordVariants: {},
+    pitchDirections: {},
     merges: new Set(["a-b"]),
     ...overrides,
   };

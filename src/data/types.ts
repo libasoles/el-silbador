@@ -7,7 +7,7 @@ import type { EditorState } from "../core/types";
  */
 export type SongContent = Pick<
   EditorState,
-  "title" | "author" | "lyricsText" | "song" | "cells" | "chordVariants"
+  "title" | "author" | "lyricsText" | "song" | "cells" | "chordVariants" | "pitchDirections"
 > & {
   merges: Set<string>;
 };

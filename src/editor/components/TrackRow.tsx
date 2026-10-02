@@ -1,14 +1,16 @@
 import { useRef } from "react";
 import { getCell } from "../../core/state";
-import type { CellsByTrack, TrackId } from "../../core/types";
+import type { CellsByTrack, PitchDirection, TrackId } from "../../core/types";
+import type { DragDelta } from "../pitchDragGesture";
 import { layoutAnnotationLabels } from "./annotationLayout";
+import { ArrowDownIcon, ArrowUpIcon } from "./icons";
 import { TrackCell } from "./TrackCell";
 
 /** A track row's cell drag & drop wiring, bundled so it travels as one prop instead of five. */
 export interface CellDragHandlers {
   draggedSlotId: string | null;
   onDragStart: (slotId: string) => void;
-  onDragEnd: () => void;
+  onDragEnd: (slotId: string, delta: DragDelta | null) => void;
   onDragEnter: (slotId: string) => void;
   onDragLeave: (slotId: string) => void;
   onDrop: (slotId: string) => void;
@@ -21,6 +23,10 @@ interface TrackRowProps {
   slotRects: Record<string, { left: number; width: number }>;
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
+  /** Only meaningful for the vocal notes track: the indicator shown under each note. */
+  pitchDirections?: Record<string, PitchDirection>;
+  /** True once any note on the line has an indicator. Until then the arrow row takes no space. */
+  reservePitchDirectionRow?: boolean;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onSetChordVariant: (slotId: string, index: number) => void;
   drag: CellDragHandlers;
@@ -36,6 +42,8 @@ export function TrackRow({
   slotRects,
   cells,
   chordVariants,
+  pitchDirections = {},
+  reservePitchDirectionRow = false,
   onSetCellText,
   onSetChordVariant,
   drag,
@@ -55,6 +63,7 @@ export function TrackRow({
   }
 
   return (
+    <>
     <div
       className={"track-row" + (annotationsReady ? " track-row--annotations-ready" : "")}
       data-track={trackId}
@@ -84,7 +93,7 @@ export function TrackRow({
             draggable={value.length > 0 && !readOnly}
             isDragging={drag.draggedSlotId === slotId}
             onDragStart={() => drag.onDragStart(slotId)}
-            onDragEnd={drag.onDragEnd}
+            onDragEnd={(delta) => drag.onDragEnd(slotId, delta)}
             onDragEnter={() => drag.onDragEnter(slotId)}
             onDragLeave={() => drag.onDragLeave(slotId)}
             onDrop={() => drag.onDrop(slotId)}
@@ -94,5 +103,27 @@ export function TrackRow({
         );
       })}
     </div>
+    {trackId === "vocalNotes" && reservePitchDirectionRow ? (
+      <div className="pitch-direction-row" data-track="pitchDirections">
+        {slotIds.map((slotId, index) => {
+          const direction = pitchDirections[slotId];
+          const rect = slotRects[slotId];
+          if (!direction || !rect) return null;
+          const Icon = direction === "up" ? ArrowUpIcon : ArrowDownIcon;
+          return (
+            <span
+              key={slotId}
+              className="pitch-direction"
+              style={{ left: `${annotationLefts[index] ?? rect.left}px` }}
+              role="img"
+              aria-label={direction === "up" ? "Más agudo que la anterior" : "Más grave que la anterior"}
+            >
+              <Icon size="1em" strokeWidth={2.25} aria-hidden="true" />
+            </span>
+          );
+        })}
+      </div>
+    ) : null}
+    </>
   );
 }
