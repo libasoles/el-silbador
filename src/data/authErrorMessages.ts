@@ -24,6 +24,14 @@ function isDatabaseError(message: string): boolean {
   return /database error/i.test(message);
 }
 
+/** True for errors the user can't act on (server failures, unmapped codes, network errors) — the
+ *  ones worth reporting to Sentry. Mapped codes like rate limits or invalid emails are expected. */
+export function isUnexpectedAuthError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return true;
+  const { code } = error as AuthErrorLike;
+  return !(code && MESSAGES_BY_CODE[code]);
+}
+
 /** Translates a Supabase auth error into a Spanish, user-facing message. */
 export function translateAuthError(error: unknown): string {
   if (!error || typeof error !== "object") return GENERIC_MESSAGE;

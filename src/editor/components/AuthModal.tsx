@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { trackEvent } from "../analytics";
 import { signInWithMagicLink } from "../../data/auth";
-import { translateAuthError } from "../../data/authErrorMessages";
+import { isUnexpectedAuthError, translateAuthError } from "../../data/authErrorMessages";
+import { reportError } from "../reportError";
 import "./AuthModal.css";
 import { AlertCircleIcon, MailIcon } from "./icons";
 import { Dialog } from "./Dialog";
@@ -31,6 +32,7 @@ export function AuthModal({ onClose }: AuthModalProps) {
       trackEvent("login_link_sent", { method: "magic_link" });
       setLinkSent(true);
     } catch (err) {
+      if (isUnexpectedAuthError(err)) reportError(err, { feature: "auth_magic_link" });
       setError(translateAuthError(err));
     } finally {
       setSubmitting(false);
