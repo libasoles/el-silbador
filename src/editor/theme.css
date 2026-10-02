@@ -124,3 +124,19 @@ input {
 .icon-button-tooltip:focus-within::after {
   opacity: 1;
 }
+
+/* Fixed controls (menu, close, toolbars) anchor to the layout viewport. If any content were ever
+   wider than the screen, mobile browsers widen that viewport and push those controls off-screen,
+   so phone widths never allow horizontal page overflow — wide content is clipped in its column
+   instead. */
+@media (max-width: 30rem) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .song-wrapper {
+    overflow-x: clip;
+  }
+}
