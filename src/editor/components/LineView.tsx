@@ -250,9 +250,42 @@ export function LineView({
     .map(([slotId, extra]) => `${slotId}:${extra}`)
     .join("\u0001");
 
+  // Bumped when a syllable's rendered size changes without any resize event — a system text-size
+  // change, browser zoom, or Android text autosizing kicking in after the first measurement. Every
+  // slot position and gap correction was computed from the old sizes, so both measuring effects
+  // restart from scratch on it; otherwise labels stay where the old, smaller text put them and
+  // overlap.
+  const [layoutVersion, setLayoutVersion] = useState(0);
+  const syllableSizes = useRef(new WeakMap<Element, string>());
+  const sizeObserver = useRef<ResizeObserver | null>(null);
+
+  function getSizeObserver() {
+    if (sizeObserver.current || typeof ResizeObserver === "undefined") return sizeObserver.current;
+    sizeObserver.current = new ResizeObserver((entries) => {
+      let changed = false;
+      for (const entry of entries) {
+        const size = `${Math.round(entry.contentRect.width)}x${Math.round(entry.contentRect.height)}`;
+        const previous = syllableSizes.current.get(entry.target);
+        syllableSizes.current.set(entry.target, size);
+        // The first callback per element only reports its initial size.
+        if (previous !== undefined && previous !== size) changed = true;
+      }
+      if (changed) setLayoutVersion((version) => version + 1);
+    });
+    return sizeObserver.current;
+  }
+
+  useLayoutEffect(() => () => sizeObserver.current?.disconnect(), []);
+
   function registerSyllableRef(syllableId: string, el: HTMLElement | null) {
-    if (el) syllableEls.current.set(syllableId, el);
-    else syllableEls.current.delete(syllableId);
+    if (el) {
+      syllableEls.current.set(syllableId, el);
+      getSizeObserver()?.observe(el);
+    } else {
+      const previous = syllableEls.current.get(syllableId);
+      if (previous) sizeObserver.current?.unobserve(previous);
+      syllableEls.current.delete(syllableId);
+    }
   }
 
   useLayoutEffect(() => {
@@ -332,12 +365,13 @@ export function LineView({
     // rendered width of word-boundary gaps (see App.css) — without it, showing/hiding the chords
     // track after text already exists leaves every annotation position stale.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [line, merges, annotationGapExtras, annotationGapExtrasKey, chordsVisible, lineStartSlots, lineEndSlots]);
+  }, [line, merges, annotationGapExtras, annotationGapExtrasKey, chordsVisible, lineStartSlots, lineEndSlots, layoutVersion]);
 
   useLayoutEffect(() => {
     // A changed label or merge gets a fresh measurement from the unexpanded lyric layout.
-    if (annotationSpacingKeyRef.current !== annotationSpacingKey) {
-      annotationSpacingKeyRef.current = annotationSpacingKey;
+    const spacingKey = `${annotationSpacingKey}|${layoutVersion}`;
+    if (annotationSpacingKeyRef.current !== spacingKey) {
+      annotationSpacingKeyRef.current = spacingKey;
       gapCorrectionAttemptsRef.current = {};
       if (Object.keys(annotationGapExtras).length > 0) {
         setAnnotationGapExtras({});
@@ -446,7 +480,7 @@ export function LineView({
 
     const changed = Object.keys(next).some((key) => next[key] !== annotationGapExtras[key]);
     if (changed) setAnnotationGapExtras(next);
-  }, [annotationGapExtras, annotationSpacingKey, cells, slotIds, tracks, units, gaps, unitSlotBySyllable, lineStartSlots, lineEndSlots]);
+  }, [annotationGapExtras, annotationSpacingKey, layoutVersion, cells, slotIds, tracks, units, gaps, unitSlotBySyllable, lineStartSlots, lineEndSlots]);
 
   useLayoutEffect(() => {
     if (!readOnly) return;
