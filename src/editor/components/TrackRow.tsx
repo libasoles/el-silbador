@@ -25,7 +25,7 @@ interface TrackRowProps {
   onSetChordVariant: (slotId: string, index: number) => void;
   drag: CellDragHandlers;
   readOnly?: boolean;
-  /** Melody notes must not be visible until their absolutely-positioned slots are measured. */
+  /** Annotation rows must not be visible until their absolutely-positioned slots are measured. */
   annotationsReady?: boolean;
 }
 
@@ -55,7 +55,7 @@ export function TrackRow({
 
   return (
     <div
-      className={"track-row" + (trackId === "vocalNotes" && annotationsReady ? " track-row--annotations-ready" : "")}
+      className={"track-row" + (annotationsReady ? " track-row--annotations-ready" : "")}
       data-track={trackId}
       role="row"
       aria-label={label}

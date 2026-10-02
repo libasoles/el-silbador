@@ -768,6 +768,10 @@
   visibility: hidden;
 }
 
+.track-row[data-track="chords"]:not(.track-row--annotations-ready) .track-cell {
+  visibility: hidden;
+}
+
 .track-row[data-track="vocalNotes"].track-row--annotations-ready .track-cell {
   animation: melody-note-reveal 120ms ease-out both;
   animation-delay: calc(var(--melody-note-index, 0) * 28ms);

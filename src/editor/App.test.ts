@@ -87,6 +87,17 @@ describe("melody-note layout reveal", () => {
   });
 });
 
+describe("chord layout loading", () => {
+  it("keeps chords hidden until their slots are measured only on the initial load, without animation", () => {
+    expect(lineView).toContain("const chordRevealedRef = useRef(false)");
+    expect(lineView).toContain("chordRevealedRef.current ||");
+    expect(styles).toMatch(
+      /\.track-row\[data-track="chords"\]:not\(\.track-row--annotations-ready\) \.track-cell\s*\{\s*visibility: hidden/,
+    );
+    expect(styles).not.toMatch(/\.track-row\[data-track="chords"\]\.track-row--annotations-ready \.track-cell\s*\{[\s\S]*animation:/);
+  });
+});
+
 describe("icon-button tooltips", () => {
   it("uses a lock that reflects the song's current privacy", () => {
     expect(app).toContain("PrivacyLockedIcon");

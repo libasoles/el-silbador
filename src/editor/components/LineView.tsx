@@ -206,6 +206,9 @@ export function LineView({
   // The melody reveal animation is a page-load effect. Once a line's notes have been revealed,
   // re-measuring after an edit must not hide them again, or every typed note replays the animation.
   const melodyRevealedRef = useRef(false);
+  // Chords need the same loading guard, but deliberately no animation. This ref makes the guard
+  // a first-load-only concern: after a user edits a chord, its row stays visible while remeasured.
+  const chordRevealedRef = useRef(false);
   // Read-only lines (always true on mobile) wrap onto multiple visual rows instead of
   // overflowing the viewport. When a line actually wraps, this holds each visual row's slot ids
   // (annotation cells + the syllables they sit above) plus the geometry needed to place a
@@ -576,6 +579,13 @@ export function LineView({
     }
     // Melody notes belong to syllables only; the whitespace gaps between words are chord-only slots.
     const trackSlotIds = track.id === "vocalNotes" ? rowSlotIds.filter((slotId) => !gapSlotIds.has(slotId)) : rowSlotIds;
+    const measured = areSlotRectsReady(trackSlotIds, slotRects) && slotRectsMeasuredFor === annotationGapExtrasKey;
+    const annotationsReady =
+      track.id === "vocalNotes"
+        ? melodyRevealedRef.current || (melodyRevealedRef.current = measured)
+        : track.id === "chords"
+          ? chordRevealedRef.current || (chordRevealedRef.current = measured)
+          : true;
     const drag: CellDragHandlers = {
       draggedSlotId: dragSource && dragSource.trackId === track.id ? dragSource.slotId : null,
       onDragStart: (slotId) => onDragStartCell(track.id, slotId),
@@ -597,12 +607,7 @@ export function LineView({
           onSetChordVariant={onSetChordVariant}
           drag={drag}
           readOnly={readOnly}
-          annotationsReady={
-            track.id !== "vocalNotes" ||
-            melodyRevealedRef.current ||
-            (melodyRevealedRef.current =
-              areSlotRectsReady(trackSlotIds, slotRects) && slotRectsMeasuredFor === annotationGapExtrasKey)
-          }
+          annotationsReady={annotationsReady}
         />
       </div>
     );
