@@ -46,6 +46,32 @@ describe("parseChordSheet", () => {
     expect(placements).toEqual([{ lineIndex: 1, column: 0, chord: "C" }]);
   });
 
+  it("splits chords written back-to-back without a space between them", () => {
+    const text = ["C       A7D7", "la llama del amor", "      G    D7C", "lo despertó"].join("\n");
+
+    const { lyricsText, placements } = parseChordSheet(text);
+
+    expect(lyricsText).toBe("la llama del amor\nlo despertó");
+    expect(placements).toEqual([
+      { lineIndex: 0, column: 0, chord: "C" },
+      { lineIndex: 0, column: 8, chord: "A7" },
+      { lineIndex: 0, column: 10, chord: "D7" },
+      { lineIndex: 1, column: 6, chord: "G" },
+      { lineIndex: 1, column: 11, chord: "D7" },
+      { lineIndex: 1, column: 13, chord: "C" },
+    ]);
+  });
+
+  it("uses the chord database to pick the cut, keeping known chords whole", () => {
+    const chords = (line: string) =>
+      parseChordSheet(`${line}\nx`).placements.map((p) => `${p.column}:${p.chord}`);
+
+    expect(chords("Am7")).toEqual(["0:Am7"]);
+    expect(chords("Dm7G7C")).toEqual(["0:Dm7", "3:G7", "5:C"]);
+    expect(chords("CGm")).toEqual(["0:C", "1:Gm"]);
+    expect(chords("F#mB7")).toEqual(["0:F#m", "3:B7"]);
+  });
+
   it("does not mistake ordinary lyric lines for chord lines", () => {
     const text = "Everybody wants to rule the world";
     expect(parseChordSheet(text)).toEqual({ lyricsText: text, placements: [] });

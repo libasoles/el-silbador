@@ -5,16 +5,55 @@
  * chord symbol (root note, optional accidental, optional quality/extension, optional slash bass).
  */
 
+import { findChordShape } from "./findChordShape";
+
 const CHORD_QUALITY = "(?:maj|Maj|min|Min|dim|Dim|aug|Aug|sus|Sus|add|Add|[mM])?";
 const CHORD_EXTENSION = "[0-9]{0,2}(?:sus[0-9]{0,2})?[0-9]{0,2}[+-]?";
-const CHORD_TOKEN_RE = new RegExp(
-  `^(?:N\\.?C\\.?|[A-G](?:#|b)?${CHORD_QUALITY}${CHORD_EXTENSION}(?:/[A-G](?:#|b)?)?)$`,
-);
+const CHORD_BODY = `(?:N\\.?C\\.?|[A-G](?:#|b)?${CHORD_QUALITY}${CHORD_EXTENSION}(?:/[A-G](?:#|b)?)?)`;
+const CHORD_TOKEN_RE = new RegExp(`^${CHORD_BODY}$`);
+
+interface Segmentation {
+  /** Pieces whose text isn't in the chord database (fewer is better). */
+  unknown: number;
+  parts: { offset: number; chord: string }[];
+}
+
+function isBetter(a: Segmentation, b: Segmentation | null): boolean {
+  if (!b) return true;
+  if (a.unknown !== b.unknown) return a.unknown < b.unknown;
+  return a.parts.length < b.parts.length;
+}
+
+/** Splits a whitespace-free token into consecutive chords, since sources sometimes glue them
+ *  together (`A7D7` -> `A7`, `D7`). A token that is itself a known chord is kept whole; otherwise
+ *  every way of cutting it into syntactically valid chords is tried and the cut that uses the most
+ *  chords found in the chord database wins (ties go to fewer, longer chords). Returns null if the
+ *  token can't be cut into chords at all. */
+function splitChordToken(token: string): { offset: number; chord: string }[] | null {
+  if (findChordShape(token)) return [{ offset: 0, chord: token }];
+
+  const best: (Segmentation | null)[] = new Array(token.length + 1).fill(null);
+  best[token.length] = { unknown: 0, parts: [] };
+  for (let start = token.length - 1; start >= 0; start--) {
+    for (let end = start + 1; end <= token.length; end++) {
+      const rest = best[end];
+      if (!rest) continue;
+      const chord = token.slice(start, end);
+      if (!CHORD_TOKEN_RE.test(chord)) continue;
+      const candidate: Segmentation = {
+        unknown: rest.unknown + (findChordShape(chord) ? 0 : 1),
+        parts: [{ offset: start, chord }, ...rest.parts],
+      };
+      if (isBetter(candidate, best[start])) best[start] = candidate;
+    }
+  }
+  return best[0]?.parts ?? null;
+}
 
 function isChordLine(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed) return false;
-  return trimmed.split(/\s+/).every((token) => CHORD_TOKEN_RE.test(token));
+  return trimmed.split(/\s+/).every((token) => splitChordToken(token) !== null);
 }
 
 export interface ChordPlacement {
@@ -31,7 +70,12 @@ export interface ParsedChordSheet {
 }
 
 function lineTokens(line: string): { column: number; chord: string }[] {
-  return [...line.matchAll(/\S+/g)].map((match) => ({ column: match.index, chord: match[0] }));
+  return [...line.matchAll(/\S+/g)].flatMap((match) =>
+    (splitChordToken(match[0]) ?? []).map((part) => ({
+      column: match.index + part.offset,
+      chord: part.chord,
+    })),
+  );
 }
 
 /** Splits pasted text into lyrics-only text plus the chord placements detected above each line.
