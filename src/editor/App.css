@@ -1022,14 +1022,16 @@
 }
 
 /* A song being viewed (rather than edited) uses its chord placements as a quieter reading
-   guide: only syllables carrying a chord keep an underline. Editable songs retain the full
-   syllable guide above. Melisma bridges are intentionally omitted in this compact view. */
+   guide: syllables carrying a chord and every syllable in a melisma keep an underline. Editable
+   songs retain the full syllable guide above. */
 .line--chord-underlines-only .syllable::after,
 .line--chord-underlines-only .syllable-gap--merged::after {
   content: none;
 }
 
-.line--chord-underlines-only .syllable--has-chord::after {
+.line--chord-underlines-only .syllable--has-chord::after,
+.line--chord-underlines-only .syllable--merged::after,
+.line--chord-underlines-only .syllable-gap--merged::after {
   content: "";
 }
 
