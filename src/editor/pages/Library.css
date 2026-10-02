@@ -234,6 +234,11 @@
   color: var(--fg);
 }
 
+.library-row__title.skeleton {
+  width: min(12rem, 55%);
+  height: 1.25rem;
+}
+
 .library-row__title-text {
   min-width: 0;
   overflow: hidden;
@@ -282,6 +287,11 @@
   font-size: 0.9rem;
   color: var(--muted);
   white-space: nowrap;
+}
+
+.library-row__author.skeleton {
+  width: 6.5rem;
+  height: 1rem;
 }
 
 .library-row__author--empty {

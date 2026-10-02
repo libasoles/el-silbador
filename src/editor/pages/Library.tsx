@@ -171,13 +171,9 @@ function LibraryRowSkeleton() {
   return (
     <li className="library-row">
       <div className="library-row__open">
-        <span aria-hidden="true" className="skeleton library-row__title">
-          Título de ejemplo
-        </span>
+        <span aria-hidden="true" className="skeleton library-row__title" />
         <span className="library-row__leader" aria-hidden="true" />
-        <span aria-hidden="true" className="skeleton library-row__author">
-          Autor de ejemplo
-        </span>
+        <span aria-hidden="true" className="skeleton library-row__author" />
       </div>
     </li>
   );
