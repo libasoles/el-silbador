@@ -7,6 +7,7 @@ import {
   type ComponentProps,
 } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton, Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
@@ -126,9 +127,9 @@ function SongNotFound() {
         No encontramos esta canción. Puede que no exista, o que sea privada y
         solo la pueda ver quien la creó.
       </p>
-      <a className="song-not-found__link" href="/">
+      <Link className="song-not-found__link" href="/">
         Ir al cancionero
-      </a>
+      </Link>
     </div>
   );
 }
@@ -745,17 +746,17 @@ function App({
 
   return (
     <main className="app">
-      <a className="app-mark" href="/" aria-label="Volver al índice">
+      <Link className="app-mark" href="/" aria-label="Volver al índice">
         <SilbadorIcon />
-      </a>
+      </Link>
 
       <IconButtonTooltip
         className="app-close-tooltip"
         tooltip="Volver al índice"
       >
-        <a className="app-close" href="/" aria-label="Volver al índice">
+        <Link className="app-close" href="/" aria-label="Volver al índice">
           <XIcon size={26} />
-        </a>
+        </Link>
       </IconButtonTooltip>
 
       {notFound ? (

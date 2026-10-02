@@ -494,7 +494,16 @@ export function Library({
         <SilbadorIcon />
       </a>
 
-      <button type="button" className="library-auth" onClick={handleAuthClick}>
+      <button
+        type="button"
+        className="library-auth"
+        onClick={handleAuthClick}
+        // Until the session check resolves we can't tell "Entrar" from "Salir"; keep the slot
+        // (no layout shift) but don't show a wrong state.
+        style={session === undefined ? { visibility: "hidden" } : undefined}
+        aria-hidden={session === undefined}
+        tabIndex={session === undefined ? -1 : undefined}
+      >
         {authenticated ? (
           <>
             <LogOutIcon />
