@@ -46,6 +46,22 @@ describe("parseChordSheet", () => {
     expect(placements).toEqual([{ lineIndex: 1, column: 0, chord: "C" }]);
   });
 
+  it("splits chords written back-to-back without a space between them", () => {
+    const text = ["C       A7D7", "la llama del amor", "      G    D7C", "lo despertó"].join("\n");
+
+    const { lyricsText, placements } = parseChordSheet(text);
+
+    expect(lyricsText).toBe("la llama del amor\nlo despertó");
+    expect(placements).toEqual([
+      { lineIndex: 0, column: 0, chord: "C" },
+      { lineIndex: 0, column: 8, chord: "A7" },
+      { lineIndex: 0, column: 10, chord: "D7" },
+      { lineIndex: 1, column: 6, chord: "G" },
+      { lineIndex: 1, column: 11, chord: "D7" },
+      { lineIndex: 1, column: 13, chord: "C" },
+    ]);
+  });
+
   it("does not mistake ordinary lyric lines for chord lines", () => {
     const text = "Everybody wants to rule the world";
     expect(parseChordSheet(text)).toEqual({ lyricsText: text, placements: [] });

@@ -7,14 +7,28 @@
 
 const CHORD_QUALITY = "(?:maj|Maj|min|Min|dim|Dim|aug|Aug|sus|Sus|add|Add|[mM])?";
 const CHORD_EXTENSION = "[0-9]{0,2}(?:sus[0-9]{0,2})?[0-9]{0,2}[+-]?";
-const CHORD_TOKEN_RE = new RegExp(
-  `^(?:N\\.?C\\.?|[A-G](?:#|b)?${CHORD_QUALITY}${CHORD_EXTENSION}(?:/[A-G](?:#|b)?)?)$`,
-);
+const CHORD_BODY = `(?:N\\.?C\\.?|[A-G](?:#|b)?${CHORD_QUALITY}${CHORD_EXTENSION}(?:/[A-G](?:#|b)?)?)`;
+const CHORD_PREFIX_RE = new RegExp(CHORD_BODY, "y");
+
+/** Splits a whitespace-free token into consecutive chords, since sources sometimes glue them
+ *  together (`A7D7` -> `A7`, `D7`). Returns null if the token isn't made up entirely of chords. */
+function splitChordToken(token: string): { offset: number; chord: string }[] | null {
+  const parts: { offset: number; chord: string }[] = [];
+  let offset = 0;
+  while (offset < token.length) {
+    CHORD_PREFIX_RE.lastIndex = offset;
+    const match = CHORD_PREFIX_RE.exec(token);
+    if (!match || match[0] === "") return null;
+    parts.push({ offset, chord: match[0] });
+    offset += match[0].length;
+  }
+  return parts;
+}
 
 function isChordLine(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed) return false;
-  return trimmed.split(/\s+/).every((token) => CHORD_TOKEN_RE.test(token));
+  return trimmed.split(/\s+/).every((token) => splitChordToken(token) !== null);
 }
 
 export interface ChordPlacement {
@@ -31,7 +45,12 @@ export interface ParsedChordSheet {
 }
 
 function lineTokens(line: string): { column: number; chord: string }[] {
-  return [...line.matchAll(/\S+/g)].map((match) => ({ column: match.index, chord: match[0] }));
+  return [...line.matchAll(/\S+/g)].flatMap((match) =>
+    (splitChordToken(match[0]) ?? []).map((part) => ({
+      column: match.index + part.offset,
+      chord: part.chord,
+    })),
+  );
 }
 
 /** Splits pasted text into lyrics-only text plus the chord placements detected above each line.
