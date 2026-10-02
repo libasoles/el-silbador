@@ -62,6 +62,16 @@ describe("parseChordSheet", () => {
     ]);
   });
 
+  it("uses the chord database to pick the cut, keeping known chords whole", () => {
+    const chords = (line: string) =>
+      parseChordSheet(`${line}\nx`).placements.map((p) => `${p.column}:${p.chord}`);
+
+    expect(chords("Am7")).toEqual(["0:Am7"]);
+    expect(chords("Dm7G7C")).toEqual(["0:Dm7", "3:G7", "5:C"]);
+    expect(chords("CGm")).toEqual(["0:C", "1:Gm"]);
+    expect(chords("F#mB7")).toEqual(["0:F#m", "3:B7"]);
+  });
+
   it("does not mistake ordinary lyric lines for chord lines", () => {
     const text = "Everybody wants to rule the world";
     expect(parseChordSheet(text)).toEqual({ lyricsText: text, placements: [] });

@@ -5,24 +5,49 @@
  * chord symbol (root note, optional accidental, optional quality/extension, optional slash bass).
  */
 
+import { findChordShape } from "./findChordShape";
+
 const CHORD_QUALITY = "(?:maj|Maj|min|Min|dim|Dim|aug|Aug|sus|Sus|add|Add|[mM])?";
 const CHORD_EXTENSION = "[0-9]{0,2}(?:sus[0-9]{0,2})?[0-9]{0,2}[+-]?";
 const CHORD_BODY = `(?:N\\.?C\\.?|[A-G](?:#|b)?${CHORD_QUALITY}${CHORD_EXTENSION}(?:/[A-G](?:#|b)?)?)`;
-const CHORD_PREFIX_RE = new RegExp(CHORD_BODY, "y");
+const CHORD_TOKEN_RE = new RegExp(`^${CHORD_BODY}$`);
+
+interface Segmentation {
+  /** Pieces whose text isn't in the chord database (fewer is better). */
+  unknown: number;
+  parts: { offset: number; chord: string }[];
+}
+
+function isBetter(a: Segmentation, b: Segmentation | null): boolean {
+  if (!b) return true;
+  if (a.unknown !== b.unknown) return a.unknown < b.unknown;
+  return a.parts.length < b.parts.length;
+}
 
 /** Splits a whitespace-free token into consecutive chords, since sources sometimes glue them
- *  together (`A7D7` -> `A7`, `D7`). Returns null if the token isn't made up entirely of chords. */
+ *  together (`A7D7` -> `A7`, `D7`). A token that is itself a known chord is kept whole; otherwise
+ *  every way of cutting it into syntactically valid chords is tried and the cut that uses the most
+ *  chords found in the chord database wins (ties go to fewer, longer chords). Returns null if the
+ *  token can't be cut into chords at all. */
 function splitChordToken(token: string): { offset: number; chord: string }[] | null {
-  const parts: { offset: number; chord: string }[] = [];
-  let offset = 0;
-  while (offset < token.length) {
-    CHORD_PREFIX_RE.lastIndex = offset;
-    const match = CHORD_PREFIX_RE.exec(token);
-    if (!match || match[0] === "") return null;
-    parts.push({ offset, chord: match[0] });
-    offset += match[0].length;
+  if (findChordShape(token)) return [{ offset: 0, chord: token }];
+
+  const best: (Segmentation | null)[] = new Array(token.length + 1).fill(null);
+  best[token.length] = { unknown: 0, parts: [] };
+  for (let start = token.length - 1; start >= 0; start--) {
+    for (let end = start + 1; end <= token.length; end++) {
+      const rest = best[end];
+      if (!rest) continue;
+      const chord = token.slice(start, end);
+      if (!CHORD_TOKEN_RE.test(chord)) continue;
+      const candidate: Segmentation = {
+        unknown: rest.unknown + (findChordShape(chord) ? 0 : 1),
+        parts: [{ offset: start, chord }, ...rest.parts],
+      };
+      if (isBetter(candidate, best[start])) best[start] = candidate;
+    }
   }
-  return parts;
+  return best[0]?.parts ?? null;
 }
 
 function isChordLine(line: string): boolean {
