@@ -106,7 +106,7 @@ describe("icon-button tooltips", () => {
   });
 
   it("anchors the close tooltip wrapper to the fixed close control", () => {
-    expect(app).toContain('<IconButtonTooltip className="app-close-tooltip"');
+    expect(app).toMatch(/<IconButtonTooltip\s+className="app-close-tooltip"/);
     expect(styles).toMatch(
       /\.app-close-tooltip\s*\{[\s\S]*position: fixed[\s\S]*top: 1rem[\s\S]*right: 1rem/,
     );
