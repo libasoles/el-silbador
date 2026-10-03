@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowLeft, Music2 } from "lucide-react";
 import Link from "next/link";
-import { ChordEditorArticleDemo } from "../ChordEditorArticleDemo";
+import { ArticleChordEditor } from "../ArticleChordEditor";
 import "../articles.css";
 
 export const metadata: Metadata = {
@@ -20,7 +20,8 @@ export default function ChordEditorArticlePage() {
         <p className="article-page__lead">Los acordes se escriben sobre la letra, se acomodan con un arrastre y quedan siempre ligados al momento de la canción donde los necesitás.</p>
         <div className="article-page__body">
           <p>Abrí una canción propia y usá el botón de acordes de la barra lateral. Cuando está activo aparece la fila sobre cada verso; cuando lo apagás, la letra sigue intacta y simplemente deja de mostrarse esa fila.</p>
-          <ChordEditorArticleDemo />
+          <p>El ejemplo usa el comienzo de <a href="https://elsilbador.com.ar/cancion/tonada-de-un-viejo-amor-a1be2">“Tonada de un viejo amor”</a>. Hacé click en la fila de acordes, justo sobre una sílaba, para escribir una cifra nueva.</p>
+          <ArticleChordEditor />
           <h2>Un lugar para cada entrada</h2>
           <p>Cada acorde ocupa una posición de la frase. Podés arrastrarlo a la sílaba que marque mejor el cambio. También hay posiciones en los extremos: soltalo antes de la primera sílaba si empieza antes de cantar, o después de la última si el cambio llega al final.</p>
           <h2>Ver y corregir</h2>

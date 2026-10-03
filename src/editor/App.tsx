@@ -159,7 +159,7 @@ interface TrackToggleButtonProps {
   onToggle: () => void;
 }
 
-function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
+export function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
   const hasContent =
     track.id === "chordNotes"
       ? Object.values(cells.chords ?? {}).some(

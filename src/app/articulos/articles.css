@@ -201,52 +201,6 @@
   line-height: 1.15;
 }
 
-.chord-guide {
-  margin: 2.1rem 0 2.8rem;
-  padding: 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: 0.45rem;
-  background: color-mix(in srgb, var(--bg) 92%, var(--accent));
-}
-
-.chord-guide__section + .chord-guide__section {
-  margin-top: 1.65rem;
-  padding-top: 1.65rem;
-  border-top: 1px solid var(--border);
-}
-
-.chord-guide__toolbar, .chord-guide__details { display: flex; align-items: center; gap: 1rem; }
-.chord-guide__toolbar > span { color: var(--muted); font-size: 0.9rem; line-height: 1.35; }
-.chord-guide__toggle, .chord-guide__chip--action { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 2.3rem; border: 1px solid var(--border-strong); border-radius: 0.3rem; background: var(--bg); color: var(--fg); cursor: pointer; font: inherit; }
-.chord-guide__toggle { padding: 0.35rem 0.55rem; white-space: nowrap; }
-.chord-guide__toggle[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
-.chord-guide__excerpt { margin: 1.25rem 0 0; overflow-x: auto; color: var(--fg); font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); font-size: 0.78rem; line-height: 1.55; }
-.chord-guide__credit, .chord-guide__hint { margin: 0.65rem 0 0; color: var(--muted); font-size: 0.88rem; line-height: 1.4; }
-.chord-guide__label { margin: 0; color: var(--accent); font-family: var(--sans); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
-.chord-guide__writing { display: grid; grid-template-columns: repeat(9, max-content); align-items: end; gap: 0.12rem 0.22rem; margin-top: 0.85rem; font-family: var(--serif); }
-.chord-guide__slot { grid-column: 2; min-width: 2.4rem; min-height: 1.7rem; border: 0; border-bottom: 2px solid var(--syllable-underline); background: transparent; color: var(--chord); cursor: text; font-family: var(--sans); font-size: 0.9rem; }
-.chord-guide__slot input, .chord-guide__edit-input { width: 100%; border: 1px solid var(--accent); border-radius: 0.2rem; outline: none; color: var(--chord); font: inherit; }
-.chord-guide__syllable { grid-row: 2; border-bottom: 2px solid var(--syllable-underline); line-height: 1.1; }
-.chord-guide__syllable--target { color: var(--accent); }
-.chord-guide__edges { display: flex; align-items: end; gap: 0.35rem; margin-top: 1.1rem; overflow-x: auto; white-space: nowrap; }
-.chord-guide__edge { color: var(--muted); font-size: 0.72rem; }
-.chord-guide__phrase { padding: 0 0.45rem; border-bottom: 2px solid var(--syllable-underline); font-family: var(--serif); }
-.chord-guide__chip { display: inline-flex; align-items: center; min-height: 1.75rem; padding: 0 0.38rem; border-radius: 0.25rem; background: color-mix(in srgb, var(--accent) 14%, var(--bg)); color: var(--chord); font-family: var(--sans); font-size: 0.88rem; font-weight: 600; }
-.chord-guide__chip--action { padding: 0 0.55rem; }
-.chord-guide__details { align-items: flex-start; margin-top: 0.8rem; }
-.chord-guide__details .chord-diagram { flex: none; border-left: 1px solid var(--border); padding-left: 1rem; }
-.chord-guide__edit-input { min-height: 2rem; padding: 0 0.45rem; font-family: var(--sans); }
-.chord-guide .chord-diagram { display: block; }
-.chord-guide .chord-diagram__string, .chord-guide .chord-diagram__fret { stroke: var(--border-strong); stroke-width: 1; }
-.chord-guide .chord-diagram__fret--nut { stroke: var(--fg); stroke-width: 3; }
-.chord-guide .chord-diagram__position, .chord-guide .chord-diagram__mute, .chord-guide .chord-diagram__string-name { font-family: var(--sans); fill: var(--muted); }
-.chord-guide .chord-diagram__position, .chord-guide .chord-diagram__string-name { font-size: 9px; }
-.chord-guide .chord-diagram__barre, .chord-guide .chord-diagram__finger { fill: var(--chord); }
-.chord-guide .chord-diagram__barre { opacity: 0.9; }
-.chord-guide .chord-diagram__finger-label { font-family: var(--sans); font-size: 9px; font-weight: 700; fill: var(--bg); }
-.chord-guide .chord-diagram__open { fill: none; stroke: var(--fg); stroke-width: 1.5; }
-.chord-guide .chord-diagram__mute { font-size: 11px; font-weight: 700; }
-
 @media (max-width: 30rem) {
   .articles {
     padding: 0 0 2.5rem;
@@ -259,8 +213,4 @@
   .article-page {
     padding: 0 0 3rem;
   }
-
-  .chord-guide { margin-left: -0.25rem; margin-right: -0.25rem; padding: 1rem; }
-  .chord-guide__toolbar { align-items: flex-start; flex-direction: column; gap: 0.6rem; }
-  .chord-guide__writing { font-size: 0.9rem; }
 }
