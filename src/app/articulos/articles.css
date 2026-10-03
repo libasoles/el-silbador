@@ -195,6 +195,12 @@
   margin: 0 0 1.4rem;
 }
 
+/* Running prose reads in sans; titles, lead and song examples keep the serif. */
+.article-page__body > p {
+  font-family: var(--sans);
+  font-size: 1rem;
+}
+
 .article-page__body h2 {
   margin: 2.2rem 0 0.7rem;
   font-size: 1.55rem;
