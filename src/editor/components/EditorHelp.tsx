@@ -30,11 +30,22 @@ export function EditorHelp() {
   return (
     <div className="editor-help" ref={rootRef}>
       {open ? (
-        <div className="editor-help__panel" role="dialog" aria-label="Ayuda del editor">
+        <div
+          className="editor-help__panel"
+          role="dialog"
+          aria-label="Ayuda del editor"
+        >
+          <p className="editor-help__autosave editor-help__edit-only">
+            Los cambios se guardan solos mientras escribís, no hace falta
+            guardar a mano.
+          </p>
+
           <ul className="editor-help__list">
             <li>
               <ChordIcon />
-              <span>Muestra u oculta la fila de acordes arriba de la letra.</span>
+              <span>
+                Muestra u oculta la fila de acordes arriba de la letra.
+              </span>
             </li>
             <li className="editor-help__chord-notes">
               <NoteStackIcon />
@@ -46,21 +57,14 @@ export function EditorHelp() {
             <li className="editor-help__edit-only">
               <UnderlineIcon />
               <span>
-                Muestra u oculta la línea debajo de cada sílaba y deja
-                escribir las notas de la melodía debajo de esa línea.
+                Muestra u oculta el subrayado de sílabas, y deja escribir las
+                notas de la melodía debajo.
               </span>
             </li>
           </ul>
+
           <p>
-            La separación en sílabas funciona para español. No hay garantía de
-            que funcione correctamente en otros idiomas.{" "}
-            <span className="editor-help__edit-only">
-              Se puede unir sílabas clickeando el espacio intermedio.
-            </span>
-          </p>
-          <p className="editor-help__autosave editor-help__edit-only">
-            Los cambios se guardan solos mientras escribís, no hace falta
-            guardar a mano.
+            Podés leer más en <a href="/articulos">la guía del editor</a>.
           </p>
         </div>
       ) : null}

@@ -51,6 +51,17 @@ export default function SongNotesArticlePage() {
         </p>
 
         <div className="article-page__body">
+          <h2>Separación en sílabas</h2>
+
+          <p>
+            Todo el texto de la canción se divide automáticamente en sílabas
+            para facilitar la escritura de las notas.
+          </p>
+          <p className="article-highlight">
+            Funciona para español. No hay garantía de que funcione en otros
+            idiomas.
+          </p>
+
           <h2>Mostrar u ocultar las notas</h2>
           <p>
             El botón del subrayado, en la barra lateral, dibuja una rayita

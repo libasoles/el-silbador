@@ -572,6 +572,7 @@
 }
 
 .editor-help {
+  font-family: var(--sans);
   position: fixed;
   left: 1rem;
   bottom: 1rem;
@@ -788,7 +789,8 @@
 /* Melody cells are absolute-positioned. Keep them visually absent while LineView measures every
    slot; otherwise the browser briefly paints them all at their shared static position. Once the
    row is ready, reveal the notes in their measured positions from left to right. */
-.track-row[data-track="vocalNotes"]:not(.track-row--annotations-ready) .track-cell {
+.track-row[data-track="vocalNotes"]:not(.track-row--annotations-ready)
+  .track-cell {
   visibility: hidden;
 }
 
