@@ -39,7 +39,7 @@ const articles = [
     title: "Cómo escribir las notas de la canción",
     summary:
       "Escribir la melodía debajo de la letra, unir sílabas que se cantan juntas, marcar subidas y bajadas, y cambiar de tono.",
-    topics: ["editor", "melodía", "notas"],
+    topics: ["editor", "melodía", "notas", "canto"],
   },
 ] as const;
 
@@ -53,25 +53,20 @@ export default function ArticlesPage() {
       <header className="articles__header">
         <p className="articles__eyebrow">El Silbador</p>
         <h1>Artículos</h1>
-        {/* <p className="articles__intro">
-          Notas, ideas y pequeñas historias alrededor de las canciones.
-        </p> */}
+        <p className="articles__intro">
+          Conocé cómo usar el editor de canciones.
+        </p>
       </header>
 
-      <section className="articles__list" aria-label="Artículos">
+      <section aria-label="Artículos">
         {articles.map((article) => (
           <article className="article-preview" key={article.title}>
             <p className="article-preview__date">{article.date}</p>
             <h2>
-              <Link href={article.href}>
-                {article.title}
-              </Link>
+              <Link href={article.href}>{article.title}</Link>
             </h2>
             <p className="article-preview__summary">{article.summary}</p>
-            <Link
-              className="article-preview__more"
-              href={article.href}
-            >
+            <Link className="article-preview__more" href={article.href}>
               Leer artículo{" "}
               <ArrowRight aria-hidden="true" size={16} strokeWidth={1.75} />
             </Link>

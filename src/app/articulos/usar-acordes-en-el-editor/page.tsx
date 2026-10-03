@@ -56,8 +56,7 @@ export default function ChordEditorArticlePage() {
         <p className="article-page__meta">Guía del editor · acordes</p>
         <h1>Cómo usar los acordes en el editor</h1>
         <p className="article-page__lead">
-          Cada acorde va pegado a una sílaba o a un espacio en blanco. Justo
-          donde conviene.
+          Cada acorde va pegado a una sílaba o a un espacio en blanco.
         </p>
 
         <div className="article-page__body">
@@ -101,8 +100,8 @@ export default function ChordEditorArticlePage() {
 
           <h2>Escribir un acorde</h2>
           <p>
-            Hacé <span className="article-action">click</span> justo arriba de la
-            sílaba y escribí algo, por ejemplo A. Después, presioná{" "}
+            Hacé <span className="article-action">click</span> justo arriba de
+            la sílaba y escribí algo, por ejemplo A. Después, presioná{" "}
             <span className="article-action">Enter</span> o hacé{" "}
             <span className="article-action">click</span> afuera, en cualquier
             lado.
@@ -193,9 +192,10 @@ export default function ChordEditorArticlePage() {
 
           <h2>Dibujo del acorde</h2>
           <p>
-            Un <span className="article-action">click</span> sobre un acorde abre
-            su diagrama para guitarra. Si el acorde se puede armar en más de una
-            posición del mástil, las flechas del diagrama pasan de una a otra.
+            Un <span className="article-action">click</span> sobre un acorde
+            abre su diagrama para guitarra. Si el acorde se puede armar en más
+            de una posición del mástil, las flechas del diagrama pasan de una a
+            otra.
           </p>
 
           <p className="article-highlight">
