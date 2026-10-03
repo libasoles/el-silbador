@@ -20,7 +20,7 @@ import "../articles.css";
 export const metadata: Metadata = {
   title: "Cómo escribir las notas de la canción",
   description:
-    "Mostrar, escribir y corregir las notas de la melodía debajo de la letra en El Silbador: unir sílabas, marcar subidas y bajadas, y cambiar de tono.",
+    "Mostrar, escribir y corregir las notas de la melodía debajo de la letra en El Silbador: unir sílabas, marcar ascensos y descensos, y cambiar de tono.",
 };
 
 const FIRST_LINE = "Una noche tibia nos conocimos";
@@ -108,11 +108,9 @@ export default function SongNotesArticlePage() {
 
           <h2>Una nota para varias sílabas</h2>
           <p>
-            A veces dos sílabas se cantan juntas, en una sola nota. Pasa mucho
-            cuando una palabra termina en vocal y la siguiente empieza con otra:
-            en «Junto al», la <span className="article-syllable">«o»</span> de
-            junto y la <span className="article-syllable">«a»</span> de al se
-            cantan de un tirón.
+            A veces dos o más sílabas se cantan juntas, en una sola nota. Pasa
+            mucho cuando una palabra termina en vocal y la siguiente empieza con
+            otra.
           </p>
           <MelodyJoinExample />
           <p>
@@ -121,9 +119,9 @@ export default function SongNotesArticlePage() {
             vuelve una sola y las dos comparten la misma nota.
           </p>
           <p>
-            En el segundo verso, <span className="article-syllable">«to»</span>{" "}
-            y <span className="article-syllable">«al»</span> todavía están
-            separadas y una de las dos quedó sin nota. Hacé{" "}
+            En el segundo verso, <span className="article-syllable">to</span> y{" "}
+            <span className="article-syllable">al</span> todavía están separadas
+            y una de las dos quedó sin nota. Hacé{" "}
             <span className="article-action">click</span> entre ellas para
             unirlas:
           </p>
@@ -143,27 +141,21 @@ export default function SongNotesArticlePage() {
             Si las dos sílabas tenían nota, queda la de la primera.
           </p>
 
-          <h2>Subidas y bajadas</h2>
+          <h2>Ascensos y descensos</h2>
           <p>
-            Escribir «sol» no alcanza para saber si es el sol de abajo o el de
-            arriba. Por eso cada nota puede llevar una flecha:{" "}
-            <span className="article-action">↑</span> si suena más aguda que la
-            anterior y <span className="article-action">↓</span> si suena más
-            grave.
+            Escribir <span className="article-syllable">sol</span> no alcanza
+            para saber si es el sol de abajo o el de arriba. Por eso cada nota
+            puede llevar una flecha: <span className="article-action">↑</span>{" "}
+            si suena más aguda que la anterior y{" "}
+            <span className="article-action">↓</span> si suena más grave.
           </p>
           <PitchDragExample />
+          <p>La flecha solo se puede poner en una sílaba que tenga nota.</p>
           <p>
             Para ponerla, agarrá la nota y arrastrala hacia arriba o hacia
-            abajo.
+            abajo. Probá:
           </p>
-          <p>
-            En el primer verso, el mi de{" "}
-            <span className="article-syllable">«na»</span> suena más agudo que
-            el do de <span className="article-syllable">«U»</span>: arrastralo
-            hacia arriba. Después, arrastrá hacia abajo el mi de{" "}
-            <span className="article-syllable">«che»</span>, que vuelve a bajar
-            después del sol.
-          </p>
+
           <ArticleChordEditor
             sheet={YPACARAI_SHEET}
             melody={YPACARAI_MELODY_FLAT}
@@ -171,17 +163,21 @@ export default function SongNotesArticlePage() {
             label="Editor con la melodía completa y sin flechas"
             needsEditing
           />
-          <p>
+          <p className="article-highlight">
             Para sacar una flecha, arrastrá la nota en la dirección contraria.
-            La flecha solo se puede poner en una sílaba que ya tiene nota.
           </p>
 
           <h2>Cambiar de tono</h2>
           <p>
             Los botones − y + suben o bajan de a medio tono los acordes y
             también las notas de la melodía, juntos. Apretá{" "}
-            <span className="article-action">+</span> dos veces: el sol pasa a
-            ser la, el do pasa a ser re y el C pasa a ser D.
+            <span className="article-action">+</span> dos veces: el{" "}
+            <span className="article-syllable">sol</span> pasa a ser{" "}
+            <span className="article-syllable">la</span>, el{" "}
+            <span className="article-syllable">do</span> pasa a ser{" "}
+            <span className="article-syllable">re</span> y el{" "}
+            <span className="article-syllable">C</span> pasa a ser{" "}
+            <span className="article-syllable">D</span>.
           </p>
           <ArticleChordEditor
             sheet={YPACARAI_CHORD_SHEET}
@@ -190,14 +186,13 @@ export default function SongNotesArticlePage() {
             label="Editor con acordes, notas y el control para cambiar de tono"
             tools={["transpose"]}
           />
-          <p>
-            Las flechas no cambian. Como toda la melodía se mueve la misma
-            distancia, lo que subía sigue subiendo y lo que bajaba sigue
-            bajando.
-          </p>
+          <p>Las flechas no cambian.</p>
           <p className="highlight">
             Las notas usan sostenidos o bemoles igual que los acordes: si la
-            canción está escrita con Bb, la melodía va a decir sib y no la#.
+            canción está escrita con{" "}
+            <span className="article-syllable">Bb</span>, la melodía va a decir{" "}
+            <span className="article-syllable">sib</span> y no{" "}
+            <span className="article-syllable">la#</span>.
           </p>
         </div>
       </article>
