@@ -4,6 +4,13 @@
 
 Silabeo/El Silbador is a **cancionero** (songbook) app. The site's name is always "El Silbador", with the article — never just "Silbador". This applies to any user-facing text: page titles, meta descriptions/OG tags, on-screen copy, PDF filenames, etc. (Component/identifier names like `SilbadorIcon` are exempt.)
 
+## Articles (blog)
+
+Articles under `src/app/articulos/` are written for end users we don't know, and explain how to
+use El Silbador. Never address the site owner through an article: no notes about how the demos
+were built, what is or isn't saved, implementation details, or remarks meant for the person who
+asked for the change. Anything for the owner goes in the chat, not on the page.
+
 ## Git workflow
 
 Every task must use its own git worktree and branch. Codex creates worktrees at
