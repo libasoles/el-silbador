@@ -322,6 +322,120 @@
   font-size: 1.35rem;
 }
 
+/* The melody tutorials from the editor toasts, at reading size. */
+.article-gesture .melody-tutorial-example {
+  margin-top: 0;
+  font-size: 1.35rem;
+}
+
+/* A third row under the notes holds the arrow each drag leaves behind. */
+.pitch-drag-example .pitch-drag-example__unit {
+  grid-template-rows: 1.1em 1.35em 0.9em;
+}
+
+.pitch-drag-example__note--up,
+.pitch-drag-example__note--down {
+  animation: 5s ease-in-out infinite;
+}
+
+.pitch-drag-example__note--up {
+  animation-name: pitch-drag-up;
+}
+
+.pitch-drag-example__note--down {
+  animation-name: pitch-drag-down;
+}
+
+.pitch-drag-example__arrow-slot {
+  display: flex;
+  color: var(--fg);
+  font-size: 0.75rem;
+}
+
+.pitch-drag-example__arrow {
+  display: inline-flex;
+  opacity: 0;
+  animation: 5s ease-out infinite;
+}
+
+.pitch-drag-example__arrow--up {
+  animation-name: pitch-drag-arrow-up;
+}
+
+.pitch-drag-example__arrow--down {
+  animation-name: pitch-drag-arrow-down;
+}
+
+@keyframes pitch-drag-up {
+  0%,
+  10%,
+  32%,
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+  20%,
+  26% {
+    transform: translateY(-0.9em);
+    opacity: 0.55;
+  }
+}
+
+@keyframes pitch-drag-down {
+  0%,
+  42%,
+  64%,
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+  52%,
+  58% {
+    transform: translateY(0.9em);
+    opacity: 0.55;
+  }
+}
+
+@keyframes pitch-drag-arrow-up {
+  0%,
+  31% {
+    opacity: 0;
+  }
+  34%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pitch-drag-arrow-down {
+  0%,
+  63% {
+    opacity: 0;
+  }
+  66%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pitch-drag-example__note--up,
+  .pitch-drag-example__note--down {
+    animation: none;
+  }
+
+  .pitch-drag-example__arrow {
+    opacity: 1;
+    animation: none;
+  }
+}
+
 /* Same card the editor opens beside a clicked chord (.chord-tooltip), shown in place. */
 .article-diagram {
   display: flex;
@@ -363,7 +477,8 @@
   }
 
   /* The demo phrase can't wrap, so it shrinks to keep its edge slots on screen. */
-  .article-gesture .chord-tutorial-example {
+  .article-gesture .chord-tutorial-example,
+  .article-gesture .melody-tutorial-example {
     font-size: 1rem;
   }
 }
