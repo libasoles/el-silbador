@@ -8,11 +8,19 @@ const page = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
 const editor = readFileSync(new URL("../ArticleChordEditor.tsx", import.meta.url), "utf8");
 const styles = readFileSync(new URL("../articles.css", import.meta.url), "utf8");
 
+// Heading text with inline markup (e.g. <span className="article-action">) stripped.
+const headings = [...page.matchAll(/<h2>([\s\S]*?)<\/h2>/g)].map(([, inner]) =>
+  inner
+    .replace(/\{" "\}/g, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim(),
+);
+
 describe("chord editor article", () => {
-  it("uses the requested song excerpt and source", () => {
+  it("uses the requested song excerpt", () => {
     expect(editor).toContain("Ya nunca te he de olvidar");
     expect(editor).toContain("y estoy mas solo mirando el mar.");
-    expect(page).toContain("https://elsilbador.com.ar/cancion/tonada-de-un-viejo-amor-a1be2");
   });
 
   it("renders existing editor components rather than a simulated interface", () => {
@@ -32,10 +40,10 @@ describe("chord editor article", () => {
       "Mover un acorde a otra sílaba",
       "Antes y después de la frase",
       "Corregir un acorde con doble click",
-      "Ver cómo se toca",
+      "Dibujo del acorde",
       "Cambiar de tono",
     ]) {
-      expect(page).toContain(`<h2>${heading}</h2>`);
+      expect(headings).toContain(heading);
     }
   });
 

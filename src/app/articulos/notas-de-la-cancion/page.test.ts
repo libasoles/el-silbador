@@ -18,7 +18,7 @@ describe("song notes article", () => {
       "Mostrar u ocultar las notas",
       "Escribir una nota",
       "Una nota para varias sílabas",
-      "Subidas y bajadas",
+      "Ascensos y descensos",
       "Cambiar de tono",
     ]) {
       expect(page).toContain(`<h2>${heading}</h2>`);
