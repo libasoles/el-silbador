@@ -15,19 +15,25 @@ import {
   YPACARAI_MELODY_UNJOINED,
   YPACARAI_SHEET,
 } from "../ypacaraiSong";
+import { ArticleJsonLd } from "../ArticleJsonLd";
+import { articleMetadata } from "../articleSeo";
 import "../articles.css";
 
-export const metadata: Metadata = {
+const ARTICLE = {
   title: "Cómo escribir las notas de la canción",
   description:
     "Mostrar, escribir y corregir las notas de la melodía debajo de la letra en El Silbador: unir sílabas, marcar ascensos y descensos, y cambiar de tono.",
-};
+  slug: "notas-de-la-cancion",
+} as const;
+
+export const metadata: Metadata = articleMetadata(ARTICLE);
 
 const FIRST_LINE = "Una noche tibia nos conocimos";
 
 export default function SongNotesArticlePage() {
   return (
     <main className="article-page">
+      <ArticleJsonLd {...ARTICLE} />
       <a className="app-mark" href="/" aria-label="Volver a El Silbador">
         <SilbadorIcon />
       </a>

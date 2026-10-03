@@ -6,8 +6,9 @@ const page = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
 
 describe("articles", () => {
   it("uses metadata for the published articles section", () => {
-    expect(page).toContain("Guías y notas sobre canciones en El Silbador.");
-    expect(page).not.toContain("robots:");
+    expect(page).toContain("Guías para escribir canciones con acordes y melodías en El Silbador.");
+    expect(page).toContain('canonical: "/articulos"');
+    expect(page).toContain("robots: { index: true, follow: true }");
   });
 
   it("lists the guide for using chords in the editor", () => {

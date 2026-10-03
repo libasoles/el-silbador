@@ -6,7 +6,22 @@ import "./articles.css";
 
 export const metadata: Metadata = {
   title: "Artículos",
-  description: "Guías y notas sobre canciones en El Silbador.",
+  description: "Guías para escribir canciones con acordes y melodías en El Silbador.",
+  alternates: { canonical: "/articulos" },
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    url: "/articulos",
+    siteName: "El Silbador",
+    locale: "es_AR",
+    title: "Artículos",
+    description: "Guías para escribir canciones con acordes y melodías en El Silbador.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Artículos",
+    description: "Guías para escribir canciones con acordes y melodías en El Silbador.",
+  },
 };
 
 const articles = [

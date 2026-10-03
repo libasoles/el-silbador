@@ -17,13 +17,18 @@ import {
   MoveChordExample,
   TONADA_EXCERPT,
 } from "../ArticleChordEditor";
+import { ArticleJsonLd } from "../ArticleJsonLd";
+import { articleMetadata } from "../articleSeo";
 import "../articles.css";
 
-export const metadata: Metadata = {
+const ARTICLE = {
   title: "Cómo usar los acordes en el editor",
   description:
     "Mostrar, escribir, mover, corregir y consultar acordes en el editor de El Silbador, con ejemplos para probar.",
-};
+  slug: "usar-acordes-en-el-editor",
+} as const;
+
+export const metadata: Metadata = articleMetadata(ARTICLE);
 
 const LYRICS_ONLY = `Ya nunca te he de olvidar
 en la arena me escribias`;
@@ -37,6 +42,7 @@ Ya nunca te he de olvidar`;
 export default function ChordEditorArticlePage() {
   return (
     <main className="article-page">
+      <ArticleJsonLd {...ARTICLE} />
       <a className="app-mark" href="/" aria-label="Volver a El Silbador">
         <SilbadorIcon />
       </a>
