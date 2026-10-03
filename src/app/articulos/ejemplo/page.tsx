@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { ArrowLeft, Music2 } from "lucide-react";
 import Link from "next/link";
-import { SilbadorIcon } from "../../../editor/components/icons";
 import "../articles.css";
 
 export const metadata: Metadata = {
@@ -13,11 +13,12 @@ export default function ExampleArticlePage() {
   return (
     <main className="article-page">
       <a className="app-mark" href="/" aria-label="Volver a El Silbador">
-        <SilbadorIcon />
+        <Music2 aria-hidden="true" />
       </a>
 
       <Link className="article-page__back" href="/articulos">
-        ← Artículos
+        <ArrowLeft aria-hidden="true" size={16} strokeWidth={1.75} />
+        Artículos
       </Link>
 
       <article className="article-page__content">
