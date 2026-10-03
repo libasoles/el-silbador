@@ -316,7 +316,7 @@
   pointer-events: none;
 }
 
-.chord-tutorial-example__end .chord-tutorial-example__drop {
+.chord-tutorial-example__edge .chord-tutorial-example__drop {
   left: 0;
   right: 0;
 }
