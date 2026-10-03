@@ -77,12 +77,20 @@ function LiveChordEditor({ sheet, label, tools = [], needsEditing = false }: Art
   const isMobile = useIsMobile();
   const [initialContent] = useState(() => contentFromChordSheet(sheet));
   const { state, actions } = useEditor(initialContent, isMobile);
+  const hasTrackToggles = tools.includes("trackToggles");
 
   return (
-    <figure className="article-editor" aria-label={label}>
+    <figure
+      className={
+        hasTrackToggles
+          ? "article-editor article-editor--with-track-toggles"
+          : "article-editor"
+      }
+      aria-label={label}
+    >
       {tools.length > 0 ? (
         <div className="article-editor__tools">
-          {tools.includes("trackToggles")
+          {hasTrackToggles
             ? state.tracks
                 .filter((track) => track.id !== "vocalNotes")
                 .map((track) => (

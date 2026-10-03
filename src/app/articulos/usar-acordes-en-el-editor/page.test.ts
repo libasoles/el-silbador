@@ -6,6 +6,7 @@ import { parseChordSheet } from "../../../core/chordSheet";
 
 const page = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
 const editor = readFileSync(new URL("../ArticleChordEditor.tsx", import.meta.url), "utf8");
+const styles = readFileSync(new URL("../articles.css", import.meta.url), "utf8");
 
 describe("chord editor article", () => {
   it("uses the requested song excerpt and source", () => {
@@ -40,6 +41,12 @@ describe("chord editor article", () => {
 
   it("keeps the editor's help button out of the article", () => {
     expect(editor).toContain("showHelp={false}");
+  });
+
+  it("puts the track toggles in a desktop right-hand column", () => {
+    expect(editor).toContain("article-editor--with-track-toggles");
+    expect(styles).toContain('"song tools"');
+    expect(styles).toContain("flex-direction: column");
   });
 
   it("starts the move demo with its chords one syllable off, as in the animation", async () => {
