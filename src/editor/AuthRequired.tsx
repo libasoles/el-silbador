@@ -1,7 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useReducer, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { trackEvent } from "./analytics";
 import { AuthModal } from "./components/AuthModal";
+import { authModalReducer } from "./authModalState";
 import { AuthRequiredContext } from "./authRequiredContext";
 import {
   savePendingAuthAction,
@@ -18,18 +19,22 @@ interface AuthRequiredProviderProps {
  * intent here; their owning screen applies and clears that intent after `session` becomes truthy.
  */
 export function AuthRequiredProvider({ session, children }: AuthRequiredProviderProps) {
-  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalOpen, dispatchAuthModal] = useReducer(authModalReducer, false);
+
+  useEffect(() => {
+    if (session) dispatchAuthModal("authenticated");
+  }, [session]);
 
   const requireAuthentication = (action?: PendingAuthAction) => {
     if (action) savePendingAuthAction(action);
     trackEvent("auth_modal_open");
-    setAuthModalOpen(true);
+    dispatchAuthModal("open");
   };
 
   return (
     <AuthRequiredContext.Provider value={{ session, requireAuthentication }}>
       {children}
-      {authModalOpen && !session && <AuthModal onClose={() => setAuthModalOpen(false)} />}
+      {authModalOpen && !session && <AuthModal onClose={() => dispatchAuthModal("close")} />}
     </AuthRequiredContext.Provider>
   );
 }
