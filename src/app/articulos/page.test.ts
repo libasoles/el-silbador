@@ -13,4 +13,8 @@ describe("articles draft", () => {
     expect(page).toContain("Borrador en desarrollo");
     expect(page).toContain("Lorem ipsum");
   });
+
+  it("links every draft entry to the single example article", () => {
+    expect(page).toContain('href="/articulos/ejemplo"');
+  });
 });

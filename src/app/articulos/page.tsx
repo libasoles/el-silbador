@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SilbadorIcon } from "../../editor/components/icons";
 import "./articles.css";
 
@@ -59,11 +60,13 @@ export default function ArticlesPage() {
         {articles.map((article) => (
           <article className="article-preview" key={article.title}>
             <p className="article-preview__date">{article.date}</p>
-            <h2>{article.title}</h2>
+            <h2>
+              <Link href="/articulos/ejemplo">{article.title}</Link>
+            </h2>
             <p className="article-preview__summary">{article.summary}</p>
-            <p className="article-preview__more" aria-hidden="true">
-              Leer artículo <span>→</span>
-            </p>
+            <Link className="article-preview__more" href="/articulos/ejemplo">
+              Leer artículo <span aria-hidden="true">→</span>
+            </Link>
             <ul className="article-preview__topics" aria-label="Temas">
               {article.topics.map((topic) => (
                 <li key={topic}>{topic}</li>
