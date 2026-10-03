@@ -236,26 +236,17 @@ function App({
   songDbIdRef.current = songDbId;
 
   // Following a magic-link sign-in email reloads the page from scratch, so any content typed
-  // before authenticating would otherwise vanish. If it was stashed in localStorage first (see
-  // handleSaveClick below), restore it here and let the usual autosave-on-sign-in flow persist it.
-  // `App` is server-rendered once (for the client hydration it produces — see
-  // SongPageClient/NuevaPage), and `localStorage` doesn't exist on the server.
-  const [restoredDraft] = useState(() =>
-    typeof window === "undefined" ? null : readDraft(songSlug),
-  );
-  // A local draft always wins over the server's anonymous fetch: it's strictly newer (typed after
-  // that fetch resolved). Passed to `useEditor` as this mount's one-time seed for the reducer's
-  // initial state, so the very first render already shows real content instead of a skeleton —
-  // avoiding a second, later mount of the full (potentially large) `SongView`/`LineView` tree,
-  // which on mobile is what briefly doubles memory pressure enough to crash the tab (see
-  // `SongPageClient`).
-  // Read here (rather than at its other call site below) because it gates the underline-toggle
-  // default that `useEditor` applies when loading content.
+  // before authenticating would otherwise vanish. Read that local draft only after hydration:
+  // the server cannot read localStorage, so using it as the client's initial state would produce
+  // different HTML and trigger a hydration error.
+  const [restoredDraft, setRestoredDraft] = useState<ReturnType<typeof readDraft>>(null);
+  // The song-loading effect must see a restored draft immediately, even before React renders the
+  // state update, so a synchronous query-cache hit cannot overwrite the fresher local content.
+  const restoredDraftRef = useRef<ReturnType<typeof readDraft>>(null);
   const isMobile = useIsMobile();
-  const { state, actions } = useEditor(
-    (restoredDraft ?? initialSong)?.content,
-    isMobile,
-  );
+  // The first client render must exactly match the server HTML. A restored local draft loads in
+  // the effect below once hydration has completed.
+  const { state, actions } = useEditor(initialSong?.content, isMobile);
 
   // A song can change without remounting the editor during client navigation. Treat that the
   // same as opening a fresh page: its mobile tools must start tucked away.
@@ -281,10 +272,10 @@ function App({
     return () => document.removeEventListener("pointerdown", closeWhenClickingOutside);
   }, [isMobile, mobileSidebarOpen]);
 
-  // Only an existing song (songSlug set, no restored draft, no server-fetched content) has content
+  // Only an existing song (songSlug set, no server-fetched content) has content
   // worth waiting on; anything else starts "loaded" with its editor state already in place.
   const [contentLoaded, setContentLoaded] = useState(
-    () => !songSlug || Boolean(restoredDraft) || Boolean(initialSong),
+    () => !songSlug || Boolean(initialSong),
   );
   // `undefined` while an existing song's owner is still unknown (fetch in flight); a brand-new
   // song has no owner yet, so it's implicitly "mine" until it's first saved.
@@ -292,14 +283,16 @@ function App({
     () => initialSong?.ownerId,
   );
   useEffect(() => {
-    if (restoredDraft) {
-      actions.loadContent(restoredDraft.content);
+    const draft = readDraft(songSlug);
+    restoredDraftRef.current = draft;
+    setRestoredDraft(draft);
+    if (draft) {
+      actions.loadContent(draft.content);
+      setContentLoaded(true);
     }
-    // Runs once per mount: restoring is a one-time hydration, and `restoredDraft` itself never
-    // changes after that initial read. Keep the local copy until autosave confirms success, so a
-    // failed post-login save can still be recovered.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Keep the local copy until autosave confirms success, so a failed post-login save can still
+    // be recovered. `actions` is stable; reload only when navigation changes the target song.
+  }, [songSlug, actions]);
 
   useEffect(() => {
     applyTheme(deriveTheme(accentColor));
@@ -361,7 +354,7 @@ function App({
       setSongIsPublic(cachedDetail.isPublic);
       setSongYoutubeUrlState(cachedDetail.youtubeUrl);
       setForkedFrom(cachedDetail.forkedFrom);
-      if (!restoredDraft && !isSameSongAlreadyOpen(cachedDetail.id))
+      if (!restoredDraftRef.current && !isSameSongAlreadyOpen(cachedDetail.id))
         actions.loadContent(cachedDetail.content);
       setContentLoaded(true);
     }
@@ -382,7 +375,7 @@ function App({
         // Only the first resolution (cache or network, whichever wins) may load content into the
         // editor — see the comment above.
         if (
-          !restoredDraft &&
+          !restoredDraftRef.current &&
           !cachedDetail &&
           !isSameSongAlreadyOpen(detail.id)
         ) {
@@ -403,7 +396,8 @@ function App({
     return () => {
       cancelled = true;
     };
-    // `actions` and `queryClient` are stable refs, and `restoredDraft` never changes after mount;
+    // `actions` and `queryClient` are stable refs, and `restoredDraftRef` is current without
+    // needing to refetch whenever the deferred local-draft read completes;
     // only `songSlug` should retrigger the fetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songSlug, actions, queryClient]);

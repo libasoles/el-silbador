@@ -266,10 +266,20 @@ describe("authentication dialog", () => {
 describe("post-login save", () => {
   it("keeps the restored draft until saving succeeds, then explains how to share it", () => {
     expect(app).toMatch(
-      /if \(restoredDraft\) \{\s*actions\.loadContent\(restoredDraft\.content\);\s*\}/,
+      /if \(draft\) \{\s*actions\.loadContent\(draft\.content\);\s*setContentLoaded\(true\);\s*\}/,
     );
     expect(app).toMatch(
       /pendingAction\?\.type === "save-song"[\s\S]*clearDraft\(\);[\s\S]*icon: <PrivacyLockedIcon \/>[\s\S]*title: "Canción guardada"[\s\S]*Para compartir el enlace, hacela pública con el candado\./,
+    );
+  });
+
+  it("defers reading a local draft until after hydration", () => {
+    expect(app).toContain(
+      "const [restoredDraft, setRestoredDraft] = useState<ReturnType<typeof readDraft>>(null);",
+    );
+    expect(app).toContain("useEditor(initialSong?.content, isMobile)");
+    expect(app).toMatch(
+      /const draft = readDraft\(songSlug\);\s*restoredDraftRef\.current = draft;\s*setRestoredDraft\(draft\);/,
     );
   });
 });
