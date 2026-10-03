@@ -9,12 +9,12 @@ import {
   PitchDragExample,
 } from "../ArticleMelodyExamples";
 import {
-  BIRTHDAY_CHORD_SHEET,
-  BIRTHDAY_MELODY,
-  BIRTHDAY_MELODY_FLAT,
-  BIRTHDAY_MELODY_UNJOINED,
-  BIRTHDAY_SHEET,
-} from "../birthdaySong";
+  YPACARAI_CHORD_SHEET,
+  YPACARAI_MELODY,
+  YPACARAI_MELODY_FLAT,
+  YPACARAI_MELODY_UNJOINED,
+  YPACARAI_SHEET,
+} from "../ypacaraiSong";
 import "../articles.css";
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     "Mostrar, escribir y corregir las notas de la melodía debajo de la letra en El Silbador: unir sílabas, marcar subidas y bajadas, y cambiar de tono.",
 };
 
-const FIRST_LINE = "Que los cumplas feliz";
+const FIRST_LINE = "Una noche tibia nos conocimos";
 
 export default function SongNotesArticlePage() {
   return (
@@ -53,8 +53,8 @@ export default function SongNotesArticlePage() {
             queda limpia, sin notas.
           </p>
           <ArticleChordEditor
-            sheet={BIRTHDAY_SHEET}
-            melody={BIRTHDAY_MELODY}
+            sheet={YPACARAI_SHEET}
+            melody={YPACARAI_MELODY}
             showMelody
             label="Editor con el botón del subrayado y las notas de la melodía"
             tools={["underline"]}
@@ -75,7 +75,10 @@ export default function SongNotesArticlePage() {
             Presioná Enter o hacé click afuera para terminar. Con las flechas
             del teclado pasás a la sílaba anterior o a la siguiente.
           </p>
-          <p>Probá con el primer verso: sol, sol, la, sol, do, si.</p>
+          <p>
+            Probá con el primer verso de «Recuerdos de Ypacaraí»: do, mi, sol,
+            mi, la, la, sol, mi, do, la, la.
+          </p>
           <ArticleChordEditor
             sheet={FIRST_LINE}
             showMelody
@@ -91,7 +94,7 @@ export default function SongNotesArticlePage() {
           <p>
             A veces dos sílabas se cantan juntas, en una sola nota. Pasa mucho
             cuando una palabra termina en vocal y la siguiente empieza con otra:
-            en «tía Ana», la «a» de tía y la «A» de Ana se cantan de un tirón.
+            en «Junto al», la «o» de junto y la «a» de al se cantan de un tirón.
           </p>
           <p>
             Para unirlas, hacé click en el espacio que hay entre las dos
@@ -100,14 +103,14 @@ export default function SongNotesArticlePage() {
           </p>
           <MelodyJoinExample />
           <p>
-            En este verso, «a» y «A» todavía están separadas y una de las dos
-            quedó sin nota. Hacé click entre ellas para unirlas:
+            En el segundo verso, «to» y «al» todavía están separadas y una de
+            las dos quedó sin nota. Hacé click entre ellas para unirlas:
           </p>
           <ArticleChordEditor
-            sheet={BIRTHDAY_SHEET}
-            melody={BIRTHDAY_MELODY_UNJOINED}
+            sheet={YPACARAI_SHEET}
+            melody={YPACARAI_MELODY_UNJOINED}
             showMelody
-            label="Editor con dos sílabas para unir en el tercer verso"
+            label="Editor con dos sílabas para unir en el segundo verso"
             needsEditing
           />
           <p>
@@ -131,14 +134,13 @@ export default function SongNotesArticlePage() {
           </p>
           <PitchDragExample />
           <p>
-            En el tercer verso, el sol de «cum» es el mismo sol que los dos
-            anteriores, pero una octava más arriba: es el salto grande de la
-            canción. Arrastralo hacia arriba. Después, arrastrá hacia abajo el
-            mi de «plas».
+            En el primer verso, el mi de «na» suena más agudo que el do de «U»:
+            arrastralo hacia arriba. Después, arrastrá hacia abajo el mi de
+            «che», que vuelve a bajar después del sol.
           </p>
           <ArticleChordEditor
-            sheet={BIRTHDAY_SHEET}
-            melody={BIRTHDAY_MELODY_FLAT}
+            sheet={YPACARAI_SHEET}
+            melody={YPACARAI_MELODY_FLAT}
             showMelody
             label="Editor con la melodía completa y sin flechas"
             needsEditing
@@ -155,8 +157,8 @@ export default function SongNotesArticlePage() {
             pasa a ser la, el do pasa a ser re y el C pasa a ser D.
           </p>
           <ArticleChordEditor
-            sheet={BIRTHDAY_CHORD_SHEET}
-            melody={BIRTHDAY_MELODY}
+            sheet={YPACARAI_CHORD_SHEET}
+            melody={YPACARAI_MELODY}
             showMelody
             label="Editor con acordes, notas y el control para cambiar de tono"
             tools={["transpose"]}
