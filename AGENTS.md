@@ -26,6 +26,8 @@ number (`x.y.z` → `x.(y+1).0`).
 Build components as reusable, composable units whenever practical. Prefer Radix primitives as
 their foundation when a suitable primitive exists.
 
+Use `lucide-react` for every UI icon.
+
 ### Issue tracker
 
 Local markdown — issues/specs live under `.scratch/<feature-slug>/`. See `docs/agents/issue-tracker.md`.

@@ -9,12 +9,16 @@ describe("articles draft", () => {
     expect(page).toMatch(/robots: \{ index: false, follow: false \}/);
   });
 
-  it("renders a draft article index with placeholder content", () => {
-    expect(page).toContain("Borrador en desarrollo");
+  it("renders placeholder content without a development badge", () => {
+    expect(page).not.toContain("Borrador en desarrollo");
     expect(page).toContain("Lorem ipsum");
   });
 
   it("links every draft entry to the single example article", () => {
     expect(page).toContain('href="/articulos/ejemplo"');
+  });
+
+  it("uses Lucide icons for article actions", () => {
+    expect(page).toContain('from "lucide-react"');
   });
 });

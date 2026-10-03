@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { ArrowRight, Music2 } from "lucide-react";
 import Link from "next/link";
-import { SilbadorIcon } from "../../editor/components/icons";
 import "./articles.css";
 
 export const metadata: Metadata = {
@@ -44,7 +44,7 @@ export default function ArticlesPage() {
   return (
     <main className="articles">
       <a className="app-mark" href="/" aria-label="Volver a El Silbador">
-        <SilbadorIcon />
+        <Music2 aria-hidden="true" />
       </a>
 
       <header className="articles__header">
@@ -53,7 +53,6 @@ export default function ArticlesPage() {
         <p className="articles__intro">
           Notas, ideas y pequeñas historias alrededor de las canciones.
         </p>
-        <p className="articles__notice">Borrador en desarrollo</p>
       </header>
 
       <section className="articles__list" aria-label="Borradores de artículos">
@@ -65,7 +64,7 @@ export default function ArticlesPage() {
             </h2>
             <p className="article-preview__summary">{article.summary}</p>
             <Link className="article-preview__more" href="/articulos/ejemplo">
-              Leer artículo <span aria-hidden="true">→</span>
+              Leer artículo <ArrowRight aria-hidden="true" size={16} strokeWidth={1.75} />
             </Link>
             <ul className="article-preview__topics" aria-label="Temas">
               {article.topics.map((topic) => (

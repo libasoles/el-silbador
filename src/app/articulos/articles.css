@@ -10,7 +10,6 @@
 }
 
 .articles__eyebrow,
-.articles__notice,
 .article-preview__date,
 .article-preview__topics {
   font-family: var(--sans);
@@ -33,9 +32,9 @@
 
 .articles h1 {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.65rem, 4vw, 2.1rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
 }
 
 .articles__intro {
@@ -43,16 +42,6 @@
   color: var(--muted);
   font-size: 1.25rem;
   line-height: 1.45;
-}
-
-.articles__notice {
-  display: inline-block;
-  margin: 1.5rem 0 0;
-  padding: 0.35rem 0.55rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--muted);
-  letter-spacing: 0.04em;
 }
 
 .articles__list {
@@ -72,9 +61,9 @@
 .article-preview h2 {
   max-width: 32rem;
   margin: 0;
-  font-size: clamp(1.25rem, 2.5vw, 1.65rem);
-  line-height: 1.16;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .article-preview h2 a {
@@ -98,21 +87,22 @@
 }
 
 .article-preview__more {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
   margin: 1rem 0 0;
   color: var(--fg);
   font-size: 1.02rem;
   text-decoration: none;
 }
 
-.article-preview__more span {
-  display: inline-block;
-  margin-left: 0.18rem;
+.article-preview__more svg {
+  flex: none;
   color: var(--accent);
   transition: transform 160ms ease;
 }
 
-.article-preview:hover .article-preview__more span {
+.article-preview:hover .article-preview__more svg {
   transform: translateX(0.2rem);
 }
 
@@ -146,7 +136,9 @@
 }
 
 .article-page__back {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
   margin-bottom: 3.5rem;
   color: var(--muted);
   font-size: 1rem;
@@ -181,9 +173,9 @@
 
 .article-page h1 {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1.04;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.7rem, 4vw, 2.2rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
 }
 
 .article-page__lead {
