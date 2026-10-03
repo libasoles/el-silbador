@@ -4,11 +4,11 @@ import { describe, expect, it } from "vitest";
 
 import { buildSong, flattenSyllables } from "../../../core/model";
 import {
-  BIRTHDAY_MELODY,
-  BIRTHDAY_MELODY_FLAT,
-  BIRTHDAY_MELODY_UNJOINED,
-  BIRTHDAY_SHEET,
-} from "../birthdaySong";
+  YPACARAI_MELODY,
+  YPACARAI_MELODY_FLAT,
+  YPACARAI_MELODY_UNJOINED,
+  YPACARAI_SHEET,
+} from "../ypacaraiSong";
 
 const page = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
 
@@ -26,8 +26,8 @@ describe("song notes article", () => {
   });
 
   it("writes one melody token per syllable of every line", () => {
-    const lines = buildSong(BIRTHDAY_SHEET);
-    for (const melody of [BIRTHDAY_MELODY, BIRTHDAY_MELODY_UNJOINED, BIRTHDAY_MELODY_FLAT]) {
+    const lines = buildSong(YPACARAI_SHEET);
+    for (const melody of [YPACARAI_MELODY, YPACARAI_MELODY_UNJOINED, YPACARAI_MELODY_FLAT]) {
       expect(melody.map((line) => line.split(" ").length)).toEqual(
         lines.map((line) => flattenSyllables(line).length),
       );
@@ -35,6 +35,6 @@ describe("song notes article", () => {
   });
 
   it("leaves the arrows out of the demo that asks the reader to add them", () => {
-    expect(BIRTHDAY_MELODY_FLAT.join(" ")).not.toMatch(/[↑↓]/);
+    expect(YPACARAI_MELODY_FLAT.join(" ")).not.toMatch(/[↑↓]/);
   });
 });

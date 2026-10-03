@@ -28,14 +28,14 @@ interface PitchDragCell {
 }
 
 const PITCH_CELLS: PitchDragCell[] = [
-  { syllable: "que", note: "sol", wordEnd: true },
-  { syllable: "los", note: "sol", wordEnd: true },
-  { syllable: "cum", note: "sol", drag: "up" },
-  { syllable: "plas", note: "mi", drag: "down" },
+  { syllable: "U", note: "do" },
+  { syllable: "na", note: "mi", drag: "up", wordEnd: true },
+  { syllable: "no", note: "sol" },
+  { syllable: "che", note: "mi", drag: "down" },
 ];
 
-/** Looping drag demo: the third "sol" is pulled up and gets ↑, then "mi" is pulled down and
- *  gets ↓. Drawn like the editor's own melody row, at reading size. */
+/** Looping drag demo: the "mi" of "na" is pulled up and gets ↑, then the "mi" of "che" is pulled
+ *  down and gets ↓. Drawn like the editor's own melody row, at reading size. */
 export function PitchDragExample() {
   const cells = PITCH_CELLS;
   return (
