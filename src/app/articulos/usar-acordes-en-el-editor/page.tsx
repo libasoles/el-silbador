@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { ArrowLeft, Music2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { SilbadorIcon } from "../../../editor/components/icons";
 import { ArticleChordEditor } from "../ArticleChordEditor";
 import "../articles.css";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export default function ChordEditorArticlePage() {
   return (
     <main className="article-page">
-      <a className="app-mark" href="/" aria-label="Volver a El Silbador"><Music2 aria-hidden="true" /></a>
+      <a className="app-mark" href="/" aria-label="Volver a El Silbador"><SilbadorIcon /></a>
       <Link className="article-page__back" href="/articulos"><ArrowLeft aria-hidden="true" size={16} strokeWidth={1.75} />Artículos</Link>
       <article className="article-page__content">
         <p className="article-page__meta">Guía del editor · acordes</p>
