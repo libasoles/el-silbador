@@ -60,7 +60,7 @@ export default function ChordEditorArticlePage() {
             El otro muestra las notas que lo forman: la-do#-mi para un A. Solo
             se puede usar cuando la canción ya tiene algún acorde.
           </p>
-          <p className="highlight">
+          <p className="article-highlight">
             Solo se puede usar cuando la canción ya tiene algún acorde.
           </p>
           <ArticleChordEditor
@@ -153,7 +153,7 @@ export default function ChordEditorArticlePage() {
             del diagrama pasan de una a otra.
           </p>
 
-          <p className="highlight">
+          <p className="article-highlight">
             La forma que dejes elegida queda guardada.
           </p>
 
@@ -178,7 +178,7 @@ export default function ChordEditorArticlePage() {
             label="Editor con el control para cambiar de tono"
             tools={["transpose"]}
           />
-          <p className="highlight">
+          <p className="article-highlight">
             El tono que elijas queda guardado para todos. Pero cada persona
             puede cambiarlo de manera independiente.
           </p>

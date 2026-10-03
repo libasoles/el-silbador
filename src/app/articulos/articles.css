@@ -201,6 +201,19 @@
   font-size: 1rem;
 }
 
+/* Important details within a guide get a quiet, reusable callout rather than competing with the
+   article's headings or interactive examples. */
+.article-page__body > .article-highlight {
+  margin: 1.8rem 0 2rem;
+  padding: 0.85rem 1rem 0.9rem 1.15rem;
+  border-left: 0.22rem solid var(--accent);
+  border-radius: 0 0.45rem 0.45rem 0;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  color: var(--fg);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
 .article-page__body h2 {
   margin: 2.2rem 0 0.7rem;
   font-size: 1.55rem;
