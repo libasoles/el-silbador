@@ -104,6 +104,7 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
 
     const reloaded = await getSong(saved.id);
     expect(reloaded.title).toBe("Cancion de prueba");
+    expect(reloaded.isPublic).toBe(false);
     expect(reloaded.content.lyricsText).toBe("amor y paz");
     expect(reloaded.content.merges).toEqual(new Set(["a|b", "c|d"]));
   });

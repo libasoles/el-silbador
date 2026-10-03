@@ -294,10 +294,10 @@ function App({
   useEffect(() => {
     if (restoredDraft) {
       actions.loadContent(restoredDraft.content);
-      clearDraft();
     }
     // Runs once per mount: restoring is a one-time hydration, and `restoredDraft` itself never
-    // changes after that initial read.
+    // changes after that initial read. Keep the local copy until autosave confirms success, so a
+    // failed post-login save can still be recovered.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -546,11 +546,13 @@ function App({
       pendingAction?.type === "save-song" &&
       pendingAction.songSlug === (songSlug ?? null)
     ) {
+      clearDraft();
       clearPendingAuthAction();
       showToast({
         variant: "success",
-        title: "Sesión iniciada",
-        description: "Guardamos los cambios pendientes.",
+        icon: <PrivacyLockedIcon />,
+        title: "Canción guardada",
+        description: "Para compartir el enlace, hacela pública con el candado.",
       });
     }
   }, [authenticated, autosaveStatus, songSlug, showToast]);

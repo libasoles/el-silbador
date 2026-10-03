@@ -255,6 +255,17 @@ describe("authentication dialog", () => {
   });
 });
 
+describe("post-login save", () => {
+  it("keeps the restored draft until saving succeeds, then explains how to share it", () => {
+    expect(app).toMatch(
+      /if \(restoredDraft\) \{\s*actions\.loadContent\(restoredDraft\.content\);\s*\}/,
+    );
+    expect(app).toMatch(
+      /pendingAction\?\.type === "save-song"[\s\S]*clearDraft\(\);[\s\S]*icon: <PrivacyLockedIcon \/>[\s\S]*title: "Canción guardada"[\s\S]*Para compartir el enlace, hacela pública con el candado\./,
+    );
+  });
+});
+
 describe("magic-link callback errors", () => {
   it("shows Supabase callback errors as a ten-second error toast", () => {
     expect(providers).toContain("<AuthCallbackErrorToast />");
