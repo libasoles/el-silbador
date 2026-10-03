@@ -11,6 +11,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: "https://elsilbador.com.ar/", changeFrequency: "weekly", priority: 1 },
+    {
+      url: "https://elsilbador.com.ar/articulos/usar-acordes-en-el-editor",
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
     ...songs.map((song) => ({
       url: `https://elsilbador.com.ar/cancion/${song.slug}`,
       lastModified: song.updatedAt,

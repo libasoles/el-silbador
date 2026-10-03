@@ -4,18 +4,15 @@ import { describe, expect, it } from "vitest";
 
 const page = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
 
-describe("articles draft", () => {
-  it("is explicitly excluded from search indexing while it is in development", () => {
-    expect(page).toMatch(/robots: \{ index: false, follow: false \}/);
+describe("articles", () => {
+  it("uses metadata for the published articles section", () => {
+    expect(page).toContain("Guías y notas sobre canciones en El Silbador.");
+    expect(page).not.toContain("robots:");
   });
 
-  it("renders placeholder content without a development badge", () => {
-    expect(page).not.toContain("Borrador en desarrollo");
-    expect(page).toContain("Lorem ipsum");
-  });
-
-  it("links every draft entry to the single example article", () => {
-    expect(page).toContain('href="/articulos/ejemplo"');
+  it("lists the guide for using chords in the editor", () => {
+    expect(page).toContain("Cómo usar los acordes en el editor");
+    expect(page).toContain("/articulos/usar-acordes-en-el-editor");
   });
 
   it("uses Lucide icons for article actions", () => {
