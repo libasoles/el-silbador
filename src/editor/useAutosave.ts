@@ -74,6 +74,11 @@ export function useAutosave(
   const lastRetryTick = useRef(retryTick);
   const wasReady = useRef(ready);
   const wasCanPersist = useRef(canPersist);
+  // A new song has no id until its first request returns. Serialize requests so overlapping
+  // effects cannot each insert a separate row during that gap.
+  const saveInFlightRef = useRef(false);
+  const queuedContentRef = useRef<SongContent | null>(null);
+  const mountedRef = useRef(true);
   // Only a brand-new song (no id yet, from the route) needs its first save gated behind a manual
   // action. Read once at mount: `isNewSong` is derived from the route slug and never flips true
   // mid-session, so nothing later needs to re-arm this.
@@ -81,6 +86,13 @@ export function useAutosave(
   // Route callbacks may be recreated by their parent. They are navigation side effects, not
   // document input, so a changed callback must not re-arm the content debounce.
   const onSlugResolvedRef = useRef(onSlugResolved);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     onSlugResolvedRef.current = onSlugResolved;
@@ -142,47 +154,61 @@ export function useAutosave(
       return () => clearTimeout(timer);
     }
 
-    let cancelled = false;
-    const timer = setTimeout(
-      async () => {
-        setStatus("saving");
-        try {
-          const saved = await saveSong({ id: idRef.current, content });
-          if (cancelled) return;
-          idRef.current = saved.id;
-          requiresManualFirstSave.current = false;
-          // Fires on every save, not just the first: a title edit regenerates an existing song's
-          // slug too (see supabase/migrations/0006_regenerate_slug_on_title_change.sql), and the
-          // caller needs to keep the URL in sync with whichever slug the row now has.
-          onSlugResolvedRef.current(saved.id, saved.slug);
-          // Invalidate rather than patch in place: a save can change the title (and, for a new
-          // song, adds a row) that the Library list's cache needs to reflect on next visit.
-          queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
-          // Also drop this song's own cached detail, so navigating away and back re-fetches the
-          // just-saved content instead of whatever was cached before this save.
-          queryClient.invalidateQueries({ queryKey: songQueryKeys.bySlug(saved.slug) });
-          // The save doesn't tell us whether this song is public, and the public listing is
-          // ISR-cached (see src/app/page.tsx), so unconditionally refresh both here too — cheap,
-          // and otherwise a title edit on an already-public song never reaches other visitors.
-          queryClient.invalidateQueries({ queryKey: songQueryKeys.public() });
-          await revalidatePublicSongs();
-          // A favorited song's title can change too, and the favorites list caches its own copy
-          // of the title — refresh it for whichever user(s) have it cached.
-          queryClient.invalidateQueries({ queryKey: songQueryKeys.favoritesAll });
-          setStatus("saved");
-        } catch (error) {
-          if (cancelled) return;
-          console.error("No se pudo guardar la canción.", error);
-          setStatus("error");
+    const persist = async (contentToSave: SongContent): Promise<void> => {
+      if (!mountedRef.current) return;
+      if (saveInFlightRef.current) {
+        // The first request will assign `idRef`; save only the newest document after it finishes.
+        queuedContentRef.current = contentToSave;
+        return;
+      }
+
+      saveInFlightRef.current = true;
+      setStatus("saving");
+      let completed = false;
+      try {
+        const saved = await saveSong({ id: idRef.current, content: contentToSave });
+        // Keep the id even if a render change interrupted this effect: any later save must update
+        // this row rather than insert another one.
+        idRef.current = saved.id;
+        requiresManualFirstSave.current = false;
+        if (!mountedRef.current) return;
+        // Fires on every save, not just the first: a title edit regenerates an existing song's
+        // slug too (see useAutosave.ts's caller), and the caller needs to keep the URL in sync.
+        onSlugResolvedRef.current(saved.id, saved.slug);
+        queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
+        queryClient.invalidateQueries({ queryKey: songQueryKeys.bySlug(saved.slug) });
+        queryClient.invalidateQueries({ queryKey: songQueryKeys.public() });
+        await revalidatePublicSongs();
+        queryClient.invalidateQueries({ queryKey: songQueryKeys.favoritesAll });
+        if (!mountedRef.current) return;
+        completed = true;
+        setStatus("saved");
+      } catch (error) {
+        if (!mountedRef.current) return;
+        console.error("No se pudo guardar la canción.", error);
+        setStatus("error");
+      } finally {
+        saveInFlightRef.current = false;
+        const queuedContent = queuedContentRef.current;
+        queuedContentRef.current = null;
+        // A content change during the first request saves as an update now that `idRef` is known.
+        if (
+          completed &&
+          queuedContent &&
+          queuedContent !== contentToSave &&
+          mountedRef.current
+        ) {
+          void persist(queuedContent);
         }
-      },
+      }
+    };
+
+    const timer = setTimeout(
+      () => void persist(content),
       justAuthenticated || isRetry ? 0 : DEBOUNCE_MS,
     );
 
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, [content, ready, authenticated, canPersist, retryTick, queryClient]);
 
   return { status, retry: () => setRetryTick((tick) => tick + 1) };

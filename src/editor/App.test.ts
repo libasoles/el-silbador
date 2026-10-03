@@ -347,6 +347,14 @@ describe("melody notes tutorials", () => {
 });
 
 describe("autosave", () => {
+  it("serializes overlapping saves so a new song cannot be inserted twice", () => {
+    expect(autosave).toContain("const saveInFlightRef = useRef(false)");
+    expect(autosave).toContain("queuedContentRef.current = contentToSave");
+    expect(autosave).toContain(
+      "const saved = await saveSong({ id: idRef.current, content: contentToSave });",
+    );
+  });
+
   it("keeps its creation callback stable across status renders", () => {
     // `useAutosave` schedules a save whenever one of its effect dependencies changes. An inline
     // callback here changes identity after every "saving"/"saved" status update, which turns the
