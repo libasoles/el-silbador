@@ -27,6 +27,9 @@ interface SongViewProps {
   /** Admin-attached YouTube link (see App.tsx's track-toolbar button), rendered below the
    *  lyrics. `null`/`undefined` when none is set. */
   youtubeUrl?: string | null;
+  /** The editor's corner help button. Off where the editor is embedded in a page that already
+   *  explains it (e.g. an article). */
+  showHelp?: boolean;
   /** False while the viewer isn't allowed to edit this song (not its owner and not a fork of
    *  it) — the whole document becomes non-editable, and every track cell and syllable-join
    *  toggle underneath it follows suit. */
@@ -467,6 +470,7 @@ export function SongView({
   pitchDirections,
   showUnderline,
   youtubeUrl,
+  showHelp = true,
   canEdit,
   onSetCellText,
   onSetChordVariant,
@@ -1105,7 +1109,7 @@ export function SongView({
         </div>
       ) : null}
       {youtubeUrl ? <YoutubeEmbed url={youtubeUrl} /> : null}
-      <EditorHelp />
+      {showHelp ? <EditorHelp /> : null}
     </div>
   );
 }
