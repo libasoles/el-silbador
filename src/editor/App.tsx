@@ -66,6 +66,22 @@ import { useIsMobile } from "./useIsMobile";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
 
+const SONG_PLACEHOLDER = (
+  <>
+    <p>Escribí o pegá la letra de una canción para empezar.</p>
+    <p>
+      También podés pegar el texto con los acordes ya incluidos, ubicados
+      arriba de la línea de letra que les corresponde, y El Silbador los va a
+      detectar solo. Por ejemplo:
+    </p>
+    <pre>
+      {
+        "    Bm         B7    Em\nPor mas que la dicha busco\nA7     D\nVivo penando"
+      }
+    </pre>
+  </>
+);
+
 type ConfirmDialogProps = ComponentProps<typeof ConfirmDialogComponent>;
 type YoutubeLinkDialogProps = ComponentProps<typeof YoutubeLinkDialogComponent>;
 type TransposeWidgetProps = ComponentProps<typeof TransposeWidgetComponent>;
@@ -1022,6 +1038,7 @@ function App({
                 pitchDirections={state.pitchDirections}
                 showUnderline={state.showUnderline}
                 youtubeUrl={songYoutubeUrl}
+                placeholder={SONG_PLACEHOLDER}
                 canEdit={canEditOnThisDevice}
                 onSetCellText={actions.setCellText}
                 onSetChordVariant={actions.setChordVariant}

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
 import { columnForSlot, getLineCellSlots } from "../../core/model";
@@ -30,6 +30,8 @@ interface SongViewProps {
   /** The editor's corner help button. Off where the editor is embedded in a page that already
    *  explains it (e.g. an article). */
   showHelp?: boolean;
+  /** What the empty song shows before anything is typed. `null` shows nothing. */
+  placeholder: ReactNode;
   /** False while the viewer isn't allowed to edit this song (not its owner and not a fork of
    *  it) — the whole document becomes non-editable, and every track cell and syllable-join
    *  toggle underneath it follows suit. */
@@ -471,6 +473,7 @@ export function SongView({
   showUnderline,
   youtubeUrl,
   showHelp = true,
+  placeholder,
   canEdit,
   onSetCellText,
   onSetChordVariant,
@@ -1093,19 +1096,9 @@ export function SongView({
           />
         ))}
       </div>
-      {song.length === 0 ? (
+      {song.length === 0 && placeholder ? (
         <div className="song-placeholder" aria-hidden="true">
-          <p>Escribí o pegá la letra de una canción para empezar.</p>
-          <p>
-            También podés pegar el texto con los acordes ya incluidos, ubicados
-            arriba de la línea de letra que les corresponde, y El Silbador los
-            va a detectar solo. Por ejemplo:
-          </p>
-          <pre>
-            {
-              "    Bm         B7    Em\nPor mas que la dicha busco\nA7     D\nVivo penando"
-            }
-          </pre>
+          {placeholder}
         </div>
       ) : null}
       {youtubeUrl ? <YoutubeEmbed url={youtubeUrl} /> : null}

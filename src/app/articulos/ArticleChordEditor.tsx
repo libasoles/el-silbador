@@ -68,12 +68,22 @@ const subscribeToNothing = () => () => {};
 export function ArticleChordEditor(props: ArticleChordEditorProps) {
   // Syllable ids come from a module-level counter, so a server render would never match the
   // client's. The editor only exists once the page is hydrated; until then its frame holds the place.
-  const hydrated = useSyncExternalStore(subscribeToNothing, () => true, () => false);
-  if (!hydrated) return <figure className="article-editor" aria-label={props.label} />;
+  const hydrated = useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
+  if (!hydrated)
+    return <figure className="article-editor" aria-label={props.label} />;
   return <LiveChordEditor {...props} />;
 }
 
-function LiveChordEditor({ sheet, label, tools = [], needsEditing = false }: ArticleChordEditorProps) {
+function LiveChordEditor({
+  sheet,
+  label,
+  tools = [],
+  needsEditing = false,
+}: ArticleChordEditorProps) {
   const isMobile = useIsMobile();
   const [initialContent] = useState(() => contentFromChordSheet(sheet));
   const { state, actions } = useEditor(initialContent, isMobile);
@@ -98,7 +108,9 @@ function LiveChordEditor({ sheet, label, tools = [], needsEditing = false }: Art
                     key={track.id}
                     track={track}
                     cells={state.cells}
-                    onToggle={() => actions.setTrackVisibility(track.id, !track.visible)}
+                    onToggle={() =>
+                      actions.setTrackVisibility(track.id, !track.visible)
+                    }
                   />
                 ))
             : null}
@@ -106,8 +118,12 @@ function LiveChordEditor({ sheet, label, tools = [], needsEditing = false }: Art
             <TransposeWidget
               chordCells={state.cells.chords}
               noteCells={state.cells.vocalNotes}
-              onTransposeCell={(slotId, text) => actions.setCellText("chords", slotId, text)}
-              onTransposeNoteCell={(slotId, text) => actions.setCellText("vocalNotes", slotId, text)}
+              onTransposeCell={(slotId, text) =>
+                actions.setCellText("chords", slotId, text)
+              }
+              onTransposeNoteCell={(slotId, text) =>
+                actions.setCellText("vocalNotes", slotId, text)
+              }
             />
           ) : null}
         </div>
@@ -122,6 +138,7 @@ function LiveChordEditor({ sheet, label, tools = [], needsEditing = false }: Art
         pitchDirections={state.pitchDirections}
         showUnderline={state.showUnderline}
         showHelp={false}
+        placeholder={null}
         canEdit={!isMobile}
         onSetCellText={actions.setCellText}
         onSetChordVariant={actions.setChordVariant}
@@ -133,7 +150,8 @@ function LiveChordEditor({ sheet, label, tools = [], needsEditing = false }: Art
       />
       {needsEditing && isMobile ? (
         <figcaption className="article-editor__note">
-          En el celular el editor es de solo lectura: probá esto desde una computadora.
+          En el celular el editor es de solo lectura: probá esto desde una
+          computadora.
         </figcaption>
       ) : null}
     </figure>
@@ -174,6 +192,13 @@ export function MoveChordExample() {
     </div>
   );
 }
+
+export const EXAMPLE_LINE = `
+   A           A7     D
+Ya nunca te he de olvidar
+`;
+
+export const EMPTY_LINE = ` `;
 
 const EDGE_UNITS: ChordDragExampleUnit[] = [
   { syllable: "y", wordBoundaryAfter: true },

@@ -29,9 +29,9 @@ export default function ArticlesPage() {
       <header className="articles__header">
         <p className="articles__eyebrow">El Silbador</p>
         <h1>Artículos</h1>
-        <p className="articles__intro">
+        {/* <p className="articles__intro">
           Notas, ideas y pequeñas historias alrededor de las canciones.
-        </p>
+        </p> */}
       </header>
 
       <section className="articles__list" aria-label="Artículos">
@@ -39,11 +39,17 @@ export default function ArticlesPage() {
           <article className="article-preview" key={article.title}>
             <p className="article-preview__date">{article.date}</p>
             <h2>
-              <Link href="/articulos/usar-acordes-en-el-editor">{article.title}</Link>
+              <Link href="/articulos/usar-acordes-en-el-editor">
+                {article.title}
+              </Link>
             </h2>
             <p className="article-preview__summary">{article.summary}</p>
-            <Link className="article-preview__more" href="/articulos/usar-acordes-en-el-editor">
-              Leer artículo <ArrowRight aria-hidden="true" size={16} strokeWidth={1.75} />
+            <Link
+              className="article-preview__more"
+              href="/articulos/usar-acordes-en-el-editor"
+            >
+              Leer artículo{" "}
+              <ArrowRight aria-hidden="true" size={16} strokeWidth={1.75} />
             </Link>
             <ul className="article-preview__topics" aria-label="Temas">
               {article.topics.map((topic) => (

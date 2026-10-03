@@ -7,6 +7,8 @@ import {
   ChordDiagramFigure,
   EDGE_EXCERPT,
   EdgeChordExample,
+  EMPTY_LINE,
+  EXAMPLE_LINE,
   MOVE_EXCERPT,
   MoveChordExample,
   TONADA_EXCERPT,
@@ -44,8 +46,8 @@ export default function ChordEditorArticlePage() {
         <p className="article-page__meta">Guía del editor · acordes</p>
         <h1>Cómo usar los acordes en el editor</h1>
         <p className="article-page__lead">
-          En El Silbador cada acorde va pegado a una sílaba o a un espacio en
-          blanco. Así queda justo donde cambia la armonía.
+          Cada acorde va pegado a una sílaba o a un espacio en blanco. Justo
+          donde conviene.
         </p>
 
         <div className="article-page__body">
@@ -58,6 +60,9 @@ export default function ChordEditorArticlePage() {
             El otro muestra las notas que lo forman: la-do#-mi para un A. Solo
             se puede usar cuando la canción ya tiene algún acorde.
           </p>
+          <p className="highlight">
+            Solo se puede usar cuando la canción ya tiene algún acorde.
+          </p>
           <ArticleChordEditor
             sheet={TONADA_EXCERPT}
             label="Editor con los botones de acordes y de notas del acorde"
@@ -67,12 +72,9 @@ export default function ChordEditorArticlePage() {
           <h2>Escribir un acorde</h2>
           <p>
             Hacé click justo arriba de la sílaba y escribí algo, por ejemplo A.
-            Después, apretá Enter o hacé click en cualquier otro lado.
+            Después, presioná Enter o hacé click afuera, en cualquier lado.
           </p>
-          <p>
-            Con las flechas pasás a la sílaba anterior o a la siguiente sin
-            soltar el teclado.
-          </p>
+          <p>Con las flechas pasás a la sílaba anterior o a la siguiente.</p>
           <ArticleChordEditor
             sheet={LYRICS_ONLY}
             label="Editor con dos versos sin acordes"
@@ -85,6 +87,15 @@ export default function ChordEditorArticlePage() {
             arriba, pegala en el editor: El Silbador reconoce cada acorde y lo
             pone sobre la sílaba que le corresponde.
           </p>
+
+          <p>Copia y pega este texto en el recuadro de abajo: </p>
+          <pre>{EXAMPLE_LINE}</pre>
+
+          <ArticleChordEditor
+            sheet={EMPTY_LINE}
+            label="Editor vacío"
+            needsEditing
+          />
 
           <h2>Mover un acorde a otra sílaba</h2>
           <p>
