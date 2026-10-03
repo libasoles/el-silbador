@@ -5,6 +5,7 @@ import { columnForSlot, getLineCellSlots } from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, PitchDirection, Song, TrackDef, TrackId } from "../../core/types";
 import { pitchDirectionFromDrag, type DragDelta } from "../pitchDragGesture";
+import { shouldPreserveTextSelection } from "../selectionGesture";
 import { EditorHelp } from "./EditorHelp";
 import { LineView } from "./LineView";
 import { YoutubeEmbed } from "./YoutubeEmbed";
@@ -461,6 +462,12 @@ export function SongView({
 }: SongViewProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const pendingCaret = useRef<CaretPosition | null>(null);
+  const selectionGesture = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
   // Some browsers still mutate the DOM themselves after `beforeinput`'s `preventDefault()` —
   // notably Chromium deleting a selection that spans one of the non-editable syllable-gap
   // buttons — firing a native `input` event on top of it. `handleBeforeInput` has already applied
@@ -821,7 +828,30 @@ export function SongView({
         onBlur={(event) => {
           if (event.target === event.currentTarget) setIsFocused(false);
         }}
+        onPointerDownCapture={(event) => {
+          if (event.button !== 0) return;
+          selectionGesture.current = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            moved: false,
+          };
+        }}
+        onPointerMoveCapture={(event) => {
+          const gesture = selectionGesture.current;
+          if (!gesture || gesture.pointerId !== event.pointerId) return;
+          // A small threshold ignores pointer jitter on a normal click while reliably recognizing
+          // a drag that produced a text range.
+          if (Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) > 2) {
+            gesture.moved = true;
+          }
+        }}
+        onPointerCancelCapture={() => {
+          selectionGesture.current = null;
+        }}
         onClick={(event) => {
+          const pointerMoved = selectionGesture.current?.moved ?? false;
+          selectionGesture.current = null;
           if (event.detail >= 3) {
             const line = (event.target as HTMLElement).closest(
               "[data-lyrics-line]",
@@ -839,6 +869,16 @@ export function SongView({
           }
           if (isDocumentControl(event.target)) return;
           const root = rootRef.current;
+          if (
+            event.detail === 1 &&
+            shouldPreserveTextSelection(
+              window.getSelection(),
+              pointerMoved,
+              event.shiftKey,
+            )
+          ) {
+            return;
+          }
           if (event.detail === 1 && canEdit && root) {
             const position = caretForClick(
               root,

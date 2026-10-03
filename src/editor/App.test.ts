@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { shouldPreserveTextSelection } from "./selectionGesture";
 
 const styles = readFileSync(new URL("./App.css", import.meta.url), "utf8");
 const themeStyles = readFileSync(new URL("./theme.css", import.meta.url), "utf8");
@@ -91,6 +92,15 @@ describe("passive editor click caret placement", () => {
     expect(songView).toContain("lineText(line).length");
     expect(styles).toMatch(/\.track-row\s*\{[\s\S]*cursor: text/);
     expect(styles).toMatch(/\.line-edge-drop\s*\{[\s\S]*cursor: text/);
+  });
+});
+
+describe("lyric selection completion", () => {
+  it("keeps a non-collapsed selection made by dragging or Shift+clicking", () => {
+    expect(shouldPreserveTextSelection({ isCollapsed: false }, true, false)).toBe(true);
+    expect(shouldPreserveTextSelection({ isCollapsed: false }, false, true)).toBe(true);
+    expect(shouldPreserveTextSelection({ isCollapsed: false }, false, false)).toBe(false);
+    expect(shouldPreserveTextSelection({ isCollapsed: true }, true, false)).toBe(false);
   });
 });
 
