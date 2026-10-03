@@ -1,0 +1,129 @@
+.articles {
+  width: min(100%, 44rem);
+  margin: 0 auto;
+  padding: 3.5rem 2rem 4rem;
+}
+
+.articles__header {
+  max-width: 34rem;
+  margin-bottom: 4.5rem;
+}
+
+.articles__eyebrow,
+.articles__notice,
+.article-preview__date,
+.article-preview__topics {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.articles__eyebrow {
+  margin: 0 0 1.1rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.articles h1,
+.article-preview h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+}
+
+.articles h1 {
+  margin: 0;
+  font-size: clamp(2.8rem, 9vw, 4.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.articles__intro {
+  margin: 1.5rem 0 0;
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1.45;
+}
+
+.articles__notice {
+  display: inline-block;
+  margin: 1.5rem 0 0;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.articles__list {
+  border-top: 1px solid var(--border-strong);
+}
+
+.article-preview {
+  padding: 1.65rem 0 1.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.article-preview__date {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+}
+
+.article-preview h2 {
+  max-width: 32rem;
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2.15rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.article-preview__summary {
+  max-width: 38rem;
+  margin: 0.8rem 0 0;
+  color: var(--muted);
+  font-size: 1.06rem;
+  line-height: 1.55;
+}
+
+.article-preview__more {
+  margin: 1rem 0 0;
+  color: var(--fg);
+  font-size: 1.02rem;
+}
+
+.article-preview__more span {
+  display: inline-block;
+  margin-left: 0.18rem;
+  color: var(--accent);
+  transition: transform 160ms ease;
+}
+
+.article-preview:hover .article-preview__more span {
+  transform: translateX(0.2rem);
+}
+
+.article-preview__topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  list-style: none;
+}
+
+.article-preview__topics li::before {
+  content: "#";
+  color: var(--accent);
+}
+
+@media (max-width: 30rem) {
+  .articles {
+    padding: 0 0 2.5rem;
+  }
+
+  .articles__header {
+    margin-bottom: 3.25rem;
+  }
+}
