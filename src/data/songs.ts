@@ -187,12 +187,15 @@ export async function getSongBySlug(slug: string): Promise<SongDetail> {
 export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
   const supabase = await getSupabaseClient();
   const userId = await requireUserId(supabase);
+  // PostgreSQL deliberately has no id default: every client-side creation supplies a UUID so an
+  // interrupted magic-link flow can retry idempotently instead of inserting a second song.
+  const id = input.id ?? crypto.randomUUID();
 
-  if (input.id) {
+  if (id) {
     const { data: existing, error: ownerError } = await supabase
       .from("songs")
       .select("owner_id")
-      .eq("id", input.id)
+      .eq("id", id)
       .maybeSingle();
     if (ownerError) throw ownerError;
     if (existing && existing.owner_id !== userId) {
@@ -203,7 +206,7 @@ export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
   const { data, error } = await supabase
     .from("songs")
     .upsert({
-      ...(input.id ? { id: input.id } : {}),
+      id,
       owner_id: userId,
       title: input.content.title || null,
       content: serializeContent(input.content),
@@ -243,6 +246,7 @@ export async function forkSong(songId: string): Promise<SongDetail> {
   const { data, error } = await supabase
     .from("songs")
     .insert({
+      id: crypto.randomUUID(),
       owner_id: userId,
       title: source.title,
       content: source.content,

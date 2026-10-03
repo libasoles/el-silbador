@@ -266,7 +266,7 @@ describe("authentication dialog", () => {
 describe("post-login save", () => {
   it("keeps the restored draft until saving succeeds, then explains how to share it", () => {
     expect(app).toMatch(
-      /if \(draft\) \{\s*actions\.loadContent\(draft\.content\);\s*setContentLoaded\(true\);\s*\}/,
+      /if \(draft\) \{[\s\S]*actions\.loadContent\(draft\.content\);\s*setContentLoaded\(true\);\s*\}/,
     );
     expect(app).toMatch(
       /pendingAction\?\.type === "save-song"[\s\S]*clearDraft\(\);[\s\S]*icon: <PrivacyLockedIcon \/>[\s\S]*title: "Canción guardada"[\s\S]*Para compartir el enlace, hacela pública con el candado\./,
@@ -284,7 +284,18 @@ describe("post-login save", () => {
   });
 
   it("uses the draft creation id for the first post-login save", () => {
-    expect(app).toContain("songDbId ?? restoredDraft?.creationId");
+    expect(app).toContain("songDbId ?? pendingCreationId ?? restoredDraft?.creationId");
+  });
+
+  it("keeps that creation id in the tab that opened the login dialog", () => {
+    expect(app).toContain("const [pendingCreationId, setPendingCreationId] = useState<string>();");
+    expect(app).toContain("setPendingCreationId(draft.creationId);");
+    expect(app).toContain("songDbId ?? pendingCreationId ?? restoredDraft?.creationId");
+  });
+
+  it("only lets the magic-link callback tab resume a pending creation", () => {
+    expect(app).toContain("const arrivedViaMagicLink = useRef(");
+    expect(app).toContain("!pendingCreationId || arrivedViaMagicLink.current");
   });
 });
 

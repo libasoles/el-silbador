@@ -27,6 +27,7 @@ import type { SongContent, SongDetail } from "../data/types";
 import { revalidatePublicSongs } from "../app/actions";
 import type { TransposeWidget as TransposeWidgetComponent } from "../transpose/TransposeWidget";
 import { trackEvent } from "./analytics";
+import { isMagicLinkCallback } from "./loginTracking";
 import { useAuthRequired } from "./authRequiredContext";
 import type { ConfirmDialog as ConfirmDialogComponent } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
@@ -230,6 +231,9 @@ function App({
   const [songDbId, setSongDbId] = useState<string | undefined>(
     () => initialSong?.id,
   );
+  // The tab that opened the login modal stays mounted when Supabase synchronizes the new session
+  // across tabs. Keep the creation id here too, not only in the draft read after a reload.
+  const [pendingCreationId, setPendingCreationId] = useState<string>();
   // Latest `songDbId`, readable from the load effect below without adding it to that effect's
   // dependencies (it intentionally only reruns for `songSlug` changes — see the effect's comment).
   const songDbIdRef = useRef(songDbId);
@@ -243,6 +247,12 @@ function App({
   // The song-loading effect must see a restored draft immediately, even before React renders the
   // state update, so a synchronous query-cache hit cannot overwrite the fresher local content.
   const restoredDraftRef = useRef<ReturnType<typeof readDraft>>(null);
+  // Only the tab that received the magic-link callback may complete the deferred creation. The
+  // original tab receives the session through Supabase's cross-tab synchronization but must not
+  // race the callback tab to save the same in-memory draft.
+  const arrivedViaMagicLink = useRef(
+    typeof window !== "undefined" && isMagicLinkCallback(window.location.hash),
+  );
   const isMobile = useIsMobile();
   // The first client render must exactly match the server HTML. A restored local draft loads in
   // the effect below once hydration has completed.
@@ -287,6 +297,7 @@ function App({
     restoredDraftRef.current = draft;
     setRestoredDraft(draft);
     if (draft) {
+      setPendingCreationId(draft.creationId);
       actions.loadContent(draft.content);
       setContentLoaded(true);
     }
@@ -487,7 +498,9 @@ function App({
   // A draft created before authentication reserves its database id in localStorage. It is not
   // assigned to `songDbId` yet because the privacy/delete controls must stay unavailable until a
   // row actually exists, but autosave uses it for an idempotent first upsert across browser tabs.
-  const saveSongId = songDbId ?? restoredDraft?.creationId;
+  const saveSongId = songDbId ?? pendingCreationId ?? restoredDraft?.creationId;
+  const canPersist =
+    isOwnSong && !isMobile && (!pendingCreationId || arrivedViaMagicLink.current);
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
     saveSongId,
@@ -499,7 +512,7 @@ function App({
     // Mobile is read-only, so autosave must stay off there too, even for the song's owner. Kept as
     // its own argument (not folded into `authenticated`) so ownership resolving late doesn't look
     // like a sign-in edge and fire an immediate, contentless save — see useAutosave's docstring.
-    isOwnSong && !isMobile,
+    canPersist,
     // A song with no slug from the route was never fetched — it was started fresh in this
     // browser — so its first save must be the explicit Save click, not the debounce.
     !songSlug,
@@ -711,7 +724,8 @@ function App({
       // The modal's overlay blocks further editing while it's open, so `content` here is what
       // the user will still be looking at when they follow the magic-link email — stash it so
       // it can be restored after the reload that link triggers.
-      saveDraft(songSlug, content);
+      const draft = saveDraft(songSlug, content);
+      setPendingCreationId(draft.creationId);
       requireAuthentication({ type: "save-song", songSlug: songSlug ?? null });
       return;
     }

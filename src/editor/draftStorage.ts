@@ -26,12 +26,13 @@ interface StoredDraft {
  * instance with no in-memory editor state, so the unsaved edits that prompted the sign-in would
  * otherwise be lost.
  */
-export function saveDraft(songId: string | undefined, content: SongContent): void {
+export function saveDraft(songId: string | undefined, content: SongContent): Draft {
+  const creationId = songId ? undefined : crypto.randomUUID();
   const stored: StoredDraft = {
     songId: songId ?? null,
     // A fresh song has no server id yet. Reserve one now, before opening the magic link, so the
     // original tab and every tab that follows that link all upsert the same row.
-    ...(songId ? {} : { creationId: crypto.randomUUID() }),
+    ...(creationId ? { creationId } : {}),
     savedAt: Date.now(),
     content: serializeContent(content),
   };
@@ -40,6 +41,7 @@ export function saveDraft(songId: string | undefined, content: SongContent): voi
   } catch (error) {
     console.error("No se pudo guardar el borrador localmente.", error);
   }
+  return { songId: songId ?? null, ...(creationId ? { creationId } : {}), content };
 }
 
 /** Reads back a draft saved by `saveDraft` for the given song (`undefined` for a new, unsaved

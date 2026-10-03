@@ -119,6 +119,15 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
     expect(mine.some((song) => song.id === saved.id)).toBe(true);
   });
 
+  it("rejects a direct insert without a caller-provided id", async () => {
+    await signInAs(userA);
+    const { error } = await (await getSupabaseClient())
+      .from("songs")
+      .insert({ owner_id: userA.id });
+
+    expect(error?.code).toBe("23502");
+  });
+
   it("upserts repeated creates with a caller-provided id into one song", async () => {
     await signInAs(userA);
     const id = randomUUID();
