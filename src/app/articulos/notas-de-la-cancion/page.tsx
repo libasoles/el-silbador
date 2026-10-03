@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { SilbadorIcon } from "../../../editor/components/icons";
+import { SilbadorIcon, UnderlineIcon } from "../../../editor/components/icons";
 import { ArticleChordEditor } from "../ArticleChordEditor";
 import {
   MelodyJoinExample,
@@ -47,10 +47,9 @@ export default function SongNotesArticlePage() {
         <div className="article-page__body">
           <h2>Mostrar u ocultar las notas</h2>
           <p>
-            El botón del subrayado, en la barra lateral del editor, hace dos
-            cosas a la vez: dibuja una rayita debajo de cada sílaba y muestra
-            las notas que van debajo de esa rayita. Apretalo de nuevo y la letra
-            queda limpia, sin notas.
+            El botón del subrayado, en la barra lateral, dibuja una rayita
+            debajo de cada sílaba y muestra las notas que van debajo de esa
+            rayita, si existen.
           </p>
           <ArticleChordEditor
             sheet={YPACARAI_SHEET}
@@ -60,15 +59,14 @@ export default function SongNotesArticlePage() {
             tools={["underline"]}
           />
           <p className="highlight">
-            Ocultar las notas no las borra: siguen ahí para cuando las vuelvas a
-            mostrar.
+            Ocultar las notas con el botón no las borra.
           </p>
 
           <h2>Escribir una nota</h2>
           <p>
-            Con el subrayado visible, hacé click justo debajo de la rayita de
-            una sílaba y escribí la nota: do, re, mi, fa, sol, la o si. Para los
-            sostenidos y bemoles agregale # o b, como en fa# o sib.
+            Hacé click justo debajo de la rayita de una sílaba y escribí la
+            nota: do, re, mi, fa, sol, la o si. Para los sostenidos y bemoles
+            agregale # o b, como en fa# o sib.
           </p>
           <MelodyTypingExample />
           <p>
@@ -77,14 +75,26 @@ export default function SongNotesArticlePage() {
           </p>
           <p>
             Probá con el primer verso de «Recuerdos de Ypacaraí»: do, mi, sol,
-            mi, la, la, sol, mi, do, la, la.
+            mi, la, la, sol, mi, do, la, la. Presioná Tab cada vez que escribas
+            una para pasar al próximo casillero.
           </p>
+
           <ArticleChordEditor
             sheet={FIRST_LINE}
             showMelody
             label="Editor con un verso sin notas"
             needsEditing
           />
+
+          <p className="article-highlight">
+            Solo podes escribir notas con el subrayado visible. Es decir, con
+            este botón activo: {"  "}{" "}
+            <span className="article-inline-icon">
+              <UnderlineIcon />
+            </span>
+          </p>
+
+          <h2>Editar y borrar notas</h2>
           <p>
             Para corregir una nota, hacé click sobre ella y cambiala. Si borrás
             todas las letras, la nota desaparece.
@@ -96,12 +106,12 @@ export default function SongNotesArticlePage() {
             cuando una palabra termina en vocal y la siguiente empieza con otra:
             en «Junto al», la «o» de junto y la «a» de al se cantan de un tirón.
           </p>
+          <MelodyJoinExample />
           <p>
             Para unirlas, hacé click en el espacio que hay entre las dos
             sílabas. La rayita de abajo se vuelve una sola y las dos comparten
             la misma nota.
           </p>
-          <MelodyJoinExample />
           <p>
             En el segundo verso, «to» y «al» todavía están separadas y una de
             las dos quedó sin nota. Hacé click entre ellas para unirlas:
