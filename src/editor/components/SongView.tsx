@@ -432,6 +432,22 @@ function caretForClick(
   return { lineIndex, offset: clientX <= rect.left + rect.width / 2 ? 0 : lineText(line).length };
 }
 
+/** Annotation wrappers and the invisible line-edge drop targets deliberately opt out of native
+    editing. They need our caret/selection handling; ordinary lyric text must keep the browser's
+    native click and drag behavior. */
+function isPassiveCaretSurface(root: HTMLElement, target: EventTarget | null): boolean {
+  const element =
+    target instanceof Element
+      ? target
+      : target instanceof Node
+        ? target.parentElement
+        : null;
+  return (
+    element === root ||
+    (element !== null && root.contains(element) && element.closest('[contenteditable="false"]') !== null)
+  );
+}
+
 // These insertion types provide their replacement text through `InputEvent.data`. They still go
 // through the document model: even a one-character native edit can mutate a syllable text node
 // that React later reuses, leaving the DOM and model out of sync.
@@ -467,6 +483,8 @@ export function SongView({
     startX: number;
     startY: number;
     moved: boolean;
+    managed: boolean;
+    anchor: { node: Node; offset: number } | null;
   } | null>(null);
   // Some browsers still mutate the DOM themselves after `beforeinput`'s `preventDefault()` —
   // notably Chromium deleting a selection that spans one of the non-editable syllable-gap
@@ -819,7 +837,9 @@ export function SongView({
           // React focus events bubble from chord/note inputs too; only the editing host itself
           // should establish a lyric caret.
           if (event.target !== event.currentTarget) return;
-          focusDocument();
+          // A pointerdown on a passive annotation surface has already chosen an exact lyric
+          // position. Do not briefly manufacture the default first-line caret before restoring it.
+          if (!selectionGesture.current?.managed) focusDocument();
           setIsFocused(true);
           setCaretLineIndex(
             captureCaret(event.currentTarget)?.lineIndex ?? null,
@@ -830,12 +850,40 @@ export function SongView({
         }}
         onPointerDownCapture={(event) => {
           if (event.button !== 0) return;
-          selectionGesture.current = {
+          const root = rootRef.current;
+          const managed =
+            canEdit &&
+            root !== null &&
+            !isDocumentControl(event.target) &&
+            isPassiveCaretSurface(root, event.target);
+          const gesture: NonNullable<typeof selectionGesture.current> = {
             pointerId: event.pointerId,
             startX: event.clientX,
             startY: event.clientY,
             moved: false,
+            managed,
+            anchor: null,
           };
+          selectionGesture.current = gesture;
+          if (!managed || !root) return;
+
+          const position = caretForClick(root, event.target, event.clientX, event.clientY);
+          if (!position) return;
+          // Prevent Chrome from painting its transient first-line caret, then immediately place
+          // the intended one. Pointer capture lets an edge-zone drag keep extending selection
+          // even when the pointer travels diagonally out of that tiny target.
+          event.preventDefault();
+          event.currentTarget.setPointerCapture(event.pointerId);
+          root.focus({ preventScroll: true });
+          restoreCaret(root, position);
+          const selection = window.getSelection();
+          if (selection?.anchorNode) {
+            gesture.anchor = {
+              node: selection.anchorNode,
+              offset: selection.anchorOffset,
+            };
+          }
+          setCaretLineIndex(position.lineIndex);
         }}
         onPointerMoveCapture={(event) => {
           const gesture = selectionGesture.current;
@@ -845,12 +893,29 @@ export function SongView({
           if (Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) > 2) {
             gesture.moved = true;
           }
+          if (!gesture.managed || !gesture.moved || !gesture.anchor) return;
+          const root = rootRef.current;
+          if (!root) return;
+          event.preventDefault();
+          const position = caretForClick(root, root, event.clientX, event.clientY);
+          if (!position) return;
+          restoreCaret(root, position);
+          const selection = window.getSelection();
+          if (selection?.anchorNode) {
+            selection.setBaseAndExtent(
+              gesture.anchor.node,
+              gesture.anchor.offset,
+              selection.anchorNode,
+              selection.anchorOffset,
+            );
+          }
         }}
         onPointerCancelCapture={() => {
           selectionGesture.current = null;
         }}
         onClick={(event) => {
-          const pointerMoved = selectionGesture.current?.moved ?? false;
+          const gesture = selectionGesture.current;
+          const pointerMoved = gesture?.moved ?? false;
           selectionGesture.current = null;
           if (event.detail >= 3) {
             const line = (event.target as HTMLElement).closest(
@@ -869,6 +934,9 @@ export function SongView({
           }
           if (isDocumentControl(event.target)) return;
           const root = rootRef.current;
+          // Pointerdown already placed the caret, or extended a selection, for passive editor
+          // chrome. Running the old click-time correction again would cause a visible jump.
+          if (gesture?.managed) return;
           if (
             event.detail === 1 &&
             shouldPreserveTextSelection(
@@ -879,7 +947,12 @@ export function SongView({
           ) {
             return;
           }
-          if (event.detail === 1 && canEdit && root) {
+          if (
+            event.detail === 1 &&
+            canEdit &&
+            root &&
+            isPassiveCaretSurface(root, event.target)
+          ) {
             const position = caretForClick(
               root,
               event.target,

@@ -84,6 +84,8 @@ describe("passive editor click caret placement", () => {
     expect(songView).toContain("function caretForClick");
     expect(songView).toContain("caretForClick(");
     expect(songView).toContain("restoreCaret(root, position)");
+    expect(songView).toContain("function isPassiveCaretSurface");
+    expect(songView).toContain("onPointerDownCapture");
   });
 
   it("uses the browser's horizontal caret hit-testing and keeps a deterministic end fallback", () => {
@@ -92,6 +94,12 @@ describe("passive editor click caret placement", () => {
     expect(songView).toContain("lineText(line).length");
     expect(styles).toMatch(/\.track-row\s*\{[\s\S]*cursor: text/);
     expect(styles).toMatch(/\.line-edge-drop\s*\{[\s\S]*cursor: text/);
+  });
+
+  it("places passive-surface carets before click and extends a drag with pointer capture", () => {
+    expect(songView).toContain("event.currentTarget.setPointerCapture(event.pointerId)");
+    expect(songView).toContain("selection.setBaseAndExtent(");
+    expect(songView).toContain("if (gesture?.managed) return");
   });
 });
 
