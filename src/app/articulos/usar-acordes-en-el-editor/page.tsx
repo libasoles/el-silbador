@@ -19,7 +19,6 @@ export const metadata: Metadata = {
     "Mostrar, escribir, mover, corregir y consultar acordes en el editor de El Silbador, con ejemplos para probar.",
 };
 
-const SONG_URL = "https://elsilbador.com.ar/cancion/tonada-de-un-viejo-amor-a1be2";
 
 const LYRICS_ONLY = `Ya nunca te he de olvidar
 en la arena me escribias`;
@@ -51,12 +50,6 @@ export default function ChordEditorArticlePage() {
         </p>
 
         <div className="article-page__body">
-          <p>
-            Todos los ejemplos usan el comienzo de{" "}
-            <a href={SONG_URL}>Tonada de un viejo amor</a> y son el editor de verdad: podés
-            hacer click, arrastrar y escribir sobre ellos. Nada de lo que cambies acá se guarda.
-          </p>
-
           <h2>Mostrar u ocultar los acordes</h2>
           <p>
             El botón de la guitarra, en la barra lateral del editor, muestra u oculta la fila de
