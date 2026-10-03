@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { setUsername } from "../profiles";
 import {
@@ -116,6 +117,19 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
 
     const mine = await listMySongs();
     expect(mine.some((song) => song.id === saved.id)).toBe(true);
+  });
+
+  it("upserts repeated creates with a caller-provided id into one song", async () => {
+    await signInAs(userA);
+    const id = randomUUID();
+    const first = await saveSong({ id, content: makeContent({ title: "Primer intento" }) });
+    const second = await saveSong({ id, content: makeContent({ title: "Segundo intento" }) });
+    createdSongIds.push(id);
+
+    expect(first.id).toBe(id);
+    expect(second.id).toBe(id);
+    expect((await listMySongs()).filter((song) => song.id === id)).toHaveLength(1);
+    expect((await getSong(id)).title).toBe("Segundo intento");
   });
 
   it("keeps a non-admin's public song out of the library while allowing its direct URL", async () => {

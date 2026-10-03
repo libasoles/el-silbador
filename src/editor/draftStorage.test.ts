@@ -47,7 +47,11 @@ describe("draftStorage", () => {
 
   it("treats a new, unsaved song (no id) as its own slot", () => {
     saveDraft(undefined, createContent({ title: "Nueva" }));
-    expect(readDraft(undefined)?.content.title).toBe("Nueva");
+    const draft = readDraft(undefined);
+    expect(draft?.content.title).toBe("Nueva");
+    expect(draft?.creationId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
   });
 
   it("does not return a draft saved for a different song", () => {

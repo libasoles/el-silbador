@@ -484,9 +484,13 @@ function App({
   // the song's owner. Favoriting, chord/underline toggles, PDF export and transposition stay
   // available on mobile and must not be gated here.
   const canEditOnThisDevice = isOwnSong && !isMobile;
+  // A draft created before authentication reserves its database id in localStorage. It is not
+  // assigned to `songDbId` yet because the privacy/delete controls must stay unavailable until a
+  // row actually exists, but autosave uses it for an idempotent first upsert across browser tabs.
+  const saveSongId = songDbId ?? restoredDraft?.creationId;
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
-    songDbId,
+    saveSongId,
     ready,
     authenticated,
     // Never even attempt to persist a viewer's edits to a song they don't own — the DB's RLS

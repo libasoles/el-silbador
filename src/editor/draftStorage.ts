@@ -8,11 +8,14 @@ const EXPIRY_MS = 30 * 60 * 1000;
 
 export interface Draft {
   songId: string | null;
+  /** Stable database id reserved before authentication so every tab upserts the same new song. */
+  creationId?: string;
   content: SongContent;
 }
 
 interface StoredDraft {
   songId: string | null;
+  creationId?: string;
   savedAt: number;
   content: StoredSongContent;
 }
@@ -26,6 +29,9 @@ interface StoredDraft {
 export function saveDraft(songId: string | undefined, content: SongContent): void {
   const stored: StoredDraft = {
     songId: songId ?? null,
+    // A fresh song has no server id yet. Reserve one now, before opening the magic link, so the
+    // original tab and every tab that follows that link all upsert the same row.
+    ...(songId ? {} : { creationId: crypto.randomUUID() }),
     savedAt: Date.now(),
     content: serializeContent(content),
   };
@@ -45,7 +51,11 @@ export function readDraft(songId: string | undefined): Draft | null {
     const stored = JSON.parse(raw) as StoredDraft;
     if (stored.songId !== (songId ?? null)) return null;
     if (Date.now() - stored.savedAt > EXPIRY_MS) return null;
-    return { songId: stored.songId, content: deserializeContent(stored.content) };
+    return {
+      songId: stored.songId,
+      ...(typeof stored.creationId === "string" ? { creationId: stored.creationId } : {}),
+      content: deserializeContent(stored.content),
+    };
   } catch (error) {
     console.error("No se pudo leer el borrador guardado.", error);
     return null;

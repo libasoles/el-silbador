@@ -282,6 +282,10 @@ describe("post-login save", () => {
       /const draft = readDraft\(songSlug\);\s*restoredDraftRef\.current = draft;\s*setRestoredDraft\(draft\);/,
     );
   });
+
+  it("uses the draft creation id for the first post-login save", () => {
+    expect(app).toContain("songDbId ?? restoredDraft?.creationId");
+  });
 });
 
 describe("magic-link callback errors", () => {
