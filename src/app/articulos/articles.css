@@ -197,7 +197,7 @@
 
 /* Running prose reads in sans; titles, lead and song examples keep the serif. */
 .article-page__body > p {
-  font-family: var(--sans);
+  font-family: var(--article-sans), var(--sans);
   font-size: 1rem;
 }
 
