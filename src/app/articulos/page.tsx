@@ -12,10 +12,19 @@ export const metadata: Metadata = {
 const articles = [
   {
     date: "Guía del editor",
+    href: "/articulos/usar-acordes-en-el-editor",
     title: "Cómo usar los acordes en el editor",
     summary:
       "Una guía práctica para mostrar, escribir, mover, consultar y corregir acordes sobre una canción.",
     topics: ["editor", "guitarra", "acordes"],
+  },
+  {
+    date: "Guía del editor",
+    href: "/articulos/notas-de-la-cancion",
+    title: "Cómo escribir las notas de la canción",
+    summary:
+      "Escribir la melodía debajo de la letra, unir sílabas que se cantan juntas, marcar subidas y bajadas, y cambiar de tono.",
+    topics: ["editor", "melodía", "notas"],
   },
 ] as const;
 
@@ -39,14 +48,14 @@ export default function ArticlesPage() {
           <article className="article-preview" key={article.title}>
             <p className="article-preview__date">{article.date}</p>
             <h2>
-              <Link href="/articulos/usar-acordes-en-el-editor">
+              <Link href={article.href}>
                 {article.title}
               </Link>
             </h2>
             <p className="article-preview__summary">{article.summary}</p>
             <Link
               className="article-preview__more"
-              href="/articulos/usar-acordes-en-el-editor"
+              href={article.href}
             >
               Leer artículo{" "}
               <ArrowRight aria-hidden="true" size={16} strokeWidth={1.75} />

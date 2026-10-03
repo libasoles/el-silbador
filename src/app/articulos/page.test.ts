@@ -15,6 +15,11 @@ describe("articles", () => {
     expect(page).toContain("/articulos/usar-acordes-en-el-editor");
   });
 
+  it("lists the guide for writing the song's melody notes", () => {
+    expect(page).toContain("Cómo escribir las notas de la canción");
+    expect(page).toContain("/articulos/notas-de-la-cancion");
+  });
+
   it("uses Lucide icons for article actions", () => {
     expect(page).toContain('from "lucide-react"');
   });

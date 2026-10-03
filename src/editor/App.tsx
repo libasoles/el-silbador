@@ -205,6 +205,33 @@ export function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonP
   );
 }
 
+interface UnderlineToggleButtonProps {
+  pressed: boolean;
+  /** No lyrics yet: there is nothing to underline or to write notes under. */
+  disabled: boolean;
+  onToggle: () => void;
+}
+
+/** Shows or hides the line under each syllable, along with the melody notes written below it. */
+export function UnderlineToggleButton({ pressed, disabled, onToggle }: UnderlineToggleButtonProps) {
+  return (
+    <IconButtonTooltip
+      tooltip={disabled ? "No hay letra que subrayar" : "Subrayado y notas de la melodía"}
+    >
+      <button
+        type="button"
+        className="track-toolbar__toggle"
+        aria-pressed={pressed}
+        aria-label="Subrayado y notas de la melodía"
+        disabled={disabled}
+        onClick={onToggle}
+      >
+        <UnderlineIcon />
+      </button>
+    </IconButtonTooltip>
+  );
+}
+
 function App({
   accentColor = DEFAULT_ACCENT_COLOR,
   songSlug,
@@ -928,24 +955,11 @@ function App({
                           onToggle={() => handleTrackToggle(track)}
                         />
                       ))}
-                    <IconButtonTooltip
-                      tooltip={
-                        state.lyricsText.trim() === ""
-                          ? "No hay letra que subrayar"
-                          : "Subrayado y notas de la melodía"
-                      }
-                    >
-                      <button
-                        type="button"
-                        className="track-toolbar__toggle"
-                        aria-pressed={state.showUnderline}
-                        aria-label="Subrayado y notas de la melodía"
-                        disabled={state.lyricsText.trim() === ""}
-                        onClick={handleUnderlineToggle}
-                      >
-                        <UnderlineIcon />
-                      </button>
-                    </IconButtonTooltip>
+                    <UnderlineToggleButton
+                      pressed={state.showUnderline}
+                      disabled={state.lyricsText.trim() === ""}
+                      onToggle={handleUnderlineToggle}
+                    />
                     <IconButtonTooltip
                       tooltip={
                         state.lyricsText.trim() === ""
@@ -982,24 +996,11 @@ function App({
                     onToggle={() => handleTrackToggle(track)}
                   />
                 ))}
-              <IconButtonTooltip
-                tooltip={
-                  state.lyricsText.trim() === ""
-                    ? "No hay letra que subrayar"
-                    : "Subrayado y notas de la melodía"
-                }
-              >
-                <button
-                  type="button"
-                  className="track-toolbar__toggle"
-                  aria-pressed={state.showUnderline}
-                  aria-label="Subrayado y notas de la melodía"
-                  disabled={state.lyricsText.trim() === ""}
-                  onClick={handleUnderlineToggle}
-                >
-                  <UnderlineIcon />
-                </button>
-              </IconButtonTooltip>
+              <UnderlineToggleButton
+                pressed={state.showUnderline}
+                disabled={state.lyricsText.trim() === ""}
+                onToggle={handleUnderlineToggle}
+              />
               {(isAdmin || (songDbId && isOwnSong)) && !isMobile && (
                 <IconButtonTooltip
                   tooltip={

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { parseChordSheet } from "../../core/chordSheet";
 import { findChordShape } from "../../core/findChordShape";
+import { beforeSlotId, flattenSyllables, mergeKey } from "../../core/model";
 import { createInitialState, editorReducer } from "../../core/state";
+import type { PitchDirection } from "../../core/types";
 import type { SongContent } from "../../data/types";
-import { TrackToggleButton } from "../../editor/App";
+import { TrackToggleButton, UnderlineToggleButton } from "../../editor/App";
 import "../../editor/App.css";
 import { ChordDiagram } from "../../editor/components/ChordDiagram";
 import {
@@ -29,8 +31,9 @@ El viento lo fue borrando
     B7      E7              A
 y estoy mas solo mirando el mar.`;
 
-/** The song state the editor itself ends up with when this chord sheet is pasted into it. */
-function contentFromChordSheet(sheet: string): SongContent {
+/** The song state the editor itself ends up with when this chord sheet is pasted into it, plus
+ *  the melody written under it (see `ArticleChordEditorProps.melody`). */
+function contentFromChordSheet(sheet: string, melody: string[] = []): SongContent {
   const { lyricsText, placements } = parseChordSheet(sheet);
   const pasted = editorReducer(createInitialState(), {
     type: "pasteText",
@@ -39,15 +42,35 @@ function contentFromChordSheet(sheet: string): SongContent {
     startOffset: 0,
     placements,
   });
+  const vocalNotes: Record<string, string> = {};
+  const pitchDirections: Record<string, PitchDirection> = {};
+  const merges = new Set(pasted.merges);
+  pasted.song.forEach((line, lineIndex) => {
+    const syllables = flattenSyllables(line);
+    let anchorId = "";
+    (melody[lineIndex] ?? "").split(/\s+/).filter(Boolean).forEach((token, index) => {
+      const syllable = syllables[index];
+      if (!syllable) return;
+      if (token === "+") {
+        merges.add(mergeKey(syllables[index - 1]!.id, syllable.id));
+        return;
+      }
+      anchorId = syllable.id;
+      if (token === "_") return;
+      const direction = token.endsWith("↑") ? "up" : token.endsWith("↓") ? "down" : null;
+      vocalNotes[beforeSlotId(anchorId)] = direction ? token.slice(0, -1) : token;
+      if (direction) pitchDirections[beforeSlotId(anchorId)] = direction;
+    });
+  });
   return {
-    title: "Tonada de un viejo amor",
+    title: "",
     author: "",
     lyricsText: pasted.lyricsText,
     song: pasted.song,
-    cells: pasted.cells,
+    cells: { ...pasted.cells, vocalNotes },
     chordVariants: pasted.chordVariants,
-    pitchDirections: pasted.pitchDirections,
-    merges: pasted.merges,
+    pitchDirections,
+    merges,
   };
 }
 
@@ -55,8 +78,14 @@ interface ArticleChordEditorProps {
   /** Lyrics with chords written above them, as they'd be pasted into the editor. */
   sheet: string;
   label: string;
+  /** One entry per lyric line: the melody note under each syllable, in order, separated by
+   *  spaces. A note may end in ↑ or ↓ (higher or lower than the previous one), `_` leaves a
+   *  syllable without a note and `+` joins the syllable to the one before it. */
+  melody?: string[];
+  /** Starts with the underline and the melody notes showing, even when there are no notes yet. */
+  showMelody?: boolean;
   /** Sidebar controls to show next to the song, in the editor's own order. */
-  tools?: ("trackToggles" | "transpose")[];
+  tools?: ("trackToggles" | "underline" | "transpose")[];
   /** The demo is about writing or moving chords, which mobile doesn't allow. */
   needsEditing?: boolean;
 }
@@ -81,18 +110,35 @@ export function ArticleChordEditor(props: ArticleChordEditorProps) {
 function LiveChordEditor({
   sheet,
   label,
+  melody,
+  showMelody = false,
   tools = [],
   needsEditing = false,
 }: ArticleChordEditorProps) {
   const isMobile = useIsMobile();
-  const [initialContent] = useState(() => contentFromChordSheet(sheet));
+  const [initialContent] = useState(() => contentFromChordSheet(sheet, melody));
   const { state, actions } = useEditor(initialContent, isMobile);
   const hasTrackToggles = tools.includes("trackToggles");
+  const hasSideTools = hasTrackToggles || tools.includes("underline");
+
+  // The underline (and with it the melody row) is a view setting the editor loads switched off
+  // on mobile and whenever a song has no notes yet; these demos are about that row.
+  useEffect(() => {
+    if (!showMelody) return;
+    actions.setShowUnderline(true);
+    actions.setTrackVisibility("vocalNotes", true);
+  }, [showMelody, actions]);
+
+  const toggleUnderline = () => {
+    const next = !state.showUnderline;
+    actions.setShowUnderline(next);
+    actions.setTrackVisibility("vocalNotes", next);
+  };
 
   return (
     <figure
       className={
-        hasTrackToggles
+        hasSideTools
           ? "article-editor article-editor--with-track-toggles"
           : "article-editor"
       }
@@ -114,6 +160,13 @@ function LiveChordEditor({
                   />
                 ))
             : null}
+          {tools.includes("underline") ? (
+            <UnderlineToggleButton
+              pressed={state.showUnderline}
+              disabled={state.lyricsText.trim() === ""}
+              onToggle={toggleUnderline}
+            />
+          ) : null}
           {tools.includes("transpose") ? (
             <TransposeWidget
               chordCells={state.cells.chords}
