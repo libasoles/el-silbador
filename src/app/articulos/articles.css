@@ -344,17 +344,12 @@
   grid-template-rows: 1.1em 1.35em 0.9em;
 }
 
-.pitch-drag-example__note--up,
-.pitch-drag-example__note--down {
-  animation: 5s ease-in-out infinite;
-}
-
 .pitch-drag-example__note--up {
-  animation-name: pitch-drag-up;
+  animation: pitch-drag-up 5s ease-in-out infinite;
 }
 
 .pitch-drag-example__note--down {
-  animation-name: pitch-drag-down;
+  animation: pitch-drag-down 5s ease-in-out infinite;
 }
 
 .pitch-drag-example__arrow-slot {
@@ -366,15 +361,15 @@
 .pitch-drag-example__arrow {
   display: inline-flex;
   opacity: 0;
-  animation: 5s ease-out infinite;
 }
 
+/* The name lives in each shorthand: Next's CSS compiler drops a nameless `animation` shorthand. */
 .pitch-drag-example__arrow--up {
-  animation-name: pitch-drag-arrow-up;
+  animation: pitch-drag-arrow-up 5s ease-out infinite;
 }
 
 .pitch-drag-example__arrow--down {
-  animation-name: pitch-drag-arrow-down;
+  animation: pitch-drag-arrow-down 5s ease-out infinite;
 }
 
 @keyframes pitch-drag-up {
