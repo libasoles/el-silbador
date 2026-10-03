@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { ChordIcon, SilbadorIcon } from "../../../editor/components/icons";
+import {
+  ChordIcon,
+  NoteStackIcon,
+  SilbadorIcon,
+} from "../../../editor/components/icons";
 import {
   ArticleChordEditor,
   ChordDiagramFigure,
@@ -53,15 +57,23 @@ export default function ChordEditorArticlePage() {
         <div className="article-page__body">
           <h2>Mostrar u ocultar los acordes</h2>
           <p>
-            El botón <span className="article-inline-icon"><ChordIcon /></span>{" "}
-            de la guitarra, en la barra lateral del editor, muestra u oculta
-            la fila de acordes que va arriba de cada verso.
+            El botón{" "}
+            <span className="article-inline-icon">
+              <ChordIcon />
+            </span>{" "}
+            de la guitarra, en la barra lateral del editor, muestra u oculta la
+            fila de acordes que va arriba de cada verso.
           </p>
           <p>
-            El otro muestra las notas que lo forman: <span className="article-note">la</span>
-            -<span className="article-note">do#</span>-<span className="article-note">mi</span>{" "}
-            para un <span className="article-chord">A</span>. Solo se puede usar
-            cuando la canción ya tiene algún acorde.
+            El otro{" "}
+            <span className="article-inline-icon">
+              <NoteStackIcon />
+            </span>{" "}
+            muestra las notas que lo forman:{" "}
+            <span className="article-note">la</span>-
+            <span className="article-note">do#</span>-
+            <span className="article-note">mi</span> para un{" "}
+            <span className="article-chord">A</span>.
           </p>
           <p className="article-highlight">
             Solo se puede usar cuando la canción ya tiene algún acorde.
@@ -71,6 +83,15 @@ export default function ChordEditorArticlePage() {
             label="Editor con los botones de acordes y de notas del acorde"
             tools={["trackToggles"]}
           />
+
+          <p>
+            El{" "}
+            <span className="article-inline-icon">
+              <NoteStackIcon />
+            </span>{" "}
+            pone en negrita las notas que existen en el acorde anterior, para
+            estudio de armonía.
+          </p>
 
           <h2>Escribir un acorde</h2>
           <p>
@@ -87,7 +108,7 @@ export default function ChordEditorArticlePage() {
           <h2>Copiar y Pegar</h2>
           <p>
             Si ya tenés la canción con los acordes escritos en la línea de
-            arriba, pegala en el editor: El Silbador reconoce cada acorde y lo
+            arriba, pegala en el editor: El editor reconoce cada acorde y lo
             pone sobre la sílaba que le corresponde.
           </p>
 
@@ -99,6 +120,11 @@ export default function ChordEditorArticlePage() {
             label="Editor vacío"
             needsEditing
           />
+
+          <p className="article-highlight">
+            Es probable que tengas que corregir algunos acordes después de
+            pegar.
+          </p>
 
           <h2>Mover un acorde a otra sílaba</h2>
           <p>

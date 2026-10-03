@@ -41,17 +41,10 @@ export default function SongNotesArticlePage() {
         <p className="article-page__meta">Guía del editor · melodía</p>
         <h1>Cómo escribir las notas de la canción</h1>
         <p className="article-page__lead">
-          Los acordes van arriba; la melodía, abajo. Cada sílaba tiene lugar
-          para la nota que se canta, así cualquiera puede tararearla aunque
-          nunca la haya escuchado.
+          Los acordes van arriba, la melodía abajo.
         </p>
 
         <div className="article-page__body">
-          <p>
-            Para los ejemplos usamos una que todos conocemos: «Que los cumplas
-            feliz», en do.
-          </p>
-
           <h2>Mostrar u ocultar las notas</h2>
           <p>
             El botón del subrayado, en la barra lateral del editor, hace dos
@@ -140,8 +133,8 @@ export default function SongNotesArticlePage() {
           <p>
             En el tercer verso, el sol de «cum» es el mismo sol que los dos
             anteriores, pero una octava más arriba: es el salto grande de la
-            canción. Arrastralo hacia arriba. Después, arrastrá hacia abajo el mi
-            de «plas».
+            canción. Arrastralo hacia arriba. Después, arrastrá hacia abajo el
+            mi de «plas».
           </p>
           <ArticleChordEditor
             sheet={BIRTHDAY_SHEET}
@@ -157,9 +150,9 @@ export default function SongNotesArticlePage() {
 
           <h2>Cambiar de tono</h2>
           <p>
-            Los botones − y + suben o bajan de a medio tono los acordes y también
-            las notas de la melodía, juntos. Apretá + dos veces: el sol pasa a
-            ser la, el do pasa a ser re y el C pasa a ser D.
+            Los botones − y + suben o bajan de a medio tono los acordes y
+            también las notas de la melodía, juntos. Apretá + dos veces: el sol
+            pasa a ser la, el do pasa a ser re y el C pasa a ser D.
           </p>
           <ArticleChordEditor
             sheet={BIRTHDAY_CHORD_SHEET}
