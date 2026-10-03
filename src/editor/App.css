@@ -742,6 +742,9 @@
 .track-row {
   position: relative;
   height: 1.3em;
+  /* Annotation rows contain much more passive space than their small chips. It is still an
+     insertion surface: SongView turns a click here into a caret on the associated lyric row. */
+  cursor: text;
 }
 
 /* Chords need a little more presence than the lyric text they annotate. Give their row enough
@@ -867,6 +870,7 @@
 
 .track-cell--chip {
   background: transparent;
+  cursor: pointer;
 }
 
 .track-cell--chip:hover {
@@ -876,6 +880,7 @@
 .track-cell--input {
   border-bottom-color: var(--border-strong);
   outline: none;
+  cursor: text;
 }
 
 /* The dragged chip keeps its own colors — no fill, no inverted text — and drops the hover
@@ -1092,6 +1097,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
+  cursor: text;
 }
 
 .line-edge-drop::before {

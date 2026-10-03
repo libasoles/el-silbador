@@ -345,6 +345,92 @@ function restoreCaret(root: HTMLElement, position: CaretPosition) {
   selection?.addRange(range);
 }
 
+interface NativeCaretPoint {
+  node: Node;
+  offset: number;
+}
+
+/** Finds the lyric row a passive click belongs to. Annotation rows live inside the same `.line`
+    wrapper as their lyrics; clicks in the inter-line gutter instead go to the visually closest
+    lyric row. */
+function lyricLineForClick(
+  root: HTMLElement,
+  target: EventTarget | null,
+  clientY: number,
+): HTMLElement | null {
+  const targetElement =
+    target instanceof Element
+      ? target
+      : target instanceof Node
+        ? target.parentElement
+        : null;
+  const ownedLine = targetElement?.closest(".line");
+  const lyricLine = ownedLine?.querySelector<HTMLElement>("[data-lyrics-line]");
+  if (lyricLine && root.contains(lyricLine)) return lyricLine;
+
+  const lyricLines = Array.from(
+    root.querySelectorAll<HTMLElement>("[data-lyrics-line]"),
+  );
+  return lyricLines.reduce<HTMLElement | null>((closest, line) => {
+    if (!closest) return line;
+    const distanceTo = (rect: DOMRect) =>
+      clientY < rect.top ? rect.top - clientY : clientY > rect.bottom ? clientY - rect.bottom : 0;
+    return distanceTo(line.getBoundingClientRect()) < distanceTo(closest.getBoundingClientRect())
+      ? line
+      : closest;
+  }, null);
+}
+
+/** Browser APIs return a DOM boundary for a screen point. Keep the legacy Chromium API as a
+    fallback: it is the one available in the desktop browser the editor currently supports. */
+function nativeCaretPointAt(clientX: number, clientY: number): NativeCaretPoint | null {
+  const caretDocument = document as Document & {
+    caretPositionFromPoint?: (x: number, y: number) =>
+      | { offsetNode: Node; offset: number }
+      | null;
+    caretRangeFromPoint?: (x: number, y: number) => Range | null;
+  };
+  const position = caretDocument.caretPositionFromPoint?.(clientX, clientY);
+  if (position) return { node: position.offsetNode, offset: position.offset };
+  const range = caretDocument.caretRangeFromPoint?.(clientX, clientY);
+  return range ? { node: range.startContainer, offset: range.startOffset } : null;
+}
+
+/** Resolves a click on non-editable editor chrome (annotation whitespace, edge drop zones, and
+    gutters) to a real lyric insertion point. The Y coordinate chooses the lyric line; sampling
+    at that row's vertical centre lets the browser accurately resolve its X coordinate even when
+    the original click was in a taller annotation row. */
+function caretForClick(
+  root: HTMLElement,
+  target: EventTarget | null,
+  clientX: number,
+  clientY: number,
+): CaretPosition | null {
+  const line = lyricLineForClick(root, target, clientY);
+  if (!line) return null;
+  const lines = Array.from(root.querySelectorAll<HTMLElement>("[data-lyrics-line]"));
+  const lineIndex = lines.indexOf(line);
+  if (lineIndex === -1) return null;
+
+  const rect = line.getBoundingClientRect();
+  const x = Math.max(rect.left + 1, Math.min(clientX, rect.right - 1));
+  const y = rect.top + rect.height / 2;
+  const nativePoint = nativeCaretPointAt(x, y);
+  if (nativePoint) {
+    const nativeLine =
+      (nativePoint.node instanceof Element
+        ? nativePoint.node
+        : nativePoint.node.parentElement)?.closest<HTMLElement>("[data-lyrics-line]");
+    const position = positionForNode(root, nativePoint.node, nativePoint.offset);
+    if (nativeLine === line && position?.lineIndex === lineIndex) return position;
+  }
+
+  // Old browsers occasionally report no point in empty flex-row space. The useful, predictable
+  // fallback is the nearer end of the chosen lyric line; in particular, its trailing dead zone
+  // receives the end-of-line caret requested by authors.
+  return { lineIndex, offset: clientX <= rect.left + rect.width / 2 ? 0 : lineText(line).length };
+}
+
 // These insertion types provide their replacement text through `InputEvent.data`. They still go
 // through the document model: even a one-character native edit can mutate a syllable text node
 // that React later reuses, leaving the DOM and model out of sync.
@@ -751,7 +837,23 @@ export function SongView({
               }
             }
           }
-          if (!isDocumentControl(event.target)) focusDocument();
+          if (isDocumentControl(event.target)) return;
+          const root = rootRef.current;
+          if (event.detail === 1 && canEdit && root) {
+            const position = caretForClick(
+              root,
+              event.target,
+              event.clientX,
+              event.clientY,
+            );
+            if (position) {
+              root.focus({ preventScroll: true });
+              restoreCaret(root, position);
+              setCaretLineIndex(position.lineIndex);
+              return;
+            }
+          }
+          focusDocument();
         }}
         onInput={(event) => {
           if (!canEdit) return;

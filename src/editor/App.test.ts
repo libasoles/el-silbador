@@ -19,6 +19,7 @@ const authModal = readFileSync(new URL("./components/AuthModal.tsx", import.meta
 const autosave = readFileSync(new URL("./useAutosave.ts", import.meta.url), "utf8");
 const lineView = readFileSync(new URL("./components/LineView.tsx", import.meta.url), "utf8");
 const trackRow = readFileSync(new URL("./components/TrackRow.tsx", import.meta.url), "utf8");
+const songView = readFileSync(new URL("./components/SongView.tsx", import.meta.url), "utf8");
 const toastStyles = readFileSync(new URL("./components/Toast.css", import.meta.url), "utf8");
 const providers = readFileSync(new URL("../app/providers.tsx", import.meta.url), "utf8");
 const toastProvider = readFileSync(
@@ -72,6 +73,24 @@ describe("PDF export layout", () => {
 describe("lyric caret visibility", () => {
   it("uses a dark-gray color instead of the browser's automatic caret color", () => {
     expect(styles).toMatch(/\.song\s*\{[\s\S]*caret-color: #555/);
+  });
+});
+
+describe("passive editor click caret placement", () => {
+  it("maps a simple click in annotation space or an edge drop zone to the associated lyric row", () => {
+    expect(songView).toContain("function lyricLineForClick");
+    expect(songView).toContain('targetElement?.closest(".line")');
+    expect(songView).toContain("function caretForClick");
+    expect(songView).toContain("caretForClick(");
+    expect(songView).toContain("restoreCaret(root, position)");
+  });
+
+  it("uses the browser's horizontal caret hit-testing and keeps a deterministic end fallback", () => {
+    expect(songView).toContain("caretPositionFromPoint");
+    expect(songView).toContain("caretRangeFromPoint");
+    expect(songView).toContain("lineText(line).length");
+    expect(styles).toMatch(/\.track-row\s*\{[\s\S]*cursor: text/);
+    expect(styles).toMatch(/\.line-edge-drop\s*\{[\s\S]*cursor: text/);
   });
 });
 
