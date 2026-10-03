@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { SilbadorIcon } from "../../../editor/components/icons";
+import { ChordIcon, SilbadorIcon } from "../../../editor/components/icons";
 import {
   ArticleChordEditor,
   ChordDiagramFigure,
@@ -53,12 +53,15 @@ export default function ChordEditorArticlePage() {
         <div className="article-page__body">
           <h2>Mostrar u ocultar los acordes</h2>
           <p>
-            El botón de la guitarra, en la barra lateral del editor, muestra u
-            oculta la fila de acordes que va arriba de cada verso.
+            El botón <span className="article-inline-icon"><ChordIcon /></span>{" "}
+            de la guitarra, en la barra lateral del editor, muestra u oculta
+            la fila de acordes que va arriba de cada verso.
           </p>
           <p>
-            El otro muestra las notas que lo forman: la-do#-mi para un A. Solo
-            se puede usar cuando la canción ya tiene algún acorde.
+            El otro muestra las notas que lo forman: <span className="article-note">la</span>
+            -<span className="article-note">do#</span>-<span className="article-note">mi</span>{" "}
+            para un <span className="article-chord">A</span>. Solo se puede usar
+            cuando la canción ya tiene algún acorde.
           </p>
           <p className="highlight">
             Solo se puede usar cuando la canción ya tiene algún acorde.

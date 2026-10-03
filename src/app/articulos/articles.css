@@ -201,6 +201,28 @@
   font-size: 1rem;
 }
 
+/* Keep the names in the guide aligned with the editor's visual language. */
+.article-inline-icon {
+  display: inline-flex;
+  vertical-align: -0.18em;
+  color: var(--chord);
+}
+
+.article-inline-icon svg {
+  width: 1.05em;
+  height: 1.05em;
+}
+
+.article-note {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.article-chord {
+  color: var(--chord);
+  font-weight: 600;
+}
+
 .article-page__body h2 {
   margin: 2.2rem 0 0.7rem;
   font-size: 1.55rem;
