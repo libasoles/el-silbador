@@ -64,18 +64,23 @@ export default function SongNotesArticlePage() {
 
           <h2>Escribir una nota</h2>
           <p>
-            Hacé click justo debajo de la rayita de una sílaba y escribí la
-            nota: do, re, mi, fa, sol, la o si. Para los sostenidos y bemoles
-            agregale # o b, como en fa# o sib.
+            Hacé <span className="article-action">click</span> justo debajo de
+            la rayita de una sílaba y escribí la nota: do, re, mi, fa, sol, la
+            o si. Para los sostenidos y bemoles agregale{" "}
+            <span className="article-action">#</span> o{" "}
+            <span className="article-action">b</span>, como en fa# o sib.
           </p>
           <MelodyTypingExample />
           <p>
-            Presioná Enter o hacé click afuera para terminar. Con las flechas
-            del teclado pasás a la sílaba anterior o a la siguiente.
+            Presioná <span className="article-action">Enter</span> o hacé{" "}
+            <span className="article-action">click</span> afuera para terminar.
+            Con las <span className="article-action">flechas</span> del teclado
+            pasás a la sílaba anterior o a la siguiente.
           </p>
           <p>
             Probá con el primer verso de «Recuerdos de Ypacaraí»: do, mi, sol,
-            mi, la, la, sol, mi, do, la, la. Presioná Tab cada vez que escribas
+            mi, la, la, sol, mi, do, la, la. Presioná{" "}
+            <span className="article-action">Tab</span> cada vez que escribas
             una para pasar al próximo casillero.
           </p>
 
@@ -96,25 +101,31 @@ export default function SongNotesArticlePage() {
 
           <h2>Editar y borrar notas</h2>
           <p>
-            Para corregir una nota, hacé click sobre ella y cambiala. Si borrás
-            todas las letras, la nota desaparece.
+            Para corregir una nota, hacé{" "}
+            <span className="article-action">click</span> sobre ella y cambiala.
+            Si borrás todas las letras, la nota desaparece.
           </p>
 
           <h2>Una nota para varias sílabas</h2>
           <p>
             A veces dos sílabas se cantan juntas, en una sola nota. Pasa mucho
             cuando una palabra termina en vocal y la siguiente empieza con otra:
-            en «Junto al», la «o» de junto y la «a» de al se cantan de un tirón.
+            en «Junto al», la <span className="article-syllable">«o»</span> de
+            junto y la <span className="article-syllable">«a»</span> de al se
+            cantan de un tirón.
           </p>
           <MelodyJoinExample />
           <p>
-            Para unirlas, hacé click en el espacio que hay entre las dos
-            sílabas. La rayita de abajo se vuelve una sola y las dos comparten
-            la misma nota.
+            Para unirlas, hacé <span className="article-action">click</span> en
+            el espacio que hay entre las dos sílabas. La rayita de abajo se
+            vuelve una sola y las dos comparten la misma nota.
           </p>
           <p>
-            En el segundo verso, «to» y «al» todavía están separadas y una de
-            las dos quedó sin nota. Hacé click entre ellas para unirlas:
+            En el segundo verso, <span className="article-syllable">«to»</span>{" "}
+            y <span className="article-syllable">«al»</span> todavía están
+            separadas y una de las dos quedó sin nota. Hacé{" "}
+            <span className="article-action">click</span> entre ellas para
+            unirlas:
           </p>
           <ArticleChordEditor
             sheet={YPACARAI_SHEET}
@@ -124,8 +135,8 @@ export default function SongNotesArticlePage() {
             needsEditing
           />
           <p>
-            Si te equivocaste, hacé click otra vez en el mismo lugar y se
-            separan.
+            Si te equivocaste, hacé <span className="article-action">click</span>{" "}
+            otra vez en el mismo lugar y se separan.
           </p>
           <p className="highlight">
             Si las dos sílabas tenían nota, queda la de la primera.
@@ -134,8 +145,10 @@ export default function SongNotesArticlePage() {
           <h2>Subidas y bajadas</h2>
           <p>
             Escribir «sol» no alcanza para saber si es el sol de abajo o el de
-            arriba. Por eso cada nota puede llevar una flecha: ↑ si suena más
-            aguda que la anterior y ↓ si suena más grave.
+            arriba. Por eso cada nota puede llevar una flecha:{" "}
+            <span className="article-action">↑</span> si suena más aguda que la
+            anterior y <span className="article-action">↓</span> si suena más
+            grave.
           </p>
           <p>
             Para ponerla, agarrá la nota y arrastrala hacia arriba o hacia
@@ -144,9 +157,12 @@ export default function SongNotesArticlePage() {
           </p>
           <PitchDragExample />
           <p>
-            En el primer verso, el mi de «na» suena más agudo que el do de «U»:
-            arrastralo hacia arriba. Después, arrastrá hacia abajo el mi de
-            «che», que vuelve a bajar después del sol.
+            En el primer verso, el mi de{" "}
+            <span className="article-syllable">«na»</span> suena más agudo que
+            el do de <span className="article-syllable">«U»</span>: arrastralo
+            hacia arriba. Después, arrastrá hacia abajo el mi de{" "}
+            <span className="article-syllable">«che»</span>, que vuelve a bajar
+            después del sol.
           </p>
           <ArticleChordEditor
             sheet={YPACARAI_SHEET}
@@ -163,8 +179,9 @@ export default function SongNotesArticlePage() {
           <h2>Cambiar de tono</h2>
           <p>
             Los botones − y + suben o bajan de a medio tono los acordes y
-            también las notas de la melodía, juntos. Apretá + dos veces: el sol
-            pasa a ser la, el do pasa a ser re y el C pasa a ser D.
+            también las notas de la melodía, juntos. Apretá{" "}
+            <span className="article-action">+</span> dos veces: el sol pasa a
+            ser la, el do pasa a ser re y el C pasa a ser D.
           </p>
           <ArticleChordEditor
             sheet={YPACARAI_CHORD_SHEET}

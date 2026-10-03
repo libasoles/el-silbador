@@ -95,10 +95,16 @@ export default function ChordEditorArticlePage() {
 
           <h2>Escribir un acorde</h2>
           <p>
-            Hacé click justo arriba de la sílaba y escribí algo, por ejemplo A.
-            Después, presioná Enter o hacé click afuera, en cualquier lado.
+            Hacé <span className="article-action">click</span> justo arriba de la
+            sílaba y escribí algo, por ejemplo A. Después, presioná{" "}
+            <span className="article-action">Enter</span> o hacé{" "}
+            <span className="article-action">click</span> afuera, en cualquier
+            lado.
           </p>
-          <p>Con las flechas pasás a la sílaba anterior o a la siguiente.</p>
+          <p>
+            Con las <span className="article-action">flechas</span> pasás a la
+            sílaba anterior o a la siguiente.
+          </p>
           <ArticleChordEditor
             sheet={LYRICS_ONLY}
             label="Editor con dos versos sin acordes"
@@ -160,10 +166,14 @@ export default function ChordEditorArticlePage() {
             lugar, se habilita otro espacio libre al lado.
           </p>
 
-          <h2>Corregir un acorde con doble click</h2>
+          <h2>
+            Corregir un acorde con doble{" "}
+            <span className="article-action">click</span>
+          </h2>
           <p>
-            Para cambiar un acorde que ya escribiste, hacele doble click.
-            Modificá el texto y apretá Enter.
+            Para cambiar un acorde que ya escribiste, hacele doble{" "}
+            <span className="article-action">click</span>. Modificá el texto y
+            apretá <span className="article-action">Enter</span>.
           </p>
           <p>Probá cambiar el A7 de este verso por un A:</p>
           <ArticleChordEditor
@@ -177,19 +187,25 @@ export default function ChordEditorArticlePage() {
 
           <h2>Dibujo del acorde</h2>
           <p>
-            Un click sobre un acorde abre su diagrama para guitarra. Si el
-            acorde se puede armar en más de una posición del mástil, las flechas
-            del diagrama pasan de una a otra.
+            Un <span className="article-action">click</span> sobre un acorde abre
+            su diagrama para guitarra. Si el acorde se puede armar en más de una
+            posición del mástil, las flechas del diagrama pasan de una a otra.
           </p>
 
           <p className="article-highlight">
             La forma que dejes elegida queda guardada.
           </p>
 
-          <p>Para cerrarlo, hacé click en cualquier</p>
+          <p>
+            Para cerrarlo, hacé <span className="article-action">click</span> en
+            cualquier lado.
+          </p>
 
           <ChordDiagramFigure chord="A7" />
-          <p>Hacé click en cualquiera de estos acordes:</p>
+          <p>
+            Hacé <span className="article-action">click</span> en cualquiera de
+            estos acordes:
+          </p>
           <ArticleChordEditor
             sheet={DIAGRAM_EXCERPT}
             label="Editor para ver los diagramas"
@@ -197,10 +213,13 @@ export default function ChordEditorArticlePage() {
 
           <h2>Cambiar de tono</h2>
           <p>
-            Si la canción te queda alta o baja, los botones − y + suben o bajan
-            todos los acordes de a medio tono. El número del medio indica
-            cuántos medios tonos te moviste del original; hacé click en él para
-            volver al tono de siempre.
+            Si la canción te queda alta o baja, los botones{" "}
+            <span className="article-action">−</span> y{" "}
+            <span className="article-action">+</span> suben o bajan todos los
+            acordes de a medio tono. El número del medio indica cuántos medios
+            tonos te moviste del original; hacé{" "}
+            <span className="article-action">click</span> en él para volver al
+            tono de siempre.
           </p>
           <ArticleChordEditor
             sheet={TONADA_EXCERPT}
