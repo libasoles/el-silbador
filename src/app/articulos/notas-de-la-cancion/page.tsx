@@ -65,8 +65,8 @@ export default function SongNotesArticlePage() {
           <h2>Escribir una nota</h2>
           <p>
             Hacé <span className="article-action">click</span> justo debajo de
-            la rayita de una sílaba y escribí la nota: do, re, mi, fa, sol, la
-            o si. Para los sostenidos y bemoles agregale{" "}
+            la rayita de una sílaba y escribí la nota: do, re, mi, fa, sol, la o
+            si. Para los sostenidos y bemoles agregale{" "}
             <span className="article-action">#</span> o{" "}
             <span className="article-action">b</span>, como en fa# o sib.
           </p>
@@ -135,8 +135,9 @@ export default function SongNotesArticlePage() {
             needsEditing
           />
           <p>
-            Si te equivocaste, hacé <span className="article-action">click</span>{" "}
-            otra vez en el mismo lugar y se separan.
+            Si te equivocaste, hacé{" "}
+            <span className="article-action">click</span> otra vez en el mismo
+            lugar y se separan.
           </p>
           <p className="highlight">
             Si las dos sílabas tenían nota, queda la de la primera.
@@ -150,12 +151,11 @@ export default function SongNotesArticlePage() {
             anterior y <span className="article-action">↓</span> si suena más
             grave.
           </p>
+          <PitchDragExample />
           <p>
             Para ponerla, agarrá la nota y arrastrala hacia arriba o hacia
-            abajo. Al soltarla, la nota vuelve a su lugar y la flecha queda
-            debajo.
+            abajo.
           </p>
-          <PitchDragExample />
           <p>
             En el primer verso, el mi de{" "}
             <span className="article-syllable">«na»</span> suena más agudo que
