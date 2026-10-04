@@ -89,14 +89,13 @@ describe("lyric caret visibility", () => {
 });
 
 describe("BIS phrases", () => {
-  it("renders a shared rule and sans-serif BIS marker, and supports the Tab shortcut", () => {
+  it("renders emphasized phrases and a baseline-aligned sans-serif BIS marker, and supports the Tab shortcut", () => {
     expect(songView).toContain('event.key === "Tab"');
     expect(songView).toContain("event.shiftKey");
     expect(songView).toContain("onToggleBis(");
     expect(lineView).toContain('"bis-marker"');
-    expect(styles).toMatch(/\.line--bis\s*\{[\s\S]*border-right:\s*2px solid var\(--muted\)/);
-    expect(styles).toMatch(/\.line--bis-start \+ \.line--bis-end::before[\s\S]*height:\s*var\(--song-line-gap\)/);
-    expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*color:\s*var\(--muted\)[\s\S]*transform:\s*translateY\(-0\.3em\)/);
+    expect(styles).toMatch(/\.line--bis \.syllable-row\s*\{[\s\S]*align-items:\s*baseline[\s\S]*font-weight:\s*600/);
+    expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*font-family:\s*var\(--sans\)[\s\S]*line-height:\s*normal/);
   });
 });
 

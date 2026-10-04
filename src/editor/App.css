@@ -674,38 +674,21 @@
   position: relative;
 }
 
-/* A BIS phrase is a single visual block even when it spans several lyric rows. Every member
-   carries the same rule, so the line remains continuous through its annotation rows. */
-.line--bis {
-  align-self: flex-start;
-  border-right: 2px solid var(--muted);
-  max-width: 100%;
-  padding-right: 0.6rem;
-  width: fit-content;
-}
-
-/* `.song` spaces ordinary stanzas apart. Extend the next member's rule upward through that
-   space rather than collapsing it, so the phrase marker is continuous without crowding lyrics. */
-.line--bis-start + .line--bis-middle::before,
-.line--bis-start + .line--bis-end::before,
-.line--bis-middle + .line--bis-middle::before,
-.line--bis-middle + .line--bis-end::before {
-  content: "";
-  position: absolute;
-  top: calc(-1 * var(--song-line-gap));
-  right: -2px;
-  height: var(--song-line-gap);
-  border-right: 2px solid var(--muted);
+/* BIS phrases are distinguished by a stronger lyric weight. This remains legible when a group
+   has lines of different lengths, where a vertical rule would imply a false shared edge. */
+.line--bis .syllable-row {
+  align-items: baseline;
+  font-weight: 600;
 }
 
 .bis-marker {
-  color: var(--muted);
+  color: inherit;
   display: inline-block;
   font-family: var(--sans);
   font-size: 0.78em;
   font-weight: 600;
   letter-spacing: 0.04em;
-  transform: translateY(-0.3em);
+  line-height: normal;
 }
 
 .line [contenteditable="false"] {
