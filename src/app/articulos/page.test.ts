@@ -21,6 +21,11 @@ describe("articles", () => {
     expect(page).toContain("/articulos/notas-de-la-cancion");
   });
 
+  it("lists the guide for structure labels and BIS", () => {
+    expect(page).toContain("Marcas de estructura y BIS");
+    expect(page).toContain("/articulos/marcas-de-estructura-y-bis");
+  });
+
   it("uses Lucide icons for article actions", () => {
     expect(page).toContain('from "lucide-react"');
   });

@@ -22,6 +22,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.6,
     },
+    {
+      url: "https://elsilbador.com.ar/articulos/marcas-de-estructura-y-bis",
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
     ...songs.map((song) => ({
       url: `https://elsilbador.com.ar/cancion/${song.slug}`,
       lastModified: song.updatedAt,

@@ -41,6 +41,14 @@ const articles = [
       "Escribir la melodía debajo de la letra, unir sílabas que se cantan juntas, marcar subidas y bajadas, y cambiar de tono.",
     topics: ["editor", "melodía", "notas", "canto"],
   },
+  {
+    date: "Guía del editor",
+    href: "/articulos/marcas-de-estructura-y-bis",
+    title: "Marcas de estructura y BIS",
+    summary:
+      "Nombrar las partes de la canción con palabras clave como Estrofa o Estribillo, y marcar con BIS una o varias líneas que se repiten.",
+    topics: ["editor", "estructura", "bis"],
+  },
 ] as const;
 
 export default function ArticlesPage() {

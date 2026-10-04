@@ -5,7 +5,7 @@ import { parseChordSheet } from "../../core/chordSheet";
 import { findChordShape } from "../../core/findChordShape";
 import { beforeSlotId, flattenSyllables, mergeKey } from "../../core/model";
 import { createInitialState, editorReducer } from "../../core/state";
-import type { PitchDirection } from "../../core/types";
+import type { BisGroup, PitchDirection } from "../../core/types";
 import type { SongContent } from "../../data/types";
 import { TrackToggleButton, UnderlineToggleButton } from "../../editor/App";
 import "../../editor/App.css";
@@ -33,7 +33,11 @@ y estoy mas solo mirando el mar.`;
 
 /** The song state the editor itself ends up with when this chord sheet is pasted into it, plus
  *  the melody written under it (see `ArticleChordEditorProps.melody`). */
-function contentFromChordSheet(sheet: string, melody: string[] = []): SongContent {
+function contentFromChordSheet(
+  sheet: string,
+  melody: string[] = [],
+  bisGroups: BisGroup[] = [],
+): SongContent {
   const { lyricsText, placements } = parseChordSheet(sheet);
   const pasted = editorReducer(createInitialState(), {
     type: "pasteText",
@@ -71,6 +75,7 @@ function contentFromChordSheet(sheet: string, melody: string[] = []): SongConten
     chordVariants: pasted.chordVariants,
     pitchDirections,
     merges,
+    bisGroups,
   };
 }
 
@@ -82,6 +87,8 @@ interface ArticleChordEditorProps {
    *  spaces. A note may end in ↑ or ↓ (higher or lower than the previous one), `_` leaves a
    *  syllable without a note and `+` joins the syllable to the one before it. */
   melody?: string[];
+  /** Lines that repeat together, by lyric line index; the last one must end in `BIS`. */
+  bisGroups?: BisGroup[];
   /** Starts with the underline and the melody notes showing, even when there are no notes yet. */
   showMelody?: boolean;
   /** Sidebar controls to show next to the song, in the editor's own order. */
@@ -111,12 +118,13 @@ function LiveChordEditor({
   sheet,
   label,
   melody,
+  bisGroups,
   showMelody = false,
   tools = [],
   needsEditing = false,
 }: ArticleChordEditorProps) {
   const isMobile = useIsMobile();
-  const [initialContent] = useState(() => contentFromChordSheet(sheet, melody));
+  const [initialContent] = useState(() => contentFromChordSheet(sheet, melody, bisGroups));
   const { state, actions } = useEditor(initialContent, isMobile);
   const hasTrackToggles = tools.includes("trackToggles");
   const hasSideTools = hasTrackToggles || tools.includes("underline");
