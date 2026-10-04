@@ -29,7 +29,6 @@ import { revalidatePublicSongs } from "../app/actions";
 import type { TransposeWidget as TransposeWidgetComponent } from "../transpose/TransposeWidget";
 import { transposeCells } from "../transpose/transpose";
 import { trackEvent } from "./analytics";
-import { isMagicLinkCallback } from "./loginTracking";
 import { useAuthRequired } from "./authRequiredContext";
 import type { ConfirmDialog as ConfirmDialogComponent } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
@@ -56,6 +55,8 @@ import {
 import { applyTheme, deriveTheme } from "./theme";
 import { clearDraft, readDraft, saveDraft } from "./draftStorage";
 import { useAutosave } from "./useAutosave";
+import { usePendingSongResume } from "./usePendingSongResume";
+import { SONG_SAVED_TOAST } from "./songSavedToast";
 import { useEditor } from "./useEditor";
 import {
   clearPendingAuthAction,
@@ -302,9 +303,10 @@ function App({
   // Reading has a personal, local key preference. Editing always works against the canonical
   // document instead, and keeps its existing database persistence.
   const [readerTransposeOffset, setReaderTransposeOffset] = useState(0);
-  // The tab that opened the login modal stays mounted when Supabase synchronizes the new session
-  // across tabs. Keep the creation id here too, not only in the draft read after a reload.
+  // Set while this new song waits, stored locally, for its author to sign in. The app-wide
+  // PendingSongResumer saves it and navigates to it from whichever tab gets the session.
   const [pendingCreationId, setPendingCreationId] = useState<string>();
+  const resumePendingSong = usePendingSongResume();
   // Latest `songDbId`, readable from the load effect below without adding it to that effect's
   // dependencies (it intentionally only reruns for `songSlug` changes — see the effect's comment).
   const songDbIdRef = useRef(songDbId);
@@ -318,12 +320,6 @@ function App({
   // The song-loading effect must see a restored draft immediately, even before React renders the
   // state update, so a synchronous query-cache hit cannot overwrite the fresher local content.
   const restoredDraftRef = useRef<ReturnType<typeof readDraft>>(null);
-  // Only the tab that received the magic-link callback may complete the deferred creation. The
-  // original tab receives the session through Supabase's cross-tab synchronization but must not
-  // race the callback tab to save the same in-memory draft.
-  const arrivedViaMagicLink = useRef(
-    typeof window !== "undefined" && isMagicLinkCallback(window.location.hash),
-  );
   const isMobile = useIsMobile();
   // The first client render must exactly match the server HTML. A restored local draft loads in
   // the effect below once hydration has completed.
@@ -627,15 +623,12 @@ function App({
     },
     [songDbId],
   );
-  // A draft created before authentication reserves its database id in localStorage. It is not
-  // assigned to `songDbId` yet because the privacy/delete controls must stay unavailable until a
-  // row actually exists, but autosave uses it for an idempotent first upsert across browser tabs.
-  const saveSongId = songDbId ?? pendingCreationId ?? restoredDraft?.creationId;
-  const canPersist =
-    isOwnSong && !isMobile && (!pendingCreationId || arrivedViaMagicLink.current);
+  // A pending new song is saved by PendingSongResumer, never by autosave: two writers racing on
+  // the post-login edge is what this keeps out.
+  const canPersist = isOwnSong && !isMobile && !pendingCreationId;
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
-    saveSongId,
+    songDbId,
     ready,
     authenticated,
     // Never even attempt to persist a viewer's edits to a song they don't own — the DB's RLS
@@ -650,8 +643,10 @@ function App({
     !songSlug,
     handleSongCreated,
   );
+  // A new song stored locally until its author signs in (see PendingSongResumer).
+  const isPendingNewSong = Boolean(pendingCreationId) && !songSlug;
   const pendingChanges =
-    autosaveStatus === "dirty" || autosaveStatus === "error";
+    autosaveStatus === "dirty" || autosaveStatus === "error" || isPendingNewSong;
   const saving = autosaveStatus === "saving";
 
   // Once a song has a couple of chords in it, teach that they can be dragged. Detected from the
@@ -680,23 +675,27 @@ function App({
       trackEvent("song_saved", { song_id: songDbId });
   }, [autosaveStatus, songDbId]);
 
-  // The save intent survives the magic-link reload. Mark it complete only after autosave has
-  // actually persisted the restored draft, so a failed save remains available for recovery.
+  // Edits to a pending new song keep its local copy current (same creation id, renewed expiry),
+  // so resuming saves the latest content. Also while signed in after a failed resume: autosave
+  // stays off for it, so this copy is what the retry saves.
   useEffect(() => {
-    if (!authenticated || autosaveStatus !== "saved") return;
+    if (!isPendingNewSong) return;
+    saveDraft(undefined, content, pendingCreationId);
+  }, [isPendingNewSong, pendingCreationId, content]);
+
+  // An existing song's save intent survives the magic-link reload when the link returns to its
+  // page. Mark it complete only after autosave has actually persisted the restored draft, so a
+  // failed save remains available for recovery. New songs are confirmed by PendingSongResumer.
+  useEffect(() => {
+    if (!songSlug || !authenticated || autosaveStatus !== "saved") return;
     const pendingAction = readPendingAuthAction();
     if (
       pendingAction?.type === "save-song" &&
-      pendingAction.songSlug === (songSlug ?? null)
+      pendingAction.songSlug === songSlug
     ) {
       clearDraft();
       clearPendingAuthAction();
-      showToast({
-        variant: "success",
-        icon: <PrivacyLockedIcon />,
-        title: "Canción guardada",
-        description: "Para compartir el enlace, hacela pública con el candado.",
-      });
+      showToast(SONG_SAVED_TOAST);
     }
   }, [authenticated, autosaveStatus, songSlug, showToast]);
 
@@ -856,9 +855,14 @@ function App({
       // The modal's overlay blocks further editing while it's open, so `content` here is what
       // the user will still be looking at when they follow the magic-link email — stash it so
       // it can be restored after the reload that link triggers.
-      const draft = saveDraft(songSlug, content);
+      const draft = saveDraft(songSlug, content, pendingCreationId);
       setPendingCreationId(draft.creationId);
       requireAuthentication({ type: "save-song", songSlug: songSlug ?? null });
+      return;
+    }
+    // Signed in with a pending new song: its post-login save failed, so retry it the same way.
+    if (isPendingNewSong) {
+      void resumePendingSong();
       return;
     }
     // Always forces an immediate save rather than waiting on the debounce — this is also the

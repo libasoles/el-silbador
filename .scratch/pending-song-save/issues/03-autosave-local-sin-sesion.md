@@ -6,12 +6,12 @@ reanudar (01) se guarda lo último que escribió. Ver [[spec.md]].
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Con canción pendiente y sin sesión, el autosave escribe en el storage local (conservando el id
+- [x] Con canción pendiente y sin sesión, el autosave escribe en el storage local (conservando el id
       de creación y renovando el vencimiento).
-- [ ] Sin canción pendiente y sin sesión, el comportamiento actual no cambia (no se guarda nada
+- [x] Sin canción pendiente y sin sesión, el comportamiento actual no cambia (no se guarda nada
       localmente hasta tocar Guardar).
-- [ ] Al reanudar con sesión se persiste el contenido más reciente.
-- [ ] Test: editar tras el clic en Guardar y verificar que el contenido reanudado es el último.
+- [x] Al reanudar con sesión se persiste el contenido más reciente.
+- [x] Test: editar tras el clic en Guardar y verificar que el contenido reanudado es el último.

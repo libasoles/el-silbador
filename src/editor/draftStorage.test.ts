@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { clearDraft, readDraft, saveDraft } from "./draftStorage";
+import {
+  clearDraft,
+  readDraft,
+  rememberedPendingCreationId,
+  saveDraft,
+} from "./draftStorage";
 import type { SongContent } from "../data/types";
 
 function createContent(overrides: Partial<SongContent> = {}): SongContent {
@@ -16,8 +21,10 @@ function createContent(overrides: Partial<SongContent> = {}): SongContent {
   };
 }
 
+const store = new Map<string, string>();
+
 function installFakeLocalStorage() {
-  const store = new Map<string, string>();
+  store.clear();
   const fakeStorage = {
     getItem: (key: string) => store.get(key) ?? null,
     setItem: (key: string, value: string) => void store.set(key, value),
@@ -30,6 +37,7 @@ function installFakeLocalStorage() {
 
 beforeEach(() => {
   installFakeLocalStorage();
+  clearDraft();
 });
 
 afterEach(() => {
@@ -71,5 +79,55 @@ describe("draftStorage", () => {
     saveDraft("song-1", createContent());
     clearDraft();
     expect(readDraft("song-1")).toBeNull();
+  });
+
+  it("keeps a new song's draft for 24 hours", () => {
+    vi.useFakeTimers();
+    saveDraft(undefined, createContent());
+    vi.advanceTimersByTime(23 * 60 * 60 * 1000);
+    expect(readDraft(undefined)?.content.title).toBe("Vals");
+    vi.advanceTimersByTime(2 * 60 * 60 * 1000);
+    expect(readDraft(undefined)).toBeNull();
+  });
+
+  it("discards an expired draft instead of keeping it around", () => {
+    vi.useFakeTimers();
+    saveDraft(undefined, createContent());
+    vi.advanceTimersByTime(25 * 60 * 60 * 1000);
+    readDraft(undefined);
+    expect(store.size).toBe(0);
+  });
+
+  it("keeps the reserved creation id and renews the expiry when the draft is rewritten", () => {
+    vi.useFakeTimers();
+    const first = saveDraft(undefined, createContent());
+    vi.advanceTimersByTime(20 * 60 * 60 * 1000);
+    saveDraft(undefined, createContent({ title: "Editada" }), first.creationId);
+    vi.advanceTimersByTime(20 * 60 * 60 * 1000);
+    const draft = readDraft(undefined);
+    expect(draft?.creationId).toBe(first.creationId);
+    expect(draft?.content.title).toBe("Editada");
+  });
+
+  it("remembers this tab's creation id after another tab removed the local copy", () => {
+    const draft = saveDraft(undefined, createContent());
+    store.clear();
+    expect(rememberedPendingCreationId()).toBe(draft.creationId);
+  });
+
+  it("remembers the creation id of a draft restored after a reload", () => {
+    const draft = saveDraft(undefined, createContent());
+    const storedByAnEarlierPageLoad = store.get("silabeo:pending-draft")!;
+    clearDraft();
+    store.set("silabeo:pending-draft", storedByAnEarlierPageLoad);
+    expect(rememberedPendingCreationId()).toBeUndefined();
+    readDraft(undefined);
+    expect(rememberedPendingCreationId()).toBe(draft.creationId);
+  });
+
+  it("forgets the remembered creation id once the draft is cleared here", () => {
+    saveDraft(undefined, createContent());
+    clearDraft();
+    expect(rememberedPendingCreationId()).toBeUndefined();
   });
 });
