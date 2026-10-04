@@ -269,7 +269,7 @@ export function TrackCell({
         >
           {value || " "}
         </button>
-        {tooltipOpen && chordVariantShape && chipRef.current ? (
+        {tooltipOpen && chordShape && chordVariantShape && chipRef.current ? (
           <ChordTooltip
             chordName={chordShape.name}
             shape={chordVariantShape}
