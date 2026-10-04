@@ -28,6 +28,9 @@ Use semantic version increments: bugs, visual improvements, and corrections incr
 number (`x.y.z` → `x.y.(z+1)`); new features increment the minor number and reset the patch
 number (`x.y.z` → `x.(y+1).0`).
 
+Articles (`src/app/articulos/`) are not features: a new or edited article increments the patch
+number, never the minor one.
+
 ## UI components
 
 Build components as reusable, composable units whenever practical. Prefer Radix primitives as
