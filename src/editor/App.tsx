@@ -411,11 +411,17 @@ function App({
     };
   }, [session?.user.id, queryClient]);
 
+  // With no server seed, the song may be private: fetching before the browser restores the
+  // visitor's session would come back as "no row" and flash a false not-found to its owner after a
+  // hard reload. Hold the fetch (the skeleton stays up) until auth resolves either way.
+  const waitForAuth = !initialSong && session === undefined;
+
   useEffect(() => {
     if (!songSlug) {
       setForkedFrom(null);
       return;
     }
+    if (waitForAuth) return;
     // Still needed even when a draft was restored: the draft carries the freshest content, but
     // not the song's real id, which autosave needs to update (rather than duplicate) the row.
     let cancelled = false;
@@ -485,9 +491,9 @@ function App({
     };
     // `actions` and `queryClient` are stable refs, and `restoredDraftRef` is current without
     // needing to refetch whenever the deferred local-draft read completes;
-    // only `songSlug` should retrigger the fetch.
+    // only `songSlug` (and auth first resolving, see `waitForAuth`) should retrigger the fetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songSlug, actions, queryClient]);
+  }, [songSlug, waitForAuth, actions, queryClient]);
 
   useEffect(() => {
     if (!forkedFrom) {

@@ -2,14 +2,16 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const songPageClient = readFileSync(new URL("./SongPageClient.tsx", import.meta.url), "utf8");
+const app = readFileSync(new URL("../../../editor/App.tsx", import.meta.url), "utf8");
 
 describe("song page authentication handoff", () => {
-  it("keeps loading when the anonymous request has no song and auth has not resolved", () => {
+  it("leaves the private-song auth wait to App's skeleton instead of a page-level loader", () => {
     // A private song cannot be returned by the server's anonymous request. During a page reload,
-    // its owner is briefly in this state until the browser restores their session.
-    expect(songPageClient).toMatch(
-      /if \(!initialSong && session === undefined\) \{\s*return <SongPageLoading \/>;\s*\}/,
-    );
+    // its owner briefly waits for the browser to restore their session; App covers that with the
+    // same skeleton (inside the page layout) as any other load, so there's only one loading state.
+    expect(songPageClient).not.toMatch(/SongPageLoading|session === undefined/);
+    expect(app).toMatch(/const waitForAuth = !initialSong && session === undefined;/);
+    expect(app).toMatch(/if \(waitForAuth\) return;/);
   });
 
   it("mounts App exactly once, seeded with initialSong, instead of swapping trees on auth", () => {
