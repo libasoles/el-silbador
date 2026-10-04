@@ -32,7 +32,23 @@ describe("transposeChord", () => {
   });
 });
 
+describe("transposeChord with parentheses", () => {
+  it("transposes a parenthesized chord like a plain one", () => {
+    expect(transposeChord("(G)", 2, false)).toBe("(A)");
+    expect(transposeChord("G", 2, false)).toBe("A");
+  });
+
+  it("transposes a parenthesized chord with suffix and bass note", () => {
+    expect(transposeChord("(Am7/G)", 2, false)).toBe("(Bm7/A)");
+  });
+});
+
 describe("decideUseFlats", () => {
+  it("picks flats when a parenthesized chord uses a flat", () => {
+    expect(decideUseFlats(["(Bb)", "F"])).toBe(true);
+  });
+
+
   it("picks flats when any chord already uses a flat", () => {
     expect(decideUseFlats(["Bb", "F", "Gm"])).toBe(true);
   });
@@ -74,6 +90,13 @@ describe("transposeNote", () => {
   it("round-trips back to the original after equal and opposite shifts", () => {
     const up = transposeNote("Fa#", 5, false);
     expect(transposeNote(up, -5, false)).toBe("Fa#");
+  });
+});
+
+describe("transposeNote with parentheses", () => {
+  it("transposes a parenthesized solfège note, preserving case", () => {
+    expect(transposeNote("(Re)", 2, false)).toBe("(Mi)");
+    expect(transposeNote("(sol)", 1, false)).toBe("(sol#)");
   });
 });
 

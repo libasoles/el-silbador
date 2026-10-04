@@ -34,20 +34,21 @@ const NOTE_INDEX: Record<string, number> = {
   Cb: 11,
 };
 
-const ROOT_RE = /^([A-G])([#b]?)/;
+/** An optional leading "(" lets parenthesized chords like "(G)" transpose too; it's kept as-is. */
+const ROOT_RE = /^(\(?)([A-G])([#b]?)/;
 
 /** Transposes the root of a chord fragment (e.g. "Am7" -> root "A" + suffix "m7"); the suffix is
  *  left untouched since it doesn't affect the note. */
 function transposePart(part: string, semitones: number, useFlats: boolean): string {
   const match = ROOT_RE.exec(part);
   if (!match) return part;
-  const root = match[1] + match[2];
+  const root = match[2] + match[3];
   const idx = NOTE_INDEX[root];
   if (idx === undefined) return part;
   const suffix = part.slice(match[0].length);
   const newIdx = (((idx + semitones) % 12) + 12) % 12;
   const names = useFlats ? FLAT_NAMES : SHARP_NAMES;
-  return names[newIdx] + suffix;
+  return match[1] + names[newIdx] + suffix;
 }
 
 /** A chord may carry a bass note ("G/B"): each side is transposed independently since they're
@@ -98,7 +99,7 @@ const SOLFEGE_INDEX: Record<string, number> = {
   dob: 11,
 };
 
-const SOLFEGE_ROOT_RE = /^(do|re|mi|fa|sol|la|si)(#|b)?/i;
+const SOLFEGE_ROOT_RE = /^(\(?)(do|re|mi|fa|sol|la|si)(#|b)?/i;
 
 /** Transposes a melody note written in Spanish solfège (e.g. "Re#", "Lab"), used for the melody-
  *  notes track. Case of the matched root is preserved (capitalized stays capitalized); anything
@@ -106,17 +107,17 @@ const SOLFEGE_ROOT_RE = /^(do|re|mi|fa|sol|la|si)(#|b)?/i;
 export function transposeNote(text: string, semitones: number, useFlats: boolean): string {
   const match = SOLFEGE_ROOT_RE.exec(text);
   if (!match) return text;
-  const root = (match[1] + (match[2] ?? "")).toLowerCase();
+  const root = (match[2] + (match[3] ?? "")).toLowerCase();
   const idx = SOLFEGE_INDEX[root];
   if (idx === undefined) return text;
   const suffix = text.slice(match[0].length);
   const newIdx = (((idx + semitones) % 12) + 12) % 12;
   const names = useFlats ? SOLFEGE_FLAT_NAMES : SOLFEGE_SHARP_NAMES;
   const newName = names[newIdx]!;
-  const capitalized = /^[A-Z]/.test(match[0])
+  const capitalized = /^[A-Z]/.test(match[2]!)
     ? newName[0]!.toUpperCase() + newName.slice(1)
     : newName;
-  return capitalized + suffix;
+  return match[1] + capitalized + suffix;
 }
 
 /**
