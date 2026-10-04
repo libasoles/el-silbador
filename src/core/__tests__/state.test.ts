@@ -490,6 +490,41 @@ describe("reconcileLyricsText", () => {
   });
 });
 
+describe("loadContent", () => {
+  it("upgrades a legacy section label into an unsyllabified subtitle", () => {
+    const legacyContent = {
+      title: "",
+      author: "",
+      lyricsText: "INTRODUCCIÓN",
+      song: [
+        {
+          id: "line-intro",
+          words: [
+            {
+              id: "word-intro",
+              syllables: [
+                { id: "syl-in", text: "IN" },
+                { id: "syl-tro", text: "TRO" },
+                { id: "syl-duc", text: "DUC" },
+                { id: "syl-cion", text: "CIÓN" },
+              ],
+            },
+          ],
+        },
+      ],
+      merges: new Set<string>(),
+      cells: {},
+      chordVariants: {},
+      pitchDirections: {},
+    };
+
+    const state = reduce(createInitialState(), { type: "loadContent", content: legacyContent, isMobile: false });
+
+    expect(state.song[0].subtitle).toBe("INTRODUCCIÓN");
+    expect(flattenSyllables(state.song[0])).toEqual([]);
+  });
+});
+
 describe("pasteText", () => {
   it("seeds the chords track from detected chord-line placements, aligned by column", () => {
     const state = reduce(createInitialState(), {

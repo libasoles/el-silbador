@@ -11,6 +11,8 @@ export interface Word {
 export interface Line {
   id: string;
   words: Word[];
+  /** A section label kept as whole text rather than split into syllables. */
+  subtitle?: string;
 }
 
 export type Song = Line[];
