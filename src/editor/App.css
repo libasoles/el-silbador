@@ -682,13 +682,18 @@
 }
 
 .bis-marker {
-  color: inherit;
+  color: var(--muted);
   display: inline-block;
   font-family: var(--sans);
   font-size: 0.78em;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.04em;
   line-height: normal;
+}
+
+.bis-marker__icon {
+  margin-right: 0.15em;
+  vertical-align: -0.12em;
 }
 
 .line [contenteditable="false"] {

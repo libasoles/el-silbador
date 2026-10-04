@@ -1,4 +1,5 @@
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { chordToNoteNames } from "../../core/chordNotes";
 import { endSlotIds, gapSlotId, getLineCellSlots, getLineGaps, getLineUnits, mergeKey, startSlotIds } from "../../core/model";
 import { getCell } from "../../core/state";
@@ -865,6 +866,14 @@ function LyricLineView({
               {/* A word's own syllables (and the merge buttons between them) never split across a
                   wrap \u2014 only readOnly wraps at all, so only it needs the unbreakable wrapper. */}
               <span className={bisMarker && wIndex === line.words.length - 1 ? "bis-marker" : undefined}>
+                {bisMarker && wIndex === line.words.length - 1 ? (
+                  <ArrowLeft
+                    aria-hidden="true"
+                    className="bis-marker__icon"
+                    contentEditable={false}
+                    size="0.85em"
+                  />
+                ) : null}
                 {readOnly ? (
                   <span className="word-group">{renderWordContent(word)}</span>
                 ) : (
