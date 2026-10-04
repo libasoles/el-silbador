@@ -7,6 +7,7 @@ import { CHORD_SHAPES, type ChordShape } from "./chordShapes";
  *  collide, e.g. "Em7" vs "Emaj7"'s "EM7" alias. */
 function normalize(text: string): string {
   return text
+    .replace(/[()]/g, "")
     .replace(/♭/g, "b")
     .replace(/♯/g, "#")
     .replace(/[△Δ]/g, "maj")
@@ -21,7 +22,8 @@ for (const shape of CHORD_SHAPES) {
   }
 }
 
-/** Looks up the fingering shape for a chord chip's text, or null if none is known. */
+/** Looks up the fingering shape for a chord chip's text, or null if none is known.
+ *  Parentheses are notation-only (e.g. an optional "(G)") and remain in the displayed text. */
 export function findChordShape(chordText: string): ChordShape | null {
   const normalized = normalize(chordText.trim());
   if (!normalized) return null;
