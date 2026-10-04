@@ -100,6 +100,11 @@ describe("BIS phrases", () => {
     expect(styles).toMatch(/\.line--bis \.syllable-row\s*\{[\s\S]*align-items:\s*baseline[\s\S]*font-weight:\s*600/);
     expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*color:\s*var\(--muted\)[\s\S]*font-weight:\s*500/);
   });
+
+  it("handles Shift+Tab from anywhere in a lyric line instead of moving browser focus", () => {
+    expect(songView).toContain("if (!event.shiftKey && start.lineIndex === end.lineIndex && start.offset !== 0)");
+    expect(songView).toContain("event.preventDefault();");
+  });
 });
 
 describe("passive editor click caret placement", () => {

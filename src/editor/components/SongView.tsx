@@ -760,7 +760,7 @@ export function SongView({
       if (flatOffset(lines, start) > flatOffset(lines, end)) [start, end] = [end, start];
       // A lone Tab intentionally only starts a phrase at its first character. A selection is
       // already an explicit phrase choice, so it may span any part of its first/last line.
-      if (start.lineIndex === end.lineIndex && start.offset !== 0) return;
+      if (!event.shiftKey && start.lineIndex === end.lineIndex && start.offset !== 0) return;
       event.preventDefault();
       onToggleBis(
         start.lineIndex,
