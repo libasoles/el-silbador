@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -63,6 +64,10 @@ import { consumeJustForked, saveJustForked } from "./justForkedStorage";
 import { pdfDocumentTitle } from "./pdfFilename";
 import { useToast } from "./toastContext";
 import { useIsMobile } from "./useIsMobile";
+import {
+  readMelodyTogglePreference,
+  saveMelodyTogglePreference,
+} from "./melodyToggleStorage";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
 
@@ -300,6 +305,26 @@ function App({
   // The first client render must exactly match the server HTML. A restored local draft loads in
   // the effect below once hydration has completed.
   const { state, actions } = useEditor(initialSong?.content, isMobile);
+
+  const setMelodyVisibility = useCallback(
+    (visible: boolean) => {
+      if (state.showUnderline !== visible) actions.setShowUnderline(visible);
+      const vocalNotes = state.tracks.find((track) => track.id === "vocalNotes");
+      if (vocalNotes && vocalNotes.visible !== visible) {
+        actions.setTrackVisibility("vocalNotes", visible);
+      }
+    },
+    [actions, state.showUnderline, state.tracks],
+  );
+
+  // Read this browser-wide preference before the measured melody cells are revealed. That lets
+  // a saved choice override the song's default without showing notes in the wrong state first.
+  // Reapply after client-side navigation or a loaded replacement song; do not listen for storage
+  // events, so an open tab keeps its current view when another tab changes the preference.
+  useLayoutEffect(() => {
+    const preference = readMelodyTogglePreference();
+    if (preference !== null) setMelodyVisibility(preference);
+  }, [songSlug, state.song, setMelodyVisibility]);
 
   // A song can change without remounting the editor during client navigation. Treat that the
   // same as opening a fresh page: its mobile tools must start tucked away.
@@ -807,11 +832,8 @@ function App({
 
   const handleUnderlineToggle = () => {
     const next = !state.showUnderline;
-    actions.setShowUnderline(next);
-    const vocalNotes = state.tracks.find((track) => track.id === "vocalNotes");
-    if (vocalNotes && vocalNotes.visible !== next) {
-      actions.setTrackVisibility("vocalNotes", next);
-    }
+    saveMelodyTogglePreference(next);
+    setMelodyVisibility(next);
     if (next && canEditOnThisDevice) {
       showTutorial({
         tutorialId: "melody-notes-write",
