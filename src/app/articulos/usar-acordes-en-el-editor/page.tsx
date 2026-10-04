@@ -36,7 +36,7 @@ en la arena me escribias`;
 const CORRECT_EXCERPT = `             A7    D
 El viento lo fue borrando`;
 
-const DIAGRAM_EXCERPT = `    A           A7     D
+const DIAGRAM_EXCERPT = `    A           (A7)     D
 Ya nunca te he de olvidar`;
 
 export default function ChordEditorArticlePage() {
@@ -216,6 +216,10 @@ export default function ChordEditorArticlePage() {
             sheet={DIAGRAM_EXCERPT}
             label="Editor para ver los diagramas"
           />
+
+          <p className="article-highlight">
+            Podes escribir acordes opcionales entre parentesis
+          </p>
 
           <h2>Cambiar de tono</h2>
           <p>

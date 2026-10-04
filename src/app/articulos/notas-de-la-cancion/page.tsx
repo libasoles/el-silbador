@@ -158,6 +158,17 @@ export default function SongNotesArticlePage() {
             Si las dos sílabas tenían nota, queda la de la primera.
           </p>
 
+          <h2>¿Silabas mal unidas?</h2>
+          <p>
+            A veces da la impresión de que una palabra no está bien separa en
+            sílabas. Revisá los acentos, porque por ejemplo la palabra
+            "escribias" consideraría{" "}
+            <span className="article-syllable">bias</span> como una sola sílaba.
+            Pero si agregaras el acento, quedarían{" "}
+            <span className="article-syllable">bi</span> y{" "}
+            <span className="article-syllable">as</span> como dos sílabas.
+          </p>
+
           <h2>Ascensos y descensos</h2>
           <p>
             Escribir <span className="article-syllable">sol</span> no alcanza
