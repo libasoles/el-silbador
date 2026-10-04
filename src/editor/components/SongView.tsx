@@ -160,7 +160,19 @@ function positionForNode(
       ? (node as Element)
       : node.parentElement;
   const line = element?.closest<HTMLElement>("[data-lyrics-line]");
-  if (!line || !root.contains(line)) return null;
+  if (!line) {
+    const owningLine = element?.closest<HTMLElement>(".line");
+    const lyricLine = owningLine?.querySelector<HTMLElement>("[data-lyrics-line]");
+    if (!lyricLine || !root.contains(lyricLine)) return null;
+    const isBeforeLyricLine = Boolean(
+      node.compareDocumentPosition(lyricLine) & Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    return {
+      lineIndex: lines.indexOf(lyricLine),
+      offset: isBeforeLyricLine ? 0 : lineText(lyricLine).length,
+    };
+  }
+  if (!root.contains(line)) return null;
   const range = document.createRange();
   range.selectNodeContents(line);
   try {

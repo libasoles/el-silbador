@@ -105,6 +105,11 @@ describe("BIS phrases", () => {
     expect(songView).not.toContain("start.offset !== 0) return;");
     expect(songView).toContain("event.preventDefault();");
   });
+
+  it("normalizes a multi-line selection ending on another row of its line", () => {
+    expect(songView).toContain('closest<HTMLElement>(".line")');
+    expect(songView).toContain("Node.DOCUMENT_POSITION_FOLLOWING");
+  });
 });
 
 describe("passive editor click caret placement", () => {
