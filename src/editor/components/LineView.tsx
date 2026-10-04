@@ -118,6 +118,8 @@ function EdgeDropZone({ edge, dropTarget, rect, dragProps }: EdgeDropZoneProps) 
 
 interface LineViewProps {
   line: Line;
+  bisRule?: "single" | "start" | "middle" | "end";
+  bisMarker?: boolean;
   /** Whitespace at the end of the raw lyric line, which the syllable model does not retain. */
   trailingWhitespace: string;
   merges: ReadonlySet<string>;
@@ -147,6 +149,8 @@ interface LineViewProps {
 
 function LyricLineView({
   line,
+  bisRule,
+  bisMarker = false,
   trailingWhitespace,
   merges,
   showUnderline,
@@ -783,6 +787,7 @@ function LyricLineView({
     <div
       className={
         "line" +
+        (bisRule ? ` line--bis line--bis-${bisRule}` : "") +
         (isDragging ? " line--dragging" : "") +
         (!chordsVisible ? " line--chords-hidden" : "") +
         (readOnly ? " line--chord-underlines-only" : "")
@@ -859,11 +864,13 @@ function LyricLineView({
               ) : null}
               {/* A word's own syllables (and the merge buttons between them) never split across a
                   wrap \u2014 only readOnly wraps at all, so only it needs the unbreakable wrapper. */}
-              {readOnly ? (
-                <span className="word-group">{renderWordContent(word)}</span>
-              ) : (
-                renderWordContent(word)
-              )}
+              <span className={bisMarker && wIndex === line.words.length - 1 ? "bis-marker" : undefined}>
+                {readOnly ? (
+                  <span className="word-group">{renderWordContent(word)}</span>
+                ) : (
+                  renderWordContent(word)
+                )}
+              </span>
             </Fragment>
           );
         })}

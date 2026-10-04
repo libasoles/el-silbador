@@ -673,6 +673,20 @@
   position: relative;
 }
 
+/* A BIS phrase is a single visual block even when it spans several lyric rows. Every member
+   carries the same rule, so the line remains continuous through its annotation rows. */
+.line--bis {
+  border-left: 2px solid #a8a8a8;
+  padding-left: 0.6rem;
+}
+
+.bis-marker {
+  font-family: var(--sans);
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
 .line [contenteditable="false"] {
   user-select: none;
 }

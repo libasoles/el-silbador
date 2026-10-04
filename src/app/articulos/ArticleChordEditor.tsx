@@ -184,6 +184,7 @@ function LiveChordEditor({
       <SongView
         song={state.song}
         lyricsText={state.lyricsText}
+        bisGroups={state.bisGroups}
         merges={state.merges}
         tracks={state.tracks}
         cells={state.cells}
@@ -199,6 +200,7 @@ function LiveChordEditor({
         onMoveCellText={actions.moveCellText}
         onDragPitchDirection={actions.dragPitchDirection}
         onReconcileLyricsText={actions.reconcileLyricsText}
+        onToggleBis={actions.toggleBis}
         onPasteText={actions.pasteText}
       />
       {needsEditing && isMobile ? (

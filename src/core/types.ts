@@ -17,6 +17,13 @@ export interface Line {
 
 export type Song = Line[];
 
+/** Consecutive lyric lines that repeat together. The `BIS` word remains part of the lyric text;
+ * this range only records which preceding lines share its left-hand rule. */
+export interface BisGroup {
+  startLineIndex: number;
+  endLineIndex: number;
+}
+
 /** Opaque track identifier. The reducer/model treat tracks generically; only the app layer
  * instantiates specific ids ("chords", "chordNotes", "vocalNotes") as data, in createInitialState. */
 export type TrackId = string;
@@ -45,6 +52,7 @@ export interface EditorState {
   author: string;
   lyricsText: string;
   song: Song;
+  bisGroups: BisGroup[];
   /** Adjacent syllable-id pairs, packed as `${aId}|${bId}`, that are merged into one melisma. */
   merges: Set<string>;
   tracks: TrackDef[];

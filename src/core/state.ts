@@ -16,12 +16,58 @@ import {
 } from "./model";
 import type { ChordPlacement } from "./chordSheet";
 import { hyphenateWord } from "./syllabify";
-import type { CellsByTrack, EditorState, PitchDirection, TrackId } from "./types";
+import type { BisGroup, CellsByTrack, EditorState, PitchDirection, TrackId } from "./types";
 
 function trackHasContent(cells: CellsByTrack, trackId: TrackId): boolean {
   const trackCells = cells[trackId];
   if (!trackCells) return false;
   return Object.values(trackCells).some((text) => text.trim() !== "");
+}
+
+const BIS_AT_LINE_END = /(?:^|\s)BIS\s*$/;
+
+function validBisGroups(lyricsText: string, groups: BisGroup[] = []): BisGroup[] {
+  const lines = lyricsText.split("\n");
+  return groups.filter(
+    ({ startLineIndex, endLineIndex }) =>
+      startLineIndex >= 0 &&
+      startLineIndex <= endLineIndex &&
+      endLineIndex < lines.length &&
+      BIS_AT_LINE_END.test(lines[endLineIndex] ?? ""),
+  );
+}
+
+function toggleBis(
+  state: EditorState,
+  startLineIndex: number,
+  endLineIndex: number,
+  remove: boolean,
+): EditorState {
+  const lines = state.lyricsText.split("\n");
+  if (
+    startLineIndex < 0 ||
+    endLineIndex < startLineIndex ||
+    endLineIndex >= lines.length
+  )
+    return state;
+
+  const lastLine = lines[endLineIndex]!;
+  if (remove) {
+    if (!BIS_AT_LINE_END.test(lastLine)) return state;
+    lines[endLineIndex] = lastLine.replace(/\s*BIS\s*$/, "");
+  } else {
+    if (BIS_AT_LINE_END.test(lastLine)) return state;
+    lines[endLineIndex] = `${lastLine.trimEnd()}${lastLine.trimEnd() ? " " : ""}BIS`;
+  }
+
+  const lyricsText = lines.join("\n");
+  const reconciled = reconcileLyricsText(state, lyricsText);
+  return {
+    ...reconciled,
+    bisGroups: remove
+      ? validBisGroups(lyricsText, state.bisGroups)
+      : [...validBisGroups(lyricsText, state.bisGroups), { startLineIndex, endLineIndex }],
+  };
 }
 
 export function createInitialState(): EditorState {
@@ -30,6 +76,7 @@ export function createInitialState(): EditorState {
     author: "",
     lyricsText: "",
     song: [],
+    bisGroups: [],
     merges: new Set(),
     tracks: [
       { id: "chordNotes", label: "Notas del acorde", visible: false },
@@ -48,6 +95,7 @@ export type Action =
   | { type: "setAuthor"; author: string }
   | { type: "setLyricsText"; text: string }
   | { type: "reconcileLyricsText"; text: string }
+  | { type: "toggleBis"; startLineIndex: number; endLineIndex: number; remove: boolean }
   | {
       type: "pasteText";
       text: string;
@@ -70,6 +118,7 @@ export type Action =
         "title" | "author" | "lyricsText" | "song" | "cells" | "chordVariants" | "pitchDirections"
       > & {
         merges: Set<string>;
+        bisGroups?: BisGroup[];
       };
       // Whether this load is happening on a mobile device. The underline-default-on-notes rule
       // below is a desktop-only convenience — mobile always starts with the toggle off.
@@ -89,6 +138,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         ...state,
         lyricsText: action.text,
         song: buildSong(action.text),
+        bisGroups: [],
         merges: new Set(),
         cells: {},
         chordVariants: {},
@@ -97,6 +147,9 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
 
     case "reconcileLyricsText":
       return reconcileLyricsText(state, action.text);
+
+    case "toggleBis":
+      return toggleBis(state, action.startLineIndex, action.endLineIndex, action.remove);
 
     case "pasteText":
       return applyPasteText(state, action.text, action.startLineIndex, action.startOffset, action.placements);
@@ -146,6 +199,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         author: action.content.author,
         lyricsText: action.content.lyricsText,
         song: loadedSong,
+        bisGroups: validBisGroups(action.content.lyricsText, action.content.bisGroups),
         cells: action.content.cells,
         chordVariants: action.content.chordVariants,
         pitchDirections: action.content.pitchDirections,
@@ -247,6 +301,7 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
     ...state,
     lyricsText: text,
     song,
+    bisGroups: validBisGroups(text, state.bisGroups),
     cells,
     chordVariants,
     pitchDirections,
