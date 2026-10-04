@@ -29,6 +29,17 @@ const toastProvider = readFileSync(
 );
 
 describe("underline visibility", () => {
+  it("applies the saved global melody choice before annotation cells are revealed", () => {
+    expect(app).toContain("useLayoutEffect");
+    expect(app).toContain("readMelodyTogglePreference()");
+    expect(app).toContain("[songSlug, state.song, setMelodyVisibility]");
+  });
+
+  it("persists only an explicit melody toggle and does not sync open tabs", () => {
+    expect(app).toContain("saveMelodyTogglePreference(next)");
+    expect(app).not.toContain('addEventListener("storage"');
+  });
+
   it("does not couple the underline to the chords track visibility", () => {
     expect(styles).not.toMatch(/\.line--chords-hidden\s+\.syllable::after/);
     expect(styles).toMatch(/\.song--underline-hidden\s+\.syllable::after/);
