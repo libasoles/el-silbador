@@ -762,18 +762,9 @@ export function SongView({
       // already an explicit phrase choice, so it may span any part of its first/last line.
       if (start.lineIndex === end.lineIndex && start.offset !== 0) return;
       event.preventDefault();
-      const containingGroup = event.shiftKey
-        ? bisGroups.find(
-            (group) =>
-              start.lineIndex >= group.startLineIndex &&
-              start.lineIndex <= group.endLineIndex &&
-              end.lineIndex >= group.startLineIndex &&
-              end.lineIndex <= group.endLineIndex,
-          )
-        : undefined;
       onToggleBis(
-        containingGroup?.startLineIndex ?? start.lineIndex,
-        containingGroup?.endLineIndex ?? end.lineIndex,
+        start.lineIndex,
+        end.lineIndex,
         event.shiftKey,
       );
       return;

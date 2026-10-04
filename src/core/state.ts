@@ -53,6 +53,50 @@ function toggleBis(
 
   const lastLine = lines[endLineIndex]!;
   if (remove) {
+    const groups = validBisGroups(state.lyricsText, state.bisGroups);
+    const containingGroup = groups.find(
+      (group) =>
+        startLineIndex >= group.startLineIndex &&
+        endLineIndex <= group.endLineIndex,
+    );
+
+    if (containingGroup) {
+      const removesWholeGroup =
+        startLineIndex === containingGroup.startLineIndex &&
+        endLineIndex === containingGroup.endLineIndex;
+      const remainingGroup = removesWholeGroup
+        ? undefined
+        : endLineIndex < containingGroup.endLineIndex
+          ? { startLineIndex: endLineIndex + 1, endLineIndex: containingGroup.endLineIndex }
+          : { startLineIndex: containingGroup.startLineIndex, endLineIndex: startLineIndex - 1 };
+
+      if (remainingGroup && remainingGroup.endLineIndex !== containingGroup.endLineIndex) {
+        lines[containingGroup.endLineIndex] = lines[containingGroup.endLineIndex]!.replace(
+          /\s*BIS\s*$/,
+          "",
+        );
+        const newLastLine = lines[remainingGroup.endLineIndex]!;
+        lines[remainingGroup.endLineIndex] = `${newLastLine.trimEnd()}${newLastLine.trimEnd() ? " " : ""}BIS`;
+      } else if (removesWholeGroup) {
+        lines[containingGroup.endLineIndex] = lines[containingGroup.endLineIndex]!.replace(
+          /\s*BIS\s*$/,
+          "",
+        );
+      }
+
+      const lyricsText = lines.join("\n");
+      const reconciled = reconcileLyricsText(state, lyricsText);
+      return {
+        ...reconciled,
+        bisGroups: validBisGroups(
+          lyricsText,
+          groups.flatMap((group) =>
+            group === containingGroup ? (remainingGroup ? [remainingGroup] : []) : [group],
+          ),
+        ),
+      };
+    }
+
     if (!BIS_AT_LINE_END.test(lastLine)) return state;
     lines[endLineIndex] = lastLine.replace(/\s*BIS\s*$/, "");
   } else {

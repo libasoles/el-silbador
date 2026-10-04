@@ -63,6 +63,52 @@ describe("BIS groups", () => {
     expect(state.lyricsText).toBe("una frase");
     expect(state.bisGroups).toEqual([]);
   });
+
+  it.each([
+    {
+      name: "keeps the second line as a single BIS when removing the first of two lines",
+      selectedLineIndex: 0,
+      text: "primera\nsegunda BIS",
+      groups: [{ startLineIndex: 1, endLineIndex: 1 }],
+    },
+    {
+      name: "keeps the first line as a single BIS when removing the second of two lines",
+      selectedLineIndex: 1,
+      text: "primera BIS\nsegunda",
+      groups: [{ startLineIndex: 0, endLineIndex: 0 }],
+    },
+  ])("$name", ({ selectedLineIndex, text, groups }) => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "primera\nsegunda" });
+    state = editorReducer(state, { type: "toggleBis", startLineIndex: 0, endLineIndex: 1, remove: false });
+
+    state = editorReducer(state, {
+      type: "toggleBis",
+      startLineIndex: selectedLineIndex,
+      endLineIndex: selectedLineIndex,
+      remove: true,
+    });
+
+    expect(state.lyricsText).toBe(text);
+    expect(state.bisGroups).toEqual(groups);
+  });
+
+  it("removes a fully selected BIS group", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "primera\nsegunda" });
+    state = editorReducer(state, { type: "toggleBis", startLineIndex: 0, endLineIndex: 1, remove: false });
+    state = editorReducer(state, { type: "toggleBis", startLineIndex: 0, endLineIndex: 1, remove: true });
+
+    expect(state.lyricsText).toBe("primera\nsegunda");
+    expect(state.bisGroups).toEqual([]);
+  });
+
+  it("keeps only the final line as a BIS when removing a middle line", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "primera\nsegunda\ntercera" });
+    state = editorReducer(state, { type: "toggleBis", startLineIndex: 0, endLineIndex: 2, remove: false });
+    state = editorReducer(state, { type: "toggleBis", startLineIndex: 1, endLineIndex: 1, remove: true });
+
+    expect(state.lyricsText).toBe("primera\nsegunda\ntercera BIS");
+    expect(state.bisGroups).toEqual([{ startLineIndex: 2, endLineIndex: 2 }]);
+  });
 });
 
 describe("loadContent", () => {
