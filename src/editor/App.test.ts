@@ -102,10 +102,15 @@ describe("BIS phrases", () => {
   });
 
   it("never underlines the BIS word or lets it join a melisma, wherever it sits in the line", () => {
-    expect(lineView).toContain('join("") === "BIS"');
+    expect(lineView).toContain("isBisWord(");
     expect(lineView).toContain('(bis ? " syllable--bis" : "")');
     expect(lineView).toContain("disabled={!showUnderline || readOnly || touchesBis}");
     expect(styles).toMatch(/\.line \.syllable--bis::after\s*\{\s*content:\s*none/);
+  });
+
+  it("offers no chord or melody cell above BIS and refuses drops on it", () => {
+    expect(lineView).toContain("!bisSlots.has(slotId) && (trackId !== \"vocalNotes\"");
+    expect(lineView).toContain("!bisSlots.has(slotId) && (track.id !== \"vocalNotes\"");
   });
 
   it("handles Tab and Shift+Tab from anywhere in a lyric line instead of moving browser focus", () => {

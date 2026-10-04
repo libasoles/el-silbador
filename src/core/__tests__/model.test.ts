@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   beforeSlotId,
   buildSong,
+  bisSlotIds,
   chordSlotForColumn,
   columnForSlot,
   endSlotId,
@@ -168,6 +169,21 @@ describe("word-gap slots", () => {
     const lastOfUno = line.words[0].syllables.at(-1)!;
     expect(chordSlotForColumn(line, text, 3)).toBe(gapSlotId(lastOfUno.id));
     expect(chordSlotForColumn(line, text, 4)).toBe(beforeSlotId(line.words[1].syllables[0].id));
+  });
+
+  it("moves a chord written over BIS to the space before it", () => {
+    const text = "uno BIS";
+    const [line] = buildSong(text);
+    const lastOfUno = line.words[0].syllables.at(-1)!;
+    expect(chordSlotForColumn(line, text, 4)).toBe(gapSlotId(lastOfUno.id));
+    expect(chordSlotForColumn(line, text, 6)).toBe(gapSlotId(lastOfUno.id));
+    const [alone] = buildSong("BIS");
+    expect(chordSlotForColumn(alone, "BIS", 0)).toBe(startSlotId(alone.id));
+  });
+
+  it("lists the slots of BIS syllables, which never hold an annotation", () => {
+    const [line] = buildSong("uno BIS dos");
+    expect([...bisSlotIds(line)]).toEqual(line.words[1].syllables.map((s) => beforeSlotId(s.id)));
   });
 });
 

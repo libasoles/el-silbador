@@ -118,6 +118,19 @@ export function gapSlotId(afterSyllableId: string): string {
   return `gap:${afterSyllableId}`;
 }
 
+/** `BIS` is a repeat mark, not a sung word: it never takes the syllable underline, a melisma or
+ *  an annotation, wherever it appears in the line. */
+export function isBisWord(word: Word): boolean {
+  return word.syllables.map((syllable) => syllable.text).join("") === "BIS";
+}
+
+/** The slots of a line's `BIS` syllables, which never hold an annotation (see `isBisWord`). */
+export function bisSlotIds(line: Line): Set<string> {
+  return new Set(
+    line.words.filter(isBisWord).flatMap((word) => word.syllables.map((syllable) => beforeSlotId(syllable.id))),
+  );
+}
+
 /** The chord-track slot for a chord written at `column` above `rawLineText`, the exact text a
  * lyric line was built from. Walks the line's words/syllables left to right (in the same order
  * `buildLine` produced them from that text) and picks the last syllable starting at or before the
@@ -128,8 +141,13 @@ export function chordSlotForColumn(line: Line, rawLineText: string, column: numb
 
   for (let i = 0; i < line.words.length && i < wordStarts.length; i++) {
     let offset = wordStarts[i];
+    const bis = isBisWord(line.words[i]);
+    const previous = line.words[i - 1]?.syllables.at(-1);
     for (const syllable of line.words[i].syllables) {
-      if (offset <= column) bestSlotId = beforeSlotId(syllable.id);
+      // BIS takes no chord (see `isBisWord`), so one written over it moves to the space before it.
+      if (offset <= column) {
+        bestSlotId = !bis ? beforeSlotId(syllable.id) : previous ? gapSlotId(previous.id) : startSlotId(line.id);
+      }
       offset += syllable.text.length;
     }
     // A chord written over the whitespace between this word and the next belongs to that gap.

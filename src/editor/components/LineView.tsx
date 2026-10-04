@@ -1,7 +1,17 @@
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowUpLeft } from "lucide-react";
 import { chordToNoteNames } from "../../core/chordNotes";
-import { endSlotIds, gapSlotId, getLineCellSlots, getLineGaps, getLineUnits, mergeKey, startSlotIds } from "../../core/model";
+import {
+  bisSlotIds,
+  endSlotIds,
+  gapSlotId,
+  getLineCellSlots,
+  getLineGaps,
+  getLineUnits,
+  isBisWord,
+  mergeKey,
+  startSlotIds,
+} from "../../core/model";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, PitchDirection, TrackDef, TrackId } from "../../core/types";
 import type { DragDelta } from "../pitchDragGesture";
@@ -186,6 +196,7 @@ function LyricLineView({
     () => new Set([...gapSlotIds, ...lineStartSlots, ...lineEndSlots]),
     [gapSlotIds, lineStartSlots, lineEndSlots],
   );
+  const bisSlots = useMemo(() => bisSlotIds(line), [line]);
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
   const BisIcon = bisRule === "end" ? ArrowUpLeft : ArrowLeft;
 
@@ -614,7 +625,7 @@ function LyricLineView({
   // start/end edges are chord-only, so a note dropped there would vanish into a slot that no
   // melody row renders. Those areas simply aren't drop targets for a note.
   function isDropAllowed(trackId: TrackId, slotId: string) {
-    return trackId !== "vocalNotes" || !chordOnlySlotIds.has(slotId);
+    return !bisSlots.has(slotId) && (trackId !== "vocalNotes" || !chordOnlySlotIds.has(slotId));
   }
 
   function syllableDragProps(syllableId: string) {
@@ -679,7 +690,7 @@ function LyricLineView({
         <div key={track.id} contentEditable={false}>
           <ChordNotesRow
             label={track.label}
-            slotIds={rowSlotIds}
+            slotIds={rowSlotIds.filter((slotId) => !bisSlots.has(slotId))}
             slotRects={slotRects}
             cells={cells}
             previousChordNotes={previousChordNotes}
@@ -687,9 +698,11 @@ function LyricLineView({
         </div>
       );
     }
-    // Melody notes belong to syllables only; word gaps and the leading/trailing edge slots are chord-only.
-    const trackSlotIds =
-      track.id === "vocalNotes" ? rowSlotIds.filter((slotId) => !chordOnlySlotIds.has(slotId)) : rowSlotIds;
+    // Melody notes belong to syllables only; word gaps and the leading/trailing edge slots are
+    // chord-only. BIS is not sung, so neither track offers a cell above it.
+    const trackSlotIds = rowSlotIds.filter(
+      (slotId) => !bisSlots.has(slotId) && (track.id !== "vocalNotes" || !chordOnlySlotIds.has(slotId)),
+    );
     const measured = areSlotRectsReady(trackSlotIds, slotRects) && slotRectsMeasuredFor === annotationGapExtrasKey;
     const annotationsReady =
       track.id === "vocalNotes"
@@ -733,8 +746,9 @@ function LyricLineView({
   // so it has content only when a chord can actually be described.
   function hasTrackContent(track: TrackDef) {
     if (!readOnly) return true;
-    const trackSlotIds =
-      track.id === "vocalNotes" ? slotIds.filter((slotId) => !chordOnlySlotIds.has(slotId)) : slotIds;
+    const trackSlotIds = slotIds.filter(
+      (slotId) => !bisSlots.has(slotId) && (track.id !== "vocalNotes" || !chordOnlySlotIds.has(slotId)),
+    );
     if (track.id === "chordNotes") {
       return trackSlotIds.some((slotId) => chordToNoteNames(getCell(cells, "chords", slotId)) !== null);
     }
@@ -931,12 +945,6 @@ function LyricLineView({
         : null}
     </div>
   );
-}
-
-/** `BIS` is a repeat mark, not a sung word, so it never takes the syllable underline or joins a
- *  melisma — wherever it appears in the line. */
-function isBisWord(word: Line["words"][number]): boolean {
-  return word.syllables.map((syllable) => syllable.text).join("") === "BIS";
 }
 
 /** Renders section labels outside the syllable and annotation layout. Keeping this separate from
