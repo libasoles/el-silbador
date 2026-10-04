@@ -1,5 +1,5 @@
 import { nextId, reserveIds } from "../core/ids";
-import type { CellsByTrack, PitchDirection, Song } from "../core/types";
+import type { BisGroup, CellsByTrack, PitchDirection, Song } from "../core/types";
 import { getSupabaseClient, type SupabaseClient } from "./supabaseClient";
 import type {
   SaveSongInput,
@@ -14,6 +14,8 @@ export interface StoredSongContent {
   author: string;
   lyricsText: string;
   song: Song;
+  /** Absent on songs saved before BIS groups existed. */
+  bisGroups?: BisGroup[];
   merges: string[];
   cells: CellsByTrack;
   chordVariants: Record<string, number>;
@@ -51,6 +53,7 @@ export function serializeContent(content: SongContent): StoredSongContent {
     author: content.author,
     lyricsText: content.lyricsText,
     song: content.song,
+    bisGroups: content.bisGroups,
     cells: content.cells,
     chordVariants: content.chordVariants,
     pitchDirections: content.pitchDirections,
@@ -85,6 +88,7 @@ export function deserializeContent(stored: StoredSongContent): SongContent {
     author: stored.author,
     lyricsText: stored.lyricsText,
     song: withUniqueLineIds(stored.song),
+    bisGroups: stored.bisGroups ?? [],
     cells: stored.cells,
     // Songs saved before chord variants existed have no such column in their stored jsonb.
     chordVariants: stored.chordVariants ?? {},

@@ -39,6 +39,8 @@ function coalesceKeyFor(action: Action): string | null {
     case "setLyricsText":
     case "reconcileLyricsText":
       return "lyrics";
+    case "toggleBis":
+      return null;
     case "setCellText":
       return `cell:${action.trackId}:${action.slotId}`;
     case "setChordVariant":
@@ -113,6 +115,8 @@ export function useEditor(initialContent: SongContent | undefined, isMobile: boo
       setAuthor: (author: string) => dispatch({ type: "setAuthor", author }),
       setLyricsText: (text: string) => dispatch({ type: "setLyricsText", text }),
       reconcileLyricsText: (text: string) => dispatch({ type: "reconcileLyricsText", text }),
+      toggleBis: (startLineIndex: number, endLineIndex: number, remove: boolean) =>
+        dispatch({ type: "toggleBis", startLineIndex, endLineIndex, remove }),
       pasteText: (text: string, startLineIndex: number, startOffset: number, placements: ChordPlacement[]) =>
         dispatch({ type: "pasteText", text, startLineIndex, startOffset, placements }),
       resyllabify: (lineId: string, wordId: string, newText: string) =>

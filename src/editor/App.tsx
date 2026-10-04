@@ -528,6 +528,7 @@ function App({
       author: state.author,
       lyricsText: state.lyricsText,
       song: state.song,
+      bisGroups: state.bisGroups,
       cells: state.cells,
       chordVariants: state.chordVariants,
       pitchDirections: state.pitchDirections,
@@ -538,6 +539,7 @@ function App({
       state.author,
       state.lyricsText,
       state.song,
+      state.bisGroups,
       state.cells,
       state.chordVariants,
       state.pitchDirections,
@@ -1097,6 +1099,7 @@ function App({
               <SongView
                 song={state.song}
                 lyricsText={state.lyricsText}
+                bisGroups={state.bisGroups}
                 merges={state.merges}
                 tracks={state.tracks}
                 cells={displayedCells}
@@ -1112,6 +1115,7 @@ function App({
                 onMoveCellText={actions.moveCellText}
                 onDragPitchDirection={actions.dragPitchDirection}
                 onReconcileLyricsText={actions.reconcileLyricsText}
+                onToggleBis={actions.toggleBis}
                 onPasteText={actions.pasteText}
               />
             )}

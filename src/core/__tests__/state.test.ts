@@ -37,6 +37,34 @@ describe("setLyricsText", () => {
   });
 });
 
+describe("BIS groups", () => {
+  it("marks a selected run and removes the shared rule when its BIS word is deleted", () => {
+    let state = reduce(createInitialState(), {
+      type: "setLyricsText",
+      text: "primera frase\nsegunda frase",
+    });
+
+    state = editorReducer(state, { type: "toggleBis", startLineIndex: 0, endLineIndex: 1, remove: false });
+    expect(state.lyricsText).toBe("primera frase\nsegunda frase BIS");
+    expect(state.bisGroups).toEqual([{ startLineIndex: 0, endLineIndex: 1 }]);
+
+    state = editorReducer(state, {
+      type: "reconcileLyricsText",
+      text: "primera frase\nsegunda frase",
+    });
+    expect(state.bisGroups).toEqual([]);
+  });
+
+  it("uses the same shortcut to remove a single-line BIS", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "una frase" });
+    state = editorReducer(state, { type: "toggleBis", startLineIndex: 0, endLineIndex: 0, remove: false });
+    state = editorReducer(state, { type: "toggleBis", startLineIndex: 0, endLineIndex: 0, remove: true });
+
+    expect(state.lyricsText).toBe("una frase");
+    expect(state.bisGroups).toEqual([]);
+  });
+});
+
 describe("loadContent", () => {
   it("shows only chords and hides the remaining view toggles for an existing song", () => {
     let state = createInitialState();

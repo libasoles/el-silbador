@@ -3,7 +3,7 @@ import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
 import { columnForSlot, getLineCellSlots } from "../../core/model";
 import { getCell } from "../../core/state";
-import type { CellsByTrack, PitchDirection, Song, TrackDef, TrackId } from "../../core/types";
+import type { BisGroup, CellsByTrack, PitchDirection, Song, TrackDef, TrackId } from "../../core/types";
 import { pitchDirectionFromDrag, type DragDelta } from "../pitchDragGesture";
 import { shouldPreserveTextSelection } from "../selectionGesture";
 import { EditorHelp } from "./EditorHelp";
@@ -18,6 +18,7 @@ interface DragCell {
 interface SongViewProps {
   song: Song;
   lyricsText: string;
+  bisGroups: BisGroup[];
   merges: ReadonlySet<string>;
   tracks: TrackDef[];
   cells: CellsByTrack;
@@ -46,6 +47,7 @@ interface SongViewProps {
   ) => void;
   onDragPitchDirection: (slotId: string, direction: PitchDirection) => void;
   onReconcileLyricsText: (text: string) => void;
+  onToggleBis: (startLineIndex: number, endLineIndex: number, remove: boolean) => void;
   onPasteText: (
     text: string,
     startLineIndex: number,
@@ -86,6 +88,31 @@ function nodesText(nodes: Iterable<Node>): string {
 
 function lineText(line: HTMLElement): string {
   return nodesText(line.childNodes);
+}
+
+const BIS_AT_LINE_END = /(?:^|\s)BIS\s*$/;
+
+function bisLineStyles(lines: string[], groups: BisGroup[]) {
+  const styles = new Map<number, "single" | "start" | "middle" | "end">();
+  for (const { startLineIndex, endLineIndex } of groups) {
+    if (!BIS_AT_LINE_END.test(lines[endLineIndex] ?? "")) continue;
+    for (let index = startLineIndex; index <= endLineIndex; index++) {
+      styles.set(
+        index,
+        startLineIndex === endLineIndex
+          ? "single"
+          : index === startLineIndex
+            ? "start"
+            : index === endLineIndex
+              ? "end"
+              : "middle",
+      );
+    }
+  }
+  lines.forEach((line, index) => {
+    if (BIS_AT_LINE_END.test(line) && !styles.has(index)) styles.set(index, "single");
+  });
+  return styles;
 }
 
 function readDocument(root: HTMLElement): string {
@@ -465,6 +492,7 @@ const NATIVE_FAST_PATH_TYPES = new Set([
 export function SongView({
   song,
   lyricsText,
+  bisGroups,
   merges,
   tracks,
   cells,
@@ -481,6 +509,7 @@ export function SongView({
   onMoveCellText,
   onDragPitchDirection,
   onReconcileLyricsText,
+  onToggleBis,
   onPasteText,
 }: SongViewProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -505,6 +534,7 @@ export function SongView({
     (track) => track.visible && track.id !== "chordNotes",
   );
   const lyricLines = lyricsText.split("\n");
+  const bisStyles = bisLineStyles(lyricLines, bisGroups);
 
   // Chrome does not reliably paint its native caret on an empty lyric line inside this flex
   // layout — the very bug this file has chased through several attempts. Rather than continue to
@@ -718,6 +748,37 @@ export function SongView({
   // text-offset model commit()/restoreCaret already use, rather than letting the browser traverse
   // the DOM.
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Tab") {
+      if (!canEdit || event.nativeEvent.isComposing || event.metaKey || event.ctrlKey || event.altKey)
+        return;
+      if ((event.target as HTMLElement).closest("[data-track]")) return;
+      const root = rootRef.current;
+      const range = root ? captureSelectionRange(root) : null;
+      if (!range) return;
+      const lines = readDocument(root!).split("\n");
+      let { start, end } = range;
+      if (flatOffset(lines, start) > flatOffset(lines, end)) [start, end] = [end, start];
+      // A lone Tab intentionally only starts a phrase at its first character. A selection is
+      // already an explicit phrase choice, so it may span any part of its first/last line.
+      if (start.lineIndex === end.lineIndex && start.offset !== 0) return;
+      event.preventDefault();
+      const containingGroup = event.shiftKey
+        ? bisGroups.find(
+            (group) =>
+              start.lineIndex >= group.startLineIndex &&
+              start.lineIndex <= group.endLineIndex &&
+              end.lineIndex >= group.startLineIndex &&
+              end.lineIndex <= group.endLineIndex,
+          )
+        : undefined;
+      onToggleBis(
+        containingGroup?.startLineIndex ?? start.lineIndex,
+        containingGroup?.endLineIndex ?? end.lineIndex,
+        event.shiftKey,
+      );
+      return;
+    }
+
     // Some Chromium keyboard paths don't emit a cancellable `beforeinput` event for Enter in a
     // contentEditable host. Handle the key itself as a fallback so it follows the same document
     // model route as the `insertParagraph` branch below.
@@ -1073,6 +1134,8 @@ export function SongView({
           <LineView
             key={line.id}
             line={line}
+            bisRule={bisStyles.get(index)}
+            bisMarker={BIS_AT_LINE_END.test(lyricLines[index] ?? "")}
             trailingWhitespace={lyricLines[index]?.match(/\s+$/)?.[0] ?? ""}
             merges={merges}
             showUnderline={showUnderline}

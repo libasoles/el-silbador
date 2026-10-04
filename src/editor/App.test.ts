@@ -88,6 +88,17 @@ describe("lyric caret visibility", () => {
   });
 });
 
+describe("BIS phrases", () => {
+  it("renders a shared rule and sans-serif BIS marker, and supports the Tab shortcut", () => {
+    expect(songView).toContain('event.key === "Tab"');
+    expect(songView).toContain("event.shiftKey");
+    expect(songView).toContain("onToggleBis(");
+    expect(lineView).toContain('"bis-marker"');
+    expect(styles).toMatch(/\.line--bis\s*\{[\s\S]*border-left:\s*2px solid #a8a8a8/);
+    expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*font-family:\s*var\(--sans\)/);
+  });
+});
+
 describe("passive editor click caret placement", () => {
   it("maps a simple click in annotation space or an edge drop zone to the associated lyric row", () => {
     expect(songView).toContain("function lyricLineForClick");
