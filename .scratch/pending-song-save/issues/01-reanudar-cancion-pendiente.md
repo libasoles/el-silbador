@@ -7,19 +7,19 @@ pasa a mostrarla en `/cancion/<slug>` y aparece el toast "Canción guardada". Ve
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Guardar sin sesión en `/nueva` guarda localmente la canción con un id de creación reservado y
+- [x] Guardar sin sesión en `/nueva` guarda localmente la canción con un id de creación reservado y
       vencimiento de 24 h, y abre el modal de login.
-- [ ] Un reanudador montado a nivel de la app (no dentro del editor) detecta sesión + canción
+- [x] Un reanudador montado a nivel de la app (no dentro del editor) detecta sesión + canción
       pendiente sin vencer en cualquier página y la guarda con un upsert idempotente sobre el id de
       creación.
-- [ ] Tras guardar: borra la copia local y la intención pendiente, navega a `/cancion/<slug>` y
+- [x] Tras guardar: borra la copia local y la intención pendiente, navega a `/cancion/<slug>` y
       muestra el toast "Canción guardada" (el toast sobrevive a la navegación).
-- [ ] Se elimina del editor la restauración que dependía de la pestaña del callback del magic link;
+- [x] Se elimina del editor la restauración que dependía de la pestaña del callback del magic link;
       no queda una carrera entre "recién autenticado" y la carga del borrador en el autosave.
-- [ ] `/nueva` sin sesión con una canción pendiente sigue restaurándola en el editor.
-- [ ] Una canción pendiente vencida se ignora y se descarta.
-- [ ] `docs/authenticated-actions.md` refleja el nuevo flujo y el vencimiento de 24 h.
-- [ ] Tests del storage (vencimiento, id de creación) y del reanudador (guarda, limpia, navega).
+- [x] `/nueva` sin sesión con una canción pendiente sigue restaurándola en el editor.
+- [x] Una canción pendiente vencida se ignora y se descarta.
+- [x] `docs/authenticated-actions.md` refleja el nuevo flujo y el vencimiento de 24 h.
+- [x] Tests del storage (vencimiento, id de creación) y del reanudador (guarda, limpia, navega).

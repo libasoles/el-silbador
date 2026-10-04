@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { initAnalytics, trackPageView } from "../editor/analytics";
 import { AuthRequiredProvider } from "../editor/AuthRequired";
 import { AuthCallbackErrorToast } from "../editor/components/AuthCallbackErrorToast";
+import { PendingSongResumer } from "../editor/PendingSongResumer";
 import { ToastProvider } from "../editor/components/ToastProvider";
 import { useAuth } from "../editor/useAuth";
 import { useLoginTracking } from "../editor/loginTracking";
@@ -86,6 +87,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ServiceWorkerRegistrar />
       <ToastProvider>
         <AuthCallbackErrorToast />
+        <PendingSongResumer session={session} />
         <AuthRequiredProvider session={session}>{children}</AuthRequiredProvider>
       </ToastProvider>
     </QueryClientProvider>

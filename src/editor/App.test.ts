@@ -311,12 +311,15 @@ describe("authentication dialog", () => {
 });
 
 describe("post-login save", () => {
-  it("keeps the restored draft until saving succeeds, then explains how to share it", () => {
+  it("restores a pending draft into the editor", () => {
     expect(app).toMatch(
       /if \(draft\) \{[\s\S]*actions\.loadContent\(draft\.content\);\s*setContentLoaded\(true\);\s*\}/,
     );
+  });
+
+  it("confirms an existing song's post-login save only after it succeeds", () => {
     expect(app).toMatch(
-      /pendingAction\?\.type === "save-song"[\s\S]*clearDraft\(\);[\s\S]*icon: <PrivacyLockedIcon \/>[\s\S]*title: "Canción guardada"[\s\S]*Para compartir el enlace, hacela pública con el candado\./,
+      /if \(!songSlug \|\| !authenticated \|\| autosaveStatus !== "saved"\) return;[\s\S]*pendingAction\?\.type === "save-song"[\s\S]*clearDraft\(\);[\s\S]*title: "Canción guardada"/,
     );
   });
 
@@ -330,19 +333,26 @@ describe("post-login save", () => {
     );
   });
 
-  it("uses the draft creation id for the first post-login save", () => {
-    expect(app).toContain("songDbId ?? pendingCreationId ?? restoredDraft?.creationId");
+  it("leaves a pending new song to the app-wide resumer instead of autosave", () => {
+    expect(providers).toContain("<PendingSongResumer session={session} />");
+    expect(app).toContain("const canPersist = isOwnSong && !isMobile && !pendingCreationId;");
+    expect(app).not.toContain("arrivedViaMagicLink");
   });
 
-  it("keeps that creation id in the tab that opened the login dialog", () => {
-    expect(app).toContain("const [pendingCreationId, setPendingCreationId] = useState<string>();");
-    expect(app).toContain("setPendingCreationId(draft.creationId);");
-    expect(app).toContain("songDbId ?? pendingCreationId ?? restoredDraft?.creationId");
+  it("keeps the same reserved creation id when Save is clicked again", () => {
+    expect(app).toContain("const draft = saveDraft(songSlug, content, pendingCreationId);");
   });
 
-  it("only lets the magic-link callback tab resume a pending creation", () => {
-    expect(app).toContain("const arrivedViaMagicLink = useRef(");
-    expect(app).toContain("!pendingCreationId || arrivedViaMagicLink.current");
+  it("writes edits to the pending local copy while signed out", () => {
+    expect(app).toMatch(
+      /if \(authenticated \|\| !pendingCreationId \|\| songSlug\) return;\s*saveDraft\(undefined, content, pendingCreationId\);/,
+    );
+  });
+
+  it("retries a pending new song's save from the Save button once signed in", () => {
+    expect(app).toMatch(
+      /if \(pendingCreationId && !songSlug\) \{\s*saveDraft\(undefined, content, pendingCreationId\);\s*void resumePendingSong\(\);/,
+    );
   });
 });
 

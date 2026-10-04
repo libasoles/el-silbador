@@ -6,12 +6,12 @@ escribió la canción también recibe la sesión y termina mostrando la canción
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Cada pestaña que recibe la sesión con una canción pendiente la reanuda; el upsert idempotente
+- [x] Cada pestaña que recibe la sesión con una canción pendiente la reanuda; el upsert idempotente
       evita duplicados.
-- [ ] Si otra pestaña ya guardó y borró la copia local, la pestaña original usa el id de creación que
+- [x] Si otra pestaña ya guardó y borró la copia local, la pestaña original usa el id de creación que
       tiene en memoria para encontrar el slug y navegar.
-- [ ] Ninguna pestaña queda en `/nueva` con cambios "sin guardar" de una canción ya guardada.
-- [ ] Test del caso "la copia local ya fue borrada por otra pestaña".
+- [x] Ninguna pestaña queda en `/nueva` con cambios "sin guardar" de una canción ya guardada.
+- [x] Test del caso "la copia local ya fue borrada por otra pestaña".
