@@ -677,8 +677,11 @@
 /* A BIS phrase is a single visual block even when it spans several lyric rows. Every member
    carries the same rule, so the line remains continuous through its annotation rows. */
 .line--bis {
-  border-left: 2px solid var(--muted);
-  padding-left: 0.6rem;
+  align-self: flex-start;
+  border-right: 2px solid var(--muted);
+  max-width: 100%;
+  padding-right: 0.6rem;
+  width: fit-content;
 }
 
 /* `.song` spaces ordinary stanzas apart. Extend the next member's rule upward through that
@@ -690,20 +693,19 @@
   content: "";
   position: absolute;
   top: calc(-1 * var(--song-line-gap));
-  left: -2px;
+  right: -2px;
   height: var(--song-line-gap);
-  border-left: 2px solid var(--muted);
+  border-right: 2px solid var(--muted);
 }
 
 .bis-marker {
-  align-self: baseline;
   color: var(--muted);
   display: inline-block;
   font-family: var(--sans);
   font-size: 0.78em;
   font-weight: 600;
   letter-spacing: 0.04em;
-  line-height: 1;
+  transform: translateY(-0.3em);
 }
 
 .line [contenteditable="false"] {

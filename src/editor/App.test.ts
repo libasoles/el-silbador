@@ -94,9 +94,9 @@ describe("BIS phrases", () => {
     expect(songView).toContain("event.shiftKey");
     expect(songView).toContain("onToggleBis(");
     expect(lineView).toContain('"bis-marker"');
-    expect(styles).toMatch(/\.line--bis\s*\{[\s\S]*border-left:\s*2px solid var\(--muted\)/);
+    expect(styles).toMatch(/\.line--bis\s*\{[\s\S]*border-right:\s*2px solid var\(--muted\)/);
     expect(styles).toMatch(/\.line--bis-start \+ \.line--bis-end::before[\s\S]*height:\s*var\(--song-line-gap\)/);
-    expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*align-self:\s*baseline[\s\S]*color:\s*var\(--muted\)/);
+    expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*color:\s*var\(--muted\)[\s\S]*transform:\s*translateY\(-0\.3em\)/);
   });
 });
 
