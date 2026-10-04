@@ -680,6 +680,7 @@
 /* Section labels are whole, unsyllabified lines rather than lyrics. */
 .subtitle-line {
   color: var(--muted);
+  font-family: var(--sans);
   font-size: 0.85rem;
   line-height: 1.35;
   white-space: pre-wrap;
