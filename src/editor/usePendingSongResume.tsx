@@ -4,13 +4,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getSong, saveSong } from "../data";
 import { songQueryKeys } from "../data/queryKeys";
 import { trackEvent } from "./analytics";
-import { PrivacyLockedIcon } from "./components/icons";
 import { clearDraft, readDraft, rememberedPendingCreationId } from "./draftStorage";
 import {
   clearPendingAuthAction,
   readPendingAuthAction,
 } from "./pendingAuthActionStorage";
-import { resumePendingSong, type PendingSongResumerDeps } from "./resumePendingSong";
+import {
+  resumePendingSong,
+  type PendingSongResumerDeps,
+  type ResumeOutcome,
+} from "./resumePendingSong";
+import { SONG_SAVED_TOAST } from "./songSavedToast";
 import { useToast } from "./toastContext";
 
 const deps: PendingSongResumerDeps = {
@@ -23,7 +27,12 @@ const deps: PendingSongResumerDeps = {
   findSongSlug: (id) =>
     getSong(id).then(
       (song) => song.slug,
-      () => null,
+      (error: unknown) => {
+        // PostgREST's "no rows" for `.single()`: the song was never saved. Anything else is a
+        // real failure the resumer reports and retries.
+        if ((error as { code?: string } | null)?.code === "PGRST116") return null;
+        throw error;
+      },
     ),
   clearPendingSong: () => {
     clearDraft();
@@ -33,6 +42,10 @@ const deps: PendingSongResumerDeps = {
     }
   },
 };
+
+// Overlapping callers in one tab (the app-wide resumer and a Save click) share one attempt; only
+// the first to receive it navigates and shows the toast.
+const handledAttempts = new WeakSet<Promise<ResumeOutcome>>();
 
 /**
  * Returns a function that saves this browser's pending new song (see `resumePendingSong`) and,
@@ -52,7 +65,10 @@ export function usePendingSongResume(): () => Promise<void> {
   }, [pathname]);
 
   return useCallback(async () => {
-    const outcome = await resumePendingSong(deps);
+    const attempt = resumePendingSong(deps);
+    if (handledAttempts.has(attempt)) return;
+    handledAttempts.add(attempt);
+    const outcome = await attempt;
     if (outcome.kind === "idle") return;
     if (outcome.kind === "failed") {
       console.error("No se pudo guardar la canción pendiente.", outcome.error);
@@ -71,11 +87,6 @@ export function usePendingSongResume(): () => Promise<void> {
     // Leaving /nueva behind keeps Back from returning to an editor for a song that now exists.
     if (pathnameRef.current === "/nueva") router.replace(songPath);
     else if (pathnameRef.current !== songPath) router.push(songPath);
-    showToast({
-      variant: "success",
-      icon: <PrivacyLockedIcon />,
-      title: "Canción guardada",
-      description: "Para compartir el enlace, hacela pública con el candado.",
-    });
+    showToast(SONG_SAVED_TOAST);
   }, [router, queryClient, showToast]);
 }

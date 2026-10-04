@@ -96,6 +96,17 @@ describe("resumePendingSong", () => {
     expect(outcome).toEqual({ kind: "saved", id: "creation-1", slug: "vals" });
   });
 
+  it("reports a failure when looking up the song another tab saved fails", async () => {
+    const error = new Error("network");
+    const deps = createDeps({
+      readPendingSong: () => null,
+      findSongSlug: vi.fn(async () => Promise.reject(error)),
+    });
+
+    expect(await resumePendingSong(deps)).toEqual({ kind: "failed", error });
+    expect(deps.clearPendingSong).not.toHaveBeenCalled();
+  });
+
   it("stays idle when the remembered creation id was never saved", async () => {
     const deps = createDeps({ readPendingSong: () => null });
 

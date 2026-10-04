@@ -48,7 +48,14 @@ async function resume(deps: PendingSongResumerDeps): Promise<ResumeOutcome> {
 
   const creationId = deps.rememberedCreationId();
   if (!creationId) return { kind: "idle" };
-  const slug = await deps.findSongSlug(creationId);
+  let slug: string | null;
+  try {
+    slug = await deps.findSongSlug(creationId);
+  } catch (error) {
+    // The song may well be saved; say so through the retry path rather than silently leaving
+    // this tab showing it as unsaved.
+    return { kind: "failed", error };
+  }
   if (!slug) return { kind: "idle" };
   deps.clearPendingSong();
   return { kind: "saved", id: creationId, slug };

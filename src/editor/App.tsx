@@ -56,6 +56,7 @@ import { applyTheme, deriveTheme } from "./theme";
 import { clearDraft, readDraft, saveDraft } from "./draftStorage";
 import { useAutosave } from "./useAutosave";
 import { usePendingSongResume } from "./usePendingSongResume";
+import { SONG_SAVED_TOAST } from "./songSavedToast";
 import { useEditor } from "./useEditor";
 import {
   clearPendingAuthAction,
@@ -642,10 +643,10 @@ function App({
     !songSlug,
     handleSongCreated,
   );
+  // A new song stored locally until its author signs in (see PendingSongResumer).
+  const isPendingNewSong = Boolean(pendingCreationId) && !songSlug;
   const pendingChanges =
-    autosaveStatus === "dirty" ||
-    autosaveStatus === "error" ||
-    (Boolean(pendingCreationId) && !songSlug);
+    autosaveStatus === "dirty" || autosaveStatus === "error" || isPendingNewSong;
   const saving = autosaveStatus === "saving";
 
   // Once a song has a couple of chords in it, teach that they can be dragged. Detected from the
@@ -674,12 +675,13 @@ function App({
       trackEvent("song_saved", { song_id: songDbId });
   }, [autosaveStatus, songDbId]);
 
-  // Signed out, edits to a pending new song keep its local copy current (same creation id, renewed
-  // expiry), so resuming after sign-in saves the latest content.
+  // Edits to a pending new song keep its local copy current (same creation id, renewed expiry),
+  // so resuming saves the latest content. Also while signed in after a failed resume: autosave
+  // stays off for it, so this copy is what the retry saves.
   useEffect(() => {
-    if (authenticated || !pendingCreationId || songSlug) return;
+    if (!isPendingNewSong) return;
     saveDraft(undefined, content, pendingCreationId);
-  }, [authenticated, pendingCreationId, songSlug, content]);
+  }, [isPendingNewSong, pendingCreationId, content]);
 
   // An existing song's save intent survives the magic-link reload when the link returns to its
   // page. Mark it complete only after autosave has actually persisted the restored draft, so a
@@ -693,12 +695,7 @@ function App({
     ) {
       clearDraft();
       clearPendingAuthAction();
-      showToast({
-        variant: "success",
-        icon: <PrivacyLockedIcon />,
-        title: "Canción guardada",
-        description: "Para compartir el enlace, hacela pública con el candado.",
-      });
+      showToast(SONG_SAVED_TOAST);
     }
   }, [authenticated, autosaveStatus, songSlug, showToast]);
 
@@ -864,8 +861,7 @@ function App({
       return;
     }
     // Signed in with a pending new song: its post-login save failed, so retry it the same way.
-    if (pendingCreationId && !songSlug) {
-      saveDraft(undefined, content, pendingCreationId);
+    if (isPendingNewSong) {
       void resumePendingSong();
       return;
     }

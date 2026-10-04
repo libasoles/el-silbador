@@ -319,7 +319,7 @@ describe("post-login save", () => {
 
   it("confirms an existing song's post-login save only after it succeeds", () => {
     expect(app).toMatch(
-      /if \(!songSlug \|\| !authenticated \|\| autosaveStatus !== "saved"\) return;[\s\S]*pendingAction\?\.type === "save-song"[\s\S]*clearDraft\(\);[\s\S]*title: "Canción guardada"/,
+      /if \(!songSlug \|\| !authenticated \|\| autosaveStatus !== "saved"\) return;[\s\S]*pendingAction\?\.type === "save-song"[\s\S]*clearDraft\(\);[\s\S]*showToast\(SONG_SAVED_TOAST\)/,
     );
   });
 
@@ -343,15 +343,16 @@ describe("post-login save", () => {
     expect(app).toContain("const draft = saveDraft(songSlug, content, pendingCreationId);");
   });
 
-  it("writes edits to the pending local copy while signed out", () => {
+  it("writes edits to the pending local copy, signed in or not", () => {
+    expect(app).toContain("const isPendingNewSong = Boolean(pendingCreationId) && !songSlug;");
     expect(app).toMatch(
-      /if \(authenticated \|\| !pendingCreationId \|\| songSlug\) return;\s*saveDraft\(undefined, content, pendingCreationId\);/,
+      /if \(!isPendingNewSong\) return;\s*saveDraft\(undefined, content, pendingCreationId\);/,
     );
   });
 
   it("retries a pending new song's save from the Save button once signed in", () => {
     expect(app).toMatch(
-      /if \(pendingCreationId && !songSlug\) \{\s*saveDraft\(undefined, content, pendingCreationId\);\s*void resumePendingSong\(\);/,
+      /if \(isPendingNewSong\) \{\s*void resumePendingSong\(\);/,
     );
   });
 });
