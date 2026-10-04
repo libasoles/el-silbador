@@ -701,6 +701,13 @@
   font-weight: 600;
 }
 
+/* An empty gap button has no text baseline of its own, so baseline alignment would rest its bottom
+   on the lyric baseline and lift a merged word gap's bridge above the syllable underlines. Word
+   gaps keep the bottom alignment they have in every other line. */
+.line--bis .syllable-gap--word-boundary {
+  align-self: flex-end;
+}
+
 .bis-marker {
   color: var(--muted);
   display: inline-block;
