@@ -27,6 +27,7 @@ import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent, SongDetail } from "../data/types";
 import { revalidatePublicSongs } from "../app/actions";
 import type { TransposeWidget as TransposeWidgetComponent } from "../transpose/TransposeWidget";
+import { transposeCells } from "../transpose/transpose";
 import { trackEvent } from "./analytics";
 import { isMagicLinkCallback } from "./loginTracking";
 import { useAuthRequired } from "./authRequiredContext";
@@ -68,6 +69,10 @@ import {
   readMelodyTogglePreference,
   saveMelodyTogglePreference,
 } from "./melodyToggleStorage";
+import {
+  readReaderTransposePreference,
+  saveReaderTransposePreference,
+} from "./readerTransposeStorage";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
 
@@ -279,6 +284,9 @@ function App({
   const [songDbId, setSongDbId] = useState<string | undefined>(
     () => initialSong?.id,
   );
+  // Reading has a personal, local key preference. Editing always works against the canonical
+  // document instead, and keeps its existing database persistence.
+  const [readerTransposeOffset, setReaderTransposeOffset] = useState(0);
   // The tab that opened the login modal stays mounted when Supabase synchronizes the new session
   // across tabs. Keep the creation id here too, not only in the draft read after a reload.
   const [pendingCreationId, setPendingCreationId] = useState<string>();
@@ -563,6 +571,39 @@ function App({
   // the song's owner. Favoriting, chord/underline toggles, PDF export and transposition stay
   // available on mobile and must not be gated here.
   const canEditOnThisDevice = isOwnSong && !isMobile;
+  // Wait for an existing song's owner before choosing a mode. Otherwise an owner's song fetched
+  // after hydration could briefly receive a reader-only transformation before editing is known.
+  const readerMode =
+    Boolean(songDbId) &&
+    Boolean(songSlug) &&
+    ownerId !== undefined &&
+    !canEditOnThisDevice;
+
+  // localStorage is client-only, so read it after hydration. The song id survives title/slug
+  // changes and keeps one reader preference per actual song.
+  useLayoutEffect(() => {
+    if (!readerMode || !songDbId) {
+      setReaderTransposeOffset(0);
+      return;
+    }
+    setReaderTransposeOffset(readReaderTransposePreference(songDbId) ?? 0);
+  }, [readerMode, songDbId]);
+
+  const displayedCells = useMemo(
+    () =>
+      readerMode
+        ? transposeCells(state.cells, readerTransposeOffset)
+        : state.cells,
+    [readerMode, readerTransposeOffset, state.cells],
+  );
+  const handleReaderTranspose = useCallback(
+    (offset: number) => {
+      if (!songDbId) return;
+      setReaderTransposeOffset(offset);
+      saveReaderTransposePreference(songDbId, offset);
+    },
+    [songDbId],
+  );
   // A draft created before authentication reserves its database id in localStorage. It is not
   // assigned to `songDbId` yet because the privacy/delete controls must stay unavailable until a
   // row actually exists, but autosave uses it for an idempotent first upsert across browser tabs.
@@ -919,14 +960,16 @@ function App({
               />
             )}
             <TransposeWidget
-              chordCells={state.cells.chords}
-              noteCells={state.cells.vocalNotes}
+              chordCells={displayedCells.chords}
+              noteCells={displayedCells.vocalNotes}
               onTransposeCell={(slotId, text) =>
                 actions.setCellText("chords", slotId, text)
               }
               onTransposeNoteCell={(slotId, text) =>
                 actions.setCellText("vocalNotes", slotId, text)
               }
+              readerOffset={readerMode ? readerTransposeOffset : undefined}
+              onReaderOffsetChange={readerMode ? handleReaderTranspose : undefined}
             />
           </div>
 
@@ -1056,7 +1099,7 @@ function App({
                 lyricsText={state.lyricsText}
                 merges={state.merges}
                 tracks={state.tracks}
-                cells={state.cells}
+                cells={displayedCells}
                 chordVariants={state.chordVariants}
                 pitchDirections={state.pitchDirections}
                 showUnderline={state.showUnderline}
