@@ -16,7 +16,7 @@ import {
 import "../articles.css";
 
 const ARTICLE = {
-  title: "Marcas de estructura y BIS",
+  title: "Estrofas, estribillos y BIS",
   description:
     "Separar la canción en partes con palabras clave como Estrofa o Estribillo, y marcar con BIS las líneas que se repiten en El Silbador.",
   slug: "marcas-de-estructura-y-bis",
@@ -61,11 +61,7 @@ export default function StructureAndBisArticlePage() {
               </span>
             ))}
           </p>
-          <p>
-            Cuando una de ellas ocupa una línea entera, sola, se muestra como un
-            subtítulo: más chica y en otro color. Esa línea no se separa en
-            sílabas, así que no lleva acordes ni notas.
-          </p>
+
           <ArticleChordEditor
             sheet={LABELED_EXCERPT}
             label="Editor con una estrofa marcada con su subtítulo"
@@ -73,16 +69,16 @@ export default function StructureAndBisArticlePage() {
 
           <h2>Cómo se aplican</h2>
           <p>
-            Escribí la palabra en su propia línea, justo antes de la parte que
-            nombra. No importa si usás mayúsculas o minúsculas, ni si le ponés
-            el acento: <span className="article-syllable">ESTRIBILLO</span>,{" "}
+            Escribí la palabra en su propia línea. No importa si usás mayúsculas
+            o minúsculas, ni si le ponés el acento:{" "}
+            <span className="article-syllable">ESTRIBILLO</span>,{" "}
             <span className="article-syllable">estribillo</span> e{" "}
             <span className="article-syllable">introduccion</span> también
             valen.
           </p>
           <p>
             Probá escribir <span className="article-syllable">Estrofa</span> en
-            la primera línea, que está vacía:
+            la primera línea:
           </p>
           <ArticleChordEditor
             sheet={UNLABELED_EXCERPT}
@@ -90,16 +86,14 @@ export default function StructureAndBisArticlePage() {
             needsEditing
           />
           <p className="article-highlight">
-            Si la línea tiene algo más, como «Estribillo final», se lee como
-            letra común.
+            Si la línea tiene algo más, como «Estribillo final», no va a
+            funcionar.
           </p>
 
           <h2>BIS</h2>
           <p>
             <span className="article-syllable">BIS</span> quiere decir que una
-            parte se canta dos veces. En El Silbador, la palabra va al final de
-            la última línea que se repite. Las líneas que se repiten se ven en
-            negrita y la palabra BIS aparece con una flechita delante.
+            parte se canta dos veces. Es usual en géneros como la zamba.
           </p>
 
           <h2>BIS de una línea</h2>
@@ -108,17 +102,17 @@ export default function StructureAndBisArticlePage() {
             Escribí <span className="article-syllable">BIS</span> al final de la
             línea, en mayúsculas y separado de la última palabra por un espacio.
           </p>
-          <p>
-            O poné el cursor en cualquier lugar de la línea y presioná{" "}
-            <span className="article-action">Tab</span>: el editor agrega la
-            palabra por vos.
-          </p>
           <ArticleChordEditor
             sheet={BIS_EXCERPT}
             label="Editor con la última línea marcada con BIS"
           />
           <p>
-            Probá marcar la primera línea de este fragmento con{" "}
+            O poné el cursor en cualquier lugar de la línea y presioná{" "}
+            <span className="article-action">Tab</span>: el editor agrega la
+            palabra por vos.
+          </p>
+          <p>
+            Probá marcar la última línea de este fragmento con{" "}
             <span className="article-action">Tab</span>:
           </p>
           <ArticleChordEditor
@@ -148,7 +142,7 @@ export default function StructureAndBisArticlePage() {
             label="Editor con las dos últimas líneas marcadas con BIS"
           />
           <p>
-            Probá seleccionar las dos primeras líneas de este fragmento y
+            Probá seleccionar las dos últimas líneas de este fragmento y
             presionar <span className="article-action">Tab</span>:
           </p>
           <ArticleChordEditor
@@ -172,8 +166,10 @@ export default function StructureAndBisArticlePage() {
             En un BIS de varias líneas,{" "}
             <span className="article-action">Shift</span> +{" "}
             <span className="article-action">Tab</span> sobre la primera o la
-            última línea la saca del grupo y el resto sigue repitiéndose. Para
-            quitarlo entero, seleccioná todas sus líneas antes.
+            última línea la saca del grupo elimina esa linea sola. Para quitarlo
+            entero, seleccioná todas sus líneas antes de presionar{" "}
+            <span className="article-action">Shift</span> +{" "}
+            <span className="article-action">Tab</span>.
           </p>
           <ArticleChordEditor
             sheet={BIS_EXCERPT}
