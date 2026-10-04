@@ -868,12 +868,9 @@ function LyricLineView({
                   wrap \u2014 only readOnly wraps at all, so only it needs the unbreakable wrapper. */}
               <span className={bisMarker && wIndex === line.words.length - 1 ? "bis-marker" : undefined}>
                 {bisMarker && wIndex === line.words.length - 1 ? (
-                  <BisIcon
-                    aria-hidden="true"
-                    className="bis-marker__icon"
-                    contentEditable={false}
-                    size="0.85em"
-                  />
+                  <span contentEditable={false}>
+                    <BisIcon aria-hidden="true" className="bis-marker__icon" size="0.85em" />
+                  </span>
                 ) : null}
                 {readOnly ? (
                   <span className="word-group">{renderWordContent(word)}</span>
