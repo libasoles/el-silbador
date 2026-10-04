@@ -95,6 +95,8 @@ describe("BIS phrases", () => {
     expect(songView).toContain("onToggleBis(");
     expect(lineView).toContain('"bis-marker"');
     expect(lineView).toContain("ArrowLeft");
+    expect(lineView).toContain("ArrowUpLeft");
+    expect(lineView).toContain('bisRule === "end" ? ArrowUpLeft : ArrowLeft');
     expect(styles).toMatch(/\.line--bis \.syllable-row\s*\{[\s\S]*align-items:\s*baseline[\s\S]*font-weight:\s*600/);
     expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*color:\s*var\(--muted\)[\s\S]*font-weight:\s*500/);
   });
