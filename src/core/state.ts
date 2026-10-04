@@ -6,6 +6,7 @@ import {
   chordSlotForColumn,
   gapSlotId,
   flattenSyllables,
+  isSubtitleLineText,
   isLineEdgeSlot,
   mergeKey,
   pruneMerges,
@@ -133,16 +134,22 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
       return { ...state, showUnderline: action.visible };
 
     case "loadContent":
+      // Songs saved before section labels were introduced contain regular syllables for these
+      // lines. Upgrade them as they are opened, using the raw text as the source of truth.
+      const loadedSong = action.content.song.map((line, index) => {
+        const rawLine = action.content.lyricsText.split("\n")[index] ?? "";
+        return isSubtitleLineText(rawLine) ? { ...line, words: [], subtitle: rawLine } : line;
+      });
       return {
         ...state,
         title: action.content.title,
         author: action.content.author,
         lyricsText: action.content.lyricsText,
-        song: action.content.song,
+        song: loadedSong,
         cells: action.content.cells,
         chordVariants: action.content.chordVariants,
         pitchDirections: action.content.pitchDirections,
-        merges: action.content.merges,
+        merges: pruneMerges(loadedSong, action.content.merges),
         // Track controls are view state rather than saved song content. Opening an existing
         // song starts in the focused chords view, plus any other track that already has
         // annotations (e.g. melody notes) so readers see them without toggling anything.
@@ -285,6 +292,7 @@ function applyPasteText(
 }
 
 function lineText(line: EditorState["song"][number]): string {
+  if (line.subtitle !== undefined) return line.subtitle;
   return line.words.map((word) => word.syllables.map((syllable) => syllable.text).join("")).join(" ");
 }
 
@@ -293,6 +301,11 @@ function reconcileLine(
   nextLine: EditorState["song"][number],
   carryOvers: CarryOver[],
 ) {
+  // Section labels have no syllable identities to reconcile. Retain the line identity so the
+  // editor keeps its DOM position when a normal line becomes (or stops being) a section label.
+  if (oldLine.subtitle !== undefined || nextLine.subtitle !== undefined) {
+    return { ...nextLine, id: oldLine.id };
+  }
   const oldWords = oldLine.words;
   const nextWords = nextLine.words;
   const oldTexts = oldWords.map((word) => word.syllables.map((syllable) => syllable.text).join(""));

@@ -2,6 +2,21 @@ import { nextId } from "./ids";
 import { hyphenateWord, splitIntoWords } from "./syllabify";
 import type { CellsByTrack, Line, Song, Syllable, SyllableUnit, TrackId, Word } from "./types";
 
+const subtitleKeywords = new Set(["introduccion", "intro", "estribillo", "estrofa", "interludio"]);
+
+/** Whether a raw lyric line is one of the section labels displayed as a subtitle.
+ *
+ * `trim()` deliberately happens before normalization: indentation and trailing whitespace do not
+ * turn an otherwise standalone section label into a lyric line. */
+export function isSubtitleLineText(lineText: string): boolean {
+  const normalized = lineText
+    .trim()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("es");
+  return subtitleKeywords.has(normalized);
+}
+
 /** Builds a fresh, fully-hyphenated song from raw lyrics text. Every id is newly minted.
  *  An empty document has no lines at all (not one line with zero words), so consumers can
  *  detect it with `song.length === 0` and show the empty-document placeholder. */
@@ -11,6 +26,7 @@ export function buildSong(lyricsText: string): Song {
 }
 
 function buildLine(lineText: string): Line {
+  if (isSubtitleLineText(lineText)) return { id: nextId("line"), words: [], subtitle: lineText };
   const words = splitIntoWords(lineText).map((wordText) => buildWord(wordText));
   return { id: nextId("line"), words };
 }

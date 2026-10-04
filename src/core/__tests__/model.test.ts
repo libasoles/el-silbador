@@ -9,6 +9,7 @@ import {
   flattenSyllables,
   gapSlotId,
   getLineCellSlots,
+  isSubtitleLineText,
   isLineEdgeSlot,
   mergeKey,
   reconcileWordSyllables,
@@ -39,6 +40,27 @@ describe("columnForSlot", () => {
   it("returns the full line length for the end slot", () => {
     const [line] = buildSong("Deliro con");
     expect(columnForSlot(line, endSlotId(line.id))).toBe("Deliro con".length);
+  });
+});
+
+describe("section-label subtitles", () => {
+  it.each(["Introduccion", "INTRO", "Estribillo", "Estrofa", "Interludio", "  Introducción  "]) (
+    "keeps %j whole instead of syllabifying it",
+    (text) => {
+      const [line] = buildSong(text);
+
+      expect(isSubtitleLineText(text)).toBe(true);
+      expect(line.subtitle).toBe(text);
+      expect(flattenSyllables(line)).toEqual([]);
+    },
+  );
+
+  it("does not mistake a lyric containing a section label for a subtitle", () => {
+    const [line] = buildSong("Intro cantado");
+
+    expect(isSubtitleLineText("Intro cantado")).toBe(false);
+    expect(line.subtitle).toBeUndefined();
+    expect(flattenSyllables(line)).not.toEqual([]);
   });
 });
 

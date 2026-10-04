@@ -145,7 +145,7 @@ interface LineViewProps {
   onDropCell: (trackId: TrackId, slotId: string) => void;
 }
 
-export function LineView({
+function LyricLineView({
   line,
   trailingWhitespace,
   merges,
@@ -914,4 +914,20 @@ export function LineView({
         : null}
     </div>
   );
+}
+
+/** Renders section labels outside the syllable and annotation layout. Keeping this separate from
+ * `LyricLineView` also keeps its hook order stable when a free-form edit changes a line type. */
+function SubtitleLineView({ line }: Pick<LineViewProps, "line">) {
+  return (
+    <div className="line line--subtitle">
+      <div className="subtitle-line" role="textbox" data-lyrics-line>
+        {line.subtitle}
+      </div>
+    </div>
+  );
+}
+
+export function LineView(props: LineViewProps) {
+  return props.line.subtitle !== undefined ? <SubtitleLineView line={props.line} /> : <LyricLineView {...props} />;
 }
