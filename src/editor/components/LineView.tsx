@@ -1,5 +1,5 @@
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpLeft } from "lucide-react";
 import { chordToNoteNames } from "../../core/chordNotes";
 import { endSlotIds, gapSlotId, getLineCellSlots, getLineGaps, getLineUnits, mergeKey, startSlotIds } from "../../core/model";
 import { getCell } from "../../core/state";
@@ -187,6 +187,7 @@ function LyricLineView({
     [gapSlotIds, lineStartSlots, lineEndSlots],
   );
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
+  const BisIcon = bisRule === "end" ? ArrowUpLeft : ArrowLeft;
 
   const mergedIds = new Set<string>();
   for (const unit of units) {
@@ -867,7 +868,7 @@ function LyricLineView({
                   wrap \u2014 only readOnly wraps at all, so only it needs the unbreakable wrapper. */}
               <span className={bisMarker && wIndex === line.words.length - 1 ? "bis-marker" : undefined}>
                 {bisMarker && wIndex === line.words.length - 1 ? (
-                  <ArrowLeft
+                  <BisIcon
                     aria-hidden="true"
                     className="bis-marker__icon"
                     contentEditable={false}
