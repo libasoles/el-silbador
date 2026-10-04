@@ -529,7 +529,8 @@
 .song {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  --song-line-gap: 0.75rem;
+  gap: var(--song-line-gap);
   min-height: 5rem;
   outline: none;
   caret-color: #555;
@@ -541,7 +542,7 @@
 
 /* Without annotation rows, lyrics read more naturally with stanza-like leading. */
 .song--annotations-hidden {
-  gap: 0.65rem;
+  --song-line-gap: 0.65rem;
 }
 
 .song-placeholder {
@@ -676,15 +677,33 @@
 /* A BIS phrase is a single visual block even when it spans several lyric rows. Every member
    carries the same rule, so the line remains continuous through its annotation rows. */
 .line--bis {
-  border-left: 2px solid #a8a8a8;
+  border-left: 2px solid var(--muted);
   padding-left: 0.6rem;
 }
 
+/* `.song` spaces ordinary stanzas apart. Extend the next member's rule upward through that
+   space rather than collapsing it, so the phrase marker is continuous without crowding lyrics. */
+.line--bis-start + .line--bis-middle::before,
+.line--bis-start + .line--bis-end::before,
+.line--bis-middle + .line--bis-middle::before,
+.line--bis-middle + .line--bis-end::before {
+  content: "";
+  position: absolute;
+  top: calc(-1 * var(--song-line-gap));
+  left: -2px;
+  height: var(--song-line-gap);
+  border-left: 2px solid var(--muted);
+}
+
 .bis-marker {
+  align-self: baseline;
+  color: var(--muted);
+  display: inline-block;
   font-family: var(--sans);
   font-size: 0.78em;
   font-weight: 600;
   letter-spacing: 0.04em;
+  line-height: 1;
 }
 
 .line [contenteditable="false"] {
