@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decideUseFlats, transposeChord, transposeNote } from "./transpose";
+import { decideUseFlats, transposeCells, transposeChord, transposeNote } from "./transpose";
 
 describe("transposeChord", () => {
   it("shifts a plain root up in sharps", () => {
@@ -74,5 +74,22 @@ describe("transposeNote", () => {
   it("round-trips back to the original after equal and opposite shifts", () => {
     const up = transposeNote("Fa#", 5, false);
     expect(transposeNote(up, -5, false)).toBe("Fa#");
+  });
+});
+
+describe("transposeCells", () => {
+  it("creates a transposed reader view without changing unrelated tracks", () => {
+    const cells = {
+      chords: { first: "Bb", second: "F" },
+      vocalNotes: { first: "Sib" },
+      chordNotes: { first: "sib, re, fa" },
+    };
+
+    expect(transposeCells(cells, 2)).toEqual({
+      chords: { first: "C", second: "G" },
+      vocalNotes: { first: "Do" },
+      chordNotes: { first: "sib, re, fa" },
+    });
+    expect(cells.chords.first).toBe("Bb");
   });
 });

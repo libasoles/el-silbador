@@ -51,12 +51,8 @@
   text-overflow: ellipsis;
 }
 
-.transpose-widget__current[aria-pressed="true"] {
+.transpose-widget__current[data-active] {
   color: var(--accent);
-}
-
-.transpose-widget__current:disabled {
-  cursor: default;
 }
 
 .transpose-widget__step:hover,
@@ -66,11 +62,6 @@
   outline: none;
 }
 
-.transpose-widget__current:not(:disabled):hover,
-.transpose-widget__current:focus-visible {
-  color: var(--accent);
-  outline: none;
-}
 
 @media print {
   .transpose-widget {

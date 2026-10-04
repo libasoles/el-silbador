@@ -223,9 +223,7 @@ export default function ChordEditorArticlePage() {
             <span className="article-action">−</span> y{" "}
             <span className="article-action">+</span> suben o bajan todos los
             acordes de a medio tono. El número del medio indica cuántos medios
-            tonos te moviste del original; hacé{" "}
-            <span className="article-action">click</span> en él para volver al
-            tono de siempre.
+            tonos te moviste del original.
           </p>
           <ArticleChordEditor
             sheet={TONADA_EXCERPT}
@@ -233,8 +231,9 @@ export default function ChordEditorArticlePage() {
             tools={["transpose"]}
           />
           <p className="article-highlight">
-            El tono que elijas queda guardado para todos. Pero cada persona
-            puede cambiarlo de manera independiente.
+            Si estás leyendo una canción, El Silbador recuerda el tono que
+            elegiste para esa canción en este dispositivo. Al editar una canción
+            propia, el cambio queda guardado en la canción.
           </p>
         </div>
       </article>

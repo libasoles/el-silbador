@@ -11,13 +11,14 @@ interface TransposeWidgetProps {
   onTransposeCell: (slotId: string, text: string) => void;
   /** Writes a melody-note slot's transposed text back to wherever notes are stored. */
   onTransposeNoteCell: (slotId: string, text: string) => void;
+  /** Reader mode owns the offset outside this widget so it can be restored from localStorage. */
+  readerOffset?: number;
+  /** Called only when a reader uses one of the +/- controls. */
+  onReaderOffsetChange?: (offset: number) => void;
 }
 
 /**
  * Transposes every chord up or down by semitones, same widget as cancionero's (assets/song-sheet.js),
- * minus the localStorage persistence: the offset lives only in this component's state and resets
- * on reload, by design (see AGENTS note on decoupling this from the syllabifier).
- *
  * The melody-notes track is transposed alongside the chords, using the same sharp/flat choice, so
  * the two tracks stay in the same key.
  */
@@ -26,6 +27,8 @@ export function TransposeWidget({
   noteCells,
   onTransposeCell,
   onTransposeNoteCell,
+  readerOffset,
+  onReaderOffsetChange,
 }: TransposeWidgetProps) {
   const [offset, setOffset] = useState(0);
   const [useFlats, setUseFlats] = useState(false);
@@ -35,6 +38,10 @@ export function TransposeWidget({
   if (chordEntries.length === 0 && noteEntries.length === 0) return null;
 
   function shift(semitones: number) {
+    if (readerOffset !== undefined) {
+      onReaderOffsetChange?.(readerOffset + semitones);
+      return;
+    }
     const flats = offset === 0 ? decideUseFlats(chordEntries.map(([, text]) => text)) : useFlats;
     if (offset === 0) setUseFlats(flats);
     for (const [slotId, text] of chordEntries) {
@@ -46,7 +53,13 @@ export function TransposeWidget({
     setOffset((current) => current + semitones);
   }
 
-  const label = offset === 0 ? "0" : offset > 0 ? `+${offset}` : String(offset);
+  const displayedOffset = readerOffset ?? offset;
+  const label =
+    displayedOffset === 0
+      ? "0"
+      : displayedOffset > 0
+        ? `+${displayedOffset}`
+        : String(displayedOffset);
 
   return (
     <div className="transpose-widget" aria-label="Transponer tonalidad">
@@ -58,17 +71,13 @@ export function TransposeWidget({
       >
         −
       </button>
-      <button
-        type="button"
+      <output
         className="transpose-widget__current"
-        aria-label="Restablecer tono original"
-        title="Restablecer tono original"
-        aria-pressed={offset !== 0}
-        disabled={offset === 0}
-        onClick={() => shift(-offset)}
+        data-active={displayedOffset !== 0 || undefined}
+        aria-label={`Desplazamiento de tonalidad: ${label} semitonos`}
       >
         {label}
-      </button>
+      </output>
       <button
         type="button"
         className="transpose-widget__step"

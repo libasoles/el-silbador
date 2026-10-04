@@ -5,6 +5,8 @@
  * touching anything else.
  */
 
+import type { CellsByTrack } from "../core/types";
+
 const SHARP_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const FLAT_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 
@@ -115,4 +117,30 @@ export function transposeNote(text: string, semitones: number, useFlats: boolean
     ? newName[0]!.toUpperCase() + newName.slice(1)
     : newName;
   return capitalized + suffix;
+}
+
+/**
+ * Produces a reader-only view of chord and melody cells at a selected key. The editor's source
+ * cells remain untouched, so this can never turn a reader preference into a shared song edit.
+ */
+export function transposeCells(cells: CellsByTrack, semitones: number): CellsByTrack {
+  if (semitones === 0) return cells;
+
+  const useFlats = decideUseFlats(Object.values(cells.chords ?? {}));
+  const transposeTrack = (
+    track: Record<string, string> | undefined,
+    transpose: (text: string, semitones: number, useFlats: boolean) => string,
+  ) =>
+    Object.fromEntries(
+      Object.entries(track ?? {}).map(([slotId, text]) => [
+        slotId,
+        transpose(text, semitones, useFlats),
+      ]),
+    );
+
+  return {
+    ...cells,
+    chords: transposeTrack(cells.chords, transposeChord),
+    vocalNotes: transposeTrack(cells.vocalNotes, transposeNote),
+  };
 }
