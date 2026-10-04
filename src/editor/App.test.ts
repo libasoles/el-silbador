@@ -101,8 +101,8 @@ describe("BIS phrases", () => {
     expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*color:\s*var\(--muted\)[\s\S]*font-weight:\s*500/);
   });
 
-  it("handles Shift+Tab from anywhere in a lyric line instead of moving browser focus", () => {
-    expect(songView).toContain("if (!event.shiftKey && start.lineIndex === end.lineIndex && start.offset !== 0)");
+  it("handles Tab and Shift+Tab from anywhere in a lyric line instead of moving browser focus", () => {
+    expect(songView).not.toContain("start.offset !== 0) return;");
     expect(songView).toContain("event.preventDefault();");
   });
 });
