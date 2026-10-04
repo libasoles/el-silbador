@@ -120,12 +120,27 @@ const AUTOSAVE_STATUS_LABEL: Record<"saving" | "saved" | "error", string> = {
   error: "No se pudo guardar",
 };
 
+/** Stand-in for the title and author fields while an existing song's content is still being
+    fetched (see `SongViewSkeleton`). Never shown for a brand-new song. */
+function TitleSkeleton() {
+  return (
+    <>
+      <span aria-hidden="true" className="skeleton title-skeleton">
+        Título de ejemplo
+      </span>
+      <span aria-hidden="true" className="skeleton author-skeleton">
+        Autor de ejemplo
+      </span>
+    </>
+  );
+}
+
 /** Stand-in for the lyrics/annotation grid while an existing song's content is still being
-    fetched. Never shown for a brand-new song, which has no content to wait on. The title,
-    author, and toolbars render normally throughout — only the editor area itself is replaced. */
+    fetched. Never shown for a brand-new song, which has no content to wait on. Only the
+    toolbars render normally throughout. */
 function SongViewSkeleton() {
   return (
-    <div className="song-wrapper song-view-skeleton">
+    <div className="song-view-skeleton">
       {[
         "Primera línea de ejemplo",
         "Segunda línea, un poco más larga",
@@ -931,41 +946,47 @@ function App({
       ) : (
         <>
           <div className="title-block">
-            <div className="title-row">
-              {forkSourceSlug && (
-                <IconButtonTooltip
-                  className="fork-source-tooltip"
-                  tooltip="Ver la canción de la que se derivó esta versión"
-                >
-                  <a
-                    className="fork-source-link"
-                    href={`/cancion/${forkSourceSlug}`}
-                    aria-label="Ver la canción de origen"
-                  >
-                    <ForkIcon />
-                  </a>
-                </IconButtonTooltip>
-              )}
-              <input
-                type="text"
-                className="title-input"
-                placeholder="Título"
-                value={state.title}
-                onChange={(event) => actions.setTitle(event.target.value)}
-                readOnly={!canEditOnThisDevice}
-                aria-label="Título"
-              />
-            </div>
-            {(state.title.trim() !== "" || state.author.trim() !== "") && (
-              <input
-                type="text"
-                className="author-input"
-                placeholder="Autor o intérprete"
-                value={state.author}
-                onChange={(event) => actions.setAuthor(event.target.value)}
-                readOnly={!canEditOnThisDevice}
-                aria-label="Autor o intérprete"
-              />
+            {!contentLoaded ? (
+              <TitleSkeleton />
+            ) : (
+              <>
+                <div className="title-row">
+                  {forkSourceSlug && (
+                    <IconButtonTooltip
+                      className="fork-source-tooltip"
+                      tooltip="Ver la canción de la que se derivó esta versión"
+                    >
+                      <a
+                        className="fork-source-link"
+                        href={`/cancion/${forkSourceSlug}`}
+                        aria-label="Ver la canción de origen"
+                      >
+                        <ForkIcon />
+                      </a>
+                    </IconButtonTooltip>
+                  )}
+                  <input
+                    type="text"
+                    className="title-input"
+                    placeholder="Título"
+                    value={state.title}
+                    onChange={(event) => actions.setTitle(event.target.value)}
+                    readOnly={!canEditOnThisDevice}
+                    aria-label="Título"
+                  />
+                </div>
+                {(state.title.trim() !== "" || state.author.trim() !== "") && (
+                  <input
+                    type="text"
+                    className="author-input"
+                    placeholder="Autor o intérprete"
+                    value={state.author}
+                    onChange={(event) => actions.setAuthor(event.target.value)}
+                    readOnly={!canEditOnThisDevice}
+                    aria-label="Autor o intérprete"
+                  />
+                )}
+              </>
             )}
             <TransposeWidget
               chordCells={displayedCells.chords}
