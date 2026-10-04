@@ -44,7 +44,19 @@ describe("columnForSlot", () => {
 });
 
 describe("section-label subtitles", () => {
-  it.each(["Introduccion", "INTRO", "Estribillo", "Estrofa", "Interludio", "  Introducción  "]) (
+  it.each([
+    "Introduccion",
+    "INTRO",
+    "Estribillo",
+    "Estrofa",
+    "Interludio",
+    "Coda",
+    "Remate",
+    "Cogollo",
+    "Primera",
+    "Segunda",
+    "  Introducción  ",
+  ])(
     "keeps %j whole instead of syllabifying it",
     (text) => {
       const [line] = buildSong(text);

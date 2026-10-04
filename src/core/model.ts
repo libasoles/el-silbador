@@ -2,7 +2,18 @@ import { nextId } from "./ids";
 import { hyphenateWord, splitIntoWords } from "./syllabify";
 import type { CellsByTrack, Line, Song, Syllable, SyllableUnit, TrackId, Word } from "./types";
 
-const subtitleKeywords = new Set(["introduccion", "intro", "estribillo", "estrofa", "interludio"]);
+const subtitleKeywords = new Set([
+  "introduccion",
+  "intro",
+  "estribillo",
+  "estrofa",
+  "interludio",
+  "coda",
+  "remate",
+  "cogollo",
+  "primera",
+  "segunda",
+]);
 
 /** Whether a raw lyric line is one of the section labels displayed as a subtitle.
  *
