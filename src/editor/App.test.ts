@@ -101,6 +101,13 @@ describe("BIS phrases", () => {
     expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*color:\s*var\(--muted\)[\s\S]*font-weight:\s*500/);
   });
 
+  it("never underlines the BIS word or lets it join a melisma, wherever it sits in the line", () => {
+    expect(lineView).toContain('join("") === "BIS"');
+    expect(lineView).toContain('(bis ? " syllable--bis" : "")');
+    expect(lineView).toContain("disabled={!showUnderline || readOnly || touchesBis}");
+    expect(styles).toMatch(/\.line \.syllable--bis::after\s*\{\s*content:\s*none/);
+  });
+
   it("handles Tab and Shift+Tab from anywhere in a lyric line instead of moving browser focus", () => {
     expect(songView).not.toContain("start.offset !== 0) return;");
     expect(songView).toContain("event.preventDefault();");

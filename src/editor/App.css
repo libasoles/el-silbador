@@ -1100,6 +1100,12 @@
   content: none;
 }
 
+/* BIS is a repeat mark rather than a sung word, so it never carries the syllable guide — not
+   even in read mode when a chord sits on it. */
+.line .syllable--bis::after {
+  content: none;
+}
+
 /* While dragging a chord, the syllable it would land on lights up as a whole: its text and
    underline share the accent, while the chip itself stays unchanged under the pointer. */
 .syllable--drop-target {

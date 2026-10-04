@@ -747,9 +747,10 @@ function LyricLineView({
   const wrapRowGap = isWrapped ? wrapLayout.beforeHeight + wrapLayout.afterHeight : 0;
 
   function renderWordContent(word: Line["words"][number]) {
+    const bis = isBisWord(word);
     return word.syllables.map((syllable, index) => {
       const previous = index > 0 ? word.syllables[index - 1] : null;
-      const merged = previous ? merges.has(mergeKey(previous.id, syllable.id)) : false;
+      const merged = previous && !bis ? merges.has(mergeKey(previous.id, syllable.id)) : false;
       return (
         <Fragment key={syllable.id}>
           {previous ? (
@@ -758,7 +759,7 @@ function LyricLineView({
               dropTarget={dropTargetSyllableIds.has(previous.id) && dropTargetSyllableIds.has(syllable.id)}
               fromText={previous.text}
               toText={syllable.text}
-              disabled={!showUnderline || readOnly}
+              disabled={!showUnderline || readOnly || bis}
               annotationGap={
                 syllableSlotId.get(previous.id) === syllableSlotId.get(syllable.id)
                   ? 0
@@ -772,6 +773,7 @@ function LyricLineView({
             className={
               "syllable" +
               (Array.from(syllable.text).length === 1 ? " syllable--single-letter" : "") +
+              (bis ? " syllable--bis" : "") +
               (mergedIds.has(syllable.id) ? " syllable--merged" : "") +
               (readOnly && hasChordAtSyllable(syllable.id) ? " syllable--has-chord" : "") +
               (dropTargetSyllableIds.has(syllable.id) ? " syllable--drop-target" : "")
@@ -830,12 +832,13 @@ function LyricLineView({
           const firstSyllable = word.syllables[0];
           const prevWord = wIndex > 0 ? line.words[wIndex - 1] : null;
           const prevSyllable = prevWord ? prevWord.syllables[prevWord.syllables.length - 1] : null;
+          const touchesBis = isBisWord(word) || (prevWord !== null && isBisWord(prevWord));
 
           return (
             <Fragment key={word.id}>
               {prevSyllable && firstSyllable ? (
                 <SyllableGapButton
-                  merged={merges.has(mergeKey(prevSyllable.id, firstSyllable.id))}
+                  merged={!touchesBis && merges.has(mergeKey(prevSyllable.id, firstSyllable.id))}
                   wordBoundary
                   dropTarget={
                     dropTargetSyllableIds.has(prevSyllable.id) && dropTargetSyllableIds.has(firstSyllable.id)
@@ -850,7 +853,7 @@ function LyricLineView({
                   }}
                   fromText={prevSyllable.text}
                   toText={firstSyllable.text}
-                  disabled={!showUnderline || readOnly}
+                  disabled={!showUnderline || readOnly || touchesBis}
                   annotationGap={
                     syllableSlotId.get(prevSyllable.id) === syllableSlotId.get(firstSyllable.id)
                       ? 0
@@ -928,6 +931,12 @@ function LyricLineView({
         : null}
     </div>
   );
+}
+
+/** `BIS` is a repeat mark, not a sung word, so it never takes the syllable underline or joins a
+ *  melisma — wherever it appears in the line. */
+function isBisWord(word: Line["words"][number]): boolean {
+  return word.syllables.map((syllable) => syllable.text).join("") === "BIS";
 }
 
 /** Renders section labels outside the syllable and annotation layout. Keeping this separate from
