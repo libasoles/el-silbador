@@ -8,10 +8,10 @@ reescribirlo. Ver [spec](../spec.md).
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Buscar sin acentos encuentra títulos y autores con acentos, y viceversa.
-- [ ] Las canciones con match en el título se listan antes que las que solo tienen match en el autor.
-- [ ] El resaltado marca el texto original (con acentos) aunque la búsqueda no los tenga.
-- [ ] Tests de la lógica de match y orden, y de lo que la biblioteca muestra al buscar.
+- [x] Buscar sin acentos encuentra títulos y autores con acentos, y viceversa.
+- [x] Las canciones con match en el título se listan antes que las que solo tienen match en el autor.
+- [x] El resaltado marca el texto original (con acentos) aunque la búsqueda no los tenga.
+- [x] Tests de la lógica de match y orden, y de lo que la biblioteca muestra al buscar.
