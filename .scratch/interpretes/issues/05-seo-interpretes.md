@@ -9,12 +9,12 @@ varios intérpretes). Se agrega JSON-LD `MusicComposition` con `name`, `composer
 
 **Blocked by:** 02 (El admin carga intérpretes y se ven en la canción)
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] La description menciona a los intérpretes cuando hay; sin intérpretes queda igual que hoy.
-- [ ] OpenGraph y Twitter usan la misma description.
-- [ ] El JSON-LD es válido (Rich Results Test / validator.schema.org) y omite lo que falta (sin autor →
+- [x] La description menciona a los intérpretes cuando hay; sin intérpretes queda igual que hoy.
+- [x] OpenGraph y Twitter usan la misma description.
+- [x] El JSON-LD es válido (Rich Results Test / validator.schema.org) y omite lo que falta (sin autor →
       sin `composer`; sin intérpretes → sin `recordedAs`).
-- [ ] El `<title>` no cambia.
-- [ ] Tests de la metadata y del JSON-LD generados.
+- [x] El `<title>` no cambia.
+- [x] Tests de la metadata y del JSON-LD generados.
