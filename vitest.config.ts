@@ -2,8 +2,26 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    environment: "node",
     globals: false,
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "unit",
+          environment: "node",
+          include: ["src/**/*.{test,spec}.ts"],
+        },
+      },
+      {
+        // Component tests render with React Testing Library; only they pay for jsdom.
+        extends: true,
+        test: {
+          name: "dom",
+          environment: "jsdom",
+          include: ["src/**/*.{test,spec}.tsx"],
+          setupFiles: ["src/test/setupDom.ts"],
+        },
+      },
+    ],
   },
 });
