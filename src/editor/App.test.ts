@@ -422,9 +422,9 @@ describe("melody notes tutorials", () => {
 describe("autosave", () => {
   it("serializes overlapping saves so a new song cannot be inserted twice", () => {
     expect(autosave).toContain("const saveInFlightRef = useRef(false)");
-    expect(autosave).toContain("queuedContentRef.current = contentToSave");
+    expect(autosave).toContain("queuedSnapshotRef.current = snapshot");
     expect(autosave).toContain(
-      "const saved = await saveSong({ id: idRef.current, content: contentToSave });",
+      "const saved = await saveSong({ id: idRef.current, content: snapshot.content });",
     );
   });
 
@@ -438,10 +438,11 @@ describe("autosave", () => {
 
   it("debounces document changes only", () => {
     // Saving updates state and can cause route callbacks or the database id to change. Neither is
-    // a document edit, so neither may schedule another save one second later.
+    // a document edit, so neither may schedule another save one second later. Performers are
+    // saved through the same flow (see useAutosave's doc comment), so they count as an edit.
     expect(autosave).toContain("onSlugResolvedRef.current(saved.id, saved.slug)");
     expect(autosave).toContain(
-      "}, [content, ready, authenticated, canPersist, retryTick, queryClient]);",
+      "}, [content, performers, ready, authenticated, canPersist, retryTick, queryClient]);",
     );
     expect(autosave).toContain("const switchedExistingSong =");
   });

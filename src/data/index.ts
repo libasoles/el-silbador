@@ -14,6 +14,7 @@ export {
   listMySongs,
   listPublicSongs,
   saveSong,
+  setSongPerformers,
   setSongPublic,
   setSongYoutubeUrl,
   toggleFavorite,
