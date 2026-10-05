@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { toLibrarySong, toPublicLibrarySong } from "./librarySongs";
-import { getHighlightParts } from "./searchHighlights";
 import type { SongSummary } from "../../data/types";
 
 function makeSong(overrides: Partial<SongSummary> = {}): SongSummary {
@@ -36,24 +35,5 @@ describe("toLibrarySong", () => {
     };
 
     expect(toPublicLibrarySong(publicSong)).toMatchObject({ author: "Mercedes Sosa" });
-  });
-});
-
-describe("getHighlightParts", () => {
-  it("marks every search word while preserving the original text", () => {
-    expect(getHighlightParts("Mercedes Sosa", "mercedes so")).toEqual([
-      { text: "Mercedes", matches: true },
-      { text: " ", matches: false },
-      { text: "So", matches: true },
-      { text: "sa", matches: false },
-    ]);
-  });
-
-  it("treats special characters in a query as text", () => {
-    expect(getHighlightParts("Canción (en vivo)", "(en")).toEqual([
-      { text: "Canción ", matches: false },
-      { text: "(en", matches: true },
-      { text: " vivo)", matches: false },
-    ]);
   });
 });

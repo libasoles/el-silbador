@@ -35,18 +35,13 @@ import {
   toPublicLibrarySong,
   type LibrarySong,
 } from "./librarySongs";
-import { getHighlightParts } from "./searchHighlights";
+import { getHighlightParts, searchSongs } from "./librarySearch";
 import { useIsMobile } from "../useIsMobile";
 import {
   readLibrarySkeletonCounts,
   saveLibrarySkeletonCount,
 } from "./librarySkeletonStorage";
 import "./Library.css";
-
-function matchesQuery(song: LibrarySong, query: string): boolean {
-  const haystack = `${song.title} ${song.author ?? ""}`.toLowerCase();
-  return haystack.includes(query);
-}
 
 interface SongRowProps {
   song: LibrarySong;
@@ -433,31 +428,17 @@ export function Library({
     showToast,
   ]);
 
-  const normalizedQuery = query.trim().toLowerCase();
   const mySongs = useMemo(
-    () =>
-      normalizedQuery
-        ? myLibrarySongs.filter((song) => matchesQuery(song, normalizedQuery))
-        : myLibrarySongs,
-    [myLibrarySongs, normalizedQuery],
+    () => searchSongs(myLibrarySongs, query),
+    [myLibrarySongs, query],
   );
   const favoriteSongs = useMemo(
-    () =>
-      normalizedQuery
-        ? favoriteLibrarySongs.filter((song) =>
-            matchesQuery(song, normalizedQuery),
-          )
-        : favoriteLibrarySongs,
-    [favoriteLibrarySongs, normalizedQuery],
+    () => searchSongs(favoriteLibrarySongs, query),
+    [favoriteLibrarySongs, query],
   );
   const publicSongs = useMemo(
-    () =>
-      normalizedQuery
-        ? publicLibrarySongs.filter((song) =>
-            matchesQuery(song, normalizedQuery),
-          )
-        : publicLibrarySongs,
-    [publicLibrarySongs, normalizedQuery],
+    () => searchSongs(publicLibrarySongs, query),
+    [publicLibrarySongs, query],
   );
 
   const handleOpen = (song: LibrarySong) => {
@@ -563,7 +544,7 @@ export function Library({
         {session && (
           <LibrarySection
             songs={mySongs}
-            query={normalizedQuery}
+            query={query}
             emptyLabel="Todavía no escribiste ninguna canción."
             favoriteIds={favoriteIds}
             favoritePendingSongId={favoritePendingSongId ?? undefined}
@@ -582,7 +563,7 @@ export function Library({
           <LibrarySection
             title="Favoritas"
             songs={favoriteSongs}
-            query={normalizedQuery}
+            query={query}
             emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
             favoriteIds={favoriteIds}
             favoritePendingSongId={favoritePendingSongId ?? undefined}
@@ -597,7 +578,7 @@ export function Library({
         <LibrarySection
           title={session ? "Públicas" : undefined}
           songs={publicSongs}
-          query={normalizedQuery}
+          query={query}
           emptyLabel="Todavía no hay canciones públicas para mostrar."
           emptyIcon={<NeutralIllustrationIcon />}
           favoriteIds={favoriteIds}
