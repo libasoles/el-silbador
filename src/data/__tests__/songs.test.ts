@@ -371,6 +371,28 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
       expect((await getSong(song.id)).performers).toEqual(["Jorge Cafrune"]);
     });
 
+    it("lists each song's performers in load order in the public, own and favorite lists", async () => {
+      await signInAs(adminUser);
+      const song = await saveSong({
+        content: makeContent({ title: "Zamba de amor en vuelo", author: "Jorge Milikota" }),
+      });
+      createdSongIds.push(song.id);
+      await setSongPerformers(song.id, ["Tamara Castro", "Soledad"]);
+      await setSongPublic(song.id, true);
+
+      const mine = (await listMySongs()).find((each) => each.id === song.id);
+      expect(mine?.performers).toEqual(["Tamara Castro", "Soledad"]);
+
+      await signInAs(userB);
+      await toggleFavorite(song.id);
+      const favorite = (await listFavorites()).find((each) => each.id === song.id);
+      expect(favorite?.performers).toEqual(["Tamara Castro", "Soledad"]);
+
+      await (await getSupabaseClient()).auth.signOut();
+      const listed = (await listPublicSongs()).find((each) => each.id === song.id);
+      expect(listed?.performers).toEqual(["Tamara Castro", "Soledad"]);
+    });
+
     it("does not copy performers into a fork", async () => {
       await signInAs(adminUser);
       const original = await saveSong({ content: makeContent({ title: "Original con intérpretes" }) });

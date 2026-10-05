@@ -1,11 +1,18 @@
 import type { LibrarySong } from "./librarySongs";
 
+type SearchField = (song: LibrarySong) => readonly string[];
+
+const byPerformers: SearchField = (song) => song.performers;
+
 /** The searchable texts of a song, most relevant first: a song ranks by the first field where any
- *  query word appears. Adding a less relevant field (e.g. performers) means appending to the end. */
-const SEARCH_FIELDS: readonly ((song: LibrarySong) => readonly string[])[] = [
+ *  query word appears. Adding a less relevant field means appending to the end. */
+const SEARCH_FIELDS: readonly SearchField[] = [
   (song) => [song.title],
   (song) => (song.author ? [song.author] : []),
+  byPerformers,
 ];
+
+const PERFORMERS_FIELD = SEARCH_FIELDS.indexOf(byPerformers);
 
 /** Lowercases and drops diacritics, so "Canción" and "cancion" compare equal. */
 function fold(text: string): string {
@@ -26,7 +33,7 @@ function rankSong(song: LibrarySong, terms: string[]): number | undefined {
 }
 
 /** Library rows that contain every word of the query, ignoring case and accents, ordered by
- *  relevance (title matches before author-only matches); ties keep their original order. */
+ *  relevance (title, then author, then performer matches); ties keep their original order. */
 export function searchSongs(songs: LibrarySong[], query: string): LibrarySong[] {
   const terms = getTerms(query);
   if (terms.length === 0) return songs;
@@ -36,6 +43,18 @@ export function searchSongs(songs: LibrarySong[], query: string): LibrarySong[] 
     .filter((entry): entry is { song: LibrarySong; rank: number } => entry.rank !== undefined)
     .sort((first, second) => first.rank - second.rank)
     .map((entry) => entry.song);
+}
+
+/** The performers containing some query word, in load order, when the song's best match is by
+ *  performer; empty when it matches by title or author, or doesn't match at all. */
+export function getMatchingPerformers(song: LibrarySong, query: string): string[] {
+  const terms = getTerms(query);
+  if (terms.length === 0 || rankSong(song, terms) !== PERFORMERS_FIELD) return [];
+
+  return song.performers.filter((performer) => {
+    const folded = fold(performer);
+    return terms.some((term) => folded.includes(term));
+  });
 }
 
 export interface HighlightPart {

@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { LibrarySong } from "./librarySongs";
-import { getHighlightParts, searchSongs } from "./librarySearch";
+import { getHighlightParts, getMatchingPerformers, searchSongs } from "./librarySearch";
 
-function song(id: string, title: string, author: string | null = null): LibrarySong {
-  return { id, slug: id, title, author, isPublic: true };
+function song(
+  id: string,
+  title: string,
+  author: string | null = null,
+  performers: string[] = [],
+): LibrarySong {
+  return { id, slug: id, title, author, performers, isPublic: true };
 }
 
 function titles(songs: LibrarySong[]): string[] {
@@ -54,10 +59,64 @@ describe("searchSongs", () => {
     expect(titles(searchSongs(songs, "atahualpa luna"))).toEqual(["Luna tucumana"]);
   });
 
+  it("finds a song by its performer, with or without accents", () => {
+    const songs = [
+      song("1", "Zamba de amor en vuelo", "Jorge Milikota", ["Tamara Castro"]),
+      song("2", "Alfonsina y el mar", "Ariel Ramírez", ["Mercedes Sosa"]),
+      song("3", "Luna cautiva", "Chango Rodríguez", ["Los Fronterizos"]),
+    ];
+
+    expect(titles(searchSongs(songs, "tamara"))).toEqual(["Zamba de amor en vuelo"]);
+    expect(titles(searchSongs(songs, "támara castro"))).toEqual(["Zamba de amor en vuelo"]);
+  });
+
+  it("lists title matches, then author matches, then performer-only matches", () => {
+    const songs = [
+      song("1", "Gracias a la vida", "Violeta Parra", ["Mercedes Sosa"]),
+      song("2", "Zamba de amor en vuelo", "Jorge Milikota", ["Tamara Castro", "Soledad"]),
+      song("3", "Canción para Soledad", "Anónimo"),
+      song("4", "Mi tierra", "Soledad Pastorutti"),
+    ];
+
+    expect(titles(searchSongs(songs, "soledad"))).toEqual([
+      "Canción para Soledad",
+      "Mi tierra",
+      "Zamba de amor en vuelo",
+    ]);
+  });
+
   it("returns every song in its original order when the query is blank", () => {
     const songs = [song("1", "B"), song("2", "A")];
 
     expect(titles(searchSongs(songs, "   "))).toEqual(["B", "A"]);
+  });
+});
+
+describe("getMatchingPerformers", () => {
+  it("lists only the performers that match when the song is found by performer", () => {
+    const zamba = song("1", "Zamba de amor en vuelo", "Jorge Milikota", [
+      "Tamara Castro",
+      "Soledad",
+      "Los Nocheros",
+    ]);
+
+    expect(getMatchingPerformers(zamba, "tamara")).toEqual(["Tamara Castro"]);
+    expect(getMatchingPerformers(zamba, "tamara noch")).toEqual(["Tamara Castro", "Los Nocheros"]);
+    expect(getMatchingPerformers(zamba, "SOLEDÁD")).toEqual(["Soledad"]);
+  });
+
+  it("lists no performers when the song is found by its title or author", () => {
+    const zamba = song("1", "Zamba de amor en vuelo", "Jorge Milikota", ["Tamara Castro"]);
+
+    expect(getMatchingPerformers(zamba, "zamba tamara")).toEqual([]);
+    expect(getMatchingPerformers(zamba, "milikota castro")).toEqual([]);
+  });
+
+  it("lists no performers when the song does not match or the query is blank", () => {
+    const zamba = song("1", "Zamba de amor en vuelo", "Jorge Milikota", ["Tamara Castro"]);
+
+    expect(getMatchingPerformers(zamba, "sosa")).toEqual([]);
+    expect(getMatchingPerformers(zamba, "  ")).toEqual([]);
   });
 });
 

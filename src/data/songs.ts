@@ -35,6 +35,7 @@ interface SongRow {
   forked_from: string | null;
   created_at: string;
   updated_at: string;
+  song_performers?: PerformerRow[];
 }
 
 interface PerformerRow {
@@ -42,21 +43,17 @@ interface PerformerRow {
   artists: { name: string } | null;
 }
 
-interface SongDetailRow extends SongRow {
-  song_performers?: PerformerRow[];
-}
-
 interface FavoriteRow {
   songs: SongRow | null;
 }
 
 // The author belongs to the song content rather than the owner profile, so summaries include the
-// content needed to show the work's own author or performer in the index.
+// content needed to show the work's own author in the index. Performers live in their own tables
+// (see supabase/migrations/0011_artists_and_performers.sql) rather than in `content`, so forks and
+// the PDF never carry them; every list embeds them so the library can search them without a
+// query per song.
 const SUMMARY_COLUMNS =
-  "id, slug, title, owner_id, content, is_public, is_listed, youtube_url, forked_from, created_at, updated_at";
-// Performers live in their own tables (see supabase/migrations/0011_artists_and_performers.sql)
-// rather than in `content`, so forks and the PDF never carry them; the song page embeds them here.
-const DETAIL_COLUMNS = `${SUMMARY_COLUMNS}, song_performers(position, artists(name))`;
+  "id, slug, title, owner_id, content, is_public, is_listed, youtube_url, forked_from, created_at, updated_at, song_performers(position, artists(name))";
 
 export function serializeContent(content: SongContent): StoredSongContent {
   return {
@@ -121,6 +118,7 @@ function toSummary(row: SongRow): SongSummary {
     forkedFrom: row.forked_from,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    performers: toPerformers(row.song_performers),
   };
 }
 
@@ -130,11 +128,10 @@ function toPerformers(rows: PerformerRow[] | undefined): string[] {
     .flatMap((row) => (row.artists ? [row.artists.name] : []));
 }
 
-function toDetail(row: SongDetailRow): SongDetail {
+function toDetail(row: SongRow): SongDetail {
   return {
     ...toSummary(row),
     content: deserializeContent(row.content),
-    performers: toPerformers(row.song_performers),
   };
 }
 
@@ -157,7 +154,7 @@ export async function listMySongs(): Promise<SongSummary[]> {
     .order("updated_at", { ascending: false });
   if (error) throw error;
 
-  return ((data ?? []) as SongRow[]).map(toSummary);
+  return ((data ?? []) as unknown as SongRow[]).map(toSummary);
 }
 
 export async function listPublicSongs(): Promise<SongSummary[]> {
@@ -171,7 +168,7 @@ export async function listPublicSongs(): Promise<SongSummary[]> {
     .order("updated_at", { ascending: false });
   if (error) throw error;
 
-  return ((data ?? []) as SongRow[]).map(toSummary);
+  return ((data ?? []) as unknown as SongRow[]).map(toSummary);
 }
 
 export async function listFavorites(): Promise<SongSummary[]> {
@@ -193,20 +190,20 @@ export async function listFavorites(): Promise<SongSummary[]> {
 export async function getSong(songId: string): Promise<SongDetail> {
   const supabase = await getSupabaseClient();
 
-  const { data, error } = await supabase.from("songs").select(DETAIL_COLUMNS).eq("id", songId).single();
+  const { data, error } = await supabase.from("songs").select(SUMMARY_COLUMNS).eq("id", songId).single();
   if (error) throw error;
 
-  return toDetail(data as unknown as SongDetailRow);
+  return toDetail(data as unknown as SongRow);
 }
 
 /** Looks a song up by its URL-facing slug (see /cancion/:slug in Root.tsx) rather than its id. */
 export async function getSongBySlug(slug: string): Promise<SongDetail> {
   const supabase = await getSupabaseClient();
 
-  const { data, error } = await supabase.from("songs").select(DETAIL_COLUMNS).eq("slug", slug).single();
+  const { data, error } = await supabase.from("songs").select(SUMMARY_COLUMNS).eq("slug", slug).single();
   if (error) throw error;
 
-  return toDetail(data as unknown as SongDetailRow);
+  return toDetail(data as unknown as SongRow);
 }
 
 export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
@@ -262,11 +259,11 @@ export async function forkSong(songId: string): Promise<SongDetail> {
 
   const { data: sourceData, error: sourceError } = await supabase
     .from("songs")
-    .select(DETAIL_COLUMNS)
+    .select(SUMMARY_COLUMNS)
     .eq("id", songId)
     .single();
   if (sourceError) throw sourceError;
-  const source = sourceData as unknown as SongDetailRow;
+  const source = sourceData as unknown as SongRow;
 
   const { data, error } = await supabase
     .from("songs")
@@ -278,11 +275,11 @@ export async function forkSong(songId: string): Promise<SongDetail> {
       forked_from: songId,
       is_public: false,
     })
-    .select(DETAIL_COLUMNS)
+    .select(SUMMARY_COLUMNS)
     .single();
   if (error) throw error;
 
-  return toDetail(data as unknown as SongDetailRow);
+  return toDetail(data as unknown as SongRow);
 }
 
 export async function toggleFavorite(songId: string): Promise<void> {
@@ -321,7 +318,7 @@ export async function setSongPublic(songId: string, isPublic: boolean): Promise<
     .single();
   if (error) throw error;
 
-  const summary = toSummary(data as SongRow);
+  const summary = toSummary(data as unknown as SongRow);
   return summary;
 }
 
@@ -336,7 +333,7 @@ export async function setSongYoutubeUrl(songId: string, youtubeUrl: string | nul
     .single();
   if (error) throw error;
 
-  return toSummary(data as SongRow);
+  return toSummary(data as unknown as SongRow);
 }
 
 /**
