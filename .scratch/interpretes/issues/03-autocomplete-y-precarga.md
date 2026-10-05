@@ -9,13 +9,13 @@ Ver [spec](../spec.md).
 
 **Blocked by:** 02 (El admin carga intérpretes y se ven en la canción)
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Escribir "tama" sugiere "Tamara Castro"; "chalcha" sugiere "Los Chalchaleros".
-- [ ] Máximo 8 sugerencias; no aparecen las que ya están como chips.
-- [ ] Flechas arriba/abajo cambian la selección; Enter agrega la sugerencia seleccionada; sin selección,
+- [x] Escribir "tama" sugiere "Tamara Castro"; "chalcha" sugiere "Los Chalchaleros".
+- [x] Máximo 8 sugerencias; no aparecen las que ya están como chips.
+- [x] Flechas arriba/abajo cambian la selección; Enter agrega la sugerencia seleccionada; sin selección,
       Enter agrega el texto escrito.
-- [ ] La migración de precarga se puede correr dos veces sin duplicar ni fallar.
-- [ ] Nombres de la precarga escritos como los usan los propios artistas (mayúsculas, acentos).
-- [ ] Tests de componente del autocomplete.
+- [x] La migración de precarga se puede correr dos veces sin duplicar ni fallar.
+- [x] Nombres de la precarga escritos como los usan los propios artistas (mayúsculas, acentos).
+- [x] Tests de componente del autocomplete.
