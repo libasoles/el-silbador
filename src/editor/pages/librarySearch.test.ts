@@ -105,11 +105,18 @@ describe("getMatchingPerformers", () => {
     expect(getMatchingPerformers(zamba, "SOLEDÁD")).toEqual(["Soledad"]);
   });
 
-  it("lists no performers when the song is found by its title or author", () => {
+  it("lists no performers when the title or author covers every query word", () => {
     const zamba = song("1", "Zamba de amor en vuelo", "Jorge Milikota", ["Tamara Castro"]);
 
-    expect(getMatchingPerformers(zamba, "zamba tamara")).toEqual([]);
-    expect(getMatchingPerformers(zamba, "milikota castro")).toEqual([]);
+    expect(getMatchingPerformers(zamba, "zamba")).toEqual([]);
+    expect(getMatchingPerformers(zamba, "milikota amor")).toEqual([]);
+  });
+
+  it("lists the performers matching the words that the title and author leave out", () => {
+    const zamba = song("1", "Zamba de amor en vuelo", "Jorge Milikota", ["Tamara Castro", "Soledad"]);
+
+    expect(getMatchingPerformers(zamba, "zamba tamara")).toEqual(["Tamara Castro"]);
+    expect(getMatchingPerformers(zamba, "milikota castro")).toEqual(["Tamara Castro"]);
   });
 
   it("lists no performers when the song does not match or the query is blank", () => {
