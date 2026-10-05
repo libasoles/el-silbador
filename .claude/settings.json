@@ -1,5 +1,16 @@
 {
   "permissions": {
-    "allow": ["Bash(agy *)"]
+    "allow": ["Bash(agy *)"],
+    "deny": [
+      "Bash(supabase db reset *)",
+      "Bash(npx supabase db reset *)",
+      "Bash(supabase stop --no-backup *)",
+      "Bash(npx supabase stop --no-backup *)",
+      "Bash(supabase db push *)",
+      "Bash(npx supabase db push *)",
+      "Bash(docker volume rm *)",
+      "Bash(docker compose down * --volumes*)",
+      "Bash(docker compose down * -v*)"
+    ]
   }
 }

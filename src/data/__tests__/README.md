@@ -14,10 +14,10 @@ Supabase. No usa el proyecto remoto ni sus claves.
 npm run test:integration
 ```
 
-El comando inicia Supabase local si fuera necesario, ejecuta `supabase db reset` contra la base
-**local** (aplicando todas las migraciones) y usa las credenciales que la CLI acaba de generar.
-Después ejecuta únicamente esta suite. Puede dejar la pila encendida para la siguiente ejecución;
-detenela con `npm run supabase:stop`.
+El comando copia la configuración de Supabase a un directorio temporal, inicia una pila con un
+proyecto y puertos propios, y ejecuta allí `supabase db reset`. Después ejecuta únicamente esta
+suite y elimina esa pila temporal. La base local de desarrollo (la que usa `npm run dev`) no se
+toca.
 
 `npm test` sigue ejecutando los tests unitarios sin Docker y deja esta suite saltada. Esto evita
 que tests normales puedan tocar por error un proyecto alojado.
