@@ -19,4 +19,5 @@ export {
   setSongYoutubeUrl,
   toggleFavorite,
 } from "./songs";
+export { listArtistNames } from "./artists";
 export { isCurrentUserAdmin, setUsername } from "./profiles";
