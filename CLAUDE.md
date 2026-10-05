@@ -20,6 +20,10 @@ Allowed on mobile (do not gate these):
 
 CSS `display: none` alone does not enforce these rules — it hides the control visually but leaves the underlying handler mounted and reachable. Gate at the render/prop level with `useIsMobile`, not just with CSS.
 
+## Testing
+
+`*.test.ts` run in Node; `*.test.tsx` run in jsdom with React Testing Library (setup in `src/test/setupDom.ts`). Prefer rendering a component and asserting on what the user sees over reading its source as text. To test mobile gating, call `mockMatchMedia(true)` from `src/test/matchMedia.ts` before rendering — see `src/app/articulos/ArticleChordEditor.test.tsx`.
+
 ## Git workflow
 
 Always merge finished work into `main` locally (in the main checkout), without being asked, then delete the task branch and its worktree. Never push to `origin`. See AGENTS.md.
