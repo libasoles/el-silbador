@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { trackEvent } from "../analytics";
 import { useAuthRequired } from "../authRequiredContext";
@@ -35,13 +35,30 @@ import {
   toPublicLibrarySong,
   type LibrarySong,
 } from "./librarySongs";
-import { getHighlightParts, searchSongs } from "./librarySearch";
+import {
+  getHighlightParts,
+  getMatchingPerformers,
+  searchSongs,
+} from "./librarySearch";
 import { useIsMobile } from "../useIsMobile";
 import {
   readLibrarySkeletonCounts,
   saveLibrarySkeletonCount,
 } from "./librarySkeletonStorage";
 import "./Library.css";
+
+/** Shows `text` with every word of the active search query marked. */
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  return getHighlightParts(text, query).map((part, index) =>
+    part.matches ? (
+      <mark className="library-row__match" key={index}>
+        {part.text}
+      </mark>
+    ) : (
+      part.text
+    ),
+  );
+}
 
 interface SongRowProps {
   song: LibrarySong;
@@ -70,23 +87,15 @@ function SongRow({
   onToggleFavorite,
   onDelete,
 }: SongRowProps) {
-  const titleParts = getHighlightParts(song.title, query);
-  const authorParts = getHighlightParts(song.author ?? "sin autor", query);
+  // Only a song found by its performers names them, so the row shows why it matched.
+  const matchingPerformers = getMatchingPerformers(song, query);
 
   return (
     <li className={fadeIn ? "library-row library-row--fade-in" : "library-row"}>
       <button type="button" className="library-row__open" onClick={onOpen}>
         <span className="library-row__title">
           <span className="library-row__title-text">
-            {titleParts.map((part, index) =>
-              part.matches ? (
-                <mark className="library-row__match" key={index}>
-                  {part.text}
-                </mark>
-              ) : (
-                part.text
-              ),
-            )}
+            <HighlightedText text={song.title} query={query} />
           </span>
           {showPrivacy && !song.isPublic && (
             <IconButtonTooltip
@@ -107,16 +116,19 @@ function SongRow({
               : "library-row__author library-row__author--empty"
           }
         >
-          {authorParts.map((part, index) =>
-            part.matches ? (
-              <mark className="library-row__match" key={index}>
-                {part.text}
-              </mark>
-            ) : (
-              part.text
-            ),
-          )}
+          <HighlightedText text={song.author ?? "sin autor"} query={query} />
         </span>
+        {matchingPerformers.length > 0 && (
+          <span className="library-row__performers">
+            Interpretada por:{" "}
+            {matchingPerformers.map((performer, index) => (
+              <Fragment key={performer}>
+                {index > 0 && ", "}
+                <HighlightedText text={performer} query={query} />
+              </Fragment>
+            ))}
+          </span>
+        )}
       </button>
       {showFavorite && (
         <IconButtonTooltip

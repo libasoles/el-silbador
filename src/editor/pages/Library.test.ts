@@ -15,6 +15,7 @@ function makeSong(overrides: Partial<SongSummary> = {}): SongSummary {
     forkedFrom: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
+    performers: [],
     ...overrides,
   };
 }
@@ -35,5 +36,12 @@ describe("toLibrarySong", () => {
     };
 
     expect(toPublicLibrarySong(publicSong)).toMatchObject({ author: "Mercedes Sosa" });
+  });
+
+  it("carries the performers in load order so the library can search them", () => {
+    const zamba = makeSong({ author: "Jorge Milikota", performers: ["Tamara Castro", "Soledad"] });
+
+    expect(toLibrarySong(zamba).performers).toEqual(["Tamara Castro", "Soledad"]);
+    expect(toPublicLibrarySong(zamba).performers).toEqual(["Tamara Castro", "Soledad"]);
   });
 });
