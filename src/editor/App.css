@@ -459,7 +459,8 @@
   .app-close,
   .autosave-status,
   .transpose-widget,
-  .youtube-embed {
+  .youtube-embed,
+  .song-performers {
     display: none;
   }
 
@@ -544,6 +545,15 @@
   .youtube-embed {
     padding-top: 56.25%;
   }
+}
+
+/* Performers aren't song content: they sit at its foot, below the video, and stay off the PDF. */
+.song-performers {
+  max-width: 40rem;
+  margin: 1.5rem 0 0;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .song {
