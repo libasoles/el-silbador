@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getSongBySlug, listPublicSongs } from "../../../data/songs";
 import type { SongDetail } from "../../../data/types";
 import { SongPageClient } from "./SongPageClient";
+import { songDescription, songJsonLd } from "./songSeo";
 
 // Public songs are read here with the anon key, so RLS (see
 // supabase/migrations/0004_anon_public_songs.sql) already limits this to songs that are public —
@@ -12,6 +13,10 @@ async function fetchPublicSong(slug: string): Promise<SongDetail | null> {
   } catch {
     return null;
   }
+}
+
+function displayTitle(song: SongDetail): string {
+  return song.title || "Canción sin título";
 }
 
 export async function generateStaticParams() {
@@ -34,15 +39,13 @@ export async function generateMetadata({
   const song = await fetchPublicSong(slug);
   if (!song) return { title: "Canción" };
 
-  const songTitle = song.title || "Canción sin título";
+  const songTitle = displayTitle(song);
   const artist = song.author.trim();
   // Use an absolute title so the root layout's brand template does not displace the artist.
   // The resulting title directly answers searches such as "letra de …" and "acordes de … para
   // guitarra", while still retaining the song's primary identifying information first.
   const title = `${artist ? `${songTitle} - ${artist}` : songTitle} | Letra y Acordes para Guitarra`;
-  const description = artist
-    ? `Letra y acordes para guitarra de ${songTitle}, de ${artist}. Consultá la canción en El Silbador.`
-    : `Letra y acordes para guitarra de ${songTitle}. Consultá la canción en El Silbador.`;
+  const description = songDescription({ title: songTitle, author: artist, performers: song.performers });
   const url = `/cancion/${slug}`;
 
   return {
@@ -61,5 +64,20 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const song = await fetchPublicSong(slug);
 
-  return <SongPageClient slug={slug} initialSong={song} />;
+  return (
+    <>
+      {song && (
+        <script
+          type="application/ld+json"
+          // Escaping `<` keeps a title or name like "</script>" from closing the tag early.
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(
+              songJsonLd({ title: displayTitle(song), author: song.author, performers: song.performers }),
+            ).replace(/</g, "\\u003c"),
+          }}
+        />
+      )}
+      <SongPageClient slug={slug} initialSong={song} />
+    </>
+  );
 }
