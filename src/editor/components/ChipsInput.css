@@ -76,3 +76,30 @@
 .chips-input__input:focus {
   outline: none;
 }
+
+.chips-input__suggestions {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  z-index: 10;
+  min-width: 16rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.3rem;
+  background: var(--bg);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+}
+
+.chips-input__suggestion {
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.2rem;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.chips-input__suggestion[aria-selected="true"] {
+  background: var(--border);
+}

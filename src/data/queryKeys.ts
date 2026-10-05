@@ -17,3 +17,7 @@ export const songQueryKeys = {
 export const profileQueryKeys = {
   role: (userId: string) => ["profiles", "role", userId] as const,
 };
+
+export const artistQueryKeys = {
+  names: () => ["artists", "names"] as const,
+};
