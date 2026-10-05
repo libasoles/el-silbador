@@ -41,6 +41,14 @@ CSS `display: none` alone does not enforce these rules — it hides the control 
 
 `*.test.ts` run in Node; `*.test.tsx` run in jsdom with React Testing Library (setup in `src/test/setupDom.ts`). Prefer rendering a component and asserting on what the user sees over reading its source as text. To test mobile gating, call `mockMatchMedia(true)` from `src/test/matchMedia.ts` before rendering — see `src/app/articulos/ArticleChordEditor.test.tsx`.
 
+## Supabase data safety
+
+The local Supabase stack in this checkout is shared development data, not disposable test data.
+Use `npm run test:integration` for migration and RLS tests; it provisions and removes an isolated
+temporary stack. Never run `supabase db reset`, `supabase stop --no-backup`, Docker volume removal,
+or `supabase db push --linked` against the shared stack. Any remote Supabase command requires the
+user's explicit approval of the exact target project and operation.
+
 ## Versioning
 
 Increment the version in `package.json` (and its matching root entry in `package-lock.json`) on
