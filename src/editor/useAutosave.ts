@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { saveSong, setSongPerformers } from "../data";
-import { songQueryKeys } from "../data/queryKeys";
+import { artistQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
 import { sameArtistNames } from "../core/artistNames";
 import { revalidatePublicSongs } from "../app/actions";
@@ -194,6 +194,8 @@ export function useAutosave(
         if (!sameArtistNames(snapshot.performers, storedPerformersRef.current)) {
           await setSongPerformers(saved.id, snapshot.performers);
           storedPerformersRef.current = snapshot.performers;
+          // The RPC creates the artists it didn't know, which the performers input suggests.
+          queryClient.invalidateQueries({ queryKey: artistQueryKeys.names() });
         }
         if (!mountedRef.current) return;
         // Fires on every save, not just the first: a title edit regenerates an existing song's

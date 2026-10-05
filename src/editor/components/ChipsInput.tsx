@@ -1,11 +1,12 @@
 import {
   useId,
+  useMemo,
   useState,
   type ClipboardEvent,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { artistNameKey } from "../../core/artistNames";
+import { artistNameKey, suggestArtistNames } from "../../core/artistNames";
 import { RemoveIcon } from "./icons";
 import "./ChipsInput.css";
 
@@ -17,15 +18,12 @@ interface ChipsInputProps {
   values: string[];
   onChange: (values: string[]) => void;
   placeholder?: string;
-  /** The text being typed, when the parent needs to read it (e.g. to look suggestions up). Left
-   *  out, the component keeps it itself. */
-  inputValue?: string;
-  onInputValueChange?: (value: string) => void;
-  /** Runs before the component's own key handling. Calling `event.preventDefault()` skips it, so
-   *  a suggestions list can take over Enter and the arrow keys. */
-  onInputKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
-  /** Rendered right after the input, inside the field (e.g. a suggestions list). */
-  children?: ReactNode;
+  /** Every name worth suggesting. While typing, the ones containing the text (ignoring case and
+   *  accents) and not yet added are offered below the input, up to 8. Left out, the input is a
+   *  plain text field with no suggestions. */
+  suggestions?: readonly string[];
+  /** Accessible name of the suggestions list. */
+  suggestionsLabel?: string;
 }
 
 /** Splits a typed or pasted list on commas and line breaks. */
@@ -38,6 +36,10 @@ function splitNames(text: string): string[] {
  * name, pasting "A, B" adds both, Backspace on an empty field removes the last chip, and each chip
  * has its own ✕. Blank names and names already present (ignoring case and accents) are skipped.
  * The order is the order the names were added.
+ *
+ * With `suggestions`, the input is a combobox (WAI-ARIA pattern; Radix has no combobox primitive):
+ * the arrows move through the matching names, Enter adds the selected one (or the typed text when
+ * none is selected), a click adds one, and Escape closes the list keeping the text.
  */
 export function ChipsInput({
   label,
@@ -45,18 +47,27 @@ export function ChipsInput({
   values,
   onChange,
   placeholder,
-  inputValue,
-  onInputValueChange,
-  onInputKeyDown,
-  children,
+  suggestions,
+  suggestionsLabel = "Sugerencias",
 }: ChipsInputProps) {
   const inputId = useId();
-  const [ownInputValue, setOwnInputValue] = useState("");
-  const text = inputValue ?? ownInputValue;
+  const listboxId = useId();
+  const [text, setTextState] = useState("");
+  const [open, setOpen] = useState(false);
+  // -1 means no suggestion is selected, so Enter adds the typed text.
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  const matches = useMemo(
+    () => (suggestions ? suggestArtistNames(suggestions, text, values) : []),
+    [suggestions, text, values],
+  );
+  const showSuggestions = open && matches.length > 0;
+  const optionId = (index: number) => `${listboxId}-${index}`;
 
   const setText = (value: string) => {
-    if (inputValue === undefined) setOwnInputValue(value);
-    onInputValueChange?.(value);
+    setTextState(value);
+    setActiveIndex(-1);
+    setOpen(value.trim() !== "");
   };
 
   /** Adds every non-blank, not-yet-present name and reports whether anything was added. */
@@ -78,10 +89,32 @@ export function ChipsInput({
     setText("");
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    onInputKeyDown?.(event);
-    if (event.defaultPrevented) return;
+  const chooseSuggestion = (name: string) => {
+    addNames([name]);
+    setText("");
+  };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (showSuggestions && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+      event.preventDefault();
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      setActiveIndex((index) => {
+        if (index === -1) return step === 1 ? 0 : matches.length - 1;
+        return (index + step + matches.length) % matches.length;
+      });
+      return;
+    }
+    if (showSuggestions && event.key === "Escape") {
+      event.preventDefault();
+      setOpen(false);
+      setActiveIndex(-1);
+      return;
+    }
+    if (event.key === "Enter" && showSuggestions && activeIndex >= 0) {
+      event.preventDefault();
+      chooseSuggestion(matches[activeIndex]);
+      return;
+    }
     if (event.key === "Enter" || event.key === ",") {
       event.preventDefault();
       commitText();
@@ -145,15 +178,46 @@ export function ChipsInput({
           type="text"
           className="chips-input__input"
           aria-label={label}
+          {...(suggestions
+            ? {
+                role: "combobox",
+                "aria-autocomplete": "list" as const,
+                "aria-expanded": showSuggestions,
+                "aria-controls": listboxId,
+                "aria-activedescendant":
+                  showSuggestions && activeIndex >= 0 ? optionId(activeIndex) : undefined,
+              }
+            : {})}
           placeholder={placeholder}
           value={text}
           autoComplete="off"
           onChange={(event) => handleChange(event.target.value)}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          onBlur={commitText}
+          onBlur={() => {
+            commitText();
+            setOpen(false);
+          }}
         />
-        {children}
+        {showSuggestions ? (
+          <ul id={listboxId} role="listbox" aria-label={suggestionsLabel} className="chips-input__suggestions">
+            {matches.map((name, index) => (
+              <li
+                key={artistNameKey(name)}
+                id={optionId(index)}
+                role="option"
+                aria-selected={index === activeIndex}
+                className="chips-input__suggestion"
+                // Keeps the focus in the input, so its blur doesn't add the half-typed text first.
+                onMouseDown={(event) => event.preventDefault()}
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => chooseSuggestion(name)}
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </div>
   );

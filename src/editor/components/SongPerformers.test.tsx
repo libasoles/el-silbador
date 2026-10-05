@@ -1,8 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mockMatchMedia } from "../../test/matchMedia";
 import { SongPerformers } from "./SongPerformers";
+
+const data = vi.hoisted(() => ({ listArtistNames: vi.fn() }));
+vi.mock("../../data", () => data);
 
 const PERFORMERS = ["Tamara Castro", "Soledad"];
 
@@ -18,20 +22,46 @@ function renderFooter({
   onChange?: (performers: string[]) => void;
 }) {
   render(
-    <SongPerformers
-      performers={performers}
-      viewerIsAdmin={viewerIsAdmin}
-      viewerOwnsSong={viewerOwnsSong}
-      onChange={onChange}
-    />,
+    <QueryClientProvider client={new QueryClient()}>
+      <SongPerformers
+        performers={performers}
+        viewerIsAdmin={viewerIsAdmin}
+        viewerOwnsSong={viewerOwnsSong}
+        onChange={onChange}
+      />
+    </QueryClientProvider>,
   );
 }
 
-const performersInput = () => screen.queryByRole("textbox", { name: "Intérpretes" });
+const performersInput = () => screen.queryByRole("combobox", { name: "Intérpretes" });
 
 describe("SongPerformers", () => {
+  beforeEach(() => {
+    data.listArtistNames.mockResolvedValue(["Los Chalchaleros", "Soledad", "Tamara Castro"]);
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  it("suggests known performers to that admin as they type", async () => {
+    mockMatchMedia(false);
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    renderFooter({ performers: ["Soledad"], viewerIsAdmin: true, viewerOwnsSong: true, onChange });
+
+    await user.type(performersInput()!, "chalcha");
+    await user.click(await screen.findByRole("option", { name: "Los Chalchaleros" }));
+
+    expect(onChange).toHaveBeenLastCalledWith(["Soledad", "Los Chalchaleros"]);
+  });
+
+  it("doesn't fetch the performers list for readers", () => {
+    mockMatchMedia(false);
+    renderFooter({ viewerIsAdmin: false, viewerOwnsSong: false });
+
+    expect(data.listArtistNames).not.toHaveBeenCalled();
   });
 
   it("lets an admin who owns the song edit its performers on desktop", async () => {
