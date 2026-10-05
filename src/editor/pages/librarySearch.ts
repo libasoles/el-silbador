@@ -45,15 +45,23 @@ export function searchSongs(songs: LibrarySong[], query: string): LibrarySong[] 
     .map((entry) => entry.song);
 }
 
-/** The performers containing some query word, in load order, when the song's best match is by
- *  performer; empty when it matches by title or author, or doesn't match at all. */
+/** The performers, in load order, containing a query word that no more relevant field (title,
+ *  author) contains: the ones the song was found by. Empty when the title and author cover every
+ *  word, or when the song doesn't match at all. */
 export function getMatchingPerformers(song: LibrarySong, query: string): string[] {
   const terms = getTerms(query);
-  if (terms.length === 0 || rankSong(song, terms) !== PERFORMERS_FIELD) return [];
+  if (terms.length === 0 || rankSong(song, terms) === undefined) return [];
+
+  const moreRelevantTexts = SEARCH_FIELDS.slice(0, PERFORMERS_FIELD).flatMap((getTexts) =>
+    getTexts(song).map(fold),
+  );
+  const performerTerms = terms.filter(
+    (term) => !moreRelevantTexts.some((text) => text.includes(term)),
+  );
 
   return song.performers.filter((performer) => {
     const folded = fold(performer);
-    return terms.some((term) => folded.includes(term));
+    return performerTerms.some((term) => folded.includes(term));
   });
 }
 
