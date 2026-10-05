@@ -13,17 +13,17 @@ importar mayúsculas ni acentos.
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Un admin dueño de la canción, en desktop, puede agregar y quitar intérpretes con el input de chips.
-- [ ] El input no se renderiza para no-admins, para admins en canciones ajenas, ni en mobile (gate con
+- [x] Un admin dueño de la canción, en desktop, puede agregar y quitar intérpretes con el input de chips.
+- [x] El input no se renderiza para no-admins, para admins en canciones ajenas, ni en mobile (gate con
       `useIsMobile`, no solo CSS). En mobile el admin ve solo la leyenda.
-- [ ] Los cambios se persisten con el autosave; la RPC solo se llama si los intérpretes cambiaron. En
+- [x] Los cambios se persisten con el autosave; la RPC solo se llama si los intérpretes cambiaron. En
       una canción nueva, el primer autosave crea la canción y luego sus intérpretes.
-- [ ] Si la RPC falla, el autosave queda en error y el reintento vuelve a guardar todo.
-- [ ] "Los Chalchaleros" y "los chalchaléros" terminan siendo el mismo registro de `artists`.
-- [ ] Un no-admin no puede escribir en `artists` ni en `song_performers`, ni llamar a la RPC con éxito.
-- [ ] La leyenda "Interpretada por: …" se ve para todos, en el orden de carga, solo si hay al menos uno.
-- [ ] Los intérpretes no se copian al hacer fork y no aparecen en el PDF.
-- [ ] Tests de componente (chips, gating de admin/mobile, leyenda) y de la capa de datos.
+- [x] Si la RPC falla, el autosave queda en error y el reintento vuelve a guardar todo.
+- [x] "Los Chalchaleros" y "los chalchaléros" terminan siendo el mismo registro de `artists`.
+- [x] Un no-admin no puede escribir en `artists` ni en `song_performers`, ni llamar a la RPC con éxito.
+- [x] La leyenda "Interpretada por: …" se ve para todos, en el orden de carga, solo si hay al menos uno.
+- [x] Los intérpretes no se copian al hacer fork y no aparecen en el PDF.
+- [x] Tests de componente (chips, gating de admin/mobile, leyenda) y de la capa de datos.
