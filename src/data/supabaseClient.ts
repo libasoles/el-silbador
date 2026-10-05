@@ -5,7 +5,7 @@ import type { SupabaseClient as FullSupabaseClient } from "@supabase/supabase-js
  * `@supabase/postgrest-js` directly because the full `supabase-js` client also instantiates the
  * realtime, storage and functions clients (~50 KiB we never call).
  */
-export type SupabaseClient = Pick<FullSupabaseClient, "auth" | "from">;
+export type SupabaseClient = Pick<FullSupabaseClient, "auth" | "from" | "rpc">;
 
 let client: SupabaseClient | undefined;
 let clientPromise: Promise<SupabaseClient> | undefined;
@@ -100,7 +100,7 @@ export async function getSupabaseClient(): Promise<SupabaseClient> {
           fetch: fetchWithAuth,
         });
 
-        client = { auth, from: rest.from.bind(rest) };
+        client = { auth, from: rest.from.bind(rest), rpc: rest.rpc.bind(rest) };
         return client;
       },
     );
