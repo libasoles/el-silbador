@@ -16,8 +16,30 @@ asked for the change. Anything for the owner goes in the chat, not on the page.
 Every task must use its own git worktree and branch. Codex creates worktrees at
 `.agents/worktrees/<task-slug>`; this keeps all agent worktrees inside the repository. When the
 task is complete, always merge the branch into `main` locally — a finished task is not done until
-it is on `main`. Never push from a local repository to
-`origin`; after merging, remove both the task branch and its worktree.
+it is on `main`. Merge in the main checkout, without waiting to be asked. Never push from a local
+repository to `origin`; after merging, remove both the task branch and its worktree.
+
+## Mobile behavior rules
+
+Mobile is read-only for authoring actions. Detected with `useIsMobile` (`src/editor/useIsMobile.ts`, `max-width: 30rem` — same breakpoint as the CSS media queries).
+
+Not allowed on mobile, even for the song's owner:
+- Editing the title or author (`src/editor/App.tsx`)
+- Editing the content/lyrics/chords (`SongView`'s `canEdit` prop, threaded from `App.tsx`)
+- Forking a song (fork button in `App.tsx`)
+- Deleting a song from the library index (`Library.tsx`)
+
+Allowed on mobile (do not gate these):
+- Adding/removing favorites
+- Chord track and underline toggles
+- PDF export
+- Chord transposition
+
+CSS `display: none` alone does not enforce these rules — it hides the control visually but leaves the underlying handler mounted and reachable. Gate at the render/prop level with `useIsMobile`, not just with CSS.
+
+## Testing
+
+`*.test.ts` run in Node; `*.test.tsx` run in jsdom with React Testing Library (setup in `src/test/setupDom.ts`). Prefer rendering a component and asserting on what the user sees over reading its source as text. To test mobile gating, call `mockMatchMedia(true)` from `src/test/matchMedia.ts` before rendering — see `src/app/articulos/ArticleChordEditor.test.tsx`.
 
 ## Versioning
 
