@@ -28,6 +28,8 @@ interface SongViewProps {
   /** Admin-attached YouTube link (see App.tsx's track-toolbar button), rendered below the
    *  lyrics. `null`/`undefined` when none is set. */
   youtubeUrl?: string | null;
+  /** Shown at the foot of the song, below the video (e.g. its performers). */
+  footer?: ReactNode;
   /** The editor's corner help button. Off where the editor is embedded in a page that already
    *  explains it (e.g. an article). */
   showHelp?: boolean;
@@ -512,6 +514,7 @@ export function SongView({
   pitchDirections,
   showUnderline,
   youtubeUrl,
+  footer,
   showHelp = true,
   placeholder,
   canEdit,
@@ -1165,6 +1168,7 @@ export function SongView({
         </div>
       ) : null}
       {youtubeUrl ? <YoutubeEmbed url={youtubeUrl} /> : null}
+      {footer}
       {showHelp ? <EditorHelp /> : null}
     </div>
   );

@@ -36,6 +36,9 @@ export interface SongSummary {
 
 export interface SongDetail extends SongSummary {
   content: SongContent;
+  /** Who performs the song ("intérpretes"), in load order. Set by admins only and kept outside
+   *  `content`, so a fork starts without them. */
+  performers: string[];
 }
 
 export interface SaveSongInput {

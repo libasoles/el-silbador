@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { saveSong } from "../data";
+import { saveSong, setSongPerformers } from "../data";
 import { songQueryKeys } from "../data/queryKeys";
 import type { SongContent } from "../data/types";
+import { sameArtistNames } from "../core/artistNames";
 import { revalidatePublicSongs } from "../app/actions";
 
 const DEBOUNCE_MS = 1000;
+
+/** Everything one save writes: the song row, then (only if they changed) its performers. */
+interface SaveSnapshot {
+  content: SongContent;
+  performers: string[];
+}
 
 export type SaveStatus = "idle" | "dirty" | "saving" | "saved" | "error";
 
@@ -54,9 +61,18 @@ export interface AutosaveHandle {
  * already the direct result of the user having clicked Save before `requireAuthentication` sent
  * them to sign in. Once any save under either path succeeds, the gate lifts for the rest of this
  * hook's lifetime and every later edit autosaves as usual — this rule only governs the first save.
+ *
+ * `performers` live outside `content` (their own tables, see
+ * supabase/migrations/0011_artists_and_performers.sql) but save through this same flow: after the
+ * song upsert, `setSongPerformers` runs only if they differ from the last list known to be stored,
+ * which is the list present when the song loaded (the same moment the "skip next change" latch
+ * swallows) until a save stores a new one. A new song's first save therefore creates the row and
+ * then its performers. If that second write fails, the whole save is in "error", and the retry
+ * writes both again.
  */
 export function useAutosave(
   content: SongContent,
+  performers: string[],
   songId: string | undefined,
   ready: boolean,
   authenticated: boolean,
@@ -77,7 +93,9 @@ export function useAutosave(
   // A new song has no id until its first request returns. Serialize requests so overlapping
   // effects cannot each insert a separate row during that gap.
   const saveInFlightRef = useRef(false);
-  const queuedContentRef = useRef<SongContent | null>(null);
+  const queuedSnapshotRef = useRef<SaveSnapshot | null>(null);
+  // The performers last known to be stored for this song; see the doc comment above.
+  const storedPerformersRef = useRef(performers);
   const mountedRef = useRef(true);
   // Only a brand-new song (no id yet, from the route) needs its first save gated behind a manual
   // action. Read once at mount: `isNewSong` is derived from the route slug and never flips true
@@ -137,6 +155,8 @@ export function useAutosave(
 
     if (skipNext.current && !isRetry) {
       skipNext.current = false;
+      // Whatever arrives with the loaded song is what the database already holds.
+      storedPerformersRef.current = performers;
       return;
     }
     skipNext.current = false;
@@ -154,11 +174,11 @@ export function useAutosave(
       return () => clearTimeout(timer);
     }
 
-    const persist = async (contentToSave: SongContent): Promise<void> => {
+    const persist = async (snapshot: SaveSnapshot): Promise<void> => {
       if (!mountedRef.current) return;
       if (saveInFlightRef.current) {
         // The first request will assign `idRef`; save only the newest document after it finishes.
-        queuedContentRef.current = contentToSave;
+        queuedSnapshotRef.current = snapshot;
         return;
       }
 
@@ -166,11 +186,15 @@ export function useAutosave(
       setStatus("saving");
       let completed = false;
       try {
-        const saved = await saveSong({ id: idRef.current, content: contentToSave });
+        const saved = await saveSong({ id: idRef.current, content: snapshot.content });
         // Keep the id even if a render change interrupted this effect: any later save must update
         // this row rather than insert another one.
         idRef.current = saved.id;
         requiresManualFirstSave.current = false;
+        if (!sameArtistNames(snapshot.performers, storedPerformersRef.current)) {
+          await setSongPerformers(saved.id, snapshot.performers);
+          storedPerformersRef.current = snapshot.performers;
+        }
         if (!mountedRef.current) return;
         // Fires on every save, not just the first: a title edit regenerates an existing song's
         // slug too (see useAutosave.ts's caller), and the caller needs to keep the URL in sync.
@@ -189,27 +213,27 @@ export function useAutosave(
         setStatus("error");
       } finally {
         saveInFlightRef.current = false;
-        const queuedContent = queuedContentRef.current;
-        queuedContentRef.current = null;
-        // A content change during the first request saves as an update now that `idRef` is known.
+        const queued = queuedSnapshotRef.current;
+        queuedSnapshotRef.current = null;
+        // A change during the first request saves as an update now that `idRef` is known.
         if (
           completed &&
-          queuedContent &&
-          queuedContent !== contentToSave &&
+          queued &&
+          (queued.content !== snapshot.content || queued.performers !== snapshot.performers) &&
           mountedRef.current
         ) {
-          void persist(queuedContent);
+          void persist(queued);
         }
       }
     };
 
     const timer = setTimeout(
-      () => void persist(content),
+      () => void persist({ content, performers }),
       justAuthenticated || isRetry ? 0 : DEBOUNCE_MS,
     );
 
     return () => clearTimeout(timer);
-  }, [content, ready, authenticated, canPersist, retryTick, queryClient]);
+  }, [content, performers, ready, authenticated, canPersist, retryTick, queryClient]);
 
   return { status, retry: () => setRetryTick((tick) => tick + 1) };
 }

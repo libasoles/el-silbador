@@ -7,10 +7,12 @@ import {
   deleteSong,
   forkSong,
   getSong,
+  getSongBySlug,
   listFavorites,
   listMySongs,
   listPublicSongs,
   saveSong,
+  setSongPerformers,
   setSongPublic,
   setSongYoutubeUrl,
   toggleFavorite,
@@ -271,6 +273,119 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
       expect(reloadedFork.forkedFrom).toBeNull();
     },
   );
+
+  describe("song performers", () => {
+    it("shows a song's performers in the order an admin loaded them, replacing the old list", async () => {
+      await signInAs(adminUser);
+      const song = await saveSong({ content: makeContent({ title: "Zamba de amor en vuelo" }) });
+      createdSongIds.push(song.id);
+
+      expect((await getSong(song.id)).performers).toEqual([]);
+
+      await setSongPerformers(song.id, ["Tamara Castro", "  ", "Soledad"]);
+      expect((await getSong(song.id)).performers).toEqual(["Tamara Castro", "Soledad"]);
+
+      await setSongPerformers(song.id, ["Soledad", "Tamara Castro"]);
+      await setSongPerformers(song.id, ["Soledad", "Tamara Castro"]);
+      expect((await getSong(song.id)).performers).toEqual(["Soledad", "Tamara Castro"]);
+
+      await setSongPerformers(song.id, []);
+      expect((await getSong(song.id)).performers).toEqual([]);
+    });
+
+    it('treats "Los Chalchaleros" and "los chalchaléros" as the same artist', async () => {
+      await signInAs(adminUser);
+      const first = await saveSong({ content: makeContent({ title: "Zamba de la candelaria" }) });
+      const second = await saveSong({ content: makeContent({ title: "Angelita Huenumán" }) });
+      createdSongIds.push(first.id, second.id);
+
+      await setSongPerformers(first.id, ["Los Chalchaleros", "los chalchaléros"]);
+      await setSongPerformers(second.id, ["los chalchaléros"]);
+
+      expect((await getSong(first.id)).performers).toEqual(["Los Chalchaleros"]);
+      expect((await getSong(second.id)).performers).toEqual(["Los Chalchaleros"]);
+      const { data, error } = await adminClient
+        .from("song_performers")
+        .select("artist_id")
+        .in("song_id", [first.id, second.id]);
+      expect(error).toBeNull();
+      expect(new Set((data ?? []).map((row) => row.artist_id)).size).toBe(1);
+    });
+
+    it("lets anyone, signed out included, read the performers of a public song", async () => {
+      await signInAs(adminUser);
+      const song = await saveSong({ content: makeContent({ title: "Pública con intérpretes" }) });
+      createdSongIds.push(song.id);
+      await setSongPerformers(song.id, ["Mercedes Sosa"]);
+      const { slug } = await setSongPublic(song.id, true);
+
+      await signInAs(userA);
+      expect((await getSong(song.id)).performers).toEqual(["Mercedes Sosa"]);
+
+      await (await getSupabaseClient()).auth.signOut();
+      expect((await getSongBySlug(slug)).performers).toEqual(["Mercedes Sosa"]);
+    });
+
+    it("keeps non-admins from writing performers by any route", async () => {
+      await signInAs(adminUser);
+      const song = await saveSong({ content: makeContent({ title: "Solo admins" }) });
+      createdSongIds.push(song.id);
+      await setSongPerformers(song.id, ["Jorge Cafrune"]);
+      const { data: artist } = await adminClient
+        .from("artists")
+        .select("id")
+        .eq("name", "Jorge Cafrune")
+        .single();
+
+      await signInAs(userA);
+      const ownSong = await saveSong({ content: makeContent({ title: "Propia de A" }) });
+      createdSongIds.push(ownSong.id);
+      const supabase = await getSupabaseClient();
+
+      await expect(setSongPerformers(ownSong.id, ["Intruso"])).rejects.toThrow();
+      await expect(setSongPerformers(song.id, ["Intruso"])).rejects.toThrow();
+
+      const artistInsert = await supabase.from("artists").insert({ name: "Intruso" });
+      expect(artistInsert.error?.code).toBe("42501");
+      const performerInsert = await supabase
+        .from("song_performers")
+        .insert({ song_id: ownSong.id, artist_id: artist!.id, position: 0 });
+      expect(performerInsert.error?.code).toBe("42501");
+      const performerDelete = await supabase
+        .from("song_performers")
+        .delete()
+        .eq("song_id", song.id)
+        .select("song_id");
+      expect(performerDelete.data ?? []).toEqual([]);
+      const artistUpdate = await supabase
+        .from("artists")
+        .update({ name: "Renombrado" })
+        .eq("id", artist!.id)
+        .select("id");
+      expect(artistUpdate.data ?? []).toEqual([]);
+
+      expect((await getSong(ownSong.id)).performers).toEqual([]);
+      const { data: intruders } = await adminClient.from("artists").select("id").eq("name", "Intruso");
+      expect(intruders).toEqual([]);
+      await signInAs(adminUser);
+      expect((await getSong(song.id)).performers).toEqual(["Jorge Cafrune"]);
+    });
+
+    it("does not copy performers into a fork", async () => {
+      await signInAs(adminUser);
+      const original = await saveSong({ content: makeContent({ title: "Original con intérpretes" }) });
+      createdSongIds.push(original.id);
+      await setSongPerformers(original.id, ["Tamara Castro"]);
+      await setSongPublic(original.id, true);
+
+      await signInAs(userB);
+      const fork = await forkSong(original.id);
+      createdSongIds.push(fork.id);
+
+      expect(fork.performers).toEqual([]);
+      expect((await getSong(fork.id)).performers).toEqual([]);
+    });
+  });
 
   it("rejects setUsername on a duplicate username", async () => {
     const uniqueName = `dup-${Date.now()}`;

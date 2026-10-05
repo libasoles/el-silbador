@@ -37,6 +37,15 @@ interface SongRow {
   updated_at: string;
 }
 
+interface PerformerRow {
+  position: number;
+  artists: { name: string } | null;
+}
+
+interface SongDetailRow extends SongRow {
+  song_performers?: PerformerRow[];
+}
+
 interface FavoriteRow {
   songs: SongRow | null;
 }
@@ -45,7 +54,9 @@ interface FavoriteRow {
 // content needed to show the work's own author or performer in the index.
 const SUMMARY_COLUMNS =
   "id, slug, title, owner_id, content, is_public, is_listed, youtube_url, forked_from, created_at, updated_at";
-const DETAIL_COLUMNS = SUMMARY_COLUMNS;
+// Performers live in their own tables (see supabase/migrations/0011_artists_and_performers.sql)
+// rather than in `content`, so forks and the PDF never carry them; the song page embeds them here.
+const DETAIL_COLUMNS = `${SUMMARY_COLUMNS}, song_performers(position, artists(name))`;
 
 export function serializeContent(content: SongContent): StoredSongContent {
   return {
@@ -113,8 +124,18 @@ function toSummary(row: SongRow): SongSummary {
   };
 }
 
-function toDetail(row: SongRow): SongDetail {
-  return { ...toSummary(row), content: deserializeContent(row.content) };
+function toPerformers(rows: PerformerRow[] | undefined): string[] {
+  return [...(rows ?? [])]
+    .sort((a, b) => a.position - b.position)
+    .flatMap((row) => (row.artists ? [row.artists.name] : []));
+}
+
+function toDetail(row: SongDetailRow): SongDetail {
+  return {
+    ...toSummary(row),
+    content: deserializeContent(row.content),
+    performers: toPerformers(row.song_performers),
+  };
 }
 
 async function requireUserId(supabase: SupabaseClient): Promise<string> {
@@ -175,7 +196,7 @@ export async function getSong(songId: string): Promise<SongDetail> {
   const { data, error } = await supabase.from("songs").select(DETAIL_COLUMNS).eq("id", songId).single();
   if (error) throw error;
 
-  return toDetail(data as SongRow);
+  return toDetail(data as unknown as SongDetailRow);
 }
 
 /** Looks a song up by its URL-facing slug (see /cancion/:slug in Root.tsx) rather than its id. */
@@ -185,7 +206,7 @@ export async function getSongBySlug(slug: string): Promise<SongDetail> {
   const { data, error } = await supabase.from("songs").select(DETAIL_COLUMNS).eq("slug", slug).single();
   if (error) throw error;
 
-  return toDetail(data as SongRow);
+  return toDetail(data as unknown as SongDetailRow);
 }
 
 export async function saveSong(input: SaveSongInput): Promise<SavedSong> {
@@ -245,7 +266,7 @@ export async function forkSong(songId: string): Promise<SongDetail> {
     .eq("id", songId)
     .single();
   if (sourceError) throw sourceError;
-  const source = sourceData as SongRow;
+  const source = sourceData as unknown as SongDetailRow;
 
   const { data, error } = await supabase
     .from("songs")
@@ -261,7 +282,7 @@ export async function forkSong(songId: string): Promise<SongDetail> {
     .single();
   if (error) throw error;
 
-  return toDetail(data as SongRow);
+  return toDetail(data as unknown as SongDetailRow);
 }
 
 export async function toggleFavorite(songId: string): Promise<void> {
@@ -316,4 +337,16 @@ export async function setSongYoutubeUrl(songId: string, youtubeUrl: string | nul
   if (error) throw error;
 
   return toSummary(data as SongRow);
+}
+
+/**
+ * Replaces a song's performers with `names`, in that order (admins only; see
+ * `public.set_song_performers`). Names matching an existing artist regardless of case or accents
+ * reuse it with its stored spelling; blank and repeated names are ignored.
+ */
+export async function setSongPerformers(songId: string, names: string[]): Promise<void> {
+  const supabase = await getSupabaseClient();
+
+  const { error } = await supabase.rpc("set_song_performers", { song_id: songId, names });
+  if (error) throw error;
 }

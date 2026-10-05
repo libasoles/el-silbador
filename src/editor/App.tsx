@@ -34,6 +34,7 @@ import type { ConfirmDialog as ConfirmDialogComponent } from "./components/Confi
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
 import { ChordDragTutorialExample } from "./components/ChordDragTutorialExample";
 import { MelodyTutorialExample } from "./components/MelodyTutorialExample";
+import { SongPerformers } from "./components/SongPerformers";
 import { SongView } from "./components/SongView";
 import type { YoutubeLinkDialog as YoutubeLinkDialogComponent } from "./components/YoutubeLinkDialog";
 import {
@@ -283,6 +284,11 @@ function App({
     () => initialSong?.youtubeUrl ?? null,
   );
   const [youtubeDialogOpen, setYoutubeDialogOpen] = useState(false);
+  // Who performs the song, in load order. Kept outside the editor's `content` (forks and the PDF
+  // never carry them), but saved by the same autosave.
+  const [performers, setPerformers] = useState<string[]>(
+    () => initialSong?.performers ?? [],
+  );
   // Administrators may set a YouTube link before a new song is first saved. For other authors,
   // the control becomes available once their song has a database id.
   const [pendingYoutubeUrl, setPendingYoutubeUrl] = useState<
@@ -458,8 +464,11 @@ function App({
       setSongIsPublic(cachedDetail.isPublic);
       setSongYoutubeUrlState(cachedDetail.youtubeUrl);
       setForkedFrom(cachedDetail.forkedFrom);
-      if (!restoredDraftRef.current && !isSameSongAlreadyOpen(cachedDetail.id))
-        actions.loadContent(cachedDetail.content);
+      if (!isSameSongAlreadyOpen(cachedDetail.id)) {
+        // A restored draft only carries `content`, so the performers still come from the song.
+        setPerformers(cachedDetail.performers);
+        if (!restoredDraftRef.current) actions.loadContent(cachedDetail.content);
+      }
       setContentLoaded(true);
     }
 
@@ -478,12 +487,9 @@ function App({
         setForkedFrom(detail.forkedFrom);
         // Only the first resolution (cache or network, whichever wins) may load content into the
         // editor — see the comment above.
-        if (
-          !restoredDraftRef.current &&
-          !cachedDetail &&
-          !isSameSongAlreadyOpen(detail.id)
-        ) {
-          actions.loadContent(detail.content);
+        if (!cachedDetail && !isSameSongAlreadyOpen(detail.id)) {
+          setPerformers(detail.performers);
+          if (!restoredDraftRef.current) actions.loadContent(detail.content);
         }
         setContentLoaded(true);
       })
@@ -628,6 +634,7 @@ function App({
   const canPersist = isOwnSong && !isMobile && !pendingCreationId;
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
+    performers,
     songDbId,
     ready,
     authenticated,
@@ -1138,6 +1145,14 @@ function App({
                 pitchDirections={state.pitchDirections}
                 showUnderline={state.showUnderline}
                 youtubeUrl={songYoutubeUrl}
+                footer={
+                  <SongPerformers
+                    performers={performers}
+                    viewerIsAdmin={isAdmin}
+                    viewerOwnsSong={isOwnSong}
+                    onChange={setPerformers}
+                  />
+                }
                 placeholder={SONG_PLACEHOLDER}
                 canEdit={canEditOnThisDevice}
                 onSetCellText={actions.setCellText}
