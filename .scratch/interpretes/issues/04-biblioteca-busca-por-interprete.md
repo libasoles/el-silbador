@@ -8,13 +8,13 @@ intérpretes que coinciden y el término resaltado. Ver [spec](../spec.md).
 
 **Blocked by:** 01 (búsqueda sin acentos y por relevancia), 02 (El admin carga intérpretes)
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Las listas de canciones públicas, propias y favoritas incluyen los intérpretes sin una consulta
+- [x] Las listas de canciones públicas, propias y favoritas incluyen los intérpretes sin una consulta
       extra por canción.
-- [ ] Buscar por un intérprete (con o sin acentos) encuentra sus canciones.
-- [ ] Orden: título > autor > intérprete.
-- [ ] El renglón "Interpretada por:" aparece solo cuando el match fue por intérprete y lista solo los
+- [x] Buscar por un intérprete (con o sin acentos) encuentra sus canciones.
+- [x] Orden: título > autor > intérprete.
+- [x] El renglón "Interpretada por:" aparece solo cuando el match fue por intérprete y lista solo los
       que coinciden, resaltados.
-- [ ] Tests de componente de la biblioteca buscando por intérprete.
+- [x] Tests de componente de la biblioteca buscando por intérprete.

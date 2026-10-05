@@ -5,6 +5,8 @@ export interface LibrarySong {
   slug: string;
   title: string;
   author: string | null;
+  /** Who performs the song ("intérpretes"), in load order; searchable from the library. */
+  performers: string[];
   isPublic: boolean;
 }
 
@@ -14,6 +16,7 @@ export function toLibrarySong(song: SongSummary): LibrarySong {
     slug: song.slug,
     title: song.title ?? "Sin título",
     author: song.author || null,
+    performers: song.performers,
     isPublic: song.isPublic,
   };
 }
@@ -24,6 +27,7 @@ export function toPublicLibrarySong(song: SongSummary): LibrarySong {
     slug: song.slug,
     title: song.title ?? "Sin título",
     author: song.author || null,
+    performers: song.performers,
     isPublic: song.isPublic,
   };
 }
