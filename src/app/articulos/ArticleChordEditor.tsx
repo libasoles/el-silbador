@@ -30,7 +30,7 @@ en la arena me escribias
              A7    D
 El viento lo fue borrando
     B7      E7              A
-y estoy mas solo mirando el mar.`;
+y estoy mas solo mirando el mar`;
 
 /** The song state the editor itself ends up with when this chord sheet is pasted into it, plus
  *  the melody written under it (see `ArticleChordEditorProps.melody`). */
@@ -53,19 +53,28 @@ function contentFromChordSheet(
   pasted.song.forEach((line, lineIndex) => {
     const syllables = flattenSyllables(line);
     let anchorId = "";
-    (melody[lineIndex] ?? "").split(/\s+/).filter(Boolean).forEach((token, index) => {
-      const syllable = syllables[index];
-      if (!syllable) return;
-      if (token === "+") {
-        merges.add(mergeKey(syllables[index - 1]!.id, syllable.id));
-        return;
-      }
-      anchorId = syllable.id;
-      if (token === "_") return;
-      const direction = token.endsWith("↑") ? "up" : token.endsWith("↓") ? "down" : null;
-      vocalNotes[beforeSlotId(anchorId)] = direction ? token.slice(0, -1) : token;
-      if (direction) pitchDirections[beforeSlotId(anchorId)] = direction;
-    });
+    (melody[lineIndex] ?? "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .forEach((token, index) => {
+        const syllable = syllables[index];
+        if (!syllable) return;
+        if (token === "+") {
+          merges.add(mergeKey(syllables[index - 1]!.id, syllable.id));
+          return;
+        }
+        anchorId = syllable.id;
+        if (token === "_") return;
+        const direction = token.endsWith("↑")
+          ? "up"
+          : token.endsWith("↓")
+            ? "down"
+            : null;
+        vocalNotes[beforeSlotId(anchorId)] = direction
+          ? token.slice(0, -1)
+          : token;
+        if (direction) pitchDirections[beforeSlotId(anchorId)] = direction;
+      });
   });
   return {
     title: "",
@@ -122,7 +131,9 @@ function LiveChordEditor({
   tools = [],
 }: ArticleChordEditorProps) {
   const isMobile = useIsMobile();
-  const [initialContent] = useState(() => contentFromChordSheet(sheet, melody, bisGroups));
+  const [initialContent] = useState(() =>
+    contentFromChordSheet(sheet, melody, bisGroups),
+  );
   const { state, actions } = useEditor(initialContent, isMobile);
   const hasTrackToggles = tools.includes("trackToggles");
   const hasSideTools = hasTrackToggles || tools.includes("underline");
@@ -254,7 +265,7 @@ const EDGE_DRAGS: ChordDragExampleDrag[] = [
 ];
 
 export const EDGE_EXCERPT = `    B7      E7              A
-y estoy mas solo mirando el mar.`;
+y estoy mas solo mirando el mar`;
 
 export function EdgeChordExample() {
   return (

@@ -23,7 +23,7 @@ en la arena me escribias
              A7    D
 El viento lo fue borrando
     B7      E7              A
-y estoy mas solo mirando el mar.`;
+y estoy mas solo mirando el mar`;
 
 export const LABELED_EXCERPT = `Estrofa
 ${TONADA_SHEET}`;
@@ -36,4 +36,6 @@ en la arena me escribias`;
 export const BIS_EXCERPT = `${TONADA_SHEET} BIS`;
 
 /** The last two lines of `BIS_EXCERPT`, repeated together. */
-export const MULTI_BIS_GROUPS: BisGroup[] = [{ startLineIndex: 2, endLineIndex: 3 }];
+export const MULTI_BIS_GROUPS: BisGroup[] = [
+  { startLineIndex: 2, endLineIndex: 3 },
+];
