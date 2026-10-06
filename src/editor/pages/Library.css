@@ -154,11 +154,17 @@
 /* The parent layout's gap keeps this separate from the songbook content; the main has no bottom
    padding, so the marker itself remains at the page footer. */
 .library-version {
-  align-self: flex-end;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
   color: var(--muted);
   font-family: var(--sans);
   font-size: 0.7rem;
   letter-spacing: 0.04em;
+}
+
+.library-version a {
+  color: inherit;
 }
 
 .library-section__head {

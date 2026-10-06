@@ -5,6 +5,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   outputFileTracingRoot: path.join(__dirname),
+  async redirects() {
+    return [{ source: "/tutoriales", destination: "/articulos", permanent: true }];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
