@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import userEvent from "@testing-library/user-event";
 import type { Session } from "@supabase/supabase-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -30,7 +31,10 @@ const PUBLIC_SONGS: LibrarySong[] = [
   { id: "7", slug: "mi-tierra", title: "Mi tierra", author: "Soledad Pastorutti", performers: ["Soledad"], isPublic: true },
 ];
 
-function renderLibrary(onNewSong?: () => void) {
+function renderLibrary(
+  onNewSong?: () => void,
+  searchProps: Pick<ComponentProps<typeof Library>, "initialQuery" | "onQueryChange"> = {},
+) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
@@ -38,7 +42,7 @@ function renderLibrary(onNewSong?: () => void) {
     <QueryClientProvider client={queryClient}>
       <AuthRequiredContext.Provider value={{ session: null, requireAuthentication: vi.fn() }}>
         <ToastContext.Provider value={{ showToast: vi.fn(), showTutorial: vi.fn() }}>
-          <Library appVersion="0.0.0" initialPublicSongs={PUBLIC_SONGS} onNewSong={onNewSong} />
+          <Library appVersion="0.0.0" initialPublicSongs={PUBLIC_SONGS} onNewSong={onNewSong} {...searchProps} />
         </ToastContext.Provider>
       </AuthRequiredContext.Provider>
     </QueryClientProvider>,
@@ -152,6 +156,25 @@ describe("Library search", () => {
     await search("violeta");
 
     expect(screen.queryByText(/Interpretada por/)).not.toBeInTheDocument();
+  });
+
+  it("starts filtered by the query it is opened with, e.g. a performer from a song's page", () => {
+    mockMatchMedia(false);
+    renderLibrary(undefined, { initialQuery: "Tamara Castro" });
+
+    expect(screen.getByLabelText("Buscar canciones o autores")).toHaveValue("Tamara Castro");
+    expect(rowTitles()).toEqual(["Zamba de amor en vuelo"]);
+  });
+
+  it("reports every change to the query, including clearing it", async () => {
+    mockMatchMedia(false);
+    const onQueryChange = vi.fn();
+    renderLibrary(undefined, { initialQuery: "so", onQueryChange });
+
+    await search("l");
+    expect(onQueryChange).toHaveBeenLastCalledWith("sol");
+    await userEvent.clear(screen.getByLabelText("Buscar canciones o autores"));
+    expect(onQueryChange).toHaveBeenLastCalledWith("");
   });
 });
 
