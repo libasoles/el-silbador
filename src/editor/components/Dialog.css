@@ -183,22 +183,19 @@
   opacity: 1;
 }
 
-.desktop-only-dialog {
-  text-align: center;
+/* The face sits to the left of the description. */
+.desktop-only-dialog__message {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
-/* Drawn above the title, though the title stays first in the dialog for screen readers. */
 .desktop-only-dialog__mark {
-  order: -1;
+  flex: none;
   display: block;
-  width: 5.5rem;
-  height: 5.5rem;
-  margin-bottom: 1rem;
+  width: 4.5rem;
+  height: 4.5rem;
   opacity: 0.72;
-}
-
-.desktop-only-dialog.dialog--full-screen > .desktop-only-dialog__mark {
-  width: 5.5rem;
 }
 
 .desktop-only-dialog .dialog__title {
@@ -206,6 +203,7 @@
 }
 
 .desktop-only-dialog .dialog__description {
+  margin: 0;
   font-size: 1rem;
   line-height: 1.5;
 }

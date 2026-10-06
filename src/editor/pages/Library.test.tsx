@@ -189,6 +189,8 @@ describe("Library new song button", () => {
       "BIS presionando Tab",
     ]);
 
+    expect(within(dialog).getByRole("link", { name: "acá" })).toHaveAttribute("href", "/articulos");
+
     await userEvent.click(within(dialog).getByRole("button", { name: "Cerrar" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });

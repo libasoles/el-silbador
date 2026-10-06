@@ -1,5 +1,5 @@
 .editor-feature-showcase {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
   text-align: left;
 }
 
@@ -48,4 +48,18 @@
 .editor-feature-showcase__demo .chord-tutorial-example,
 .editor-feature-showcase__demo .melody-tutorial-example {
   margin-top: 0;
+}
+
+.editor-feature-showcase__more {
+  margin: 2rem 0 0;
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.editor-feature-showcase__more a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
