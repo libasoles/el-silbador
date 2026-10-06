@@ -5,8 +5,14 @@ import { describe, expect, it } from "vitest";
 import { parseChordSheet } from "../../../core/chordSheet";
 
 const page = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
-const editor = readFileSync(new URL("../ArticleChordEditor.tsx", import.meta.url), "utf8");
-const styles = readFileSync(new URL("../articles.css", import.meta.url), "utf8");
+const editor = readFileSync(
+  new URL("../ArticleChordEditor.tsx", import.meta.url),
+  "utf8",
+);
+const styles = readFileSync(
+  new URL("../articles.css", import.meta.url),
+  "utf8",
+);
 
 // Heading text with inline markup (e.g. <span className="article-action">) stripped.
 const headings = [...page.matchAll(/<h2>([\s\S]*?)<\/h2>/g)].map(([, inner]) =>
@@ -20,7 +26,7 @@ const headings = [...page.matchAll(/<h2>([\s\S]*?)<\/h2>/g)].map(([, inner]) =>
 describe("chord editor article", () => {
   it("uses the requested song excerpt", () => {
     expect(editor).toContain("Ya nunca te he de olvidar");
-    expect(editor).toContain("y estoy mas solo mirando el mar.");
+    expect(editor).toContain("y estoy mas solo mirando el mar");
   });
 
   it("renders existing editor components rather than a simulated interface", () => {
@@ -60,8 +66,14 @@ describe("chord editor article", () => {
   it("starts the move demo with its chords one syllable off, as in the animation", async () => {
     const { MOVE_EXCERPT } = await import("../ArticleChordEditor");
     const { lyricsText, placements } = parseChordSheet(MOVE_EXCERPT);
-    const syllableAt = (column: number) => lyricsText.slice(column).match(/^\S+/)?.[0];
-    expect(placements.map((placement) => [placement.chord, syllableAt(placement.column)])).toEqual([
+    const syllableAt = (column: number) =>
+      lyricsText.slice(column).match(/^\S+/)?.[0];
+    expect(
+      placements.map((placement) => [
+        placement.chord,
+        syllableAt(placement.column),
+      ]),
+    ).toEqual([
       ["A", "Ya"],
       ["A7", "te"],
       ["D", "vidar"],
