@@ -302,9 +302,14 @@ describe("icon-button tooltips", () => {
     expect(themeStyles).toMatch(
       /\.icon-button-tooltip > button:disabled\s*\{[\s\S]*pointer-events: none/,
     );
+    // Touch taps leave a sticky hover/focus: only real hover and keyboard focus may show it.
     expect(themeStyles).toMatch(
-      /\.icon-button-tooltip:hover::after,\s*\.icon-button-tooltip:focus-within::after\s*\{[\s\S]*opacity: 1/,
+      /@media \(hover: hover\)\s*\{\s*\.icon-button-tooltip:hover::after\s*\{\s*opacity: 1/,
     );
+    expect(themeStyles).toMatch(
+      /\.icon-button-tooltip:has\(:focus-visible\)::after\s*\{\s*opacity: 1/,
+    );
+    expect(themeStyles).not.toContain(".icon-button-tooltip:focus-within::after");
     expect(themeStyles).toContain("content: attr(data-tooltip)");
   });
 
