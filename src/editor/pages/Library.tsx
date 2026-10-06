@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { trackEvent } from "../analytics";
 import { useAuthRequired } from "../authRequiredContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -690,7 +691,12 @@ export function Library({
         </section>
       </div>
 
-      <footer className="library-version">v{appVersion} alfa</footer>
+      <footer className="library-version">
+        <span>
+          podés ver tutoriales <Link href="/tutoriales">acá</Link>
+        </span>
+        <span>v{appVersion} alfa</span>
+      </footer>
 
       <DesktopOnlyDialog
         open={desktopOnlyNoticeOpen}
