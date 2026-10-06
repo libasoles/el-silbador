@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { trackEvent } from "../analytics";
 import { useAuthRequired } from "../authRequiredContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { DesktopOnlyDialog } from "../components/DesktopOnlyDialog";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import {
   LogInIcon,
@@ -296,6 +297,7 @@ export function Library({
   // songs. Favoriting stays available on mobile and must not be gated here.
   const isMobile = useIsMobile();
   const [query, setQuery] = useState("");
+  const [desktopOnlyNoticeOpen, setDesktopOnlyNoticeOpen] = useState(false);
   const [songPendingDelete, setSongPendingDelete] =
     useState<LibrarySong | null>(null);
   const [favoritePendingSongId, setFavoritePendingSongId] = useState<
@@ -459,6 +461,11 @@ export function Library({
   };
   const handleNew = () => {
     trackEvent("new_song_click");
+    // The editor is desktop-only for now: on mobile, explain that instead of creating a song.
+    if (isMobile) {
+      setDesktopOnlyNoticeOpen(true);
+      return;
+    }
     onNewSong?.();
   };
 
@@ -615,6 +622,13 @@ export function Library({
       </div>
 
       <footer className="library-version">v{appVersion} alfa</footer>
+
+      <DesktopOnlyDialog
+        open={desktopOnlyNoticeOpen}
+        onOpenChange={setDesktopOnlyNoticeOpen}
+        title="Solo en computadoras"
+        description="Por el momento, el editor de canciones solo está disponible en computadoras. Estamos trabajando para que pronto también puedas usarlo desde el teléfono."
+      />
 
       <ConfirmDialog
         open={songPendingDelete !== null}

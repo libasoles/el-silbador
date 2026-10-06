@@ -97,13 +97,6 @@
   color: var(--accent);
 }
 
-/* Song creation is available from larger screens, where the editor can be used comfortably. */
-@media (max-width: 30rem) {
-  .library-new {
-    display: none;
-  }
-}
-
 .library-search {
   display: flex;
   align-items: center;

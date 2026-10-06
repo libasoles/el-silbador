@@ -133,3 +133,19 @@
   margin-top: 0.1rem;
   color: #d1561f;
 }
+
+.desktop-only-dialog {
+  text-align: center;
+}
+
+.desktop-only-dialog__mark {
+  display: block;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin: 0 auto 1rem;
+  opacity: 0.72;
+}
+
+.desktop-only-dialog .dialog__actions {
+  justify-content: center;
+}

@@ -27,7 +27,7 @@ const PUBLIC_SONGS: LibrarySong[] = [
   { id: "7", slug: "mi-tierra", title: "Mi tierra", author: "Soledad Pastorutti", performers: ["Soledad"], isPublic: true },
 ];
 
-function renderLibrary() {
+function renderLibrary(onNewSong?: () => void) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
@@ -35,7 +35,7 @@ function renderLibrary() {
     <QueryClientProvider client={queryClient}>
       <AuthRequiredContext.Provider value={{ session: null, requireAuthentication: vi.fn() }}>
         <ToastContext.Provider value={{ showToast: vi.fn(), showTutorial: vi.fn() }}>
-          <Library appVersion="0.0.0" initialPublicSongs={PUBLIC_SONGS} />
+          <Library appVersion="0.0.0" initialPublicSongs={PUBLIC_SONGS} onNewSong={onNewSong} />
         </ToastContext.Provider>
       </AuthRequiredContext.Provider>
     </QueryClientProvider>,
@@ -149,5 +149,37 @@ describe("Library search", () => {
     await search("violeta");
 
     expect(screen.queryByText(/Interpretada por/)).not.toBeInTheDocument();
+  });
+});
+
+describe("Library new song button", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("creates a song on desktop", async () => {
+    mockMatchMedia(false);
+    const onNewSong = vi.fn();
+    renderLibrary(onNewSong);
+
+    await userEvent.click(screen.getByRole("button", { name: "Nueva canción" }));
+
+    expect(onNewSong).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("on mobile, explains the editor is desktop-only instead of creating a song", async () => {
+    mockMatchMedia(true);
+    const onNewSong = vi.fn();
+    renderLibrary(onNewSong);
+
+    await userEvent.click(screen.getByRole("button", { name: "Nueva canción" }));
+
+    expect(onNewSong).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("dialog", { name: "Solo en computadoras" });
+    expect(within(dialog).getByText(/solo está disponible en computadoras/)).toBeInTheDocument();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Entendido" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });
