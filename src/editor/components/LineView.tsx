@@ -831,11 +831,12 @@ function LyricLineView({
         {/* Chrome does not reliably paint its native caret on an otherwise-empty flex row, so the
             `<br>` gives the browser a real anchor and the explicit `.lyric-caret` bar is the
             visible indicator while this line holds the document caret. Both are excluded from the
-            document model. */}
+            document model. The bar is non-editable: a phone keyboard writes its word into the DOM
+            itself, and would otherwise write it inside the bar, blinking with it. */}
         {line.words.length === 0 ? (
           <>
             <br data-empty-line-caret />
-            {showEmptyCaret ? <span className="lyric-caret" aria-hidden="true" /> : null}
+            {showEmptyCaret ? <span className="lyric-caret" contentEditable={false} aria-hidden="true" /> : null}
           </>
         ) : null}
         {line.words.length > 0 && !readOnly ? (

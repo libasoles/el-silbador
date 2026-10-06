@@ -1255,7 +1255,7 @@ export function SongView({
           <div className="syllable-row document-empty-line" data-lyrics-line>
             <br data-empty-line-caret />
             {isFocused ? (
-              <span className="lyric-caret" aria-hidden="true" />
+              <span className="lyric-caret" contentEditable={false} aria-hidden="true" />
             ) : null}
           </div>
         ) : null}

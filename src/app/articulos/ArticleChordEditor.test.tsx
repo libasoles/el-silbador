@@ -148,6 +148,21 @@ describe("ArticleChordEditor", () => {
     expect(gap).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("keeps a phone keyboard's word out of the caret drawn on an empty line", () => {
+    mockMatchMedia(true);
+    renderEditor("hola\n\nchau");
+    const lyrics = focusableLyrics();
+    const emptyLine = lyrics.querySelectorAll("[data-lyrics-line]")[1]!;
+    lyrics.focus();
+    window.getSelection()!.collapse(emptyLine, 1);
+    act(() => {
+      document.dispatchEvent(new Event("selectionchange"));
+    });
+
+    // The keyboard writes the word itself, wherever the browser lets it: never inside the bar.
+    expect(emptyLine.querySelector(".lyric-caret")).toHaveAttribute("contenteditable", "false");
+  });
+
   it("reads a keyboard's multi-line paste as chords over the lyrics", () => {
     mockMatchMedia(true);
     const { container } = renderEditor("");
