@@ -143,8 +143,15 @@ input {
   transform: translateX(calc(-50% + var(--tooltip-shift, 0px)));
 }
 
-.icon-button-tooltip:hover::after,
-.icon-button-tooltip:focus-within::after {
+/* Only real hover and keyboard focus show the bubble. On touch screens a tap leaves the button
+   hovered and focused, which kept the tooltip floating over whatever the tap opened (a dialog). */
+@media (hover: hover) {
+  .icon-button-tooltip:hover::after {
+    opacity: 1;
+  }
+}
+
+.icon-button-tooltip:has(:focus-visible)::after {
   opacity: 1;
 }
 
