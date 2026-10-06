@@ -178,8 +178,18 @@ describe("Library new song button", () => {
     expect(onNewSong).not.toHaveBeenCalled();
     const dialog = screen.getByRole("dialog", { name: "Solo en computadoras" });
     expect(within(dialog).getByText(/solo está disponible en computadoras/)).toBeInTheDocument();
+    expect(
+      within(dialog)
+        .getAllByRole("heading", { level: 4 })
+        .map((heading) => heading.textContent),
+    ).toEqual([
+      "Mover un acorde a otra sílaba",
+      "Ascensos y descensos melódicos",
+      "Una nota para varias sílabas",
+      "BIS presionando Tab",
+    ]);
 
-    await userEvent.click(within(dialog).getByRole("button", { name: "Entendido" }));
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cerrar" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

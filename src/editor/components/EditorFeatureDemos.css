@@ -1,0 +1,232 @@
+/* A third row under the notes holds the arrow each drag leaves behind. */
+.pitch-drag-example .pitch-drag-example__unit {
+  grid-template-rows: 1.1em 1.35em 0.9em;
+}
+
+.pitch-drag-example__note--up {
+  animation: pitch-drag-up 5s ease-in-out infinite;
+}
+
+.pitch-drag-example__note--down {
+  animation: pitch-drag-down 5s ease-in-out infinite;
+}
+
+.pitch-drag-example__arrow-slot {
+  display: flex;
+  color: var(--fg);
+  font-size: 0.75rem;
+}
+
+.pitch-drag-example__arrow {
+  display: inline-flex;
+  opacity: 0;
+}
+
+/* The name lives in each shorthand: Next's CSS compiler drops a nameless `animation` shorthand. */
+.pitch-drag-example__arrow--up {
+  animation: pitch-drag-arrow-up 5s ease-out infinite;
+}
+
+.pitch-drag-example__arrow--down {
+  animation: pitch-drag-arrow-down 5s ease-out infinite;
+}
+
+@keyframes pitch-drag-up {
+  0%,
+  10%,
+  32%,
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+  20%,
+  26% {
+    transform: translateY(-0.9em);
+    opacity: 0.55;
+  }
+}
+
+@keyframes pitch-drag-down {
+  0%,
+  42%,
+  64%,
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+  52%,
+  58% {
+    transform: translateY(0.9em);
+    opacity: 0.55;
+  }
+}
+
+@keyframes pitch-drag-arrow-up {
+  0%,
+  31% {
+    opacity: 0;
+  }
+  34%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pitch-drag-arrow-down {
+  0%,
+  63% {
+    opacity: 0;
+  }
+  66%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pitch-drag-example__note--up,
+  .pitch-drag-example__note--down {
+    animation: none;
+  }
+
+  .pitch-drag-example__arrow {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* BIS by Tab: the line and marker mirror .line--bis and .bis-marker in App.css. */
+.bis-tab-example {
+  display: grid;
+  justify-items: start;
+  gap: 0.2em;
+  color: var(--fg);
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.bis-tab-example__line--bis {
+  animation: bis-tab-line 5s ease-in-out infinite;
+}
+
+.bis-tab-example__caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.05em;
+  margin-left: 0.05em;
+  vertical-align: -0.15em;
+  background: var(--fg);
+  animation: bis-tab-caret 5s steps(1, end) infinite;
+}
+
+.bis-tab-example__marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15em;
+  margin-left: 0.3em;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.78em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  animation: bis-tab-marker 5s ease-out infinite;
+}
+
+.bis-tab-example__key {
+  justify-self: end;
+  margin-top: 0.35em;
+  padding: 0.2em 0.6em;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 0.3em;
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 0.65em;
+  font-weight: 600;
+  animation: bis-tab-key 5s ease-in-out infinite;
+}
+
+@keyframes bis-tab-caret {
+  0%,
+  16%,
+  32% {
+    opacity: 1;
+  }
+  8%,
+  24% {
+    opacity: 0;
+  }
+  36%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes bis-tab-key {
+  0%,
+  28%,
+  42%,
+  100% {
+    transform: none;
+    background: transparent;
+  }
+  33%,
+  37% {
+    transform: translateY(1px);
+    background: var(--border);
+  }
+}
+
+@keyframes bis-tab-line {
+  0%,
+  36% {
+    font-weight: 400;
+  }
+  40%,
+  92% {
+    font-weight: 600;
+  }
+  100% {
+    font-weight: 400;
+  }
+}
+
+@keyframes bis-tab-marker {
+  0%,
+  36% {
+    opacity: 0;
+  }
+  42%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bis-tab-example__line--bis {
+    font-weight: 600;
+    animation: none;
+  }
+
+  .bis-tab-example__caret,
+  .bis-tab-example__key {
+    display: none;
+  }
+
+  .bis-tab-example__marker {
+    opacity: 1;
+    animation: none;
+  }
+}

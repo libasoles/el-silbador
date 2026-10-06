@@ -134,18 +134,78 @@
   color: #d1561f;
 }
 
+/* Full-screen variant: a page of its own over everything, scrolled inside, its content in one
+   centered column. */
+.dialog--full-screen {
+  inset: 0;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: auto;
+  max-width: none;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 4.5rem 1rem 3rem;
+}
+
+.dialog--full-screen > :not(.dialog__close) {
+  width: 100%;
+  max-width: 26rem;
+}
+
+/* Same size and corner as the editor's close button (.app-close-tooltip / .app-close). */
+.dialog__close--full-screen {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  /* Scrolled content passes under it; the fade goes on the icon so the background stays solid. */
+  background: var(--bg);
+  color: var(--fg);
+  transition: color 160ms ease;
+}
+
+.dialog__close--full-screen svg {
+  opacity: 0.75;
+  transition: opacity 180ms ease;
+}
+
+.dialog__close--full-screen:hover {
+  color: var(--accent);
+}
+
+.dialog__close--full-screen:hover svg {
+  opacity: 1;
+}
+
 .desktop-only-dialog {
   text-align: center;
 }
 
+/* Drawn above the title, though the title stays first in the dialog for screen readers. */
 .desktop-only-dialog__mark {
+  order: -1;
   display: block;
-  width: 4.5rem;
-  height: 4.5rem;
-  margin: 0 auto 1rem;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin-bottom: 1rem;
   opacity: 0.72;
 }
 
-.desktop-only-dialog .dialog__actions {
-  justify-content: center;
+.desktop-only-dialog.dialog--full-screen > .desktop-only-dialog__mark {
+  width: 5.5rem;
+}
+
+.desktop-only-dialog .dialog__title {
+  font-size: 1.3rem;
+}
+
+.desktop-only-dialog .dialog__description {
+  font-size: 1rem;
+  line-height: 1.5;
 }
