@@ -15,6 +15,7 @@ import {
   type ChordDragExampleDrag,
   type ChordDragExampleUnit,
 } from "../../editor/components/ChordDragTutorialExample";
+import { MoveChordDemo } from "../../editor/components/EditorFeatureDemos";
 import "../../editor/components/Toast.css";
 import { SongView } from "../../editor/components/SongView";
 import { useEditor } from "../../editor/useEditor";
@@ -221,37 +222,14 @@ function LiveChordEditor({
   );
 }
 
-const MOVE_UNITS: ChordDragExampleUnit[] = [
-  { syllable: "Ya", wordBoundaryAfter: true },
-  { syllable: "nun" },
-  { syllable: "ca", wordBoundaryAfter: true },
-  { syllable: "te", wordBoundaryAfter: true },
-  { syllable: "he", wordBoundaryAfter: true },
-  { syllable: "de", wordBoundaryAfter: true },
-  { syllable: "ol" },
-  { syllable: "vi" },
-  { syllable: "dar" },
-];
-
-/** Three chords that start one syllable off and get dragged to where the song really changes. */
-const MOVE_DRAGS: ChordDragExampleDrag[] = [
-  { id: "a", chord: "A", from: 0, to: 1, start: 0.05, end: 0.2 },
-  { id: "a7", chord: "A7", from: 3, to: 5, start: 0.28, end: 0.46 },
-  { id: "d", chord: "D", from: 7, to: 8, start: 0.54, end: 0.68 },
-];
-
-/** The same three misplaced chords, so the reader can repeat the animation by hand. */
+/** The same three misplaced chords as `MoveChordDemo`, so the reader can repeat it by hand. */
 export const MOVE_EXCERPT = `A        A7         D
 Ya nunca te he de olvidar`;
 
 export function MoveChordExample() {
   return (
     <div className="article-gesture">
-      <ChordDragTutorialExample
-        units={MOVE_UNITS}
-        drags={MOVE_DRAGS}
-        label="Ejemplo: tres acordes arrastrados a la sílaba correcta"
-      />
+      <MoveChordDemo />
     </div>
   );
 }

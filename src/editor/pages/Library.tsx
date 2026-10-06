@@ -4,6 +4,7 @@ import { trackEvent } from "../analytics";
 import { useAuthRequired } from "../authRequiredContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { DesktopOnlyDialog } from "../components/DesktopOnlyDialog";
+import { EditorFeatureShowcase } from "../components/EditorFeatureShowcase";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import {
   LogInIcon,
@@ -628,7 +629,9 @@ export function Library({
         onOpenChange={setDesktopOnlyNoticeOpen}
         title="Solo en computadoras"
         description="Por el momento, el editor de canciones solo está disponible en computadoras. Estamos trabajando para que pronto también puedas usarlo desde el teléfono."
-      />
+      >
+        <EditorFeatureShowcase />
+      </DesktopOnlyDialog>
 
       <ConfirmDialog
         open={songPendingDelete !== null}

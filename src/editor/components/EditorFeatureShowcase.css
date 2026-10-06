@@ -1,0 +1,51 @@
+.editor-feature-showcase {
+  margin-top: 1.5rem;
+  text-align: left;
+}
+
+.editor-feature-showcase__title {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.editor-feature-showcase__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.editor-feature-showcase__name {
+  margin: 0 0 0.3rem;
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.editor-feature-showcase__description {
+  margin: 0 0 0.75rem;
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+/* Same dashed card the articles put around these demos (.article-gesture). */
+.editor-feature-showcase__demo {
+  padding: 1rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: 0.75rem;
+}
+
+.editor-feature-showcase__demo .chord-tutorial-example,
+.editor-feature-showcase__demo .melody-tutorial-example {
+  margin-top: 0;
+}

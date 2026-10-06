@@ -196,10 +196,10 @@ export function ChordDragTutorialExample({
     build();
     // Web fonts shift the syllable widths once they load, which `fonts.ready` can miss when the
     // font only starts loading after this first render; observing the units catches any reflow.
-    const observer = new ResizeObserver(build);
-    for (const unit of unitRefs.current.values()) observer.observe(unit);
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(build);
+    for (const unit of unitRefs.current.values()) observer?.observe(unit);
     return () => {
-      observer.disconnect();
+      observer?.disconnect();
       for (const animation of animations) animation.cancel();
     };
   }, [units, drags]);
