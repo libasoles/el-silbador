@@ -155,6 +155,7 @@
    padding, so the marker itself remains at the page footer. */
 .library-version {
   display: flex;
+  margin-top: 2.5rem;
   justify-content: space-between;
   gap: 1rem;
   color: var(--muted);
