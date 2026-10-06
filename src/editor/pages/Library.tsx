@@ -336,10 +336,10 @@ export function Library({
     isLoading: favoritesQueryLoading,
     isSuccess: favoritesQuerySuccess,
   } = useQuery({
-      queryKey: songQueryKeys.favorites(userId ?? ""),
-      queryFn: async () => (await listFavorites()).map(toLibrarySong),
-      enabled: Boolean(userId),
-    });
+    queryKey: songQueryKeys.favorites(userId ?? ""),
+    queryFn: async () => (await listFavorites()).map(toLibrarySong),
+    enabled: Boolean(userId),
+  });
   const favoritesLoading =
     session === undefined || (Boolean(userId) && favoritesQueryLoading);
 
@@ -356,7 +356,11 @@ export function Library({
 
   useEffect(() => {
     if (userId && favoritesQuerySuccess) {
-      saveLibrarySkeletonCount(userId, "favorites", favoriteLibrarySongs.length);
+      saveLibrarySkeletonCount(
+        userId,
+        "favorites",
+        favoriteLibrarySongs.length,
+      );
     }
   }, [favoriteLibrarySongs.length, favoritesQuerySuccess, userId]);
 
@@ -628,8 +632,8 @@ export function Library({
       <DesktopOnlyDialog
         open={desktopOnlyNoticeOpen}
         onOpenChange={setDesktopOnlyNoticeOpen}
-        title="Solo en computadoras"
-        description="Por el momento, el editor de canciones solo está disponible en computadoras. Estamos trabajando para que pronto también puedas usarlo desde el teléfono."
+        title="Probalo en una computadora"
+        description="Por el momento, el editor de canciones no está disponible para el celular."
       >
         <EditorFeatureShowcase />
       </DesktopOnlyDialog>
