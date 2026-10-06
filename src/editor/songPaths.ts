@@ -7,3 +7,8 @@ export function songPath(slug: string): string {
 export function songEditPath(slug: string): string {
   return `/cancion/${slug}/editar`;
 }
+
+/** The index with its search box prefilled, e.g. with a performer's name. */
+export function librarySearchPath(query: string): string {
+  return `/?${new URLSearchParams({ q: query })}`;
+}

@@ -312,6 +312,10 @@ interface LibraryProps {
   /** Opens one of the user's own songs in the editor (the row's pencil). */
   onEditSong?: (song: LibrarySong) => void;
   onNewSong?: () => void;
+  /** What the search box starts with, e.g. the `q` of a shared link. */
+  initialQuery?: string;
+  /** Called on every keystroke in the search box, so the page can mirror the query elsewhere. */
+  onQueryChange?: (query: string) => void;
 }
 
 export function Library({
@@ -320,6 +324,8 @@ export function Library({
   onOpenSong,
   onEditSong,
   onNewSong,
+  initialQuery = "",
+  onQueryChange,
 }: LibraryProps) {
   const { session, requireAuthentication } = useAuthRequired();
   const userId = session?.user.id;
@@ -329,7 +335,7 @@ export function Library({
   // Mobile is read-only by product rule: no editing or deleting from the index, even for the
   // user's own songs. Favoriting stays available on mobile and must not be gated here.
   const isMobile = useIsMobile();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [desktopOnlyNoticeOpen, setDesktopOnlyNoticeOpen] = useState(false);
   const [songPendingDelete, setSongPendingDelete] =
     useState<LibrarySong | null>(null);
@@ -594,7 +600,10 @@ export function Library({
             className="library-search__input"
             placeholder="Buscar canciones o autores"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              onQueryChange?.(event.target.value);
+            }}
             aria-label="Buscar canciones o autores"
           />
         </label>

@@ -1,6 +1,9 @@
+import { Fragment } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { listArtistNames } from "../../data";
 import { artistQueryKeys } from "../../data/queryKeys";
+import { librarySearchPath } from "../songPaths";
 import { useIsMobile } from "../useIsMobile";
 import { ChipsInput } from "./ChipsInput";
 
@@ -16,7 +19,8 @@ interface SongPerformersProps {
  * The song's footer line about who performs it, below the video. Only an admin editing their own
  * song on desktop gets the chips input (songs by non-admins are never listed or indexed, so their
  * performers would serve no one); everyone else, including that admin on mobile, reads
- * "Interpretada por: …", and nothing at all when there are none.
+ * "Interpretada por: …", and nothing at all when there are none. Each name there links to the index
+ * searching for it, so the reader finds the rest of that performer's songs.
  *
  * The mobile gate is a render-level `useIsMobile` check rather than CSS, per AGENTS.md: hiding the
  * input would still leave it focusable and its handlers live.
@@ -34,7 +38,17 @@ export function SongPerformers({
   }
 
   if (performers.length === 0) return null;
-  return <p className="song-performers">Interpretada por: {performers.join(", ")}</p>;
+  return (
+    <p className="song-performers">
+      Interpretada por:{" "}
+      {performers.map((performer, index) => (
+        <Fragment key={performer}>
+          {index > 0 && ", "}
+          <Link href={librarySearchPath(performer)}>{performer}</Link>
+        </Fragment>
+      ))}
+    </p>
+  );
 }
 
 /** The chips input, suggesting known performers. Only mounted for the owning admin on desktop, so

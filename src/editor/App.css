@@ -549,6 +549,15 @@
   color: var(--muted);
 }
 
+.song-performers a {
+  color: inherit;
+  text-underline-offset: 0.15em;
+}
+
+.song-performers a:hover {
+  color: var(--accent);
+}
+
 .song {
   display: flex;
   flex-direction: column;

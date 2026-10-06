@@ -34,6 +34,7 @@ function renderFooter({
 }
 
 const performersInput = () => screen.queryByRole("combobox", { name: "Intérpretes" });
+const legend = () => screen.getByText(/Interpretada por:/);
 
 describe("SongPerformers", () => {
   beforeEach(() => {
@@ -89,7 +90,7 @@ describe("SongPerformers", () => {
     renderFooter({ viewerIsAdmin: false, viewerOwnsSong: true });
 
     expect(performersInput()).not.toBeInTheDocument();
-    expect(screen.getByText("Interpretada por: Tamara Castro, Soledad")).toBeInTheDocument();
+    expect(legend()).toHaveTextContent("Interpretada por: Tamara Castro, Soledad");
   });
 
   it("shows an admin only the legend on someone else's song", () => {
@@ -97,7 +98,7 @@ describe("SongPerformers", () => {
     renderFooter({ viewerIsAdmin: true, viewerOwnsSong: false });
 
     expect(performersInput()).not.toBeInTheDocument();
-    expect(screen.getByText("Interpretada por: Tamara Castro, Soledad")).toBeInTheDocument();
+    expect(legend()).toHaveTextContent("Interpretada por: Tamara Castro, Soledad");
   });
 
   it("shows the owning admin only the legend on mobile", () => {
@@ -106,7 +107,7 @@ describe("SongPerformers", () => {
 
     expect(performersInput()).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Quitar Soledad" })).not.toBeInTheDocument();
-    expect(screen.getByText("Interpretada por: Tamara Castro, Soledad")).toBeInTheDocument();
+    expect(legend()).toHaveTextContent("Interpretada por: Tamara Castro, Soledad");
   });
 
   it("shows nothing to a reader when the song has no performers", () => {
@@ -124,8 +125,17 @@ describe("SongPerformers", () => {
       viewerOwnsSong: false,
     });
 
-    expect(
-      screen.getByText("Interpretada por: Soledad, Los Chalchaleros, Tamara Castro"),
-    ).toBeInTheDocument();
+    expect(legend()).toHaveTextContent("Interpretada por: Soledad, Los Chalchaleros, Tamara Castro");
+  });
+
+  it("links each performer to the index searching for them", () => {
+    mockMatchMedia(false);
+    renderFooter({ performers: ["Tamara Castro", "Soledad"], viewerIsAdmin: false, viewerOwnsSong: false });
+
+    expect(screen.getByRole("link", { name: "Tamara Castro" })).toHaveAttribute(
+      "href",
+      "/?q=Tamara+Castro",
+    );
+    expect(screen.getByRole("link", { name: "Soledad" })).toHaveAttribute("href", "/?q=Soledad");
   });
 });
