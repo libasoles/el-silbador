@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { MelodyTutorialExample } from "./MelodyTutorialExample";
 import { BisTabDemo, MoveChordDemo, PitchDragDemo } from "./EditorFeatureDemos";
 import "./EditorFeatureShowcase.css";
@@ -49,6 +50,9 @@ export function EditorFeatureShowcase() {
           </li>
         ))}
       </ul>
+      <p className="editor-feature-showcase__more">
+        ¿Querés saber más? Podés ver los tutoriales <Link href="/articulos">acá</Link>.
+      </p>
     </section>
   );
 }

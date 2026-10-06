@@ -28,8 +28,10 @@ export function DesktopOnlyDialog({
       className="desktop-only-dialog"
       fullScreen
     >
-      <img className="desktop-only-dialog__mark" src="/03-neutral.svg" alt="" />
-      <p className="dialog__description">{description}</p>
+      <div className="desktop-only-dialog__message">
+        <img className="desktop-only-dialog__mark" src="/03-neutral.svg" alt="" />
+        <p className="dialog__description">{description}</p>
+      </div>
       {children}
     </Dialog>
   );
