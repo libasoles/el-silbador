@@ -89,6 +89,39 @@ function swallowNextClick() {
   window.setTimeout(() => document.removeEventListener("click", swallow, { capture: true }), 400);
 }
 
+function isEditable(target: EventTarget | null): target is HTMLElement {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      target.closest("[contenteditable]")?.getAttribute("contenteditable") === "true" ||
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement)
+  );
+}
+
+/** Inside an editable song, the browser answers a long press by putting a caret in the text, and
+ *  the keyboard it opens resizes the page under the finger. Only a tap may open it: while a press
+ *  is held, and for a moment after a drag ends, anything editable that takes focus loses it. */
+function keepKeyboardClosed() {
+  const refuse = ({ target }: FocusEvent) => {
+    // Once the focus has settled: the editor's own focus handler would otherwise take it back.
+    if (isEditable(target)) queueMicrotask(() => target.blur());
+  };
+  document.addEventListener("focusin", refuse, { capture: true });
+  return {
+    /** A press that becomes a drag closes a keyboard it opened before the drag began. */
+    closeOpened(focusedBefore: Element | null) {
+      const focused = document.activeElement;
+      if (focused !== focusedBefore && isEditable(focused)) focused.blur();
+    },
+    release(lingerMs = 0) {
+      const stop = () => document.removeEventListener("focusin", refuse, { capture: true });
+      if (lingerMs > 0) window.setTimeout(stop, lingerMs);
+      else stop();
+    },
+  };
+}
+
 /**
  * Lets a finger drag `source` the way a mouse drags a `draggable` element. Phones don't run
  * HTML5 drag and drop for touch, so a long press picks the element up and the usual drag events
@@ -110,6 +143,8 @@ export function enableTouchDrag(source: HTMLElement): () => void {
     let dropAllowed = false;
     let ghost: ReturnType<typeof createGhost> | null = null;
     const dataTransfer = createDataTransfer();
+    const focusedBefore = document.activeElement;
+    const keyboard = keepKeyboardClosed();
     pending = true;
 
     const hold = window.setTimeout(() => {
@@ -117,6 +152,7 @@ export function enableTouchDrag(source: HTMLElement): () => void {
       const dragStart = dispatchDragEvent(source, "dragstart", start, dataTransfer);
       if (dragStart.defaultPrevented) return finish();
       active = true;
+      keyboard.closeOpened(focusedBefore);
       ghost = createGhost(source);
       ghost.moveTo(start);
       navigator.vibrate?.(10);
@@ -169,6 +205,7 @@ export function enableTouchDrag(source: HTMLElement): () => void {
 
     function finish() {
       window.clearTimeout(hold);
+      keyboard.release(active ? 400 : 0);
       pending = false;
       active = false;
       ghost?.remove();
