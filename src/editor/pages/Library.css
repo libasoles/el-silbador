@@ -333,6 +333,16 @@
   }
 }
 
+/* Edit and delete sit together as one group: the buttons' own padding already separates their
+   icons, so the row's wider gap only applies between the group and the rest of the row. */
+.library-row__actions {
+  flex: none;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
 .library-row__edit,
 .library-row__delete {
   flex: none;

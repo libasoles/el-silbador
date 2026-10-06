@@ -170,29 +170,33 @@ function SongRow({
           </button>
         </IconButtonTooltip>
       )}
-      {showEdit && (
-        <IconButtonTooltip tooltip="Editar canción">
-          <button
-            type="button"
-            className="library-row__edit"
-            aria-label="Editar canción"
-            onClick={onEdit}
-          >
-            <EditIcon size={18} strokeWidth={1.6} />
-          </button>
-        </IconButtonTooltip>
-      )}
-      {showDelete && (
-        <IconButtonTooltip tooltip="Eliminar canción">
-          <button
-            type="button"
-            className="library-row__delete"
-            aria-label="Eliminar canción"
-            onClick={onDelete}
-          >
-            <TrashIcon size={18} strokeWidth={1.6} />
-          </button>
-        </IconButtonTooltip>
+      {(showEdit || showDelete) && (
+        <div className="library-row__actions">
+          {showEdit && (
+            <IconButtonTooltip tooltip="Editar canción">
+              <button
+                type="button"
+                className="library-row__edit"
+                aria-label="Editar canción"
+                onClick={onEdit}
+              >
+                <EditIcon size={18} strokeWidth={1.6} />
+              </button>
+            </IconButtonTooltip>
+          )}
+          {showDelete && (
+            <IconButtonTooltip tooltip="Eliminar canción">
+              <button
+                type="button"
+                className="library-row__delete"
+                aria-label="Eliminar canción"
+                onClick={onDelete}
+              >
+                <TrashIcon size={18} strokeWidth={1.6} />
+              </button>
+            </IconButtonTooltip>
+          )}
+        </div>
       )}
     </li>
   );
