@@ -32,6 +32,7 @@ import { trackEvent } from "./analytics";
 import { useAuthRequired } from "./authRequiredContext";
 import type { ConfirmDialog as ConfirmDialogComponent } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
+import type { IconTooltipSide } from "./components/iconTooltipPlacement";
 import { ChordDragTutorialExample } from "./components/ChordDragTutorialExample";
 import { MelodyTutorialExample } from "./components/MelodyTutorialExample";
 import { SongPerformers } from "./components/SongPerformers";
@@ -209,12 +210,14 @@ interface TrackToggleButtonProps {
   track: TrackDef;
   cells: CellsByTrack;
   onToggle: () => void;
+  tooltipSide?: IconTooltipSide;
 }
 
 export function TrackToggleButton({
   track,
   cells,
   onToggle,
+  tooltipSide,
 }: TrackToggleButtonProps) {
   const hasContent =
     track.id === "chordNotes"
@@ -230,7 +233,10 @@ export function TrackToggleButton({
       ? "No hay notas que mostrar"
       : `No hay ${track.label.toLowerCase()} que mostrar`;
   return (
-    <IconButtonTooltip tooltip={disabled ? disabledTooltip : track.label}>
+    <IconButtonTooltip
+      tooltip={disabled ? disabledTooltip : track.label}
+      side={tooltipSide}
+    >
       <button
         type="button"
         className="track-toolbar__toggle"
@@ -250,6 +256,7 @@ interface UnderlineToggleButtonProps {
   /** No lyrics yet: there is nothing to underline or to write notes under. */
   disabled: boolean;
   onToggle: () => void;
+  tooltipSide?: IconTooltipSide;
 }
 
 /** Shows or hides the line under each syllable, along with the melody notes written below it. */
@@ -257,9 +264,11 @@ export function UnderlineToggleButton({
   pressed,
   disabled,
   onToggle,
+  tooltipSide,
 }: UnderlineToggleButtonProps) {
   return (
     <IconButtonTooltip
+      side={tooltipSide}
       tooltip={
         disabled
           ? "No hay letra que subrayar"
@@ -1200,6 +1209,7 @@ function App({
                 }
                 placeholder={SONG_PLACEHOLDER}
                 canEdit={canEditOnThisDevice}
+                autoFocus
                 onSetCellText={actions.setCellText}
                 onSetChordVariant={actions.setChordVariant}
                 onToggleMerge={actions.toggleSyllableMerge}

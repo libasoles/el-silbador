@@ -137,6 +137,9 @@ function LiveChordEditor({
   const { state, actions } = useEditor(initialContent, isMobile);
   const hasTrackToggles = tools.includes("trackToggles");
   const hasSideTools = hasTrackToggles || tools.includes("underline");
+  // On a phone the tools are a row above the song: the hint goes above them, where the finger
+  // pressing the button doesn't cover it and the song's chips don't paint over it.
+  const toolTooltipSide = isMobile ? "top" : undefined;
 
   // The underline (and with it the melody row) is a view setting the editor loads switched off
   // on mobile and whenever a song has no notes yet; these demos are about that row.
@@ -174,6 +177,7 @@ function LiveChordEditor({
                     onToggle={() =>
                       actions.setTrackVisibility(track.id, !track.visible)
                     }
+                    tooltipSide={toolTooltipSide}
                   />
                 ))
             : null}
@@ -182,6 +186,7 @@ function LiveChordEditor({
               pressed={state.showUnderline}
               disabled={state.lyricsText.trim() === ""}
               onToggle={toggleUnderline}
+              tooltipSide={toolTooltipSide}
             />
           ) : null}
           {tools.includes("transpose") ? (

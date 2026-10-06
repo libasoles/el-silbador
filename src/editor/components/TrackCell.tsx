@@ -44,6 +44,9 @@ interface TrackCellProps {
    *  The drop is then accepted anywhere on the page so it takes effect at release, instead of
    *  waiting out the browser's snap-back animation that precedes `dragend` for a refused drop. */
   acceptDropAnywhere?: boolean;
+  /** For the melody notes, always lowercase: keeps phone keyboards from capitalizing the first
+   *  letter they type. */
+  lowercase?: boolean;
 }
 
 /**
@@ -75,6 +78,7 @@ export function TrackCell({
   onChangeChordVariant,
   revealIndex,
   acceptDropAnywhere = false,
+  lowercase = false,
 }: TrackCellProps) {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -326,6 +330,7 @@ export function TrackCell({
         registerRef(el);
       }}
       autoFocus
+      autoCapitalize={lowercase ? "none" : undefined}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       onBlur={() => setEditing(false)}

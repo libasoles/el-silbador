@@ -214,6 +214,19 @@ describe("cell tracks (pista Acordes)", () => {
     expect(getCell(state.cells, "chords", post)).toBe("F");
   });
 
+  it("writes melody notes in lowercase, leaving chords as typed", () => {
+    const [, pre] = firstLineSlots;
+
+    state = reduce(
+      state,
+      { type: "setCellText", trackId: "vocalNotes", slotId: pre, text: "Sol#" },
+      { type: "setCellText", trackId: "chords", slotId: pre, text: "Am" },
+    );
+
+    expect(getCell(state.cells, "vocalNotes", pre)).toBe("sol#");
+    expect(getCell(state.cells, "chords", pre)).toBe("Am");
+  });
+
   it("moveCellText moves text and empties the origin", () => {
     const [, pre, , , post] = firstLineSlots;
     state = reduce(state, { type: "setCellText", trackId: "chords", slotId: pre, text: "G7" });
@@ -342,13 +355,13 @@ describe("second track + visibility", () => {
     state = reduce(
       state,
       { type: "setCellText", trackId: "chords", slotId: slot, text: "G7" },
-      { type: "setCellText", trackId: "vocalNotes", slotId: slot, text: "Do" },
+      { type: "setCellText", trackId: "vocalNotes", slotId: slot, text: "do" },
       { type: "setTrackVisibility", trackId: "chords", visible: false },
     );
 
     expect(state.tracks.find((t) => t.id === "chords")?.visible).toBe(false);
     expect(getCell(state.cells, "chords", slot)).toBe("G7");
-    expect(getCell(state.cells, "vocalNotes", slot)).toBe("Do");
+    expect(getCell(state.cells, "vocalNotes", slot)).toBe("do");
   });
 });
 

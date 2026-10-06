@@ -205,7 +205,14 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
       return applyToggleSyllableMerge(state, action.lineId, action.aId, action.bId);
 
     case "setCellText":
-      return applySetCellText(state, action.trackId, action.slotId, action.text);
+      return applySetCellText(
+        state,
+        action.trackId,
+        action.slotId,
+        // Melody notes are written in lowercase solfège ("do", "sol#"), whatever the keyboard
+        // capitalizes on its own.
+        action.trackId === "vocalNotes" ? action.text.toLowerCase() : action.text,
+      );
 
     case "moveCellText":
       return applyMoveCellText(state, action.trackId, action.fromSlotId, action.toSlotId);

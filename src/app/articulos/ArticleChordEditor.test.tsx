@@ -43,6 +43,84 @@ describe("ArticleChordEditor", () => {
     expect(screen.queryByText(/solo lectura/)).not.toBeInTheDocument();
   });
 
+  it("leaves the lyrics unfocused on arrival, so a phone's keyboard stays closed", () => {
+    mockMatchMedia(true);
+    renderEditor();
+
+    expect(screen.getByLabelText("Letra de la canción")).not.toHaveFocus();
+  });
+
+  it("types a phone keyboard's composed word once", () => {
+    mockMatchMedia(true);
+    renderEditor("hola");
+    const lyrics = screen.getByLabelText("Letra de la canción");
+    const text = screen.getByText("la").firstChild as Text;
+    lyrics.focus();
+    window.getSelection()!.collapse(text, text.length);
+
+    fireEvent.compositionStart(lyrics);
+    for (const composed of ["s", "se"]) {
+      const beforeInput = new InputEvent("beforeinput", {
+        bubbles: true,
+        cancelable: false,
+        inputType: "insertCompositionText",
+        data: composed,
+        isComposing: true,
+      });
+      fireEvent(lyrics, beforeInput);
+      // The browser writes the composition into the DOM itself.
+      text.data = "la" + composed;
+      fireEvent.input(lyrics, { isComposing: true });
+    }
+    fireEvent.compositionEnd(lyrics, { data: "se" });
+
+    expect(lyrics.querySelector("[data-lyrics-line]")).toHaveTextContent(
+      /^holase$/,
+    );
+  });
+
+  it("reads a keyboard's multi-line paste as chords over the lyrics", () => {
+    mockMatchMedia(true);
+    const { container } = renderEditor("");
+    const lyrics = screen.getByLabelText("Letra de la canción");
+    lyrics.focus();
+    window
+      .getSelection()!
+      .collapse(lyrics.querySelector("[data-lyrics-line]")!, 0);
+
+    fireEvent(
+      lyrics,
+      new InputEvent("beforeinput", {
+        bubbles: true,
+        cancelable: true,
+        inputType: "insertText",
+        data: "A       D\nhola amor",
+      }),
+    );
+
+    const lines = [...lyrics.querySelectorAll("[data-lyrics-line]")];
+    expect(lines.map((line) => line.textContent)).toEqual(["holaamor"]);
+    expect(chordChip(container, "A")).toBeDefined();
+    expect(chordChip(container, "D")).toBeDefined();
+  });
+
+  it("shows the track toggles' hints above them on mobile", () => {
+    mockMatchMedia(true);
+    render(
+      <ArticleChordEditor
+        sheet={EXAMPLE_LINE}
+        label="Editor de ejemplo"
+        tools={["trackToggles", "underline"]}
+      />,
+    );
+
+    const toggle = screen.getByRole("button", { name: "Acordes" });
+    expect(toggle.closest(".icon-button-tooltip")).toHaveAttribute(
+      "data-tooltip-side",
+      "top",
+    );
+  });
+
   it("opens a chord for editing with a double tap", () => {
     mockMatchMedia(true);
     const { container } = renderEditor();

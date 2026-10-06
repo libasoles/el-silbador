@@ -30,4 +30,10 @@ describe("getIconTooltipPlacement", () => {
       getIconTooltipPlacement({ left: 150, right: 180, width: 30 }, 60, viewport, "bottom"),
     ).toEqual({ side: "bottom", shift: 0 });
   });
+
+  it("keeps an above-preferring tooltip above, slid back on screen", () => {
+    expect(
+      getIconTooltipPlacement({ left: 16, right: 46, width: 30 }, 120, viewport, "top"),
+    ).toEqual({ side: "top", shift: 37 });
+  });
 });
