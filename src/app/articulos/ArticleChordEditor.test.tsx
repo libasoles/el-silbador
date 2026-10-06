@@ -127,6 +127,27 @@ describe("ArticleChordEditor", () => {
     expect(otherLine).toBeInTheDocument();
   });
 
+  it("puts the caret on the line a finger taps between two words, not at the start of the song", () => {
+    mockMatchMedia(true);
+    renderEditor("hola\nmi amor");
+    const lyrics = focusableLyrics();
+    const gap = screen.getByRole("button", { name: 'Unir sílabas "mi" y "a"' });
+    // Not in jsdom.
+    lyrics.setPointerCapture = () => {};
+
+    fireEvent.pointerDown(gap, { button: 0, pointerId: 1 });
+    lyrics.focus();
+    fireEvent.click(gap);
+
+    const lines = [...lyrics.querySelectorAll("[data-lyrics-line]")];
+    const anchor = window.getSelection()!.anchorNode!;
+    const caretLine = (anchor instanceof Element ? anchor : anchor.parentElement)!.closest(
+      "[data-lyrics-line]",
+    );
+    expect(lines.indexOf(caretLine!)).toBe(1);
+    expect(gap).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("reads a keyboard's multi-line paste as chords over the lyrics", () => {
     mockMatchMedia(true);
     const { container } = renderEditor("");

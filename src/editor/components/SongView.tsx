@@ -348,6 +348,10 @@ function walkAndPlaceCaret(nodes: Node[], remaining: number): number {
     }
     if (!(node instanceof HTMLElement)) continue;
     if (node.hasAttribute("data-empty-line-caret")) continue;
+    // A caret inside a non-editable element with no text of its own (a line-edge drop zone, a gap
+    // inside a word) can't be typed at.
+    if (node.contentEditable === "false" && !node.textContent && !node.classList.contains("syllable-gap--word-boundary"))
+      continue;
     if (
       node.tagName === "BR" ||
       node.classList.contains("syllable-gap--word-boundary")
@@ -724,10 +728,9 @@ export function SongView({
   }
 
   function isDocumentControl(target: EventTarget | null) {
-    return (
-      target instanceof HTMLElement &&
-      target.closest("button, input, select, textarea, a[href]") !== null
-    );
+    if (!(target instanceof HTMLElement)) return false;
+    const control = target.closest("button, input, select, textarea, a[href]");
+    return control !== null && !control.hasAttribute("data-caret-surface");
   }
 
   /** Replaces `[start, end)` of the document text with `replacement`, entirely through our own
@@ -1028,7 +1031,10 @@ export function SongView({
           if (event.target !== event.currentTarget) return;
           // A pointerdown on a passive annotation surface has already chosen an exact lyric
           // position. Do not briefly manufacture the default first-line caret before restoring it.
-          if (!selectionGesture.current?.managed) focusDocument();
+          // Nor while a press is under way at all: a phone focuses the document before it places
+          // the caret where the finger is, and the caret the press didn't place yet would be put
+          // at the start of the song. The click that ends the press settles it (see `onClick`).
+          if (!selectionGesture.current) focusDocument();
           setIsFocused(true);
           setCaretLineIndex(
             captureCaret(event.currentTarget)?.lineIndex ?? null,
