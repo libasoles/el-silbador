@@ -73,6 +73,9 @@ function SyllableGapButton({
         (slotDropTarget ? " syllable-gap--slot-drop-target" : "")
       }
       aria-pressed={merged}
+      // With nothing to join or separate, a tap here is a tap between two syllables: it places
+      // the lyric caret, like the text around it (see `isDocumentControl` in SongView).
+      data-caret-surface={disabled || undefined}
       aria-label={merged ? `Separar sílabas "${fromText}" y "${toText}"` : `Unir sílabas "${fromText}" y "${toText}"`}
       style={
         {
@@ -82,6 +85,7 @@ function SyllableGapButton({
         } as React.CSSProperties
       }
       onClick={(e) => {
+        if (disabled) return;
         e.stopPropagation();
         onToggle();
       }}
