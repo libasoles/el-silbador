@@ -695,7 +695,7 @@ export function Library({
         <span>
           podés ver tutoriales <Link href="/tutoriales">acá</Link>
         </span>
-        <span>v{appVersion} alfa</span>
+        <span>v{appVersion} beta</span>
       </footer>
 
       <DesktopOnlyDialog
