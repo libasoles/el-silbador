@@ -88,6 +88,7 @@ export function TrackRow({
               cellRefs.current[index] = el;
             }}
             showChordDiagram={trackId === "chords"}
+            lowercase={trackId === "vocalNotes"}
             chordVariantIndex={chordVariants[slotId] ?? 0}
             onChangeChordVariant={(nextIndex) => onSetChordVariant(slotId, nextIndex)}
             draggable={value.length > 0 && !readOnly}

@@ -118,6 +118,8 @@ input {
   opacity: 0;
   pointer-events: none;
   transition: opacity 120ms ease;
+  /* Above the neighbouring buttons and the song's chips, which are positioned too. */
+  z-index: 30;
 }
 
 /* IconButtonTooltip picks the side: its preferred one, or another when that runs off screen. */
@@ -128,6 +130,14 @@ input {
 
 .icon-button-tooltip[data-tooltip-side="bottom"]::after {
   top: calc(100% + 0.6rem);
+  right: auto;
+  left: 50%;
+  transform: translateX(calc(-50% + var(--tooltip-shift, 0px)));
+}
+
+.icon-button-tooltip[data-tooltip-side="top"]::after {
+  top: auto;
+  bottom: calc(100% + 0.6rem);
   right: auto;
   left: 50%;
   transform: translateX(calc(-50% + var(--tooltip-shift, 0px)));

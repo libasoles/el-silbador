@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
 import { columnForSlot, getLineCellSlots } from "../../core/model";
@@ -39,6 +39,10 @@ interface SongViewProps {
    *  it) — the whole document becomes non-editable, and every track cell and syllable-join
    *  toggle underneath it follows suit. */
   canEdit: boolean;
+  /** Puts the caret in the document as soon as it mounts. Only for the editor page itself: on a
+   *  page that merely embeds an editor (an article), focusing it would open a phone's keyboard
+   *  on arrival. */
+  autoFocus?: boolean;
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onSetChordVariant: (slotId: string, index: number) => void;
   onToggleMerge: (lineId: string, aId: string, bId: string) => void;
@@ -518,6 +522,7 @@ export function SongView({
   showHelp = true,
   placeholder,
   canEdit,
+  autoFocus = false,
   onSetCellText,
   onSetChordVariant,
   onToggleMerge,
@@ -540,11 +545,20 @@ export function SongView({
   // Some browsers still mutate the DOM themselves after `beforeinput`'s `preventDefault()` —
   // notably Chromium deleting a selection that spans one of the non-editable syllable-gap
   // buttons — firing a native `input` event on top of it. `handleBeforeInput` has already applied
-  // that edit through the document model by then, so letting `onInput`'s `commit()` run again
+  // that edit through the document model by then, so letting `onInput`'s `commitNativeEdit()` run again
   // would re-read a DOM the browser just corrupted and re-apply the same edit on top of it,
   // producing duplicated text. Skip exactly the one `input` event that follows a handled
   // `beforeinput`.
   const suppressNextInput = useRef(false);
+  // Phone keyboards type through IME composition, whose `beforeinput` events can't be cancelled:
+  // the browser writes the composed text into the DOM itself. Those edits are read back from the
+  // DOM once the composition ends (see `commitNativeEdit`). Where the selection stood when it
+  // began, so a multi-line insertion (a keyboard's clipboard paste) can be parsed as a chord sheet.
+  const composing = useRef(false);
+  const compositionStart = useRef<{ text: string; start: number; end: number } | null>(null);
+  // Bumped after the browser edited the DOM itself, to rebuild the lines from state: any stray
+  // nodes the browser left behind would otherwise stay on screen as duplicated text.
+  const [domGeneration, setDomGeneration] = useState(0);
   const hasVisibleAnnotations = tracks.some(
     (track) => track.visible && track.id !== "chordNotes",
   );
@@ -629,11 +643,45 @@ export function SongView({
     setDropTarget(null);
   }
 
-  function commit() {
+  /** Reads back an edit the browser made to the DOM on its own, then rebuilds the lines from the
+      resulting state. */
+  function commitNativeEdit() {
     const root = rootRef.current;
     if (!root) return;
     pendingCaret.current = captureCaret(root);
     onReconcileLyricsText(readDocument(root));
+    setDomGeneration((generation) => generation + 1);
+  }
+
+  /** The current selection as `[start, end)` offsets into the document text. */
+  function selectedRange(root: HTMLElement) {
+    const range = captureSelectionRange(root);
+    if (!range) return null;
+    const text = readDocument(root);
+    const lines = text.split("\n");
+    let start = flatOffset(lines, range.start);
+    let end = flatOffset(lines, range.end);
+    if (start > end) [start, end] = [end, start];
+    return { text, start, end };
+  }
+
+  /** Replaces `[start, end)` of `text` with pasted text. Chords written on their own line above
+      a lyric line become chords over its syllables. */
+  function insertChordSheet(text: string, start: number, end: number, pasted: string) {
+    const { lyricsText, placements } = parseChordSheet(
+      pasted.replace(/\r\n?/g, "\n"),
+    );
+    const newText = text.slice(0, start) + lyricsText + text.slice(end);
+    pendingCaret.current = positionFromFlatOffset(
+      newText.split("\n"),
+      start + lyricsText.length,
+    );
+    if (placements.length > 0) {
+      const startPosition = positionFromFlatOffset(newText.split("\n"), start);
+      onPasteText(newText, startPosition.lineIndex, startPosition.offset, placements);
+    } else {
+      onReconcileLyricsText(newText);
+    }
   }
 
   /** A click on the document's empty space can leave the browser selection on the editing host
@@ -687,20 +735,40 @@ export function SongView({
     if (!canEdit) return;
     if ((event.target as HTMLElement).closest("[data-track]")) return;
     const inputType = event.inputType;
+    // A composing keyboard's text, or anything else the browser won't let us cancel, is left to
+    // the browser; `commitNativeEdit` reads it back afterwards. Writing it ourselves as well
+    // would type it twice (and a composition's `data` is the whole word so far, not one key).
+    if (
+      !event.cancelable ||
+      event.isComposing ||
+      inputType === "insertCompositionText"
+    )
+      return;
 
     const root = rootRef.current;
     if (!root) return;
     const selection = window.getSelection();
-    const range = captureSelectionRange(root);
-    if (!selection || !range) return;
+    const selected = selectedRange(root);
+    if (!selection || !selected) return;
 
     event.preventDefault();
 
-    const text = readDocument(root);
-    const lines = text.split("\n");
-    let start = flatOffset(lines, range.start);
-    let end = flatOffset(lines, range.end);
-    if (start > end) [start, end] = [end, start];
+    const { text } = selected;
+    let { start, end } = selected;
+
+    // Phone keyboards paste their clipboard as typed text, not as a paste event. More than one
+    // line is a paste all the same, chords included.
+    const inserted =
+      inputType === "insertFromPaste" || inputType === "insertFromDrop"
+        ? (event.dataTransfer?.getData("text/plain") ?? "")
+        : NATIVE_FAST_PATH_TYPES.has(inputType)
+          ? (event.data ?? event.dataTransfer?.getData("text/plain") ?? "")
+          : "";
+    if (/[\r\n]/.test(inserted)) {
+      suppressNextInput.current = true;
+      insertChordSheet(text, start, end, inserted);
+      return;
+    }
 
     if (start === end) {
       // Collapsed selection: only a handful of input types tell us anything can be deleted or
@@ -737,8 +805,9 @@ export function SongView({
         case "insertParagraph":
         case "insertLineBreak":
         case "insertText":
-        case "insertCompositionText":
         case "insertReplacementText":
+        case "insertFromPaste":
+        case "insertFromDrop":
           break;
         default:
           return;
@@ -748,9 +817,11 @@ export function SongView({
     const replacement =
       inputType === "insertParagraph" || inputType === "insertLineBreak"
         ? "\n"
-        : NATIVE_FAST_PATH_TYPES.has(inputType)
-          ? (event.data ?? "")
-          : "";
+        : NATIVE_FAST_PATH_TYPES.has(inputType) ||
+          inputType === "insertFromPaste" ||
+          inputType === "insertFromDrop"
+        ? inserted
+        : "";
     suppressNextInput.current = true;
     replaceRange(start, end, replacement);
   }
@@ -760,7 +831,7 @@ export function SongView({
   // "select" the atomic button before a second press moves past it (showing an oversized,
   // misplaced caret in between), and ArrowUp/Down have no real line boxes to walk so they drift
   // sideways instead. We sidestep all of that by driving the caret ourselves from the same
-  // text-offset model commit()/restoreCaret already use, rather than letting the browser traverse
+  // text-offset model commitNativeEdit()/restoreCaret already use, rather than letting the browser traverse
   // the DOM.
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     if (event.key === "Tab") {
@@ -870,12 +941,12 @@ export function SongView({
     const caret = pendingCaret.current;
     if (root && caret) restoreCaret(root, caret);
     pendingCaret.current = null;
-  }, [song]);
+  }, [song, domGeneration]);
 
   // Land the caret in the editor as soon as the page loads, so a new user can start typing
   // immediately instead of having to click into the document first.
   useLayoutEffect(() => {
-    focusDocument();
+    if (autoFocus) focusDocument();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1046,7 +1117,30 @@ export function SongView({
             suppressNextInput.current = false;
             return;
           }
-          commit();
+          // Re-rendering mid-composition would pull the word out from under the keyboard.
+          if ((event.nativeEvent as InputEvent).isComposing || composing.current)
+            return;
+          commitNativeEdit();
+        }}
+        onCompositionStart={(event) => {
+          if (!canEdit) return;
+          if ((event.target as HTMLElement).closest("[data-track]")) return;
+          const root = rootRef.current;
+          composing.current = true;
+          compositionStart.current = root ? selectedRange(root) : null;
+        }}
+        onCompositionEnd={(event) => {
+          if (!canEdit) return;
+          if ((event.target as HTMLElement).closest("[data-track]")) return;
+          const before = compositionStart.current;
+          composing.current = false;
+          compositionStart.current = null;
+          if (before && /[\r\n]/.test(event.data)) {
+            insertChordSheet(before.text, before.start, before.end, event.data);
+            setDomGeneration((generation) => generation + 1);
+            return;
+          }
+          commitNativeEdit();
         }}
         onKeyDownCapture={handleKeyDown}
         onCopy={(event) => {
@@ -1093,38 +1187,17 @@ export function SongView({
           event.preventDefault();
           const root = rootRef.current;
           if (!root) return;
-          const range = captureSelectionRange(root);
-          if (!range) return;
-          const text = readDocument(root);
-          const lines = text.split("\n");
-          let start = flatOffset(lines, range.start);
-          let end = flatOffset(lines, range.end);
-          if (start > end) [start, end] = [end, start];
-
-          const { lyricsText, placements } = parseChordSheet(
-            event.clipboardData.getData("text/plain").replaceAll("\r\n", "\n"),
+          const selected = selectedRange(root);
+          if (!selected) return;
+          insertChordSheet(
+            selected.text,
+            selected.start,
+            selected.end,
+            event.clipboardData.getData("text/plain"),
           );
-          const newText = text.slice(0, start) + lyricsText + text.slice(end);
-          pendingCaret.current = positionFromFlatOffset(
-            newText.split("\n"),
-            start + lyricsText.length,
-          );
-          if (placements.length > 0) {
-            const startPosition = positionFromFlatOffset(
-              newText.split("\n"),
-              start,
-            );
-            onPasteText(
-              newText,
-              startPosition.lineIndex,
-              startPosition.offset,
-              placements,
-            );
-          } else {
-            onReconcileLyricsText(newText);
-          }
         }}
       >
+        <Fragment key={domGeneration}>
         {song.length === 0 ? (
           <div className="syllable-row document-empty-line" data-lyrics-line>
             <br data-empty-line-caret />
@@ -1161,6 +1234,7 @@ export function SongView({
             onDropCell={handleDropCell}
           />
         ))}
+        </Fragment>
       </div>
       {song.length === 0 && placeholder ? (
         <div className="song-placeholder" aria-hidden="true">

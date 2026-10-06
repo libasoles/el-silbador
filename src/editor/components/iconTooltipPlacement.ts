@@ -2,11 +2,11 @@
 const GAP = 10;
 const VIEWPORT_MARGIN = 8;
 
-export type IconTooltipSide = "left" | "right" | "bottom";
+export type IconTooltipSide = "left" | "right" | "top" | "bottom";
 
 /** The side of an icon button its tooltip opens on: the preferred one when it fits, else the
- *  opposite one, else below. Below, `shift` is how far to slide the tooltip from centered so it
- *  stays on screen. */
+ *  opposite one, else below. Above or below, `shift` is how far to slide the tooltip from
+ *  centered so it stays on screen. */
 export function getIconTooltipPlacement(
   buttonRect: Pick<DOMRect, "left" | "right" | "width">,
   tooltipWidth: number,
@@ -18,7 +18,7 @@ export function getIconTooltipPlacement(
     left: buttonRect.left >= needed,
     right: viewport.width - buttonRect.right >= needed,
   };
-  if (preferred !== "bottom") {
+  if (preferred === "left" || preferred === "right") {
     const opposite = preferred === "left" ? "right" : "left";
     if (fits[preferred]) return { side: preferred, shift: 0 };
     if (fits[opposite]) return { side: opposite, shift: 0 };
@@ -29,5 +29,5 @@ export function getIconTooltipPlacement(
     Math.max(centered, VIEWPORT_MARGIN),
     viewport.width - tooltipWidth - VIEWPORT_MARGIN,
   );
-  return { side: "bottom", shift: onScreen - centered };
+  return { side: preferred === "top" ? "top" : "bottom", shift: onScreen - centered };
 }
