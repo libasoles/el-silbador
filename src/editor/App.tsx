@@ -78,19 +78,20 @@ import {
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
 
+/* <p>
+  También podés pegar el texto con los acordes ya incluidos, ubicados
+  arriba de la línea de letra que les corresponde, y El Silbador los va a
+  detectar solo. Por ejemplo:
+</p>
+<pre>
+  {
+    "    Bm         B7    Em\nPor mas que la dicha busco\nA7     D\nVivo penando"
+  }
+</pre> */
+
 const SONG_PLACEHOLDER = (
   <>
     <p>Escribí o pegá la letra de una canción para empezar.</p>
-    <p>
-      También podés pegar el texto con los acordes ya incluidos, ubicados
-      arriba de la línea de letra que les corresponde, y El Silbador los va a
-      detectar solo. Por ejemplo:
-    </p>
-    <pre>
-      {
-        "    Bm         B7    Em\nPor mas que la dicha busco\nA7     D\nVivo penando"
-      }
-    </pre>
   </>
 );
 
@@ -148,7 +149,11 @@ function SongViewSkeleton() {
         "Segunda línea, un poco más larga",
         "Tercera línea",
       ].map((line, index) => (
-        <span key={index} aria-hidden="true" className="skeleton song-view-skeleton__line">
+        <span
+          key={index}
+          aria-hidden="true"
+          className="skeleton song-view-skeleton__line"
+        >
           {line}
         </span>
       ))}
@@ -202,7 +207,11 @@ interface TrackToggleButtonProps {
   onToggle: () => void;
 }
 
-export function TrackToggleButton({ track, cells, onToggle }: TrackToggleButtonProps) {
+export function TrackToggleButton({
+  track,
+  cells,
+  onToggle,
+}: TrackToggleButtonProps) {
   const hasContent =
     track.id === "chordNotes"
       ? Object.values(cells.chords ?? {}).some(
@@ -240,10 +249,18 @@ interface UnderlineToggleButtonProps {
 }
 
 /** Shows or hides the line under each syllable, along with the melody notes written below it. */
-export function UnderlineToggleButton({ pressed, disabled, onToggle }: UnderlineToggleButtonProps) {
+export function UnderlineToggleButton({
+  pressed,
+  disabled,
+  onToggle,
+}: UnderlineToggleButtonProps) {
   return (
     <IconButtonTooltip
-      tooltip={disabled ? "No hay letra que subrayar" : "Subrayado y notas de la melodía"}
+      tooltip={
+        disabled
+          ? "No hay letra que subrayar"
+          : "Subrayado y notas de la melodía"
+      }
     >
       <button
         type="button"
@@ -322,7 +339,8 @@ function App({
   // before authenticating would otherwise vanish. Read that local draft only after hydration:
   // the server cannot read localStorage, so using it as the client's initial state would produce
   // different HTML and trigger a hydration error.
-  const [restoredDraft, setRestoredDraft] = useState<ReturnType<typeof readDraft>>(null);
+  const [restoredDraft, setRestoredDraft] =
+    useState<ReturnType<typeof readDraft>>(null);
   // The song-loading effect must see a restored draft immediately, even before React renders the
   // state update, so a synchronous query-cache hit cannot overwrite the fresher local content.
   const restoredDraftRef = useRef<ReturnType<typeof readDraft>>(null);
@@ -334,7 +352,9 @@ function App({
   const setMelodyVisibility = useCallback(
     (visible: boolean) => {
       if (state.showUnderline !== visible) actions.setShowUnderline(visible);
-      const vocalNotes = state.tracks.find((track) => track.id === "vocalNotes");
+      const vocalNotes = state.tracks.find(
+        (track) => track.id === "vocalNotes",
+      );
       if (vocalNotes && vocalNotes.visible !== visible) {
         actions.setTrackVisibility("vocalNotes", visible);
       }
@@ -372,7 +392,8 @@ function App({
     };
 
     document.addEventListener("pointerdown", closeWhenClickingOutside);
-    return () => document.removeEventListener("pointerdown", closeWhenClickingOutside);
+    return () =>
+      document.removeEventListener("pointerdown", closeWhenClickingOutside);
   }, [isMobile, mobileSidebarOpen]);
 
   // Only an existing song (songSlug set, no server-fetched content) has content
@@ -467,7 +488,8 @@ function App({
       if (!isSameSongAlreadyOpen(cachedDetail.id)) {
         // A restored draft only carries `content`, so the performers still come from the song.
         setPerformers(cachedDetail.performers);
-        if (!restoredDraftRef.current) actions.loadContent(cachedDetail.content);
+        if (!restoredDraftRef.current)
+          actions.loadContent(cachedDetail.content);
       }
       setContentLoaded(true);
     }
@@ -653,18 +675,23 @@ function App({
   // A new song stored locally until its author signs in (see PendingSongResumer).
   const isPendingNewSong = Boolean(pendingCreationId) && !songSlug;
   const pendingChanges =
-    autosaveStatus === "dirty" || autosaveStatus === "error" || isPendingNewSong;
+    autosaveStatus === "dirty" ||
+    autosaveStatus === "error" ||
+    isPendingNewSong;
   const saving = autosaveStatus === "saving";
 
   // Once a song has a couple of chords in it, teach that they can be dragged. Detected from the
   // content rather than a toggle, since chords are shown by default. Showing is a no-op once
   // the tutorial has been dismissed.
-  const chordsTrackVisible = state.tracks.find((track) => track.id === "chords")?.visible;
+  const chordsTrackVisible = state.tracks.find(
+    (track) => track.id === "chords",
+  )?.visible;
   const chordCount = Object.values(state.cells.chords ?? {}).filter(
     (text) => text.trim() !== "",
   ).length;
   useEffect(() => {
-    if (!ready || !canEditOnThisDevice || !chordsTrackVisible || chordCount < 2) return;
+    if (!ready || !canEditOnThisDevice || !chordsTrackVisible || chordCount < 2)
+      return;
     showTutorial({
       tutorialId: "chord-drag",
       title: "Podés mover los acordes",
@@ -675,7 +702,13 @@ function App({
         </>
       ),
     });
-  }, [ready, canEditOnThisDevice, chordsTrackVisible, chordCount, showTutorial]);
+  }, [
+    ready,
+    canEditOnThisDevice,
+    chordsTrackVisible,
+    chordCount,
+    showTutorial,
+  ]);
 
   useEffect(() => {
     if (autosaveStatus === "saved")
@@ -885,7 +918,7 @@ function App({
         tutorialId: "chord-notes-shared",
         title: "Notas compartidas",
         description:
-          "Las notas en negrita significan que también están en el acorde anterior.",
+          "Las notas en negrita significan que también existen en el acorde anterior.",
         icon: <NoteStackIcon boldNotes={["sol"]} />,
       });
     }
@@ -1009,7 +1042,9 @@ function App({
                 actions.setCellText("vocalNotes", slotId, text)
               }
               readerOffset={readerMode ? readerTransposeOffset : undefined}
-              onReaderOffsetChange={readerMode ? handleReaderTranspose : undefined}
+              onReaderOffsetChange={
+                readerMode ? handleReaderTranspose : undefined
+              }
             />
           </div>
 

@@ -3,26 +3,59 @@ import { readFileSync } from "node:fs";
 import { shouldPreserveTextSelection } from "./selectionGesture";
 
 const styles = readFileSync(new URL("./App.css", import.meta.url), "utf8");
-const themeStyles = readFileSync(new URL("./theme.css", import.meta.url), "utf8");
-const globalStyles = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const themeStyles = readFileSync(
+  new URL("./theme.css", import.meta.url),
+  "utf8",
+);
+const globalStyles = readFileSync(
+  new URL("../app/globals.css", import.meta.url),
+  "utf8",
+);
 const app = readFileSync(new URL("./App.tsx", import.meta.url), "utf8");
 const iconButtonTooltip = readFileSync(
   new URL("./components/IconButtonTooltip.tsx", import.meta.url),
   "utf8",
 );
-const favicon = readFileSync(new URL("../../public/favicon.svg", import.meta.url), "utf8");
+const favicon = readFileSync(
+  new URL("../../public/favicon.svg", import.meta.url),
+  "utf8",
+);
 const darkFavicon = readFileSync(
   new URL("../../public/favicon-dark.svg", import.meta.url),
   "utf8",
 );
-const layout = readFileSync(new URL("../../src/app/layout.tsx", import.meta.url), "utf8");
-const authModal = readFileSync(new URL("./components/AuthModal.tsx", import.meta.url), "utf8");
-const autosave = readFileSync(new URL("./useAutosave.ts", import.meta.url), "utf8");
-const lineView = readFileSync(new URL("./components/LineView.tsx", import.meta.url), "utf8");
-const trackRow = readFileSync(new URL("./components/TrackRow.tsx", import.meta.url), "utf8");
-const songView = readFileSync(new URL("./components/SongView.tsx", import.meta.url), "utf8");
-const toastStyles = readFileSync(new URL("./components/Toast.css", import.meta.url), "utf8");
-const providers = readFileSync(new URL("../app/providers.tsx", import.meta.url), "utf8");
+const layout = readFileSync(
+  new URL("../../src/app/layout.tsx", import.meta.url),
+  "utf8",
+);
+const authModal = readFileSync(
+  new URL("./components/AuthModal.tsx", import.meta.url),
+  "utf8",
+);
+const autosave = readFileSync(
+  new URL("./useAutosave.ts", import.meta.url),
+  "utf8",
+);
+const lineView = readFileSync(
+  new URL("./components/LineView.tsx", import.meta.url),
+  "utf8",
+);
+const trackRow = readFileSync(
+  new URL("./components/TrackRow.tsx", import.meta.url),
+  "utf8",
+);
+const songView = readFileSync(
+  new URL("./components/SongView.tsx", import.meta.url),
+  "utf8",
+);
+const toastStyles = readFileSync(
+  new URL("./components/Toast.css", import.meta.url),
+  "utf8",
+);
+const providers = readFileSync(
+  new URL("../app/providers.tsx", import.meta.url),
+  "utf8",
+);
 const toastProvider = readFileSync(
   new URL("./components/ToastProvider.tsx", import.meta.url),
   "utf8",
@@ -54,8 +87,12 @@ describe("underline visibility", () => {
   });
 
   it("shows read-only underlines for chorded and merged syllables while keeping editor guides complete", () => {
-    expect(lineView).toContain('readOnly ? " line--chord-underlines-only" : ""');
-    expect(lineView).toContain('readOnly && hasChordAtSyllable(syllable.id) ? " syllable--has-chord" : ""');
+    expect(lineView).toContain(
+      'readOnly ? " line--chord-underlines-only" : ""',
+    );
+    expect(lineView).toContain(
+      'readOnly && hasChordAtSyllable(syllable.id) ? " syllable--has-chord" : ""',
+    );
     expect(styles).toMatch(
       /\.line--chord-underlines-only \.syllable::after,[\s\S]*\.line--chord-underlines-only \.syllable-gap--merged::after\s*\{\s*content: none/,
     );
@@ -97,20 +134,32 @@ describe("BIS phrases", () => {
     expect(lineView).toContain("ArrowLeft");
     expect(lineView).toContain("ArrowUpLeft");
     expect(lineView).toContain('bisRule === "end" ? ArrowUpLeft : ArrowLeft');
-    expect(styles).toMatch(/\.line--bis \.syllable-row\s*\{[\s\S]*align-items:\s*baseline[\s\S]*font-weight:\s*600/);
-    expect(styles).toMatch(/\.bis-marker\s*\{[\s\S]*color:\s*var\(--muted\)[\s\S]*font-weight:\s*500/);
+    expect(styles).toMatch(
+      /\.line--bis \.syllable-row\s*\{[\s\S]*align-items:\s*baseline[\s\S]*font-weight:\s*600/,
+    );
+    expect(styles).toMatch(
+      /\.bis-marker\s*\{[\s\S]*color:\s*var\(--muted\)[\s\S]*font-weight:\s*500/,
+    );
   });
 
   it("never underlines the BIS word or lets it join a melisma, wherever it sits in the line", () => {
     expect(lineView).toContain("isBisWord(");
     expect(lineView).toContain('(bis ? " syllable--bis" : "")');
-    expect(lineView).toContain("disabled={!showUnderline || readOnly || touchesBis}");
-    expect(styles).toMatch(/\.line \.syllable--bis::after\s*\{\s*content:\s*none/);
+    expect(lineView).toContain(
+      "disabled={!showUnderline || readOnly || touchesBis}",
+    );
+    expect(styles).toMatch(
+      /\.line \.syllable--bis::after\s*\{\s*content:\s*none/,
+    );
   });
 
   it("offers no chord or melody cell above BIS and refuses drops on it", () => {
-    expect(lineView).toContain("!bisSlots.has(slotId) && (trackId !== \"vocalNotes\"");
-    expect(lineView).toContain("!bisSlots.has(slotId) && (track.id !== \"vocalNotes\"");
+    expect(lineView).toContain(
+      '!bisSlots.has(slotId) && (trackId !== "vocalNotes"',
+    );
+    expect(lineView).toContain(
+      '!bisSlots.has(slotId) && (track.id !== "vocalNotes"',
+    );
   });
 
   it("handles Tab and Shift+Tab from anywhere in a lyric line instead of moving browser focus", () => {
@@ -144,7 +193,9 @@ describe("passive editor click caret placement", () => {
   });
 
   it("places passive-surface carets before click and extends a drag with pointer capture", () => {
-    expect(songView).toContain("event.currentTarget.setPointerCapture(event.pointerId)");
+    expect(songView).toContain(
+      "event.currentTarget.setPointerCapture(event.pointerId)",
+    );
     expect(songView).toContain("selection.setBaseAndExtent(");
     expect(songView).toContain("if (gesture?.managed) return");
   });
@@ -152,17 +203,27 @@ describe("passive editor click caret placement", () => {
 
 describe("lyric selection completion", () => {
   it("keeps a non-collapsed selection made by dragging or Shift+clicking", () => {
-    expect(shouldPreserveTextSelection({ isCollapsed: false }, true, false)).toBe(true);
-    expect(shouldPreserveTextSelection({ isCollapsed: false }, false, true)).toBe(true);
-    expect(shouldPreserveTextSelection({ isCollapsed: false }, false, false)).toBe(false);
-    expect(shouldPreserveTextSelection({ isCollapsed: true }, true, false)).toBe(false);
+    expect(
+      shouldPreserveTextSelection({ isCollapsed: false }, true, false),
+    ).toBe(true);
+    expect(
+      shouldPreserveTextSelection({ isCollapsed: false }, false, true),
+    ).toBe(true);
+    expect(
+      shouldPreserveTextSelection({ isCollapsed: false }, false, false),
+    ).toBe(false);
+    expect(
+      shouldPreserveTextSelection({ isCollapsed: true }, true, false),
+    ).toBe(false);
   });
 });
 
 describe("melody-note layout reveal", () => {
   it("keeps melody notes invisible until their slots are measured, then reveals them left to right", () => {
     expect(lineView).toContain("areSlotRectsReady(trackSlotIds, slotRects)");
-    expect(lineView).toContain("slotRectsMeasuredFor === annotationGapExtrasKey");
+    expect(lineView).toContain(
+      "slotRectsMeasuredFor === annotationGapExtrasKey",
+    );
     expect(styles).toMatch(
       /\.track-row\[data-track="vocalNotes"\]:not\(\.track-row--annotations-ready\) \.track-cell\s*\{\s*visibility: hidden/,
     );
@@ -179,23 +240,33 @@ describe("chord layout loading", () => {
     expect(styles).toMatch(
       /\.track-row\[data-track="chords"\]:not\(\.track-row--annotations-ready\) \.track-cell\s*\{\s*visibility: hidden/,
     );
-    expect(styles).not.toMatch(/\.track-row\[data-track="chords"\]\.track-row--annotations-ready \.track-cell\s*\{[\s\S]*animation:/);
+    expect(styles).not.toMatch(
+      /\.track-row\[data-track="chords"\]\.track-row--annotations-ready \.track-cell\s*\{[\s\S]*animation:/,
+    );
   });
 });
 
 describe("empty annotation rows", () => {
   it("omits every empty track in read-only lines", () => {
     expect(lineView).toContain("if (!readOnly) return true;");
-    expect(lineView).toContain('trackSlotIds.some((slotId) => getCell(cells, track.id, slotId).trim() !== "")');
+    expect(lineView).toContain(
+      'trackSlotIds.some((slotId) => getCell(cells, track.id, slotId).trim() !== "")',
+    );
     expect(lineView).toContain('if (track.id === "chordNotes")');
-    expect(lineView).toContain('track.visible && track.id !== "vocalNotes" && hasTrackContent(track)');
-    expect(lineView).toContain('track.visible && track.id === "vocalNotes" && showUnderline && hasTrackContent(track)');
+    expect(lineView).toContain(
+      'track.visible && track.id !== "vocalNotes" && hasTrackContent(track)',
+    );
+    expect(lineView).toContain(
+      'track.visible && track.id === "vocalNotes" && showUnderline && hasTrackContent(track)',
+    );
   });
 
   it("keeps blank rows available while editing but removes them from PDF exports", () => {
     expect(lineView).toContain("if (!readOnly) return true;");
-    expect(trackRow).toContain('data-empty={!hasContent}');
-    expect(styles).toMatch(/@media print\s*\{[\s\S]*\.track-row\[data-empty="true"\]\s*\{\s*display: none/);
+    expect(trackRow).toContain("data-empty={!hasContent}");
+    expect(styles).toMatch(
+      /@media print\s*\{[\s\S]*\.track-row\[data-empty="true"\]\s*\{\s*display: none/,
+    );
   });
 });
 
@@ -209,10 +280,15 @@ describe("icon-button tooltips", () => {
   });
 
   it("uses a simple lock for private songs and a visibly detached shackle for public ones", () => {
-    const icons = readFileSync(new URL("./components/icons.tsx", import.meta.url), "utf8");
+    const icons = readFileSync(
+      new URL("./components/icons.tsx", import.meta.url),
+      "utf8",
+    );
 
     expect(icons).toContain("Lock as PrivacyLockedIcon");
-    expect(icons).toMatch(/function PrivacyUnlockedIcon\(\)[\s\S]*<path d="M8 10V6a4 4 0 0 1 7\.2-2\.4" \/>/);
+    expect(icons).toMatch(
+      /function PrivacyUnlockedIcon\(\)[\s\S]*<path d="M8 10V6a4 4 0 0 1 7\.2-2\.4" \/>/,
+    );
   });
 
   it("renders a visible tooltip from a hoverable wrapper", () => {
@@ -220,7 +296,9 @@ describe("icon-button tooltips", () => {
     expect(iconButtonTooltip).toContain("icon-button-tooltip");
     expect(iconButtonTooltip).toContain("data-tooltip={tooltip}");
     expect(app).not.toMatch(/<button[^>]*\btitle=/);
-    expect(themeStyles).toMatch(/\.icon-button-tooltip\s*\{[\s\S]*display: inline-flex/);
+    expect(themeStyles).toMatch(
+      /\.icon-button-tooltip\s*\{[\s\S]*display: inline-flex/,
+    );
     expect(themeStyles).toMatch(
       /\.icon-button-tooltip > button:disabled\s*\{[\s\S]*pointer-events: none/,
     );
@@ -244,29 +322,45 @@ describe("icon-button tooltips", () => {
 
 describe("mobile sidebar menu", () => {
   it("keeps song controls collapsed behind a top-of-sidebar hamburger on mobile", () => {
-    expect(app).toContain('const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)');
+    expect(app).toContain(
+      "const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)",
+    );
     expect(app).toContain('className="mobile-sidebar-menu"');
-    expect(app).toContain('<MenuIcon />');
+    expect(app).toContain("<MenuIcon />");
     expect(app).toContain('aria-controls="mobile-sidebar-menu-controls"');
-    expect(app).toContain('ref={mobileSidebarMenuRef}');
-    expect(app).toContain('document.addEventListener("pointerdown", closeWhenClickingOutside)');
-    expect(app).toContain('!mobileSidebarMenuRef.current?.contains(event.target)');
+    expect(app).toContain("ref={mobileSidebarMenuRef}");
+    expect(app).toContain(
+      'document.addEventListener("pointerdown", closeWhenClickingOutside)',
+    );
+    expect(app).toContain(
+      "!mobileSidebarMenuRef.current?.contains(event.target)",
+    );
     expect(app).toContain('tooltip="Herramientas"');
-    expect(app).not.toContain('Herramientas de la canción');
+    expect(app).not.toContain("Herramientas de la canción");
     expect(app).toMatch(/mobile-sidebar-menu__controls[\s\S]*Exportar a PDF/);
-    expect(styles).toMatch(/@media \(max-width: 30rem\)\s*\{[\s\S]*\.mobile-sidebar-menu\s*\{[\s\S]*top: 9rem/);
-    expect(styles).toMatch(/@media \(max-width: 30rem\)\s*\{[\s\S]*\.track-toolbar,\s*\.action-toolbar\s*\{[\s\S]*display: none/);
-    expect(styles).toMatch(/\.mobile-sidebar-menu__controls\s*\{[\s\S]*top: calc\(100% \+ 0\.5rem\)[\s\S]*right: 0/);
+    expect(styles).toMatch(
+      /@media \(max-width: 30rem\)\s*\{[\s\S]*\.mobile-sidebar-menu\s*\{[\s\S]*top: 9rem/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width: 30rem\)\s*\{[\s\S]*\.track-toolbar,\s*\.action-toolbar\s*\{[\s\S]*display: none/,
+    );
+    expect(styles).toMatch(
+      /\.mobile-sidebar-menu__controls\s*\{[\s\S]*top: calc\(100% \+ 0\.5rem\)[\s\S]*right: 0/,
+    );
   });
 });
 
 describe("fork source link", () => {
   it("places a fork icon before the title and explains that it navigates to the source song", () => {
     expect(app).toContain('className="fork-source-link"');
-    expect(app).toContain('href={`/cancion/${forkSourceSlug}`}');
+    expect(app).toContain("href={`/cancion/${forkSourceSlug}`}");
     expect(app).toContain("Ver la canción de la que se derivó esta versión");
-    expect(app).toMatch(/className="title-row"[\s\S]*className="fork-source-link"[\s\S]*className="title-input"/);
-    expect(styles).toMatch(/\.fork-source-tooltip::after\s*\{[\s\S]*left: calc\(100% \+ 0\.6rem\)/);
+    expect(app).toMatch(
+      /className="title-row"[\s\S]*className="fork-source-link"[\s\S]*className="title-input"/,
+    );
+    expect(styles).toMatch(
+      /\.fork-source-tooltip::after\s*\{[\s\S]*left: calc\(100% \+ 0\.6rem\)/,
+    );
   });
 });
 
@@ -289,7 +383,7 @@ describe("favicon", () => {
     expect(favicon).toContain('<rect width="64" height="64" fill="#fff"/>');
     expect(favicon).toContain('stroke="#000"');
     expect(favicon).toContain('stroke-width="2.15"');
-    expect(favicon).toContain('M38.8 35.3C40.1 34.7');
+    expect(favicon).toContain("M38.8 35.3C40.1 34.7");
     expect(favicon).toContain('stroke-width="1.75"');
   });
 
@@ -304,8 +398,10 @@ describe("favicon", () => {
 
 describe("authentication dialog", () => {
   it("confirms magic links without assuming the action that opened it", () => {
-    expect(authModal).toContain("Abrí el enlace para iniciar sesión y continuar.");
-    expect(authModal).toContain("<MailIcon aria-hidden=\"true\" />");
+    expect(authModal).toContain(
+      "Abrí el enlace para iniciar sesión y continuar.",
+    );
+    expect(authModal).toContain('<MailIcon aria-hidden="true" />');
     expect(authModal).not.toContain("terminar de guardar la canción");
   });
 });
@@ -335,16 +431,22 @@ describe("post-login save", () => {
 
   it("leaves a pending new song to the app-wide resumer instead of autosave", () => {
     expect(providers).toContain("<PendingSongResumer session={session} />");
-    expect(app).toContain("const canPersist = isOwnSong && !isMobile && !pendingCreationId;");
+    expect(app).toContain(
+      "const canPersist = isOwnSong && !isMobile && !pendingCreationId;",
+    );
     expect(app).not.toContain("arrivedViaMagicLink");
   });
 
   it("keeps the same reserved creation id when Save is clicked again", () => {
-    expect(app).toContain("const draft = saveDraft(songSlug, content, pendingCreationId);");
+    expect(app).toContain(
+      "const draft = saveDraft(songSlug, content, pendingCreationId);",
+    );
   });
 
   it("writes edits to the pending local copy, signed in or not", () => {
-    expect(app).toContain("const isPendingNewSong = Boolean(pendingCreationId) && !songSlug;");
+    expect(app).toContain(
+      "const isPendingNewSong = Boolean(pendingCreationId) && !songSlug;",
+    );
     expect(app).toMatch(
       /if \(!isPendingNewSong\) return;\s*saveDraft\(undefined, content, pendingCreationId\);/,
     );
@@ -360,7 +462,9 @@ describe("post-login save", () => {
 describe("magic-link callback errors", () => {
   it("shows Supabase callback errors as a ten-second error toast", () => {
     expect(providers).toContain("<AuthCallbackErrorToast />");
-    expect(toastStyles).toMatch(/\.toast--error\s*\{[\s\S]*background: #fff1f1[\s\S]*border: 1px solid #bd2d2d/);
+    expect(toastStyles).toMatch(
+      /\.toast--error\s*\{[\s\S]*background: #fff1f1[\s\S]*border: 1px solid #bd2d2d/,
+    );
   });
 });
 
@@ -368,7 +472,9 @@ describe("chord notes tutorial", () => {
   it("appears when the chord-notes track is activated and illustrates one shared note", () => {
     expect(app).toContain('tutorialId: "chord-notes-shared"');
     expect(app).toContain('icon: <NoteStackIcon boldNotes={["sol"]} />');
-    expect(app).toContain("Las notas en negrita significan que también están en el acorde anterior.");
+    expect(app).toContain(
+      "Las notas en negrita significan que también existen en el acorde anterior.",
+    );
   });
 
   it("keeps tutorials open until dismissal and records that dismissal", () => {
@@ -381,10 +487,16 @@ describe("chord notes tutorial", () => {
 describe("melody notes tutorials", () => {
   it("shows the writing and joining tutorials together when the underline is activated", () => {
     expect(app).toContain('tutorialId: "melody-notes-write"');
-    expect(app).toMatch(/Podés hacer click debajo de una sílaba para escribir las notas de la\s+melodía\./);
+    expect(app).toMatch(
+      /Podés hacer click debajo de una sílaba para escribir las notas de la\s+melodía\./,
+    );
     expect(app).toContain('tutorialId: "melody-notes-join-syllables"');
-    expect(app).toMatch(/Podés hacer click entre dos o más sílabas para unirlas y asignarles\s+una sola nota\./);
-    expect(app).toMatch(/if \(next && canEditOnThisDevice\) \{[\s\S]*showTutorial\(\{[\s\S]*tutorialId: "melody-notes-write"[\s\S]*\}\);\s*showMelodyJoinTutorial\(\)/);
+    expect(app).toMatch(
+      /Podés hacer click entre dos o más sílabas para unirlas y asignarles\s+una sola nota\./,
+    );
+    expect(app).toMatch(
+      /if \(next && canEditOnThisDevice\) \{[\s\S]*showTutorial\(\{[\s\S]*tutorialId: "melody-notes-write"[\s\S]*\}\);\s*showMelodyJoinTutorial\(\)/,
+    );
     expect(app).not.toContain("onDismiss: showMelodyJoinTutorial");
     expect(app).not.toMatch(/icon: <UnderlineIcon \/>/);
   });
@@ -401,17 +513,29 @@ describe("melody notes tutorials", () => {
     expect(toastStyles).toContain("background: var(--syllable-underline)");
     expect(toastStyles).toContain("height: 2px");
     expect(toastStyles).toContain("left: 0.14em");
-    expect(toastStyles).toMatch(/\.melody-tutorial-example__unit\s*\{[\s\S]*display: inline-grid[\s\S]*grid-template-rows: 1\.1em 1\.35em/);
-    expect(toastStyles).toMatch(/\.melody-tutorial-example__lyrics\s*\{[\s\S]*align-items: flex-end/);
-    expect(toastStyles).toMatch(/\.melody-tutorial-example__note\s*\{[\s\S]*text-align: left/);
+    expect(toastStyles).toMatch(
+      /\.melody-tutorial-example__unit\s*\{[\s\S]*display: inline-grid[\s\S]*grid-template-rows: 1\.1em 1\.35em/,
+    );
+    expect(toastStyles).toMatch(
+      /\.melody-tutorial-example__lyrics\s*\{[\s\S]*align-items: flex-end/,
+    );
+    expect(toastStyles).toMatch(
+      /\.melody-tutorial-example__note\s*\{[\s\S]*text-align: left/,
+    );
     expect(melodyExample).toContain("mergedAfter");
-    expect(melodyExample).toMatch(/wordBoundaryAfter\s*\?\s*" melody-tutorial-example__gap--word-boundary"/);
+    expect(melodyExample).toMatch(
+      /wordBoundaryAfter\s*\?\s*" melody-tutorial-example__gap--word-boundary"/,
+    );
     expect(melodyExample).toContain("melody-tutorial-example--typing");
     expect(toastStyles).toContain("melody-tutorial-note-appear");
     expect(melodyExample).toContain("setInterval");
     expect(melodyExample).toContain("}, 4_000)");
-    expect(melodyExample).toContain("key={animateNotes ? `${unitIndex}-${animationCycle}` : undefined}");
-    expect(toastStyles).toMatch(/\.melody-tutorial-example--typing \.melody-tutorial-example__note--typing\s*\{[\s\S]*animation: melody-tutorial-note-appear 160ms ease-out forwards/);
+    expect(melodyExample).toContain(
+      "key={animateNotes ? `${unitIndex}-${animationCycle}` : undefined}",
+    );
+    expect(toastStyles).toMatch(
+      /\.melody-tutorial-example--typing \.melody-tutorial-example__note--typing\s*\{[\s\S]*animation: melody-tutorial-note-appear 160ms ease-out forwards/,
+    );
   });
 
   it("omits the default info icon from tutorials without artwork", () => {
@@ -440,7 +564,9 @@ describe("autosave", () => {
     // Saving updates state and can cause route callbacks or the database id to change. Neither is
     // a document edit, so neither may schedule another save one second later. Performers are
     // saved through the same flow (see useAutosave's doc comment), so they count as an edit.
-    expect(autosave).toContain("onSlugResolvedRef.current(saved.id, saved.slug)");
+    expect(autosave).toContain(
+      "onSlugResolvedRef.current(saved.id, saved.slug)",
+    );
     expect(autosave).toContain(
       "}, [content, performers, ready, authenticated, canPersist, retryTick, queryClient]);",
     );
