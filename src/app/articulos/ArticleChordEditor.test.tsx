@@ -14,6 +14,13 @@ function chordChip(container: HTMLElement, chord: string) {
   )!;
 }
 
+/** jsdom only focuses an editable element that also has a tab index. */
+function focusableLyrics() {
+  const lyrics = screen.getByLabelText("Letra de la canción");
+  lyrics.tabIndex = 0;
+  return lyrics;
+}
+
 function touch(type: string, target: Element | Document, x: number) {
   fireEvent(
     target,
@@ -24,6 +31,8 @@ function touch(type: string, target: Element | Document, x: number) {
 describe("ArticleChordEditor", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    // A finished drag still guards the focus for a moment; let it end before the next test.
+    if (vi.isFakeTimers()) vi.runOnlyPendingTimers();
     vi.useRealTimers();
     Reflect.deleteProperty(document, "elementFromPoint");
   });
@@ -149,6 +158,43 @@ describe("ArticleChordEditor", () => {
     const moved = chordChip(container, "A");
     expect(moved.dataset.slotId).not.toBe(from);
     expect(chordChip(container, "A7")).toBeDefined();
+  });
+
+  it("keeps the keyboard closed while a chord is held to be dragged", async () => {
+    mockMatchMedia(true);
+    vi.useFakeTimers();
+    const { container } = renderEditor(MOVE_EXCERPT);
+    const chip = chordChip(container, "A");
+    const lyrics = focusableLyrics();
+    document.elementFromPoint = () => chip;
+
+    touch("pointerdown", chip, 0);
+    // The browser answers a long press inside editable text by putting a caret in it.
+    await act(async () => lyrics.focus());
+    expect(lyrics).not.toHaveFocus();
+    act(() => void vi.advanceTimersByTime(TOUCH_DRAG_HOLD_MS));
+    await act(async () => lyrics.focus());
+    expect(lyrics).not.toHaveFocus();
+    touch("pointerup", document, 0);
+    await act(async () => lyrics.focus());
+    expect(lyrics).not.toHaveFocus();
+    // A moment later the lyrics can be tapped into again.
+    act(() => void vi.advanceTimersByTime(400));
+    await act(async () => lyrics.focus());
+    expect(lyrics).toHaveFocus();
+  });
+
+  it("still lets a tap put the caret in the lyrics", async () => {
+    mockMatchMedia(true);
+    vi.useFakeTimers();
+    const { container } = renderEditor(MOVE_EXCERPT);
+    const lyrics = focusableLyrics();
+
+    touch("pointerdown", chordChip(container, "A"), 0);
+    touch("pointerup", document, 0);
+    await act(async () => lyrics.focus());
+
+    expect(lyrics).toHaveFocus();
   });
 
   it("leaves a quick swipe over a chord to the page's scrolling", () => {
