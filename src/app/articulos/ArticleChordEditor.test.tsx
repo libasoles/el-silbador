@@ -88,6 +88,45 @@ describe("ArticleChordEditor", () => {
     );
   });
 
+  it("leaves the lyrics and the caret alone when a keyboard ends a composition without changes", () => {
+    mockMatchMedia(true);
+    renderEditor("hola\namor");
+    const lyrics = screen.getByLabelText("Letra de la canción");
+    const syllable = screen.getByText("la");
+    const text = syllable.firstChild as Text;
+    lyrics.focus();
+    window.getSelection()!.collapse(text, 1);
+    const collapse = vi.spyOn(Selection.prototype, "addRange");
+
+    // A phone keyboard picks up the word next to the caret, then lets it go untouched.
+    fireEvent.compositionStart(lyrics);
+    fireEvent.compositionEnd(lyrics, { data: "hola" });
+
+    expect(syllable).toBeInTheDocument();
+    expect(collapse).not.toHaveBeenCalled();
+    expect(window.getSelection()!.anchorNode).toBe(text);
+    expect(window.getSelection()!.anchorOffset).toBe(1);
+  });
+
+  it("rebuilds only the line a keyboard's composed word went into", () => {
+    mockMatchMedia(true);
+    renderEditor("hola\namor");
+    const lyrics = screen.getByLabelText("Letra de la canción");
+    const otherLine = screen.getByText("mor");
+    const text = screen.getByText("la").firstChild as Text;
+    lyrics.focus();
+    window.getSelection()!.collapse(text, text.length);
+
+    fireEvent.compositionStart(lyrics);
+    text.data = "lase";
+    fireEvent.input(lyrics, { isComposing: true });
+    fireEvent.compositionEnd(lyrics, { data: "se" });
+
+    const lines = [...lyrics.querySelectorAll("[data-lyrics-line]")];
+    expect(lines.map((line) => line.textContent)).toEqual(["holase", "amor"]);
+    expect(otherLine).toBeInTheDocument();
+  });
+
   it("reads a keyboard's multi-line paste as chords over the lyrics", () => {
     mockMatchMedia(true);
     const { container } = renderEditor("");

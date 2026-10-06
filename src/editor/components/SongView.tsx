@@ -121,6 +121,19 @@ function bisLineStyles(lines: string[], groups: BisGroup[]) {
   return styles;
 }
 
+/** The lyric lines whose DOM no longer shows `lyricsText` after a render, by index — or `"all"`
+    when the lines themselves no longer match it. An edit the browser made on its own (a phone
+    keyboard's composition) can leave text React doesn't know about inside a line it reuses. */
+function staleLyricLines(root: HTMLElement, lyricsText: string): number[] | "all" {
+  const expected = lyricsText.split("\n");
+  const lines = Array.from(root.querySelectorAll<HTMLElement>("[data-lyrics-line]"));
+  const strayText = Array.from(root.childNodes).some(
+    (node) => node.nodeType === Node.TEXT_NODE,
+  );
+  if (strayText || lines.length !== expected.length) return "all";
+  return lines.flatMap((line, index) => (lineText(line) === expected[index] ? [] : [index]));
+}
+
 function readDocument(root: HTMLElement): string {
   return Array.from(root.querySelectorAll<HTMLElement>("[data-lyrics-line]"))
     .map(lineText)
@@ -556,9 +569,14 @@ export function SongView({
   // began, so a multi-line insertion (a keyboard's clipboard paste) can be parsed as a chord sheet.
   const composing = useRef(false);
   const compositionStart = useRef<{ text: string; start: number; end: number } | null>(null);
-  // Bumped after the browser edited the DOM itself, to rebuild the lines from state: any stray
-  // nodes the browser left behind would otherwise stay on screen as duplicated text.
+  // After the browser edited the DOM itself, the lines it left out of step with the state are
+  // rebuilt from it: any stray nodes it left behind would otherwise stay on screen as duplicated
+  // text. Only those lines, by id — or all of them when the lines themselves are broken. Rebuilding
+  // the lines a keyboard is still working near makes it restart its composition, and a whole-song
+  // rebuild on every word was felt as the text flickering and the caret jumping around.
   const [domGeneration, setDomGeneration] = useState(0);
+  const [lineGenerations, setLineGenerations] = useState<Record<string, number>>({});
+  const nativeEditPending = useRef(false);
   const hasVisibleAnnotations = tracks.some(
     (track) => track.visible && track.id !== "chordNotes",
   );
@@ -648,9 +666,13 @@ export function SongView({
   function commitNativeEdit() {
     const root = rootRef.current;
     if (!root) return;
+    const text = readDocument(root);
+    // A keyboard ends compositions it changed nothing in (it picks up the word by the caret on its
+    // own). Re-rendering for those would move the caret under it and start the cycle over.
+    if (text === lyricsText) return;
     pendingCaret.current = captureCaret(root);
-    onReconcileLyricsText(readDocument(root));
-    setDomGeneration((generation) => generation + 1);
+    nativeEditPending.current = true;
+    onReconcileLyricsText(text);
   }
 
   /** The current selection as `[start, end)` offsets into the document text. */
@@ -938,10 +960,35 @@ export function SongView({
 
   useLayoutEffect(() => {
     const root = rootRef.current;
+    if (root && nativeEditPending.current) {
+      nativeEditPending.current = false;
+      const stale = staleLyricLines(root, lyricsText);
+      if (stale === "all") {
+        setDomGeneration((generation) => generation + 1);
+        return;
+      }
+      if (stale.length > 0) {
+        setLineGenerations((generations) => {
+          const next = { ...generations };
+          for (const index of stale) {
+            const id = song[index]?.id;
+            if (id) next[id] = (next[id] ?? 0) + 1;
+          }
+          return next;
+        });
+        return;
+      }
+    }
     const caret = pendingCaret.current;
-    if (root && caret) restoreCaret(root, caret);
     pendingCaret.current = null;
-  }, [song, domGeneration]);
+    if (!root || !caret) return;
+    // Setting the selection again, even to where it already is, makes a phone keyboard drop the
+    // word it was working on.
+    const current = captureCaret(root);
+    if (current?.lineIndex === caret.lineIndex && current.offset === caret.offset) return;
+    restoreCaret(root, caret);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song, domGeneration, lineGenerations]);
 
   // Land the caret in the editor as soon as the page loads, so a new user can start typing
   // immediately instead of having to click into the document first.
@@ -1208,7 +1255,7 @@ export function SongView({
         ) : null}
         {song.map((line, index) => (
           <LineView
-            key={line.id}
+            key={`${line.id}:${lineGenerations[line.id] ?? 0}`}
             line={line}
             bisRule={bisStyles.get(index)}
             bisMarker={BIS_AT_LINE_END.test(lyricLines[index] ?? "")}
