@@ -7,6 +7,7 @@ import { DesktopOnlyDialog } from "../components/DesktopOnlyDialog";
 import { EditorFeatureShowcase } from "../components/EditorFeatureShowcase";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import {
+  EditIcon,
   LogInIcon,
   LogOutIcon,
   NeutralIllustrationIcon,
@@ -69,10 +70,12 @@ interface SongRowProps {
   favoritePending: boolean;
   fadeIn: boolean;
   showFavorite: boolean;
+  showEdit: boolean;
   showDelete: boolean;
   showPrivacy: boolean;
   onOpen: () => void;
   onToggleFavorite: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
@@ -83,10 +86,12 @@ function SongRow({
   favoritePending,
   fadeIn,
   showFavorite,
+  showEdit,
   showDelete,
   showPrivacy,
   onOpen,
   onToggleFavorite,
+  onEdit,
   onDelete,
 }: SongRowProps) {
   // Only a song found by its performers names them, so the row shows why it matched.
@@ -165,6 +170,18 @@ function SongRow({
           </button>
         </IconButtonTooltip>
       )}
+      {showEdit && (
+        <IconButtonTooltip tooltip="Editar canción">
+          <button
+            type="button"
+            className="library-row__edit"
+            aria-label="Editar canción"
+            onClick={onEdit}
+          >
+            <EditIcon size={18} strokeWidth={1.6} />
+          </button>
+        </IconButtonTooltip>
+      )}
       {showDelete && (
         <IconButtonTooltip tooltip="Eliminar canción">
           <button
@@ -203,12 +220,14 @@ interface LibrarySectionProps {
   favoritePendingSongId?: string;
   fadeInSongId?: string;
   showFavorite?: boolean;
+  showEdit?: boolean;
   showDelete?: boolean;
   showPrivacy?: boolean;
   loading?: boolean;
   skeletonRows?: number;
   onOpenSong: (song: LibrarySong) => void;
   onToggleFavorite: (song: LibrarySong) => void;
+  onEditSong?: (song: LibrarySong) => void;
   onDeleteSong?: (song: LibrarySong) => void;
 }
 
@@ -222,12 +241,14 @@ function LibrarySection({
   favoritePendingSongId,
   fadeInSongId,
   showFavorite = true,
+  showEdit = false,
   showDelete = false,
   showPrivacy = false,
   loading = false,
   skeletonRows = 2,
   onOpenSong,
   onToggleFavorite,
+  onEditSong,
   onDeleteSong,
 }: LibrarySectionProps) {
   return (
@@ -261,10 +282,12 @@ function LibrarySection({
               favoritePending={favoritePendingSongId === song.id}
               fadeIn={fadeInSongId === song.id}
               showFavorite={showFavorite}
+              showEdit={showEdit}
               showDelete={showDelete}
               showPrivacy={showPrivacy}
               onOpen={() => onOpenSong(song)}
               onToggleFavorite={() => onToggleFavorite(song)}
+              onEdit={() => onEditSong?.(song)}
               onDelete={() => onDeleteSong?.(song)}
             />
           ))}
@@ -280,7 +303,10 @@ interface LibraryProps {
    *  including the one Next performs on the server to produce pre-rendered HTML for crawlers —
    *  already shows real content instead of a loading skeleton. */
   initialPublicSongs?: LibrarySong[];
+  /** Opens a song read-only, whichever list it's in — even the user's own songs. */
   onOpenSong?: (song: LibrarySong) => void;
+  /** Opens one of the user's own songs in the editor (the row's pencil). */
+  onEditSong?: (song: LibrarySong) => void;
   onNewSong?: () => void;
 }
 
@@ -288,6 +314,7 @@ export function Library({
   appVersion,
   initialPublicSongs,
   onOpenSong,
+  onEditSong,
   onNewSong,
 }: LibraryProps) {
   const { session, requireAuthentication } = useAuthRequired();
@@ -295,8 +322,8 @@ export function Library({
   const authenticated = Boolean(session);
   const { showToast } = useToast();
   const queryClient = useQueryClient();
-  // Mobile is read-only by product rule: no deleting from the index, even for the user's own
-  // songs. Favoriting stays available on mobile and must not be gated here.
+  // Mobile is read-only by product rule: no editing or deleting from the index, even for the
+  // user's own songs. Favoriting stays available on mobile and must not be gated here.
   const isMobile = useIsMobile();
   const [query, setQuery] = useState("");
   const [desktopOnlyNoticeOpen, setDesktopOnlyNoticeOpen] = useState(false);
@@ -465,6 +492,10 @@ export function Library({
     trackEvent("open_song", { song_id: song.id });
     onOpenSong?.(song);
   };
+  const handleEdit = (song: LibrarySong) => {
+    trackEvent("edit_song", { song_id: song.id });
+    onEditSong?.(song);
+  };
   const handleNew = () => {
     trackEvent("new_song_click");
     // The editor is desktop-only for now: on mobile, explain that instead of creating a song.
@@ -574,12 +605,14 @@ export function Library({
             favoriteIds={favoriteIds}
             favoritePendingSongId={favoritePendingSongId ?? undefined}
             showFavorite={false}
+            showEdit={!isMobile}
             showDelete={!isMobile}
             showPrivacy
             loading={myLibraryLoading}
             skeletonRows={skeletonCounts?.mine}
             onOpenSong={handleOpen}
             onToggleFavorite={handleToggleFavorite}
+            onEditSong={handleEdit}
             onDeleteSong={setSongPendingDelete}
           />
         )}

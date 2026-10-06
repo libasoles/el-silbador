@@ -66,6 +66,7 @@ import {
 import { consumeJustForked, saveJustForked } from "./justForkedStorage";
 import { pdfDocumentTitle } from "./pdfFilename";
 import { useToast } from "./toastContext";
+import { songEditPath } from "./songPaths";
 import { useIsMobile } from "./useIsMobile";
 import {
   readMelodyTogglePreference,
@@ -199,6 +200,9 @@ interface AppProps {
   onSongCreated?: (id: string, slug: string) => void;
   /** Called once the song is deleted, so the caller can navigate away from its now-gone slug. */
   onDeleted?: () => void;
+  /** Shows an existing song read-only even to its owner: the song's plain URL is for reading, and
+   *  editing happens only at its `/editar` URL. Has no effect on a new song (no `songSlug`). */
+  readOnly?: boolean;
 }
 
 interface TrackToggleButtonProps {
@@ -282,6 +286,7 @@ function App({
   initialSong,
   onSongCreated,
   onDeleted,
+  readOnly = false,
 }: AppProps) {
   const queryClient = useQueryClient();
   const [loadError, setLoadError] = useState<{ songSlug: string } | null>(null);
@@ -617,7 +622,10 @@ function App({
   // Mobile is read-only by product rule: no title/author/content editing and no forking, even for
   // the song's owner. Favoriting, chord/underline toggles, PDF export and transposition stay
   // available on mobile and must not be gated here.
-  const canEditOnThisDevice = isOwnSong && !isMobile;
+  // The owner reading their song at its plain URL gets the same view as any other reader; only
+  // its `/editar` URL turns on the owner's authoring tools.
+  const isAuthoring = isOwnSong && !(readOnly && songSlug);
+  const canEditOnThisDevice = isAuthoring && !isMobile;
   // Wait for an existing song's owner before choosing a mode. Otherwise an owner's song fetched
   // after hydration could briefly receive a reader-only transformation before editing is known.
   const readerMode =
@@ -653,7 +661,7 @@ function App({
   );
   // A pending new song is saved by PendingSongResumer, never by autosave: two writers racing on
   // the post-login edge is what this keeps out.
-  const canPersist = isOwnSong && !isMobile && !pendingCreationId;
+  const canPersist = isAuthoring && !isMobile && !pendingCreationId;
   const { status: autosaveStatus, retry: retrySave } = useAutosave(
     content,
     performers,
@@ -762,7 +770,7 @@ function App({
       saveJustForked(forked.slug);
       // A hard navigation (rather than the SPA router) so the fork's editor/autosave state starts
       // completely fresh, instead of reusing this mounted App instance's in-progress state.
-      window.location.assign(`/cancion/${forked.slug}`);
+      window.location.assign(songEditPath(forked.slug));
     } catch (error) {
       console.error("No se pudo versionar la canción.", error);
       setForking(false);
@@ -1143,7 +1151,7 @@ function App({
                 disabled={state.lyricsText.trim() === ""}
                 onToggle={handleUnderlineToggle}
               />
-              {(isAdmin || (songDbId && isOwnSong)) && !isMobile && (
+              {(isAdmin || (songDbId && isAuthoring)) && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
                     songYoutubeUrl
@@ -1186,7 +1194,7 @@ function App({
                   <SongPerformers
                     performers={performers}
                     viewerIsAdmin={isAdmin}
-                    viewerOwnsSong={isOwnSong}
+                    viewerOwnsSong={isAuthoring}
                     onChange={setPerformers}
                   />
                 }
@@ -1204,7 +1212,7 @@ function App({
             )}
 
             <aside className="action-toolbar" aria-label="Acciones">
-              {songDbId && (isAdmin || isOwnSong) && !isMobile && (
+              {songDbId && (isAdmin || isAuthoring) && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
                     togglingPublic
@@ -1254,7 +1262,7 @@ function App({
                   </button>
                 </IconButtonTooltip>
               )}
-              {isOwnSong && !isMobile && (
+              {isAuthoring && !isMobile && (
                 <IconButtonTooltip tooltip={saveTooltip}>
                   <button
                     type="button"
@@ -1290,7 +1298,7 @@ function App({
                   </button>
                 </IconButtonTooltip>
               )}
-              {isOwnSong && !isMobile && (
+              {isAuthoring && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
                     songDbId
@@ -1321,7 +1329,7 @@ function App({
             onCancel={() => setDeleteDialogOpen(false)}
           />
 
-          {(isAdmin || (songDbId && isOwnSong)) && !isMobile && (
+          {(isAdmin || (songDbId && isAuthoring)) && !isMobile && (
             <YoutubeLinkDialog
               open={youtubeDialogOpen}
               currentUrl={songYoutubeUrl}

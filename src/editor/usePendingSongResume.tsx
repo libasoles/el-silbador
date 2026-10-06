@@ -14,6 +14,7 @@ import {
   type PendingSongResumerDeps,
   type ResumeOutcome,
 } from "./resumePendingSong";
+import { songEditPath } from "./songPaths";
 import { SONG_SAVED_TOAST } from "./songSavedToast";
 import { useToast } from "./toastContext";
 
@@ -83,7 +84,8 @@ export function usePendingSongResume(): () => Promise<void> {
     trackEvent("song_saved", { song_id: outcome.id });
     queryClient.invalidateQueries({ queryKey: songQueryKeys.mineAll });
     queryClient.invalidateQueries({ queryKey: songQueryKeys.bySlug(outcome.slug) });
-    const songPath = `/cancion/${outcome.slug}`;
+    // The author just wrote this song, so it reopens in the editor rather than read-only.
+    const songPath = songEditPath(outcome.slug);
     // Leaving /nueva behind keeps Back from returning to an editor for a song that now exists.
     if (pathnameRef.current === "/nueva") router.replace(songPath);
     else if (pathnameRef.current !== songPath) router.push(songPath);

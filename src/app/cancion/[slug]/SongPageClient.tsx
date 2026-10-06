@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import App from "../../../editor/App";
 import type { SongDetail } from "../../../data/types";
+import { songEditPath, songPath } from "../../../editor/songPaths";
 
 interface SongPageClientProps {
   slug: string;
@@ -11,6 +12,9 @@ interface SongPageClientProps {
    *  public. `null` covers both "doesn't exist" and "private, not yours", which are
    *  indistinguishable without a session. */
   initialSong: SongDetail | null;
+  /** True at the song's `/editar` URL, the only place its owner can edit it. Anywhere else the
+   *  song is read-only, even for its owner. */
+  editing?: boolean;
 }
 
 /**
@@ -29,7 +33,7 @@ interface SongPageClientProps {
  * restores their session on a hard reload. It then renders the full editor (owner), a read-only
  * view (signed-in non-owner), or the same read-only view for an anonymous visitor.
  */
-export function SongPageClient({ slug, initialSong }: SongPageClientProps) {
+export function SongPageClient({ slug, initialSong, editing = false }: SongPageClientProps) {
   const router = useRouter();
   // Tracks whatever slug is currently in the address bar, independent of the `slug` prop (which
   // never changes — see below). Starts at the slug this page was loaded with.
@@ -39,6 +43,7 @@ export function SongPageClient({ slug, initialSong }: SongPageClientProps) {
     <App
       songSlug={slug}
       initialSong={initialSong}
+      readOnly={!editing}
       onSongCreated={(_id, newSlug) => {
         // `onSongCreated` fires after every autosave, not just when the slug actually changed
         // (see useAutosave.ts) — skip entirely when it didn't.
@@ -51,7 +56,11 @@ export function SongPageClient({ slug, initialSong }: SongPageClientProps) {
         // `router.replace` would ask Next to navigate to what looks like a different dynamic route
         // segment, refetching the page's server data and rerunning App's song-loading effect for a
         // song that's already loaded, which is the visible "reload" flash this avoids.
-        window.history.replaceState(window.history.state, "", `/cancion/${newSlug}`);
+        window.history.replaceState(
+          window.history.state,
+          "",
+          editing ? songEditPath(newSlug) : songPath(newSlug),
+        );
       }}
       onDeleted={() => router.replace("/")}
     />

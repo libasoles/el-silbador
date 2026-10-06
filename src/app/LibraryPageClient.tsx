@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Library } from "../editor/pages/Library";
 import type { LibrarySong } from "../editor/pages/librarySongs";
+import { songEditPath, songPath } from "../editor/songPaths";
 
 export function LibraryPageClient({
   appVersion,
@@ -17,7 +18,8 @@ export function LibraryPageClient({
     <Library
       appVersion={appVersion}
       initialPublicSongs={initialPublicSongs}
-      onOpenSong={(song) => router.push(`/cancion/${song.slug}`)}
+      onOpenSong={(song) => router.push(songPath(song.slug))}
+      onEditSong={(song) => router.push(songEditPath(song.slug))}
       onNewSong={() => router.push("/nueva")}
     />
   );
