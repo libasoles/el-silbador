@@ -16,6 +16,7 @@ import {
   YPACARAI_SHEET,
 } from "../ypacaraiSong";
 import { ArticleJsonLd } from "../ArticleJsonLd";
+import { ArticleNextLink } from "../ArticleNextLink";
 import { articleMetadata } from "../articleSeo";
 import "../articles.css";
 
@@ -221,6 +222,8 @@ export default function SongNotesArticlePage() {
           </p>
         </div>
       </article>
+
+      <ArticleNextLink slug={ARTICLE.slug} />
     </main>
   );
 }

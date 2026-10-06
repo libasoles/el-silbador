@@ -18,6 +18,7 @@ import {
   TONADA_EXCERPT,
 } from "../ArticleChordEditor";
 import { ArticleJsonLd } from "../ArticleJsonLd";
+import { ArticleNextLink } from "../ArticleNextLink";
 import { CopyableText } from "../CopyableText";
 import { articleMetadata } from "../articleSeo";
 import "../articles.css";
@@ -242,6 +243,8 @@ export default function ChordEditorArticlePage() {
           </p>
         </div>
       </article>
+
+      <ArticleNextLink slug={ARTICLE.slug} />
     </main>
   );
 }
