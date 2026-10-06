@@ -176,8 +176,8 @@ describe("Library new song button", () => {
     await userEvent.click(screen.getByRole("button", { name: "Nueva canción" }));
 
     expect(onNewSong).not.toHaveBeenCalled();
-    const dialog = screen.getByRole("dialog", { name: "Solo en computadoras" });
-    expect(within(dialog).getByText(/solo está disponible en computadoras/)).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog", { name: "Probalo en una computadora" });
+    expect(within(dialog).getByText(/no está disponible para el celular/)).toBeInTheDocument();
     expect(
       within(dialog)
         .getAllByRole("heading", { level: 4 })
