@@ -102,13 +102,6 @@
   height: 1.25rem;
 }
 
-/* The shared tooltip normally opens to the left for the right-hand toolbars. This title-adjacent
-   link lives at the other edge of the content, so its explanation opens to the right instead. */
-.fork-source-tooltip::after {
-  right: auto;
-  left: calc(100% + 0.6rem);
-}
-
 .title-input,
 .author-input {
   font-family: inherit;
@@ -941,6 +934,12 @@
 .track-cell--chip {
   background: transparent;
   cursor: pointer;
+  /* A long press picks a chip up (see touchDrag.ts) and two taps edit it, so neither may open
+     the browser's text menu or zoom the page. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
 }
 
 .track-cell--chip:hover {

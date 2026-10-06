@@ -101,6 +101,7 @@ function SongRow({
             <IconButtonTooltip
               tooltip="Privada"
               className="library-row__privacy-tooltip"
+              side="bottom"
             >
               <span className="library-row__privacy" aria-label="Privada">
                 <PrivacyIcon size={15} strokeWidth={1.8} aria-hidden="true" />

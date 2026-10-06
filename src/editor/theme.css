@@ -120,6 +120,19 @@ input {
   transition: opacity 120ms ease;
 }
 
+/* IconButtonTooltip picks the side: its preferred one, or another when that runs off screen. */
+.icon-button-tooltip[data-tooltip-side="right"]::after {
+  right: auto;
+  left: calc(100% + 0.6rem);
+}
+
+.icon-button-tooltip[data-tooltip-side="bottom"]::after {
+  top: calc(100% + 0.6rem);
+  right: auto;
+  left: 50%;
+  transform: translateX(calc(-50% + var(--tooltip-shift, 0px)));
+}
+
 .icon-button-tooltip:hover::after,
 .icon-button-tooltip:focus-within::after {
   opacity: 1;
