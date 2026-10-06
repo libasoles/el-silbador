@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { SilbadorIcon } from "../../editor/components/icons";
+import { ARTICLES } from "./articleList";
 import "./articles.css";
 
 export const metadata: Metadata = {
@@ -24,33 +25,6 @@ export const metadata: Metadata = {
   },
 };
 
-const articles = [
-  {
-    date: "Guía del editor",
-    href: "/articulos/usar-acordes-en-el-editor",
-    title: "Cómo usar los acordes en el editor",
-    summary:
-      "Una guía práctica para mostrar, escribir, mover, consultar y corregir acordes sobre una canción.",
-    topics: ["editor", "guitarra", "acordes"],
-  },
-  {
-    date: "Guía del editor",
-    href: "/articulos/notas-de-la-cancion",
-    title: "Cómo escribir las notas de la canción",
-    summary:
-      "Escribir la melodía debajo de la letra, unir sílabas que se cantan juntas, marcar subidas y bajadas, y cambiar de tono.",
-    topics: ["editor", "melodía", "notas", "canto"],
-  },
-  {
-    date: "Guía del editor",
-    href: "/articulos/marcas-de-estructura-y-bis",
-    title: "Marcas de estructura y BIS",
-    summary:
-      "Nombrar las partes de la canción con palabras clave como Estrofa o Estribillo, y marcar con BIS una o varias líneas que se repiten.",
-    topics: ["editor", "estructura", "bis"],
-  },
-] as const;
-
 export default function ArticlesPage() {
   return (
     <main className="articles">
@@ -67,7 +41,7 @@ export default function ArticlesPage() {
       </header>
 
       <section aria-label="Artículos">
-        {articles.map((article) => (
+        {ARTICLES.map((article) => (
           <article className="article-preview" key={article.title}>
             <p className="article-preview__date">{article.date}</p>
             <h2>

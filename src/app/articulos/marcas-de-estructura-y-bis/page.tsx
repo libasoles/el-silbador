@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SilbadorIcon } from "../../../editor/components/icons";
 import { ArticleChordEditor } from "../ArticleChordEditor";
 import { ArticleJsonLd } from "../ArticleJsonLd";
+import { ArticleNextLink } from "../ArticleNextLink";
 import { articleMetadata } from "../articleSeo";
 import {
   BIS_EXCERPT,
@@ -175,6 +176,8 @@ export default function StructureAndBisArticlePage() {
           />
         </div>
       </article>
+
+      <ArticleNextLink slug={ARTICLE.slug} />
     </main>
   );
 }
