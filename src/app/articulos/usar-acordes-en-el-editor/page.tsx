@@ -18,6 +18,7 @@ import {
   TONADA_EXCERPT,
 } from "../ArticleChordEditor";
 import { ArticleJsonLd } from "../ArticleJsonLd";
+import { CopyableText } from "../CopyableText";
 import { articleMetadata } from "../articleSeo";
 import "../articles.css";
 
@@ -113,7 +114,6 @@ export default function ChordEditorArticlePage() {
           <ArticleChordEditor
             sheet={LYRICS_ONLY}
             label="Editor con dos versos sin acordes"
-            needsEditing
           />
 
           <h2>Copiar y Pegar</h2>
@@ -124,12 +124,11 @@ export default function ChordEditorArticlePage() {
           </p>
 
           <p>Copia y pega este texto en el recuadro de abajo: </p>
-          <pre>{EXAMPLE_LINE}</pre>
+          <CopyableText text={EXAMPLE_LINE} label="Texto de ejemplo para copiar" />
 
           <ArticleChordEditor
             sheet={EMPTY_LINE}
             label="Editor vacío"
-            needsEditing
           />
 
           <p className="article-highlight">
@@ -143,6 +142,10 @@ export default function ChordEditorArticlePage() {
             Mientras lo movés, la sílaba que lo va a recibir se marca con una
             línea más gruesa; soltalo ahí.
           </p>
+          <p>
+            En el celular, mantené apretado el acorde un momento hasta que se
+            levante, y después arrastralo.
+          </p>
           <MoveChordExample />
           <p>
             Acá están los mismos tres acordes mal ubicados, para que lo hagas
@@ -151,7 +154,6 @@ export default function ChordEditorArticlePage() {
           <ArticleChordEditor
             sheet={MOVE_EXCERPT}
             label="Editor con tres acordes corridos de lugar"
-            needsEditing
           />
 
           <h2>Antes y después de la frase</h2>
@@ -164,7 +166,6 @@ export default function ChordEditorArticlePage() {
           <ArticleChordEditor
             sheet={EDGE_EXCERPT}
             label="Editor con el último verso del fragmento"
-            needsEditing
           />
           <p>
             Podés poner más de un acorde en cada borde: cuando uno ocupa el
@@ -177,14 +178,14 @@ export default function ChordEditorArticlePage() {
           </h2>
           <p>
             Para cambiar un acorde que ya escribiste, hacele doble{" "}
-            <span className="article-action">click</span>. Modificá el texto y
-            apretá <span className="article-action">Enter</span>.
+            <span className="article-action">click</span> (en el celular, tocalo
+            dos veces). Modificá el texto y apretá{" "}
+            <span className="article-action">Enter</span>.
           </p>
           <p>Probá cambiar el A7 de este verso por un A:</p>
           <ArticleChordEditor
             sheet={CORRECT_EXCERPT}
             label="Editor con un verso para corregir"
-            needsEditing
           />
 
           <h2>Borrar un acorde</h2>

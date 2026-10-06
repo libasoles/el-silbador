@@ -83,7 +83,6 @@ export default function StructureAndBisArticlePage() {
           <ArticleChordEditor
             sheet={UNLABELED_EXCERPT}
             label="Editor con una línea vacía antes de la estrofa"
-            needsEditing
           />
           <p className="article-highlight">
             Si la línea tiene algo más, como «Estribillo final», no va a
@@ -118,7 +117,6 @@ export default function StructureAndBisArticlePage() {
           <ArticleChordEditor
             sheet={TONADA_SHEET}
             label="Editor con un fragmento sin BIS"
-            needsEditing
           />
 
           <h2>BIS de varias líneas</h2>
@@ -148,7 +146,6 @@ export default function StructureAndBisArticlePage() {
           <ArticleChordEditor
             sheet={TONADA_SHEET}
             label="Editor con un fragmento sin BIS para marcar varias líneas"
-            needsEditing
           />
           <p className="article-highlight">
             Escribir BIS a mano marca una sola línea. Para un grupo, usá la
@@ -175,7 +172,6 @@ export default function StructureAndBisArticlePage() {
             sheet={BIS_EXCERPT}
             bisGroups={MULTI_BIS_GROUPS}
             label="Editor con un BIS de dos líneas para quitar"
-            needsEditing
           />
         </div>
       </article>

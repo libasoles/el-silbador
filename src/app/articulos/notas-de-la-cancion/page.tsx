@@ -105,7 +105,6 @@ export default function SongNotesArticlePage() {
             sheet={FIRST_LINE}
             showMelody
             label="Editor con un verso sin notas"
-            needsEditing
           />
 
           <p className="article-highlight">
@@ -147,7 +146,6 @@ export default function SongNotesArticlePage() {
             melody={YPACARAI_MELODY_UNJOINED}
             showMelody
             label="Editor con dos sílabas para unir en el segundo verso"
-            needsEditing
           />
           <p>
             Si te equivocaste, hacé{" "}
@@ -189,7 +187,6 @@ export default function SongNotesArticlePage() {
             melody={YPACARAI_MELODY_FLAT}
             showMelody
             label="Editor con la melodía completa y sin flechas"
-            needsEditing
           />
           <p className="article-highlight">
             Para sacar una flecha, arrastrá la nota en la dirección contraria.

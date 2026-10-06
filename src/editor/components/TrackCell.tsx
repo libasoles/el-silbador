@@ -3,7 +3,13 @@ import { getChordPositions } from "../../core/chordPositions";
 import { findChordShape } from "../../core/findChordShape";
 import { trackEvent } from "../analytics";
 import type { DragDelta } from "../pitchDragGesture";
+import { enableTouchDrag } from "../touchDrag";
+import { useCoarsePointer } from "../useIsMobile";
 import { ChordTooltip } from "./ChordTooltip";
+
+/** Two taps on a chip this close together edit it, like a double click. Touch browsers don't all
+ *  report a double tap as `dblclick`. */
+const DOUBLE_TAP_MS = 400;
 
 interface TrackCellProps {
   slotId: string;
@@ -109,6 +115,17 @@ export function TrackCell({
 
   useEffect(() => () => void stopTrackingDrag(), []);
 
+  // A finger can't start a native drag, so on touch devices a long press does it instead.
+  const coarsePointer = useCoarsePointer();
+  const touchDraggable = draggable && coarsePointer && !editing;
+  useEffect(() => {
+    const chip = chipRef.current;
+    if (!touchDraggable || !chip) return;
+    return enableTouchDrag(chip);
+  }, [touchDraggable]);
+
+  const lastChipClickRef = useRef(0);
+
   const chordShape = showChordDiagram ? findChordShape(value) : null;
   const chordPositions = chordShape ? getChordPositions(chordShape) : [];
   const clampedVariantIndex = Math.min(chordVariantIndex, Math.max(chordPositions.length - 1, 0));
@@ -117,6 +134,13 @@ export function TrackCell({
   // A click on a known chord shows its diagram rather than jumping straight to editing;
   // double-clicking (or clicking a chip with no known chord) edits it directly.
   function handleChipClick() {
+    const now = Date.now();
+    const secondTap = !readOnly && now - lastChipClickRef.current < DOUBLE_TAP_MS;
+    lastChipClickRef.current = secondTap ? 0 : now;
+    if (secondTap) {
+      startEditing();
+      return;
+    }
     if (chordShape) {
       if (!tooltipOpen) {
         trackEvent("chord_diagram_open", { chord_name: value });
@@ -250,7 +274,7 @@ export function TrackCell({
           onMouseUp={() => {
             pointerDownRef.current = false;
           }}
-          draggable={draggable}
+          draggable={draggable && !coarsePointer}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onDragOver={handleDragOver}

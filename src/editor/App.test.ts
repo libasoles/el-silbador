@@ -358,9 +358,7 @@ describe("fork source link", () => {
     expect(app).toMatch(
       /className="title-row"[\s\S]*className="fork-source-link"[\s\S]*className="title-input"/,
     );
-    expect(styles).toMatch(
-      /\.fork-source-tooltip::after\s*\{[\s\S]*left: calc\(100% \+ 0\.6rem\)/,
-    );
+    expect(app).toMatch(/className="fork-source-tooltip"[\s\S]*?side="right"/);
   });
 });
 

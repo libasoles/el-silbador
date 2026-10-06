@@ -998,6 +998,8 @@ function App({
                   {forkSourceSlug && (
                     <IconButtonTooltip
                       className="fork-source-tooltip"
+                      // This link sits at the content's left edge, away from the right-hand toolbars.
+                      side="right"
                       tooltip="Ver la canción de la que se derivó esta versión"
                     >
                       <a

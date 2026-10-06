@@ -247,12 +247,6 @@
   flex: none;
 }
 
-.library-row__privacy-tooltip::after {
-  top: calc(100% + 0.45rem);
-  right: auto;
-  left: 50%;
-  transform: translateX(-50%);
-}
 
 .library-row__privacy {
   display: inline-flex;

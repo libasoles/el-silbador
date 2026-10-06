@@ -93,14 +93,12 @@ interface ArticleChordEditorProps {
   showMelody?: boolean;
   /** Sidebar controls to show next to the song, in the editor's own order. */
   tools?: ("trackToggles" | "underline" | "transpose")[];
-  /** The demo is about writing or moving chords, which mobile doesn't allow. */
-  needsEditing?: boolean;
 }
 
 const subscribeToNothing = () => () => {};
 
 /** A live, throwaway copy of the song editor: the real SongView and its real reducer, with no
- *  saving. Mobile gets the same read-only view the app gives it. */
+ *  saving. Unlike the app, it stays editable on mobile: these demos are there to be tried. */
 export function ArticleChordEditor(props: ArticleChordEditorProps) {
   // Syllable ids come from a module-level counter, so a server render would never match the
   // client's. The editor only exists once the page is hydrated; until then its frame holds the place.
@@ -121,7 +119,6 @@ function LiveChordEditor({
   bisGroups,
   showMelody = false,
   tools = [],
-  needsEditing = false,
 }: ArticleChordEditorProps) {
   const isMobile = useIsMobile();
   const [initialContent] = useState(() => contentFromChordSheet(sheet, melody, bisGroups));
@@ -201,7 +198,7 @@ function LiveChordEditor({
         showUnderline={state.showUnderline}
         showHelp={false}
         placeholder={null}
-        canEdit={!isMobile}
+        canEdit
         onSetCellText={actions.setCellText}
         onSetChordVariant={actions.setChordVariant}
         onToggleMerge={actions.toggleSyllableMerge}
@@ -211,12 +208,6 @@ function LiveChordEditor({
         onToggleBis={actions.toggleBis}
         onPasteText={actions.pasteText}
       />
-      {needsEditing && isMobile ? (
-        <figcaption className="article-editor__note">
-          En el celular el editor es de solo lectura: probá esto desde una
-          computadora.
-        </figcaption>
-      ) : null}
     </figure>
   );
 }
