@@ -176,6 +176,24 @@ describe("Library search", () => {
     await userEvent.clear(screen.getByLabelText("Buscar canciones o autores"));
     expect(onQueryChange).toHaveBeenLastCalledWith("");
   });
+
+  it("offers a clear button only while there is a query, and it empties the search", async () => {
+    mockMatchMedia(false);
+    const onQueryChange = vi.fn();
+    renderLibrary(undefined, { onQueryChange });
+    const input = screen.getByLabelText("Buscar canciones o autores");
+
+    expect(screen.queryByRole("button", { name: "Borrar búsqueda" })).not.toBeInTheDocument();
+
+    await search("tamara");
+    await userEvent.click(screen.getByRole("button", { name: "Borrar búsqueda" }));
+
+    expect(input).toHaveValue("");
+    expect(input).toHaveFocus();
+    expect(onQueryChange).toHaveBeenLastCalledWith("");
+    expect(rowTitles()).toHaveLength(PUBLIC_SONGS.length);
+    expect(screen.queryByRole("button", { name: "Borrar búsqueda" })).not.toBeInTheDocument();
+  });
 });
 
 describe("Library new song button", () => {

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { trackEvent } from "../analytics";
 import { useAuthRequired } from "../authRequiredContext";
@@ -13,6 +13,7 @@ import {
   NeutralIllustrationIcon,
   PlusIcon,
   PrivacyIcon,
+  RemoveIcon,
   SearchIcon,
   SilbadorIcon,
   SpinnerIcon,
@@ -336,6 +337,11 @@ export function Library({
   // user's own songs. Favoriting stays available on mobile and must not be gated here.
   const isMobile = useIsMobile();
   const [query, setQuery] = useState(initialQuery);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const updateQuery = (nextQuery: string) => {
+    setQuery(nextQuery);
+    onQueryChange?.(nextQuery);
+  };
   const [desktopOnlyNoticeOpen, setDesktopOnlyNoticeOpen] = useState(false);
   const [songPendingDelete, setSongPendingDelete] =
     useState<LibrarySong | null>(null);
@@ -596,16 +602,27 @@ export function Library({
         <label className="library-search">
           <SearchIcon />
           <input
+            ref={searchInputRef}
             type="text"
             className="library-search__input"
             placeholder="Buscar canciones o autores"
             value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              onQueryChange?.(event.target.value);
-            }}
+            onChange={(event) => updateQuery(event.target.value)}
             aria-label="Buscar canciones o autores"
           />
+          {query && (
+            <button
+              type="button"
+              className="library-search__clear"
+              onClick={() => {
+                updateQuery("");
+                searchInputRef.current?.focus();
+              }}
+              aria-label="Borrar búsqueda"
+            >
+              <RemoveIcon size={18} aria-hidden />
+            </button>
+          )}
         </label>
       </header>
 
