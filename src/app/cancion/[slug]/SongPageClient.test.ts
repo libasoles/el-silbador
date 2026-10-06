@@ -22,3 +22,19 @@ describe("song page authentication handoff", () => {
     expect(songPageClient).toMatch(/<App\s+songSlug=\{slug\}\s+initialSong=\{initialSong\}/);
   });
 });
+
+describe("read-only song page vs. its editor", () => {
+  const songPage = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
+  const editPage = readFileSync(new URL("./editar/page.tsx", import.meta.url), "utf8");
+
+  it("keeps the song's plain URL read-only, even for its owner", () => {
+    expect(songPageClient).toMatch(/editing = false/);
+    expect(songPageClient).toMatch(/readOnly=\{!editing\}/);
+    expect(songPage).toMatch(/<SongPageClient slug=\{slug\} initialSong=\{song\} \/>/);
+  });
+
+  it("opens the editor only at /editar, with a fresh fetch and out of search results", () => {
+    expect(editPage).toMatch(/<SongPageClient slug=\{slug\} initialSong=\{null\} editing \/>/);
+    expect(editPage).toMatch(/robots: \{ index: false, follow: false \}/);
+  });
+});

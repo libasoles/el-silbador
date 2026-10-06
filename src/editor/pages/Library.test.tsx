@@ -1,7 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { Session } from "@supabase/supabase-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { listFavorites, listMySongs } from "../../data/songs";
+import type { SongSummary } from "../../data/types";
 import { mockMatchMedia } from "../../test/matchMedia";
 import { AuthRequiredContext } from "../authRequiredContext";
 import { ToastContext } from "../toastContext";
@@ -193,5 +196,82 @@ describe("Library new song button", () => {
 
     await userEvent.click(within(dialog).getByRole("button", { name: "Cerrar" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});
+
+const MY_SONG: SongSummary = {
+  id: "mine-1",
+  slug: "mi-cancion",
+  title: "Mi canción",
+  author: "Yo",
+  ownerId: "me",
+  isPublic: false,
+  isListed: false,
+  youtubeUrl: null,
+  performers: [],
+};
+
+function renderSignedInLibrary(handlers: {
+  onOpenSong?: (song: LibrarySong) => void;
+  onEditSong?: (song: LibrarySong) => void;
+}) {
+  vi.mocked(listMySongs).mockResolvedValue([MY_SONG]);
+  vi.mocked(listFavorites).mockResolvedValue([
+    { ...MY_SONG, id: "fav-1", slug: "favorita", title: "Favorita", ownerId: "other" },
+  ]);
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  });
+  const session = { user: { id: "me" } } as unknown as Session;
+  render(
+    <QueryClientProvider client={queryClient}>
+      <AuthRequiredContext.Provider value={{ session, requireAuthentication: vi.fn() }}>
+        <ToastContext.Provider value={{ showToast: vi.fn(), showTutorial: vi.fn() }}>
+          <Library appVersion="0.0.0" initialPublicSongs={PUBLIC_SONGS} {...handlers} />
+        </ToastContext.Provider>
+      </AuthRequiredContext.Provider>
+    </QueryClientProvider>,
+  );
+}
+
+describe("Library own songs", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.mocked(listMySongs).mockResolvedValue([]);
+    vi.mocked(listFavorites).mockResolvedValue([]);
+  });
+
+  it("opens an own song read-only from its title and in the editor only from the pencil", async () => {
+    mockMatchMedia(false);
+    const onOpenSong = vi.fn();
+    const onEditSong = vi.fn();
+    renderSignedInLibrary({ onOpenSong, onEditSong });
+
+    const row = (await screen.findByText("Mi canción")).closest("li")!;
+    await userEvent.click(within(row).getByText("Mi canción"));
+    expect(onOpenSong).toHaveBeenCalledWith(expect.objectContaining({ slug: "mi-cancion" }));
+    expect(onEditSong).not.toHaveBeenCalled();
+
+    await userEvent.click(within(row).getByRole("button", { name: "Editar canción" }));
+    expect(onEditSong).toHaveBeenCalledWith(expect.objectContaining({ slug: "mi-cancion" }));
+    expect(onOpenSong).toHaveBeenCalledOnce();
+  });
+
+  it("shows the pencil only next to own songs, not favorites or public ones", async () => {
+    mockMatchMedia(false);
+    renderSignedInLibrary({});
+
+    await screen.findByText("Favorita");
+    const pencils = screen.getAllByRole("button", { name: "Editar canción" });
+    expect(pencils).toHaveLength(1);
+    expect(pencils[0].closest("li")).toHaveTextContent("Mi canción");
+  });
+
+  it("hides the pencil on mobile, where editing is not allowed", async () => {
+    mockMatchMedia(true);
+    renderSignedInLibrary({});
+
+    await screen.findByText("Mi canción");
+    expect(screen.queryByRole("button", { name: "Editar canción" })).not.toBeInTheDocument();
   });
 });

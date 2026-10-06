@@ -418,8 +418,8 @@ describe("post-login save", () => {
   });
 
   it("defers reading a local draft until after hydration", () => {
-    expect(app).toContain(
-      "const [restoredDraft, setRestoredDraft] = useState<ReturnType<typeof readDraft>>(null);",
+    expect(app).toMatch(
+      /const \[restoredDraft, setRestoredDraft\] =\s*useState<ReturnType<typeof readDraft>>\(null\);/,
     );
     expect(app).toContain("useEditor(initialSong?.content, isMobile)");
     expect(app).toMatch(
@@ -430,7 +430,7 @@ describe("post-login save", () => {
   it("leaves a pending new song to the app-wide resumer instead of autosave", () => {
     expect(providers).toContain("<PendingSongResumer session={session} />");
     expect(app).toContain(
-      "const canPersist = isOwnSong && !isMobile && !pendingCreationId;",
+      "const canPersist = isAuthoring && !isMobile && !pendingCreationId;",
     );
     expect(app).not.toContain("arrivedViaMagicLink");
   });

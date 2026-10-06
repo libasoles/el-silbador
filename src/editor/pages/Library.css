@@ -333,6 +333,7 @@
   }
 }
 
+.library-row__edit,
 .library-row__delete {
   flex: none;
   align-self: center;
@@ -343,6 +344,10 @@
 
 .library-row__delete:hover {
   color: var(--highlight);
+}
+
+.library-row__edit:hover {
+  color: var(--accent);
 }
 
 .library-section__empty {
