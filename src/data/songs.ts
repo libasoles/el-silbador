@@ -32,6 +32,7 @@ interface SongRow {
   is_public: boolean;
   is_listed: boolean;
   youtube_url: string | null;
+  category: string | null;
   forked_from: string | null;
   created_at: string;
   updated_at: string;
@@ -53,7 +54,7 @@ interface FavoriteRow {
 // the PDF never carry them; every list embeds them so the library can search them without a
 // query per song.
 const SUMMARY_COLUMNS =
-  "id, slug, title, owner_id, content, is_public, is_listed, youtube_url, forked_from, created_at, updated_at, song_performers(position, artists(name))";
+  "id, slug, title, owner_id, content, is_public, is_listed, youtube_url, category, forked_from, created_at, updated_at, song_performers(position, artists(name))";
 
 export function serializeContent(content: SongContent): StoredSongContent {
   return {
@@ -115,6 +116,7 @@ function toSummary(row: SongRow): SongSummary {
     isPublic: row.is_public,
     isListed: row.is_listed,
     youtubeUrl: row.youtube_url,
+    category: row.category,
     forkedFrom: row.forked_from,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -272,6 +274,9 @@ export async function forkSong(songId: string): Promise<SongDetail> {
       owner_id: userId,
       title: source.title,
       content: source.content,
+      // Only sticks when the caller is an admin; otherwise guard_song_category copies the source's
+      // category itself (see supabase/migrations/0013_song_category.sql).
+      category: source.category,
       forked_from: songId,
       is_public: false,
     })
