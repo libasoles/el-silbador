@@ -249,6 +249,7 @@ const MY_SONG: SongSummary = {
   isPublic: false,
   isListed: false,
   youtubeUrl: null,
+  category: null,
   performers: [],
 };
 

@@ -12,6 +12,7 @@ import {
   listMySongs,
   listPublicSongs,
   saveSong,
+  serializeContent,
   setSongPerformers,
   setSongPublic,
   setSongYoutubeUrl,
@@ -406,6 +407,63 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
 
       expect(fork.performers).toEqual([]);
       expect((await getSong(fork.id)).performers).toEqual([]);
+    });
+  });
+
+  describe("song category", () => {
+    async function setCategory(songId: string, category: string | null) {
+      const { error } = await (await getSupabaseClient())
+        .from("songs")
+        .update({ category })
+        .eq("id", songId);
+      if (error) throw error;
+    }
+
+    it("starts a new song without a category and lets an admin set it", async () => {
+      await signInAs(adminUser);
+      const song = await saveSong({ content: makeContent({ title: "Zamba para no morir" }) });
+      createdSongIds.push(song.id);
+      expect((await getSong(song.id)).category).toBeNull();
+
+      await setCategory(song.id, "Folklore");
+      expect((await getSong(song.id)).category).toBe("Folklore");
+    });
+
+    it("ignores a non-admin owner's attempt to set or change the category", async () => {
+      await signInAs(userA);
+      const insertedId = randomUUID();
+      const { error } = await (await getSupabaseClient())
+        .from("songs")
+        .insert({
+          id: insertedId,
+          owner_id: userA.id,
+          content: serializeContent(makeContent()),
+          category: "Tango",
+        });
+      if (error) throw error;
+      createdSongIds.push(insertedId);
+      expect((await getSong(insertedId)).category).toBeNull();
+
+      const song = await saveSong({ content: makeContent({ title: "Mía" }) });
+      createdSongIds.push(song.id);
+      await adminClient.from("songs").update({ category: "Folklore" }).eq("id", song.id);
+
+      await setCategory(song.id, "Rock");
+      expect((await getSong(song.id)).category).toBe("Folklore");
+    });
+
+    it("copies the category into a fork", async () => {
+      await signInAs(adminUser);
+      const original = await saveSong({ content: makeContent({ title: "Original folklórico" }) });
+      createdSongIds.push(original.id);
+      await setCategory(original.id, "Folklore");
+      await setSongPublic(original.id, true);
+
+      await signInAs(userB);
+      const fork = await forkSong(original.id);
+      createdSongIds.push(fork.id);
+
+      expect(fork.category).toBe("Folklore");
     });
   });
 

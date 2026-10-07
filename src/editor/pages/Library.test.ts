@@ -12,6 +12,7 @@ function makeSong(overrides: Partial<SongSummary> = {}): SongSummary {
     isPublic: false,
     isListed: false,
     youtubeUrl: null,
+    category: null,
     forkedFrom: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",

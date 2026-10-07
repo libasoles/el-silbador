@@ -19,6 +19,7 @@ function song(overrides: Partial<SongDetail> = {}): SongDetail {
     isPublic: true,
     isListed: true,
     youtubeUrl: null,
+    category: null,
     forkedFrom: null,
     createdAt: "2026-01-01T00:00:00Z",
     updatedAt: "2026-01-01T00:00:00Z",
