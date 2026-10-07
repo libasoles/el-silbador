@@ -67,7 +67,6 @@ function PerformersEditor({
     <div className="song-performers">
       <ChipsInput
         label="Intérpretes"
-        visibleLabel="Interpretada por:"
         placeholder={performers.length === 0 ? "Agregá intérpretes separados por coma" : undefined}
         values={performers}
         onChange={onChange}

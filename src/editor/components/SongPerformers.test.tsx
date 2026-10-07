@@ -85,6 +85,14 @@ describe("SongPerformers", () => {
     expect(performersInput()).toBeInTheDocument();
   });
 
+  it("hides the 'Interpretada por:' legend in edit mode, showing only the input", () => {
+    mockMatchMedia(false);
+    renderFooter({ viewerIsAdmin: true, viewerOwnsSong: true });
+
+    expect(performersInput()).toBeInTheDocument();
+    expect(screen.queryByText(/Interpretada por/)).not.toBeInTheDocument();
+  });
+
   it("shows a non-admin owner only the legend", () => {
     mockMatchMedia(false);
     renderFooter({ viewerIsAdmin: false, viewerOwnsSong: true });
