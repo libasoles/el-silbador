@@ -315,3 +315,27 @@ export function reconcileWordSyllables(oldSyllables: Syllable[], newTexts: strin
 
   return { syllables, droppedIds, carryOvers };
 }
+
+/** Where `slotId` sits on `line`, as a phrase to finish a sentence like "Acorde C …": over a
+ *  syllable ("sobre «na»"), between two words ("entre «na» y «no»"), or at either edge of the
+ *  line. A unit joined by a melisma reads as one piece ("sobre «na-no»" shows as «nano»). Used to
+ *  name annotation cells for screen readers, who can't see which syllable a cell is aligned to. */
+export function describeSlotPosition(line: Line, merges: ReadonlySet<string>, slotId: string): string {
+  if (slotId === startSlotId(line.id) || slotId.startsWith(`start:${line.id}:`)) return "al principio del renglón";
+  if (slotId === endSlotId(line.id) || slotId.startsWith(`end:${line.id}:`)) return "al final del renglón";
+
+  const syllables = flattenSyllables(line);
+  const gap = getLineGaps(line, merges).find((candidate) => candidate.slotId === slotId);
+  if (gap) {
+    const index = syllables.findIndex((syllable) => syllable.id === gap.afterSyllableId);
+    const next = syllables[index + 1];
+    return `entre «${syllables[index]?.text.trim() ?? ""}» y «${next?.text.trim() ?? ""}»`;
+  }
+
+  const unit = getLineUnits(line, merges).find((candidate) => candidate.slotId === slotId);
+  const text = unit?.syllableIds
+    .map((id) => syllables.find((syllable) => syllable.id === id)?.text ?? "")
+    .join("")
+    .trim();
+  return text ? `sobre «${text}»` : "en el renglón";
+}

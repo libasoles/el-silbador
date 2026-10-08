@@ -16,7 +16,7 @@ abren el diagrama, siguen siendo botones. El texto sigue igual para quien lo ve.
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 **Agent:** unassigned
 
 - [ ] Toda celda que sea botón tiene un nombre que dice la pista, el contenido (o la acción si está vacía) y la sílaba.

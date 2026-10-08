@@ -30,9 +30,20 @@ interface TrackRowProps {
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onSetChordVariant: (slotId: string, index: number) => void;
   drag: CellDragHandlers;
+  /** Where a slot sits on the lyric line ("sobre «na»"), so each cell can be named for a screen reader. */
+  describeSlot: (slotId: string) => string;
   readOnly?: boolean;
   /** Annotation rows must not be visible until their absolutely-positioned slots are measured. */
   annotationsReady?: boolean;
+}
+
+/** The accessible name of a cell: its track, what it holds (or the action it offers when empty)
+ *  and where it sits on the line. */
+function cellLabel(trackId: TrackId, value: string, position: string): string {
+  const noun = trackId === "chords" ? "acorde" : "nota";
+  const text = value.trim();
+  if (text === "") return `Agregar ${noun} ${position}`;
+  return `${noun === "acorde" ? "Acorde" : "Nota"} ${text} ${position}`;
 }
 
 export function TrackRow({
@@ -47,6 +58,7 @@ export function TrackRow({
   onSetCellText,
   onSetChordVariant,
   drag,
+  describeSlot,
   readOnly = false,
   annotationsReady = true,
 }: TrackRowProps) {
@@ -80,6 +92,7 @@ export function TrackRow({
             key={slotId}
             slotId={slotId}
             value={value}
+            label={cellLabel(trackId, value, describeSlot(slotId))}
             left={left}
             width={rect?.width}
             onChange={(text) => onSetCellText(trackId, slotId, text)}
