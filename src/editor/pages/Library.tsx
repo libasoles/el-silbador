@@ -557,6 +557,28 @@ export function Library({
     toggleFavoriteMutation.mutate(song);
   };
 
+  // Favorites go above the user's own songs once there is at least one. While they load, the
+  // count remembered from the last visit predicts the order so the sections don't swap places.
+  const favoritesFirst = favoritesLoading
+    ? (skeletonCounts?.favorites ?? 0) > 0
+    : favoriteLibrarySongs.length > 0;
+
+  const favoritesSection = (
+    <LibrarySection
+      title="Favoritas"
+      songs={favoriteSongs}
+      query={query}
+      emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
+      favoriteIds={favoriteIds}
+      favoritePendingSongId={favoritePendingSongId ?? undefined}
+      fadeInSongId={favoriteFadeInSongId ?? undefined}
+      loading={favoritesLoading}
+      skeletonRows={skeletonCounts?.favorites}
+      onOpenSong={handleOpen}
+      onToggleFavorite={handleToggleFavorite}
+    />
+  );
+
   return (
     <main className="library">
       <a className="app-mark" href="/" aria-label="Ir al índice">
@@ -628,8 +650,11 @@ export function Library({
       </header>
 
       <div className="library-sections">
+        {session && favoritesFirst && favoritesSection}
+
         {session && (
           <LibrarySection
+            title="Tuyas"
             songs={mySongs}
             query={query}
             emptyLabel="Todavía no escribiste ninguna canción."
@@ -648,21 +673,7 @@ export function Library({
           />
         )}
 
-        {session && (
-          <LibrarySection
-            title="Favoritas"
-            songs={favoriteSongs}
-            query={query}
-            emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
-            favoriteIds={favoriteIds}
-            favoritePendingSongId={favoritePendingSongId ?? undefined}
-            fadeInSongId={favoriteFadeInSongId ?? undefined}
-            loading={favoritesLoading}
-            skeletonRows={skeletonCounts?.favorites}
-            onOpenSong={handleOpen}
-            onToggleFavorite={handleToggleFavorite}
-          />
-        )}
+        {session && !favoritesFirst && favoritesSection}
 
         <LibrarySection
           title={session ? "Públicas" : undefined}

@@ -252,14 +252,17 @@ const MY_SONG: SongSummary = {
   performers: [],
 };
 
-function renderSignedInLibrary(handlers: {
-  onOpenSong?: (song: LibrarySong) => void;
-  onEditSong?: (song: LibrarySong) => void;
-}) {
-  vi.mocked(listMySongs).mockResolvedValue([MY_SONG]);
-  vi.mocked(listFavorites).mockResolvedValue([
+function renderSignedInLibrary(
+  handlers: {
+    onOpenSong?: (song: LibrarySong) => void;
+    onEditSong?: (song: LibrarySong) => void;
+  },
+  favorites: SongSummary[] = [
     { ...MY_SONG, id: "fav-1", slug: "favorita", title: "Favorita", ownerId: "other" },
-  ]);
+  ],
+) {
+  vi.mocked(listMySongs).mockResolvedValue([MY_SONG]);
+  vi.mocked(listFavorites).mockResolvedValue(favorites);
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
@@ -306,6 +309,25 @@ describe("Library own songs", () => {
     const pencils = screen.getAllByRole("button", { name: "Editar canción" });
     expect(pencils).toHaveLength(1);
     expect(pencils[0].closest("li")).toHaveTextContent("Mi canción");
+  });
+
+  it("labels the own songs as Tuyas and lists favorites above them when there is at least one", async () => {
+    mockMatchMedia(false);
+    renderSignedInLibrary({});
+
+    await screen.findByText("Favorita");
+    const titles = screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
+    expect(titles.slice(0, 3)).toEqual(["Favoritas", "Tuyas", "Públicas"]);
+  });
+
+  it("keeps the own songs first while there are no favorites", async () => {
+    mockMatchMedia(false);
+    renderSignedInLibrary({}, []);
+
+    await screen.findByText("Mi canción");
+    await screen.findByText(/Todavía no marcaste ninguna canción/);
+    const titles = screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
+    expect(titles.slice(0, 3)).toEqual(["Tuyas", "Favoritas", "Públicas"]);
   });
 
   it("hides the pencil on mobile, where editing is not allowed", async () => {
