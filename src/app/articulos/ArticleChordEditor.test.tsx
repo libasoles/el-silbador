@@ -290,3 +290,27 @@ describe("ArticleChordEditor", () => {
     expect(chordChip(container, "A").dataset.slotId).toBe(from);
   });
 });
+
+describe("ArticleChordEditor tracks", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("exposes the chords track as a named group, not as a table row", () => {
+    mockMatchMedia(false);
+    const { container } = renderEditor();
+
+    expect(screen.getAllByRole("group", { name: "Acordes" }).length).toBeGreaterThan(0);
+    expect(container.querySelector('[role="row"]')).toBeNull();
+  });
+
+  it("keeps moving between a track's cells with the arrow keys", () => {
+    mockMatchMedia(false);
+    renderEditor();
+    const [track] = screen.getAllByRole("group", { name: "Acordes" });
+    const slotIds = [...track.querySelectorAll<HTMLElement>(".track-cell")].map((cell) => cell.dataset.slotId);
+    act(() => track.querySelector<HTMLElement>(".track-cell")!.focus());
+    expect(document.activeElement).toHaveAttribute("data-slot-id", slotIds[0]);
+
+    fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
+    expect(document.activeElement).toHaveAttribute("data-slot-id", slotIds[1]);
+  });
+});

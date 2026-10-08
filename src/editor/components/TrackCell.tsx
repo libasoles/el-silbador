@@ -14,6 +14,9 @@ const DOUBLE_TAP_MS = 400;
 interface TrackCellProps {
   slotId: string;
   value: string;
+  /** The cell's accessible name: its track, what it holds (or the action it offers) and the
+   *  syllable it sits over. Its visible text alone ("C", "re") says none of that. */
+  label: string;
   left?: number;
   width?: number;
   onChange: (text: string) => void;
@@ -60,6 +63,7 @@ interface TrackCellProps {
 export function TrackCell({
   slotId,
   value,
+  label,
   left,
   width,
   onChange,
@@ -257,11 +261,27 @@ export function TrackCell({
     }
   }
 
+  // Where tapping does nothing (a read-only empty cell, a note, a chord with no known diagram),
+  // the cell is plain text rather than a button that announces itself as pressable.
+  if (!editing && readOnly && !chordShape) {
+    return (
+      <span
+        className={"track-cell track-cell--chip track-cell--static" + dragClassName}
+        data-slot-id={slotId}
+        style={style}
+        ref={registerRef}
+      >
+        {value || " "}
+      </span>
+    );
+  }
+
   if (!editing) {
     return (
       <>
         <button
           type="button"
+          aria-label={label}
           className={"track-cell track-cell--chip" + dragClassName}
           data-slot-id={slotId}
           style={style}
@@ -322,6 +342,7 @@ export function TrackCell({
 
   return (
     <input
+      aria-label={label}
       className={"track-cell track-cell--input" + dragClassName}
       data-slot-id={slotId}
       style={style}

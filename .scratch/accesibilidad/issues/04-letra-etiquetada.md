@@ -10,7 +10,7 @@ de `/nueva` tiene un `aria-label` sobre un `div` sin rol, que los lectores ignor
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 **Agent:** unassigned
 
 - [ ] Editando, el área de la letra es un campo de texto multilínea con el nombre "Letra de la canción".

@@ -218,32 +218,36 @@
   background: var(--syllable-underline);
 }
 
+/* The notes never fade: a half-transparent note fails the 4.5:1 text contrast, and the page is
+   audited mid-animation. A note appears by being uncovered, and the one to look at blinks by
+   changing its background tint while its text keeps full contrast. */
 .melody-tutorial-example--typing .melody-tutorial-example__note--typing {
-  opacity: 0;
+  clip-path: inset(0 100% 0 0);
   animation: melody-tutorial-note-appear 160ms ease-out forwards;
 }
 
 .melody-tutorial-example__note--blink {
+  color: var(--chord);
   animation: melody-tutorial-note-blink 2.4s ease-in-out infinite;
 }
 
 @keyframes melody-tutorial-note-blink {
   0%,
   100% {
-    opacity: 1;
+    background-color: transparent;
   }
   50% {
-    opacity: 0.2;
+    background-color: #f4ddd6;
   }
 }
 
 @keyframes melody-tutorial-note-appear {
   from {
-    opacity: 0;
+    clip-path: inset(0 100% 0 0);
     transform: translateY(-0.15em);
   }
   to {
-    opacity: 1;
+    clip-path: inset(0);
     transform: translateY(0);
   }
 }
@@ -379,6 +383,6 @@
   }
 
   .melody-tutorial-example--typing .melody-tutorial-example__note--typing {
-    opacity: 1;
+    clip-path: none;
   }
 }

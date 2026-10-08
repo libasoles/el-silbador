@@ -17,7 +17,7 @@ interface ChordNotesRowProps {
  *  previous chord is bolded. */
 export function ChordNotesRow({ label, slotIds, slotRects, cells, previousChordNotes }: ChordNotesRowProps) {
   return (
-    <div className="track-row track-row--chord-notes" data-track="chordNotes" role="row" aria-label={label}>
+    <div className="track-row track-row--chord-notes" data-track="chordNotes" role="group" aria-label={label}>
       {slotIds.map((slotId) => {
         const notes = chordToNoteNames(getCell(cells, "chords", slotId));
         if (!notes) return null;

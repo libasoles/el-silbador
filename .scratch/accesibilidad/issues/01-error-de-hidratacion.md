@@ -9,7 +9,7 @@ Ver [spec](../spec.md).
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 **Agent:** unassigned
 
 - [ ] Ni `/cancion/<slug>` ni `/nueva` muestran errores de hidratación en la consola, ni en la carga de escritorio ni en la de mobile.

@@ -315,3 +315,40 @@ export function reconcileWordSyllables(oldSyllables: Syllable[], newTexts: strin
 
   return { syllables, droppedIds, carryOvers };
 }
+
+/** Where each of `slotIds` sits on `line`, as a phrase to finish a sentence like "Acorde C …":
+ *  over a syllable ("sobre «na»"), between two words ("entre «na» y «no»"), or at either edge of
+ *  the line. Syllables joined by a melisma read as one piece. Used to name annotation cells for
+ *  screen readers, who can't see which syllable a cell is aligned to. */
+export function describeSlotPositions(
+  line: Line,
+  merges: ReadonlySet<string>,
+  slotIds: readonly string[],
+): Map<string, string> {
+  const syllables = flattenSyllables(line);
+  const textById = new Map(syllables.map((syllable) => [syllable.id, syllable.text.trim()]));
+  const gapAfter = new Map(getLineGaps(line, merges).map((gap) => [gap.slotId, gap.afterSyllableId]));
+  const unitText = new Map(
+    getLineUnits(line, merges).map((unit) => [
+      unit.slotId,
+      unit.syllableIds.map((id) => textById.get(id) ?? "").join(""),
+    ]),
+  );
+
+  const positions = new Map<string, string>();
+  for (const slotId of slotIds) {
+    const afterSyllableId = gapAfter.get(slotId);
+    if (slotId === startSlotId(line.id) || slotId.startsWith(`start:${line.id}:`)) {
+      positions.set(slotId, "al principio del renglón");
+    } else if (slotId === endSlotId(line.id) || slotId.startsWith(`end:${line.id}:`)) {
+      positions.set(slotId, "al final del renglón");
+    } else if (afterSyllableId !== undefined) {
+      const index = syllables.findIndex((syllable) => syllable.id === afterSyllableId);
+      positions.set(slotId, `entre «${syllables[index]?.text.trim() ?? ""}» y «${syllables[index + 1]?.text.trim() ?? ""}»`);
+    } else {
+      const text = unitText.get(slotId);
+      positions.set(slotId, text ? `sobre «${text}»` : "en el renglón");
+    }
+  }
+  return positions;
+}

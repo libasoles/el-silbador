@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpLeft } from "lucide-react";
 import { chordToNoteNames } from "../../core/chordNotes";
 import {
   bisSlotIds,
+  describeSlotPositions,
   endSlotIds,
   gapSlotId,
   getLineCellSlots,
@@ -133,6 +134,8 @@ function EdgeDropZone({ edge, dropTarget, rect, dragProps }: EdgeDropZoneProps) 
 
 interface LineViewProps {
   line: Line;
+  /** 1-based position in the song, to name the line for a screen reader while editing. */
+  lineNumber?: number;
   bisRule?: "single" | "start" | "middle" | "end";
   bisMarker?: boolean;
   /** Whitespace at the end of the raw lyric line, which the syllable model does not retain. */
@@ -164,6 +167,7 @@ interface LineViewProps {
 
 function LyricLineView({
   line,
+  lineNumber,
   bisRule,
   bisMarker = false,
   trailingWhitespace,
@@ -194,6 +198,7 @@ function LyricLineView({
   const lineStartSlots = useMemo(() => startSlotIds(line, cells), [line, cells]);
   const lineEndSlots = useMemo(() => endSlotIds(line, cells), [line, cells]);
   const units = useMemo(() => getLineUnits(line, merges), [line, merges]);
+  const slotPositions = useMemo(() => describeSlotPositions(line, merges, slotIds), [line, merges, slotIds]);
   const gaps = useMemo(() => getLineGaps(line, merges), [line, merges]);
   const gapSlotIds = useMemo(() => new Set(gaps.map((gap) => gap.slotId)), [gaps]);
   const chordOnlySlotIds = useMemo(
@@ -738,6 +743,7 @@ function LyricLineView({
           onSetCellText={onSetCellText}
           onSetChordVariant={onSetChordVariant}
           drag={drag}
+          slotPositions={slotPositions}
           readOnly={readOnly}
           annotationsReady={annotationsReady}
         />
@@ -818,7 +824,7 @@ function LyricLineView({
       <div ref={beforeGroupRef}>{beforeTracks.map((track) => renderTrackRow(track, firstRowSlotIds))}</div>
       <div
         className={"syllable-row" + (readOnly ? " syllable-row--wrap" : "")}
-        role="textbox"
+        {...lineLabelProps(readOnly, lineNumber)}
         data-lyrics-line
         ref={syllableRowRef}
         style={
@@ -952,12 +958,20 @@ function LyricLineView({
   );
 }
 
+/** While editing, each lyric line is a named group inside the lyrics field; when reading, it is
+ *  plain text and carries no role. */
+function lineLabelProps(readOnly: boolean, lineNumber: number | undefined) {
+  return !readOnly && lineNumber !== undefined
+    ? ({ role: "group", "aria-label": `Renglón ${lineNumber} de la letra` } as const)
+    : {};
+}
+
 /** Renders section labels outside the syllable and annotation layout. Keeping this separate from
  * `LyricLineView` also keeps its hook order stable when a free-form edit changes a line type. */
-function SubtitleLineView({ line }: Pick<LineViewProps, "line">) {
+function SubtitleLineView({ line, lineNumber, readOnly = false }: Pick<LineViewProps, "line" | "lineNumber" | "readOnly">) {
   return (
     <div className="line line--subtitle">
-      <div className="subtitle-line" role="textbox" data-lyrics-line>
+      <div className="subtitle-line" {...lineLabelProps(readOnly, lineNumber)} data-lyrics-line>
         {line.subtitle}
       </div>
     </div>
@@ -965,5 +979,5 @@ function SubtitleLineView({ line }: Pick<LineViewProps, "line">) {
 }
 
 export function LineView(props: LineViewProps) {
-  return props.line.subtitle !== undefined ? <SubtitleLineView line={props.line} /> : <LyricLineView {...props} />;
+  return props.line.subtitle !== undefined ? <SubtitleLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} /> : <LyricLineView {...props} />;
 }

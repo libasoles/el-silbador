@@ -955,6 +955,14 @@
   border-bottom-color: var(--border);
 }
 
+/* Read-only text that looks like its chip but does nothing when tapped. */
+.track-cell--static,
+.track-cell--static:hover {
+  cursor: default;
+  border-bottom-color: transparent;
+  line-height: normal;
+}
+
 .track-cell--input {
   border-bottom-color: var(--border-strong);
   outline: none;
