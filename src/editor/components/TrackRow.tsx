@@ -68,7 +68,7 @@ export function TrackRow({
       className={"track-row" + (annotationsReady ? " track-row--annotations-ready" : "")}
       data-track={trackId}
       data-empty={!hasContent}
-      role="row"
+      role="group"
       aria-label={label}
     >
       {slotIds.map((slotId, index) => {

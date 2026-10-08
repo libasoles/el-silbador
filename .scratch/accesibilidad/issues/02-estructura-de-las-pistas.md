@@ -12,7 +12,7 @@ ofrece el editor. Ver [spec](../spec.md).
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 **Agent:** unassigned
 
 - [ ] Ningún elemento del editor usa `role="row"` fuera de una tabla.
