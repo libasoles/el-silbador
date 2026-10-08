@@ -32,6 +32,17 @@ pegadas entre sí.
 Con el dedo, en un celular, es fácil tocar "na" queriendo tocar "C". Como en mobile la canción es
 de solo lectura, ahí lo único que importa es poder tocar un acorde para ver su diagrama.
 
+## Hallazgos después de los tickets 01–05
+
+- `npm run lighthouse` (local): `/cancion` y `/nueva` ya dan 1.00. Solo fallan los tres artículos
+  (0.96), con 209, 505 y 384 celdas marcadas por `target-size`.
+- Los demos de los artículos se pueden editar también en mobile (`ArticleChordEditor.tsx`), así
+  que ahí todas las celdas, incluso las vacías ("Agregar acorde…"), siguen siendo botones. La
+  opción A sola arregla la canción, pero no los artículos.
+- Las celdas tienen `position: absolute` sobre `.track-row` (`src/editor/App.css`). Agrandar su
+  área táctil no corre las sílabas: la letra no se separa más. El límite es que las celdas
+  vecinas se pisan cuando las sílabas son angostas.
+
 ## Opción A: en lectura, solo los acordes son tocables, con un área invisible más grande
 
 Lo visual no cambia. Con el ticket 03, en modo lectura las celdas vacías y las notas dejan de ser
