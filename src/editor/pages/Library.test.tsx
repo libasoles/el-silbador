@@ -312,13 +312,13 @@ describe("Library own songs", () => {
     expect(pencils[0].closest("li")).toHaveTextContent("Mi canción");
   });
 
-  it("labels the own songs as Tuyas and lists favorites above them when there is at least one", async () => {
+  it("lists favorites above own songs without a redundant heading", async () => {
     mockMatchMedia(false);
     renderSignedInLibrary({});
 
     await screen.findByText("Favorita");
     const titles = screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
-    expect(titles.slice(0, 3)).toEqual(["Favoritas", "Tuyas", "Públicas"]);
+    expect(titles.slice(0, 3)).toEqual(["Tuyas", "Públicas", "Estudio"]);
   });
 
   it("keeps the own songs first while there are no favorites", async () => {

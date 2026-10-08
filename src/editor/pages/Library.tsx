@@ -565,7 +565,7 @@ export function Library({
 
   const favoritesSection = (
     <LibrarySection
-      title="Favoritas"
+      title={favoritesFirst ? undefined : "Favoritas"}
       songs={favoriteSongs}
       query={query}
       emptyLabel="Todavía no marcaste ninguna canción como favorita. Tocá la estrella junto a una canción para guardarla acá."
