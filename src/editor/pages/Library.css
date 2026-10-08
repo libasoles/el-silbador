@@ -211,8 +211,14 @@
 
 .library-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.6rem;
+}
+
+/* The row's icon controls stay on the title's line even when a performers line is added below it:
+   the offset centers an 18px icon (plus its 0.4rem padding) on the title's first line box. */
+.library-row > :not(.library-row__open) {
+  margin-top: calc(0.65rem + (1.05rem * 1.5 - 18px) / 2 - 0.4rem);
 }
 
 .library-row--fade-in {
