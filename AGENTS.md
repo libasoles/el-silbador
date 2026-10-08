@@ -28,12 +28,14 @@ Not allowed on mobile, even for the song's owner:
 - Editing the content/lyrics/chords (`SongView`'s `canEdit` prop, threaded from `App.tsx`)
 - Forking a song (fork button in `App.tsx`)
 - Deleting a song from the library index (`Library.tsx`)
+- Inserting, editing or deleting tab blocks (the `TAB` trigger, frets, spacing, add/delete Tab)
 
 Allowed on mobile (do not gate these):
 - Adding/removing favorites
 - Chord track and underline toggles
 - PDF export
 - Chord transposition
+- Tabs toggle (shows/hides tab blocks in read mode; same rule as desktop)
 
 CSS `display: none` alone does not enforce these rules — it hides the control visually but leaves the underlying handler mounted and reachable. Gate at the render/prop level with `useIsMobile`, not just with CSS.
 
@@ -66,7 +68,8 @@ number, never the minor one.
 Build components as reusable, composable units whenever practical. Prefer Radix primitives as
 their foundation when a suitable primitive exists.
 
-Use `lucide-react` for every UI icon.
+Use `lucide-react` for every UI icon. Exceptions: the read-mode toggles whose icon is text — the
+chord-notes toggle ("do mi sol") and the tabs toggle ("TAB").
 
 ### Issue tracker
 

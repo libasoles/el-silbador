@@ -11,3 +11,11 @@ _Avoid_: melody row, notes track
 **Pitch direction indicator**:
 An arrow shown under a vocal note telling the singer that this note is higher (up) or lower (down) than the previous one. A free author annotation: never inferred from, or validated against, the note names.
 _Avoid_: pitch arrow, melodic arrow, contour marker
+
+**Tab block**:
+A block between the lines of a song, inserted by typing `TAB` alone on a line, that holds one or more guitar tabs edited with the ascii-tabs library. In the UI it is a "tablatura". Its contents live with the song in Supabase.
+_Avoid_: punteo, tab (in UI copy)
+
+**Tabs toggle**:
+The read-mode toggle labelled "TAB" that shows or hides every tab block of a song. Off by default; shown only in read mode and only when the song has at least one tab block. The choice is remembered per browser, like the underline toggle.
+_Avoid_: tab switch
