@@ -1024,7 +1024,11 @@ export function SongView({
         contentEditable={canEdit}
         suppressContentEditableWarning
         spellCheck={false}
-        aria-label="Letra de la canción"
+        // Only an editing host is a text field. When reading, the lyrics are plain text, and an
+        // aria-label on a role-less div is ignored by screen readers (and flagged by audits).
+        role={canEdit ? "textbox" : undefined}
+        aria-multiline={canEdit ? true : undefined}
+        aria-label={canEdit ? "Letra de la canción" : undefined}
         onFocus={(event) => {
           // React focus events bubble from chord/note inputs too; only the editing host itself
           // should establish a lyric caret.
@@ -1263,6 +1267,7 @@ export function SongView({
           <LineView
             key={`${line.id}:${lineGenerations[line.id] ?? 0}`}
             line={line}
+            lineNumber={index + 1}
             bisRule={bisStyles.get(index)}
             bisMarker={BIS_AT_LINE_END.test(lyricLines[index] ?? "")}
             trailingWhitespace={lyricLines[index]?.match(/\s+$/)?.[0] ?? ""}

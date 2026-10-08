@@ -109,3 +109,60 @@ describe("SongView track cells", () => {
     });
   });
 });
+
+describe("SongView lyrics", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("is a named multiline text field while editing, with each line identifiable", () => {
+    mockMatchMedia(false);
+    renderSong(true);
+
+    const field = screen.getByRole("textbox", { name: "Letra de la canción" });
+    expect(field).toHaveAttribute("aria-multiline", "true");
+    expect(within(field).getByRole("group", { name: "Renglón 1 de la letra" })).toBeInTheDocument();
+    // The only text field is the lyrics: no unnamed one per line.
+    expect(screen.getAllByRole("textbox")).toHaveLength(1);
+  });
+
+  it("is plain text when reading: no text field, and no label on a role-less element", () => {
+    mockMatchMedia(false);
+    const { container } = renderSong(false);
+
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: /Renglón/ })).not.toBeInTheDocument();
+    expect(container.querySelector(".song")).not.toHaveAttribute("aria-label");
+    expect(container.querySelector("[data-lyrics-line]")).not.toHaveAttribute("role");
+  });
+
+  it("labels a section title line while editing too", () => {
+    mockMatchMedia(false);
+    const sectioned = buildSong("Estribillo\nuna canción");
+    const tracks = createInitialState().tracks;
+    const noop = vi.fn();
+    render(
+      <SongView
+        song={sectioned}
+        lyricsText="Estribillo\nuna canción"
+        bisGroups={[]}
+        merges={new Set()}
+        tracks={tracks}
+        cells={{}}
+        chordVariants={{}}
+        pitchDirections={{}}
+        showUnderline
+        placeholder={null}
+        canEdit
+        onSetCellText={noop}
+        onSetChordVariant={noop}
+        onToggleMerge={noop}
+        onMoveCellText={noop}
+        onDragPitchDirection={noop}
+        onReconcileLyricsText={noop}
+        onToggleBis={noop}
+        onPasteText={noop}
+      />,
+    );
+
+    expect(screen.getByRole("group", { name: "Renglón 1 de la letra" })).toHaveTextContent("Estribillo");
+  });
+});
