@@ -42,3 +42,6 @@ supabase/.temp/
 tsconfig.tsbuildinfo
 backups/
 el-silbador-31c8288764bb.json
+
+# Lighthouse CI reports (npm run lighthouse)
+.lighthouseci/

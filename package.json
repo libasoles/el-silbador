@@ -1,7 +1,7 @@
 {
   "name": "silbador-editor",
   "private": true,
-  "version": "0.16.1",
+  "version": "0.16.2",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -13,7 +13,8 @@
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:backup": "bash scripts/backup-supabase.sh",
-    "start": "next start"
+    "start": "next start",
+    "lighthouse": "./scripts/lighthouse.sh"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
@@ -31,6 +32,7 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

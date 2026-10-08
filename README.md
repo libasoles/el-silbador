@@ -26,6 +26,17 @@ npm run test     # tests del núcleo (vitest)
 npm run build    # typecheck + build de producción
 ```
 
+### Lighthouse
+
+`npm run lighthouse` levanta un Supabase temporal (Docker) con una canción de prueba
+(`supabase/lighthouse/seed.sql`), compila la app, la sirve y la audita con Lighthouse CI. Falla si
+alguna página queda por debajo de los umbrales de `lighthouserc.json`; los reportes quedan en
+`.lighthouseci/`. No toca el stack local compartido. En GitHub corre en cada PR y en cada push a
+`main` (`.github/workflows/lighthouse.yml`), y los reportes se descargan como artefacto del job.
+
+Los umbrales de las páginas con el editor de canciones son el puntaje actual, no el objetivo: al
+corregir sus problemas de accesibilidad, subilos para que no vuelvan a bajar.
+
 ### Supabase Studio (local)
 
 El proyecto incluye Supabase local (Docker) con Studio para inspeccionar y editar la base de datos desde el navegador.
