@@ -2,7 +2,9 @@ import { useRef } from "react";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, PitchDirection, TrackId } from "../../core/types";
 import type { DragDelta } from "../pitchDragGesture";
+import { findChordShape } from "../../core/findChordShape";
 import { layoutAnnotationLabels } from "./annotationLayout";
+import { chordTapAreas, type TapAreaReach } from "./chordTapArea";
 import { ArrowDownIcon, ArrowUpIcon } from "./icons";
 import { TrackCell } from "./TrackCell";
 
@@ -68,6 +70,19 @@ export function TrackRow({
   const annotationLefts = rects.every((rect) => rect !== undefined)
     ? layoutAnnotationLabels(rects as { left: number; width: number }[])
     : [];
+  const tapReaches = readOnly && trackId === "chords" ? readOnlyChordTapReaches() : new Map<string, TapAreaReach>();
+
+  /** While reading, only chords with a diagram can be tapped. Each gets a tap area wider than its
+   *  glyph, so a finger on a phone hits it instead of the empty space beside it. */
+  function readOnlyChordTapReaches() {
+    const tappable = slotIds.flatMap((slotId, index) => {
+      const rect = slotRects[slotId];
+      if (!rect || !findChordShape(getCell(cells, trackId, slotId))) return [];
+      return [{ slotId, left: annotationLefts[index] ?? rect.left, width: rect.width }];
+    });
+    const reaches = chordTapAreas(tappable);
+    return new Map(tappable.map(({ slotId }, i) => [slotId, reaches[i]]));
+  }
 
   function focusIndex(index: number) {
     const clamped = Math.max(0, Math.min(slotIds.length - 1, index));
@@ -95,6 +110,7 @@ export function TrackRow({
             label={cellLabel(trackId, value, slotPositions.get(slotId) ?? "")}
             left={left}
             width={rect?.width}
+            tapReach={tapReaches.get(slotId)}
             onChange={(text) => onSetCellText(trackId, slotId, text)}
             onNavigate={(direction) => focusIndex(index + (direction === "next" ? 1 : -1))}
             registerRef={(el) => {

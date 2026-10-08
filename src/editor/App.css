@@ -955,6 +955,19 @@
   border-bottom-color: var(--border);
 }
 
+/* A tappable chord in a read-only song reaches a finger past its narrow glyph: an invisible area
+   at least 24px tall, and as wide as TrackRow allows without touching the next chord's. A
+   pseudo-element, so the chord itself, its syllable and the tooltip's anchor all stay put. */
+.track-cell--tap-area::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: calc(-1 * var(--tap-reach-left, 0px));
+  right: calc(-1 * var(--tap-reach-right, 0px));
+  height: max(100%, 24px);
+  transform: translateY(-50%);
+}
+
 /* Read-only text that looks like its chip but does nothing when tapped. */
 .track-cell--static,
 .track-cell--static:hover {

@@ -132,3 +132,54 @@ escritorio.
 - [ ] En 412px de ancho (emulación de celular de Lighthouse), ninguna celda interactiva tiene menos de 24×24px de área táctil ni se pisa con otra.
 - [ ] Tocar un acorde sigue abriendo su diagrama. Editando, clic, doble clic y arrastrar funcionan igual.
 - [ ] Lighthouse ya no marca `target-size`, y los pisos de accesibilidad de `lighthouserc.json` suben al puntaje nuevo.
+
+## Comentarios
+
+### 2026-10-08 — Agrandar el área táctil no garantiza más puntaje en Lighthouse
+
+Revisado contra axe-core 4.14 (el motor de Lighthouse 12.6 que corre `npm run lighthouse`):
+
+- **La auditoría es binaria por página.** `target-size` pasa o falla entera: con una sola celda
+  marcada, la página sigue en 0.96. Mejorar parte de las celdas no mueve el puntaje.
+- **La opción A no toca las páginas que fallan.** `/cancion` y `/nueva` ya dan 1.00. Sus acordes
+  miden 13×19px pero pasan por la otra regla de axe (`target-offset`): desde el ticket 03 las
+  celdas vacías no son botones, así que cada acorde tiene espacio libre alrededor. Lo que está en
+  0.96 son los tres artículos, cuyos demos se editan también en mobile y tienen todas las celdas
+  como botones.
+- **Cómo mide axe** (`targetSizeEvaluate` en `node_modules/axe-core/axe.js`):
+  - Usa la caja del botón (`boundingClientRect`). Un `::before`/`::after` transparente no cuenta;
+    solo `padding` + `margin` negativo, o `min-width`/`min-height`, cambian lo que mide.
+  - Si el área agrandada se pisa con la de una celda vecina, mide solo la parte no tapada; si esa
+    parte queda bajo 24×24 falla igual (`partiallyObscured`).
+  - Pasa si mide 24×24 sin pisarse, o si un círculo de 24px centrado en la celda no toca a sus
+    vecinas.
+  - Con sílabas de 9–29px pegadas, ningún área invisible puede cumplir eso en todas las celdas.
+    "Partir la diferencia" entre acordes contiguos deja a ambos bajo 24px.
+- axe solo da por fallada una celda que está en el orden de tabulación; si no, la deja "para
+  revisar a mano" y Lighthouse no la cuenta. Hoy todas son `<button>` en el orden de Tab. Sacarlas
+  del Tab (*roving tabindex*) subiría el número sin mejorar el toque, así que no cuenta como
+  solución.
+- Lo que sí movería el puntaje es actuar sobre los artículos: demos de solo lectura en mobile, o
+  celdas de 24px reales al editar (lo que obliga a separar la letra).
+
+### 2026-10-08 — Decisión
+
+- Se implementa la **opción A** por la mejora para quien lee la canción en el celular, aunque no
+  suba el puntaje de Lighthouse.
+- Condición: no cambia el ancho de las sílabas.
+- **Mobile no pasa a solo lectura**: los demos de los artículos siguen editables. Los tres
+  artículos quedan en 0.96 y su piso en `lighthouserc.json` no cambia.
+- El criterio "Lighthouse ya no marca `target-size`" queda fuera de este ticket.
+
+### 2026-10-08 — Implementado (v0.16.11)
+
+- `chordTapArea.ts` calcula, para cada acorde con diagrama en modo lectura, cuánto se extiende su
+  área táctil a cada lado: al menos 24px de ancho, centrada, y partida en el medio con el acorde
+  vecino sin entrar en su caja.
+- `TrackRow` lo aplica solo a la fila de acordes en lectura. `TrackCell` lo pasa como variables
+  CSS a un `::before` transparente de 24px de alto (`.track-cell--tap-area` en `App.css`).
+- Es un pseudo-elemento, así que el botón, la sílaba y el anclaje del diagrama no se mueven. El
+  ancho de las sílabas no cambia: las celdas son `position: absolute`.
+- Al editar (escritorio y demos de artículos) las celdas siguen como estaban.
+- Comprobado en Chromium con `elementFromPoint`: dos acordes de 14px separados por 4px reciben
+  toques en 95–115px y 116–136px, sin pisarse, y en 24px de alto.
