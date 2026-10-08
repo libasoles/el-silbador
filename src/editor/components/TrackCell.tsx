@@ -5,6 +5,7 @@ import { trackEvent } from "../analytics";
 import type { DragDelta } from "../pitchDragGesture";
 import { enableTouchDrag } from "../touchDrag";
 import { useCoarsePointer } from "../useIsMobile";
+import type { TapAreaReach } from "./chordTapArea";
 import { ChordTooltip } from "./ChordTooltip";
 
 /** Two taps on a chip this close together edit it, like a double click. Touch browsers don't all
@@ -19,6 +20,9 @@ interface TrackCellProps {
   label: string;
   left?: number;
   width?: number;
+  /** How far the cell's invisible tap area reaches past its box on each side (see chordTapArea).
+   *  Without it, the tap area is just the box. */
+  tapReach?: TapAreaReach;
   onChange: (text: string) => void;
   onNavigate: (direction: "prev" | "next") => void;
   registerRef: (el: HTMLElement | null) => void;
@@ -66,6 +70,7 @@ export function TrackCell({
   label,
   left,
   width,
+  tapReach,
   onChange,
   onNavigate,
   registerRef,
@@ -168,6 +173,9 @@ export function TrackCell({
     left !== undefined && width !== undefined
       ? ({ left: `${left}px`, width: `${width}px`, "--melody-note-index": revealIndex } as React.CSSProperties)
       : undefined;
+  const chipStyle = tapReach
+    ? ({ ...style, "--tap-reach-left": `${tapReach.left}px`, "--tap-reach-right": `${tapReach.right}px` } as React.CSSProperties)
+    : style;
 
   function handleDragStart(event: React.DragEvent<HTMLElement>) {
     event.dataTransfer.effectAllowed = "move";
@@ -282,9 +290,9 @@ export function TrackCell({
         <button
           type="button"
           aria-label={label}
-          className={"track-cell track-cell--chip" + dragClassName}
+          className={"track-cell track-cell--chip" + (tapReach ? " track-cell--tap-area" : "") + dragClassName}
           data-slot-id={slotId}
-          style={style}
+          style={chipStyle}
           ref={(el) => {
             chipRef.current = el;
             registerRef(el);

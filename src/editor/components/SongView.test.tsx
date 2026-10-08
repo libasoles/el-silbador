@@ -107,6 +107,26 @@ describe("SongView track cells", () => {
       // C and G open a diagram; the unknown chord and the empty end slot do nothing.
       expect(within(chords).getAllByRole("button")).toHaveLength(2);
     });
+
+    it("gives tappable chords a tap area wider than their glyph, on mobile too", () => {
+      mockMatchMedia(true);
+      renderSong(false);
+      const chords = screen.getByRole("group", { name: "Acordes" });
+
+      for (const chord of within(chords).getAllByRole("button")) {
+        expect(chord).toHaveClass("track-cell--tap-area");
+      }
+    });
+  });
+
+  it("leaves the cells' tap area as their own box while editing", () => {
+    mockMatchMedia(false);
+    renderSong(true);
+    const chords = screen.getByRole("group", { name: "Acordes" });
+
+    for (const cell of within(chords).getAllByRole("button")) {
+      expect(cell).not.toHaveClass("track-cell--tap-area");
+    }
   });
 });
 
