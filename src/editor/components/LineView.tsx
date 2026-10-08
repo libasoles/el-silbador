@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowUpLeft } from "lucide-react";
 import { chordToNoteNames } from "../../core/chordNotes";
 import {
   bisSlotIds,
-  describeSlotPosition,
+  describeSlotPositions,
   endSlotIds,
   gapSlotId,
   getLineCellSlots,
@@ -198,6 +198,7 @@ function LyricLineView({
   const lineStartSlots = useMemo(() => startSlotIds(line, cells), [line, cells]);
   const lineEndSlots = useMemo(() => endSlotIds(line, cells), [line, cells]);
   const units = useMemo(() => getLineUnits(line, merges), [line, merges]);
+  const slotPositions = useMemo(() => describeSlotPositions(line, merges, slotIds), [line, merges, slotIds]);
   const gaps = useMemo(() => getLineGaps(line, merges), [line, merges]);
   const gapSlotIds = useMemo(() => new Set(gaps.map((gap) => gap.slotId)), [gaps]);
   const chordOnlySlotIds = useMemo(
@@ -742,7 +743,7 @@ function LyricLineView({
           onSetCellText={onSetCellText}
           onSetChordVariant={onSetChordVariant}
           drag={drag}
-          describeSlot={(slotId) => describeSlotPosition(line, merges, slotId)}
+          slotPositions={slotPositions}
           readOnly={readOnly}
           annotationsReady={annotationsReady}
         />

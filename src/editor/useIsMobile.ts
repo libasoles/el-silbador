@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 /** Matches the `max-width: 30rem` breakpoint used across App.css / Library.css. */
 const MOBILE_QUERY = "(max-width: 30rem)";
@@ -8,11 +8,11 @@ const COARSE_POINTER_QUERY = "(pointer: coarse)";
 
 function useMediaQuery(query: string): boolean {
   // Always starts false, like the server render: reading the viewport here would make a phone's
-  // first client render differ from the HTML it received (React hydration error #418). The effect
-  // below syncs the real value right after hydration.
+  // first client render differ from the HTML it received (React hydration error #418). The layout
+  // effect below syncs the real value right after hydration, before the browser paints.
   const [matches, setMatches] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mediaQueryList = window.matchMedia(query);
     const handleChange = () => setMatches(mediaQueryList.matches);
     handleChange();

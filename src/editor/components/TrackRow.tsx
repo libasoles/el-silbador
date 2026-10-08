@@ -30,8 +30,8 @@ interface TrackRowProps {
   onSetCellText: (trackId: TrackId, slotId: string, text: string) => void;
   onSetChordVariant: (slotId: string, index: number) => void;
   drag: CellDragHandlers;
-  /** Where a slot sits on the lyric line ("sobre «na»"), so each cell can be named for a screen reader. */
-  describeSlot: (slotId: string) => string;
+  /** Where each slot sits on the lyric line ("sobre «na»"), so each cell can be named for a screen reader. */
+  slotPositions: ReadonlyMap<string, string>;
   readOnly?: boolean;
   /** Annotation rows must not be visible until their absolutely-positioned slots are measured. */
   annotationsReady?: boolean;
@@ -58,7 +58,7 @@ export function TrackRow({
   onSetCellText,
   onSetChordVariant,
   drag,
-  describeSlot,
+  slotPositions,
   readOnly = false,
   annotationsReady = true,
 }: TrackRowProps) {
@@ -92,7 +92,7 @@ export function TrackRow({
             key={slotId}
             slotId={slotId}
             value={value}
-            label={cellLabel(trackId, value, describeSlot(slotId))}
+            label={cellLabel(trackId, value, slotPositions.get(slotId) ?? "")}
             left={left}
             width={rect?.width}
             onChange={(text) => onSetCellText(trackId, slotId, text)}

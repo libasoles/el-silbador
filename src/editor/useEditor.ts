@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer } from "react";
+import { useEffect, useLayoutEffect, useMemo, useReducer } from "react";
 import { createInitialState, editorReducer } from "../core/state";
 import type { Action } from "../core/state";
 import type { ChordPlacement } from "../core/chordSheet";
@@ -139,6 +139,14 @@ export function useEditor(initialContent: SongContent | undefined, isMobile: boo
     }),
     [isMobile],
   );
+
+  // `isMobile` is false until the first render has been hydrated (see useIsMobile), so a song
+  // loaded from the server starts with the desktop default. On a phone the underline starts off.
+  // A layout effect, declared before the caller's own, so a saved view preference applied by the
+  // caller in the same commit still wins.
+  useLayoutEffect(() => {
+    if (isMobile) actions.setShowUnderline(false);
+  }, [isMobile, actions]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {

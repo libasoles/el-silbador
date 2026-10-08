@@ -4,7 +4,7 @@ import {
   buildSong,
   bisSlotIds,
   chordSlotForColumn,
-  describeSlotPosition,
+  describeSlotPositions,
   columnForSlot,
   endSlotId,
   endSlotIds,
@@ -246,31 +246,31 @@ describe("reconcileWordSyllables", () => {
   });
 });
 
-describe("describeSlotPosition", () => {
+describe("describeSlotPositions", () => {
   const [line] = buildSong("canción nueva");
   const na = flattenSyllables(line)[1]!;
   const noMerges = new Set<string>();
 
   it("names the syllable a slot sits over", () => {
-    expect(describeSlotPosition(line, noMerges, beforeSlotId(na.id))).toBe(`sobre «${na.text}»`);
+    expect(describeSlotPositions(line, noMerges, [beforeSlotId(na.id)]).get(beforeSlotId(na.id))).toBe(`sobre «${na.text}»`);
   });
 
   it("names the two words around a gap", () => {
     const lastOfFirstWord = line.words[0]!.syllables.at(-1)!;
-    expect(describeSlotPosition(line, noMerges, gapSlotId(lastOfFirstWord.id))).toBe(
+    expect(describeSlotPositions(line, noMerges, [gapSlotId(lastOfFirstWord.id)]).get(gapSlotId(lastOfFirstWord.id))).toBe(
       `entre «${lastOfFirstWord.text}» y «${line.words[1]!.syllables[0]!.text}»`,
     );
   });
 
   it("describes the edges of the line, including stacked extra slots", () => {
-    expect(describeSlotPosition(line, noMerges, startSlotId(line.id))).toBe("al principio del renglón");
-    expect(describeSlotPosition(line, noMerges, startSlotId(line.id, 2))).toBe("al principio del renglón");
-    expect(describeSlotPosition(line, noMerges, endSlotId(line.id))).toBe("al final del renglón");
+    expect(describeSlotPositions(line, noMerges, [startSlotId(line.id)]).get(startSlotId(line.id))).toBe("al principio del renglón");
+    expect(describeSlotPositions(line, noMerges, [startSlotId(line.id, 2)]).get(startSlotId(line.id, 2))).toBe("al principio del renglón");
+    expect(describeSlotPositions(line, noMerges, [endSlotId(line.id)]).get(endSlotId(line.id))).toBe("al final del renglón");
   });
 
   it("reads syllables joined by a melisma as one piece", () => {
     const [first, second] = flattenSyllables(line);
     const merged = new Set([mergeKey(first!.id, second!.id)]);
-    expect(describeSlotPosition(line, merged, beforeSlotId(first!.id))).toBe(`sobre «${first!.text}${second!.text}»`);
+    expect(describeSlotPositions(line, merged, [beforeSlotId(first!.id)]).get(beforeSlotId(first!.id))).toBe(`sobre «${first!.text}${second!.text}»`);
   });
 });
