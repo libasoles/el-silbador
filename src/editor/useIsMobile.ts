@@ -7,10 +7,10 @@ const MOBILE_QUERY = "(max-width: 30rem)";
 const COARSE_POINTER_QUERY = "(pointer: coarse)";
 
 function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia(query).matches;
-  });
+  // Always starts false, like the server render: reading the viewport here would make a phone's
+  // first client render differ from the HTML it received (React hydration error #418). The effect
+  // below syncs the real value right after hydration.
+  const [matches, setMatches] = useState(false);
 
   useEffect(() => {
     const mediaQueryList = window.matchMedia(query);
