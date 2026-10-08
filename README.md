@@ -34,8 +34,10 @@ alguna página queda por debajo de los umbrales de `lighthouserc.json`; los repo
 `.lighthouseci/`. No toca el stack local compartido. En GitHub corre en cada PR y en cada push a
 `main` (`.github/workflows/lighthouse.yml`), y los reportes se descargan como artefacto del job.
 
-Los umbrales de las páginas con el editor de canciones son el puntaje actual, no el objetivo: al
-corregir sus problemas de accesibilidad, subilos para que no vuelvan a bajar.
+Accesibilidad, buenas prácticas y SEO exigen 1.00 en todas las páginas, salvo accesibilidad en los
+artículos (0.96, por `target-size` en las celdas de los demos del editor): al corregirlo, subilo a 1.
+El rendimiento solo avisa, no hace fallar el job: en los runners de GitHub varía mucho entre
+corridas (0.67–0.84 en artículos que en local dan 0.92 o más).
 
 ### Supabase Studio (local)
 
