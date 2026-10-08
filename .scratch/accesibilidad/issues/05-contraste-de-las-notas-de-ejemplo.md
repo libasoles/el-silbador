@@ -10,7 +10,7 @@ de tono o de fondo en vez de aclarar el texto. Ver [spec](../spec.md).
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 **Agent:** unassigned
 
 - [ ] Ningún texto de los ejemplos baja de 4.5:1 en ningún momento de la animación.

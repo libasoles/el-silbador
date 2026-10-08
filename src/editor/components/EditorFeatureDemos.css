@@ -3,6 +3,8 @@
   grid-template-rows: 1.1em 1.35em 0.9em;
 }
 
+/* The dragged note is picked up with a background tint, never by fading its text: a faded note
+   fails the 4.5:1 text contrast (#9c4a3c on #f4ddd6 is 4.67:1). */
 .pitch-drag-example__note--up {
   animation: pitch-drag-up 5s ease-in-out infinite;
 }
@@ -37,12 +39,12 @@
   32%,
   100% {
     transform: none;
-    opacity: 1;
+    background-color: transparent;
   }
   20%,
   26% {
     transform: translateY(-0.9em);
-    opacity: 0.55;
+    background-color: #f4ddd6;
   }
 }
 
@@ -52,12 +54,12 @@
   64%,
   100% {
     transform: none;
-    opacity: 1;
+    background-color: transparent;
   }
   52%,
   58% {
     transform: translateY(0.9em);
-    opacity: 0.55;
+    background-color: #f4ddd6;
   }
 }
 
