@@ -6,7 +6,7 @@ import { dismissTabHint, hasDismissedTabHint, TAB_HINT_DISMISSED_EVENT } from ".
 import "./TabBlock.css";
 
 const DEFAULT_SPACING = 2;
-const HINT_FADE_DURATION_MS = 180;
+const HINT_FADE_DURATION_MS = 2_000;
 
 /** Events from inside the grid that must not reach the lyrics editor around it: it would take the
  *  keys typed into a fret as lyrics edits (or undo), and its caret handling would steal the focus. */
