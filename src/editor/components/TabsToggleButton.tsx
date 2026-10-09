@@ -6,7 +6,7 @@ interface TabsToggleButtonProps {
   onToggle: () => void;
 }
 
-/** Shows or hides a song's tab blocks while reading it. */
+/** Shows or hides a song's tab blocks. */
 export function TabsToggleButton({ pressed, onToggle }: TabsToggleButtonProps) {
   return (
     <IconButtonTooltip tooltip="Tablaturas">

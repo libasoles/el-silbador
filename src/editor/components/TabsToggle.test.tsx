@@ -60,12 +60,16 @@ describe.each([
     vi.unstubAllGlobals();
   });
 
-  it("is absent while editing, where the blocks always show", async () => {
+  it("is available while editing and can hide its blocks", async () => {
     mockMatchMedia(mobile);
     render(<SongPage state={songState("una\nTAB")} editing />);
 
-    expect(toggle()).toBeNull();
+    expect(toggle()).toHaveAttribute("aria-pressed", "true");
     await waitFor(() => expect(document.querySelector("ascii-tabs")).not.toBeNull());
+
+    fireEvent.click(toggle()!);
+    expect(toggle()).toHaveAttribute("aria-pressed", "false");
+    expect(document.querySelector("[data-tab-block]")).toBeNull();
   });
 
   it("is absent from a song without tab blocks", () => {
