@@ -91,6 +91,12 @@ describe("tab blocks in the PDF", () => {
   });
 });
 
+describe("tab blocks", () => {
+  it("inherits the surrounding font size for ascii-tabs", () => {
+    expect(tabBlockStyles).toMatch(/\.tab-block\s*\{[\s\S]*--ascii-tabs-font-size:\s*1em;/);
+  });
+});
+
 describe("underline visibility", () => {
   it("applies the saved global melody choice before annotation cells are revealed", () => {
     expect(app).toContain("useLayoutEffect");

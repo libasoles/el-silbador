@@ -10,20 +10,11 @@
   --ascii-tabs-focus: color-mix(in srgb, var(--accent) 16%, var(--bg));
   --ascii-tabs-accent: var(--accent);
   --ascii-tabs-font: var(--mono, monospace);
-  /* Monospace glyphs look larger than the song's serif lyrics at the same CSS size. Use a
-     slightly smaller value so frets and string labels have the same perceived scale. */
-  --ascii-tabs-font-size: 1rem;
+  --ascii-tabs-font-size: 1em;
   margin: 0.75rem 0;
   font-family: var(--sans);
   cursor: auto;
   user-select: text;
-}
-
-/* Preserve that visual balance with the smaller phone lyric scale too. */
-@media (max-width: 30rem) {
-  .tab-block {
-    --ascii-tabs-font-size: 0.9rem;
-  }
 }
 
 /* Holds the block's place while ascii-tabs loads, so the lyrics below don't jump. */
