@@ -1,11 +1,14 @@
 import { fireEvent, render, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AsciiTabs } from "ascii-tabs/ascii-tabs.js";
 import type { TabBlock as TabBlockContent } from "../../core/types";
 import { TabBlock } from "./TabBlock";
 
 const ONE_TAB: TabBlockContent = { tabs: [[[3, null, null, null, null, null]]] };
 const TWO_TABS: TabBlockContent = { tabs: [[[3, null, null, null, null, null]], [[null, 5, null, null, null, null]]] };
+const EMPTY_TAB: TabBlockContent = { tabs: [[]] };
+
+afterEach(() => window.localStorage.clear());
 
 async function renderBlock(props: Partial<Parameters<typeof TabBlock>[0]> = {}) {
   const view = render(<TabBlock block={ONE_TAB} readOnly={false} {...props} />);
@@ -74,6 +77,24 @@ describe("TabBlock", () => {
     fireEvent.input(slider, { target: { value: "4" } });
 
     expect(onSpacingChange).toHaveBeenLastCalledWith(4);
+  });
+
+  it("fades the hint after the first fret and remembers it", async () => {
+    const { container, element } = await renderBlock({ block: EMPTY_TAB });
+
+    element.value = ONE_TAB.tabs;
+    fireEvent(element, new CustomEvent("change", { bubbles: true }));
+
+    expect(container.querySelector(".tab-block")).toHaveAttribute("data-tab-hint-fading");
+    expect(window.localStorage.getItem("el-silbador:tab-hint-dismissed")).toBe("true");
+  });
+
+  it("does not show the hint again after a first fret was entered", async () => {
+    window.localStorage.setItem("el-silbador:tab-hint-dismissed", "true");
+
+    const { element } = await renderBlock({ block: EMPTY_TAB });
+
+    expect(element.querySelector(".ascii-tabs-hint")).toBeNull();
   });
 
   it("shows content that changed outside it, such as an undo", async () => {
