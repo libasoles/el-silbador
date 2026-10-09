@@ -45,6 +45,7 @@ describe("chord editor article", () => {
       "Escribir un acorde",
       "Mover un acorde a otra sílaba",
       "Antes y después de la frase",
+      "Renglones de acordes",
       "Corregir un acorde con doble click",
       "Dibujo del acorde",
       "Cambiar de tono",

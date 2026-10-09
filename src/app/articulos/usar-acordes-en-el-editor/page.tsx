@@ -38,6 +38,10 @@ en la arena me escribias`;
 const CORRECT_EXCERPT = `             A7    D
 El viento lo fue borrando`;
 
+/** A blank line, for the reader to write a line of chords on, above the verse. */
+const CHORD_LINE_EXCERPT = `
+Ya nunca te he de olvidar`;
+
 const DIAGRAM_EXCERPT = `    A           (A7)     D
 Ya nunca te he de olvidar`;
 
@@ -172,6 +176,18 @@ export default function ChordEditorArticlePage() {
             Podés poner más de un acorde en cada borde: cuando uno ocupa el
             lugar, se habilita otro espacio libre al lado.
           </p>
+
+          <h2>Renglones de acordes</h2>
+          <p>
+            Para acordes que no van con ninguna sílaba, como los de una
+            introducción, escribilos solos en un renglón, separados por
+            espacios. El editor los muestra como acordes.
+          </p>
+          <p>Probá escribir A D E7 en el renglón vacío:</p>
+          <ArticleChordEditor
+            sheet={CHORD_LINE_EXCERPT}
+            label="Editor con un renglón vacío arriba del verso"
+          />
 
           <h2>
             Corregir un acorde con doble{" "}
