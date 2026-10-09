@@ -23,7 +23,7 @@
 .transpose-widget__current {
   appearance: none;
   border: 1px solid var(--border);
-  background: transparent;
+  background: var(--bg);
   color: var(--muted);
   cursor: pointer;
   padding: 0;
