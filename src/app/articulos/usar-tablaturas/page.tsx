@@ -58,7 +58,8 @@ export default function TabsArticlePage() {
         <p className="article-page__meta">Guía del editor · tablaturas</p>
         <h1>Cómo usar las tablaturas</h1>
         <p className="article-page__lead">
-          Podés agregar tablaturas a una canción.
+          Podés agregar tablaturas a una canción. Desde cero, o copiándola desde
+          otra fuente.
         </p>
 
         <div className="article-page__body">
