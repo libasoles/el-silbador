@@ -141,6 +141,34 @@ describe("SongView tab blocks", () => {
     }
   });
 
+  it("leaves the arrows and Enter of a fret to the tablature, wherever the lyrics caret was left", async () => {
+    mockMatchMedia(false);
+    const scrollIntoView = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    try {
+      render(<Editor initial={songState("una\nTAB\nnoche")} />);
+      const element = await loadedTabs();
+      focusedLyrics();
+      act(() => window.getSelection()!.collapse(textNodeOf(2, "first"), 0));
+      fireEvent.pointerDown(element.querySelector(".ascii-tabs-cell")!, { button: 0 });
+      const input = element.querySelector<HTMLInputElement>(".ascii-tabs-input")!;
+      act(() => input.focus());
+      const selection = window.getSelection()!;
+      const before = [selection.anchorNode, selection.anchorOffset];
+
+      for (const [key, c, s] of [["ArrowDown", "0", "1"], ["ArrowRight", "1", "1"], ["Enter", "2", "1"]] as const) {
+        fireEvent.keyDown(input, { key });
+        expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-c", c);
+        expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-s", s);
+        expect([selection.anchorNode, selection.anchorOffset]).toEqual(before);
+      }
+      expect(latest.lyricsText).toBe("una\nTAB\nnoche");
+    } finally {
+      if (scrollIntoView) HTMLElement.prototype.scrollIntoView = scrollIntoView;
+      else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+    }
+  });
+
   it.each(["Enter", "Tab", " ", "blur"])("shows tabs when a typed TAB is confirmed with %j while the toggle is off", async (key) => {
     mockMatchMedia(false);
     render(<Editor initial={songState("TAB\nTA")} withTabsToggle />);
