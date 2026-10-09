@@ -5,7 +5,7 @@ import { parseChordSheet } from "../../core/chordSheet";
 import { findChordShape } from "../../core/findChordShape";
 import { beforeSlotId, flattenSyllables, mergeKey } from "../../core/model";
 import { createInitialState, editorReducer } from "../../core/state";
-import type { BisGroup, PitchDirection } from "../../core/types";
+import type { BisGroup, PitchDirection, TabBlock } from "../../core/types";
 import type { SongContent } from "../../data/types";
 import { TrackToggleButton, UnderlineToggleButton } from "../../editor/App";
 import "../../editor/App.css";
@@ -38,6 +38,7 @@ function contentFromChordSheet(
   sheet: string,
   melody: string[] = [],
   bisGroups: BisGroup[] = [],
+  tabBlocks: Readonly<Record<number, TabBlock>> = {},
 ): SongContent {
   const { lyricsText, placements } = parseChordSheet(sheet);
   const pasted = editorReducer(createInitialState(), {
@@ -49,8 +50,11 @@ function contentFromChordSheet(
   });
   const vocalNotes: Record<string, string> = {};
   const pitchDirections: Record<string, PitchDirection> = {};
+  const tabs: Record<string, TabBlock> = {};
   const merges = new Set(pasted.merges);
   pasted.song.forEach((line, lineIndex) => {
+    const tabBlock = tabBlocks[lineIndex];
+    if (line.tab && tabBlock) tabs[line.id] = tabBlock;
     const syllables = flattenSyllables(line);
     let anchorId = "";
     (melody[lineIndex] ?? "")
@@ -86,6 +90,7 @@ function contentFromChordSheet(
     pitchDirections,
     merges,
     bisGroups,
+    tabs,
   };
 }
 
@@ -101,6 +106,8 @@ interface ArticleChordEditorProps {
   bisGroups?: BisGroup[];
   /** Starts with the underline and the melody notes showing, even when there are no notes yet. */
   showMelody?: boolean;
+  /** Tablatures by the line where their TAB marker appears. */
+  tabBlocks?: Readonly<Record<number, TabBlock>>;
   /** Sidebar controls to show next to the song, in the editor's own order. */
   tools?: ("trackToggles" | "underline" | "transpose")[];
 }
@@ -127,12 +134,13 @@ function LiveChordEditor({
   label,
   melody,
   bisGroups,
+  tabBlocks,
   showMelody = false,
   tools = [],
 }: ArticleChordEditorProps) {
   const isMobile = useIsMobile();
   const [initialContent] = useState(() =>
-    contentFromChordSheet(sheet, melody, bisGroups),
+    contentFromChordSheet(sheet, melody, bisGroups, tabBlocks),
   );
   const { state, actions } = useEditor(initialContent, isMobile);
   const hasTrackToggles = tools.includes("trackToggles");

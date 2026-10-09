@@ -32,6 +32,14 @@ export const ARTICLES: readonly ArticleEntry[] = [
       "Nombrar las partes de la canción con palabras clave como Estrofa o Estribillo, y marcar con BIS una o varias líneas que se repiten.",
     topics: ["editor", "estructura", "bis"],
   },
+  {
+    date: "Guía del editor",
+    href: "/articulos/usar-tablaturas",
+    title: "Cómo usar las tablaturas",
+    summary:
+      "Agregar, escribir, copiar y mostrar tablaturas para guitarra dentro de una canción.",
+    topics: ["editor", "guitarra", "tablaturas"],
+  },
 ];
 
 /** The article that follows `slug`; the last one wraps around to the first. */
