@@ -4,7 +4,10 @@
   gap: 2rem;
   max-width: 56rem;
   margin: 0 auto;
-  padding: 1.25rem 2rem 6rem;
+  /* Fixed sidebar controls overlap this column when the viewport is close to its 56rem maximum.
+     Keep a full control-width plus breathing room out of the content flow, so wide blocks such
+     as tablature never render beneath those controls. */
+  padding: 1.25rem 4rem 6rem 2rem;
 }
 
 /* Top spacing is the page-shell layout's job from 60rem down — it grows its own top padding to
