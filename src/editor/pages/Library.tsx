@@ -205,8 +205,20 @@ function SongRow({
 }
 
 function LibraryRowSkeleton() {
+  const rowRef = useRef<HTMLLIElement>(null);
+
+  // Randomize once after hydration so server and client initially render the same widths.
+  useEffect(() => {
+    const style = rowRef.current?.style;
+    style?.setProperty("--skeleton-title-width", `${35 + Math.random() * (200 / 3 - 35)}%`);
+    style?.setProperty("--skeleton-author-width", `${20 + Math.random() * 40}%`);
+  }, []);
+
   return (
-    <li className="library-row">
+    <li
+      className="library-row library-row--skeleton"
+      ref={rowRef}
+    >
       <div className="library-row__open">
         <span aria-hidden="true" className="skeleton library-row__title" />
         <span className="library-row__leader" aria-hidden="true" />

@@ -437,6 +437,23 @@
     flex-basis: 100%;
     font-size: 0.85rem;
   }
+
+  .library-row--skeleton .library-row__open {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .library-row__title.skeleton {
+    flex-basis: auto;
+    width: var(--skeleton-title-width, calc(200% / 3));
+    max-width: calc(200% / 3);
+  }
+
+  .library-row__author.skeleton {
+    flex-basis: auto;
+    width: var(--skeleton-author-width, 60%);
+    max-width: 60%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
