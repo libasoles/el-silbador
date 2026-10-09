@@ -739,6 +739,11 @@
   user-select: none;
 }
 
+/* A reader's Tabs toggle off: the tab block's line stays in the document but takes no room. */
+.line--tab[hidden] {
+  display: none;
+}
+
 /* Section labels are whole, unsyllabified lines rather than lyrics. */
 .subtitle-line {
   color: var(--muted);

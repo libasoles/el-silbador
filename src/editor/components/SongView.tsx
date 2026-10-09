@@ -1,14 +1,29 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
-import { columnForSlot, getLineCellSlots } from "../../core/model";
-import { getCell } from "../../core/state";
-import type { BisGroup, CellsByTrack, PitchDirection, Song, TrackDef, TrackId } from "../../core/types";
+import { columnForSlot, getLineCellSlots, isTabLineText, TAB_MARKER } from "../../core/model";
+import { EMPTY_TAB_BLOCK, getCell, type PastedTab, type ReconcileOptions } from "../../core/state";
+import { lineStarts, tabLinesAfterReplace, type TabLineAfterEdit } from "../../core/tabEdits";
+import type {
+  BisGroup,
+  CellsByTrack,
+  PitchDirection,
+  Song,
+  TabBlock as TabBlockContent,
+  TrackDef,
+  TrackId,
+} from "../../core/types";
+import { splitAsciiTabs, type PasteSegment } from "../../core/asciiTabPaste";
+import { loadAsciiTabs, loadedAsciiTabs } from "../asciiTabsLoader";
+import { useIsMobile } from "../useIsMobile";
 import { pitchDirectionFromDrag, type DragDelta } from "../pitchDragGesture";
 import { shouldPreserveTextSelection } from "../selectionGesture";
 import { EditorHelp } from "./EditorHelp";
 import { LineView } from "./LineView";
+import { TabBlock } from "./TabBlock";
 import { YoutubeEmbed } from "./YoutubeEmbed";
+
+const NO_TABS: Record<string, TabBlockContent> = {};
 
 interface DragCell {
   trackId: TrackId;
@@ -52,14 +67,24 @@ interface SongViewProps {
     toSlotId: string,
   ) => void;
   onDragPitchDirection: (slotId: string, direction: PitchDirection) => void;
-  onReconcileLyricsText: (text: string) => void;
+  onReconcileLyricsText: (text: string, options?: ReconcileOptions) => void;
   onToggleBis: (startLineIndex: number, endLineIndex: number, remove: boolean) => void;
   onPasteText: (
     text: string,
     startLineIndex: number,
     startOffset: number,
     placements: ChordPlacement[],
+    options?: ReconcileOptions,
+    pastedTabs?: PastedTab[],
   ) => void;
+  /** The content of each tab block, by line id. */
+  tabs?: Record<string, TabBlockContent>;
+  /** Whether tab blocks are drawn. Always while editing; a reader turns them on with the Tabs
+   *  toggle. */
+  showTabs?: boolean;
+  onSetTabBlock?: (lineId: string, block: TabBlockContent) => void;
+  onSetTabSpacing?: (lineId: string, spacing: number) => void;
+  onRemoveTabBlock?: (lineId: string) => void;
 }
 
 interface CaretPosition {
@@ -92,8 +117,14 @@ function nodesText(nodes: Iterable<Node>): string {
   return text.replaceAll("\u00a0", " ");
 }
 
+/** A tab block reads as its `TAB` marker, whatever ascii-tabs draws inside it. */
 function lineText(line: HTMLElement): string {
+  if (isTabLine(line)) return TAB_MARKER;
   return nodesText(line.childNodes);
+}
+
+function isTabLine(line: Element): boolean {
+  return line.hasAttribute("data-tab-line");
 }
 
 const BIS_AT_LINE_END = /(?:^|\s)BIS\s*$/;
@@ -140,10 +171,13 @@ function readDocument(root: HTMLElement): string {
     .join("\n");
 }
 
+/** `edge` is which end of a range the position is. A range that ends or starts inside a tab block
+    takes the whole block, never part of its marker: a block is deleted whole or not at all. */
 function positionForNode(
   root: HTMLElement,
   node: Node,
   nodeOffset: number,
+  edge: "start" | "end" = "start",
 ): CaretPosition | null {
   const lines = Array.from(
     root.querySelectorAll<HTMLElement>("[data-lyrics-line]"),
@@ -192,6 +226,9 @@ function positionForNode(
     };
   }
   if (!root.contains(line)) return null;
+  if (isTabLine(line)) {
+    return { lineIndex: lines.indexOf(line), offset: edge === "start" ? 0 : TAB_MARKER.length };
+  }
   const range = document.createRange();
   range.selectNodeContents(line);
   try {
@@ -224,8 +261,8 @@ function captureSelectionRange(
   const selection = window.getSelection();
   if (!selection?.rangeCount) return null;
   const range = selection.getRangeAt(0);
-  const start = positionForNode(root, range.startContainer, range.startOffset);
-  const end = positionForNode(root, range.endContainer, range.endOffset);
+  const start = positionForNode(root, range.startContainer, range.startOffset, "start");
+  const end = positionForNode(root, range.endContainer, range.endOffset, "end");
   if (!start || !end) return null;
   return { start, end };
 }
@@ -262,6 +299,7 @@ function clipboardTextForRange(
   lines: string[],
   start: CaretPosition,
   end: CaretPosition,
+  tabText: (lineId: string) => string | null,
 ): string {
   const outLines: string[] = [];
   for (
@@ -269,6 +307,13 @@ function clipboardTextForRange(
     lineIndex <= end.lineIndex;
     lineIndex++
   ) {
+    // A tab block copies as the ASCII tablature it shows, which a paste turns back into a block.
+    const tabLine = song[lineIndex];
+    if (tabLine?.tab) {
+      const ascii = tabText(tabLine.id);
+      if (ascii !== null) outLines.push(ascii);
+      continue;
+    }
     const lineStartCol = lineIndex === start.lineIndex ? start.offset : 0;
     const lineEndCol =
       lineIndex === end.lineIndex ? end.offset : lines[lineIndex].length;
@@ -395,11 +440,17 @@ function selectLine(root: HTMLElement, lineIndex: number) {
 }
 
 function restoreCaret(root: HTMLElement, position: CaretPosition) {
-  const line =
-    root.querySelectorAll<HTMLElement>("[data-lyrics-line]")[
-      position.lineIndex
-    ];
+  const lines = root.querySelectorAll<HTMLElement>("[data-lyrics-line]");
+  const line = lines[position.lineIndex];
   if (!line) return;
+  // There is no caret inside a tab block: it goes to the lyrics right after it, or before it.
+  if (isTabLine(line)) {
+    const next = Array.from(lines).findIndex((candidate, index) => index > position.lineIndex && !isTabLine(candidate));
+    if (next !== -1) return restoreCaret(root, { lineIndex: next, offset: 0 });
+    const previous = Array.from(lines).findLastIndex((candidate, index) => index < position.lineIndex && !isTabLine(candidate));
+    if (previous !== -1) restoreCaret(root, { lineIndex: previous, offset: lineText(lines[previous]!).length });
+    return;
+  }
   const remaining = walkAndPlaceCaret(
     Array.from(line.childNodes),
     position.offset,
@@ -509,6 +560,8 @@ function isPassiveCaretSurface(root: HTMLElement, target: EventTarget | null): b
       : target instanceof Node
         ? target.parentElement
         : null;
+  // A tab block's grid takes its own clicks.
+  if (element?.closest("[data-tab-block]")) return false;
   return (
     element === root ||
     (element !== null && root.contains(element) && element.closest('[contenteditable="false"]') !== null)
@@ -548,6 +601,11 @@ export function SongView({
   onReconcileLyricsText,
   onToggleBis,
   onPasteText,
+  tabs = NO_TABS,
+  showTabs = true,
+  onSetTabBlock,
+  onSetTabSpacing,
+  onRemoveTabBlock,
 }: SongViewProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const pendingCaret = useRef<CaretPosition | null>(null);
@@ -604,6 +662,25 @@ export function SongView({
     return () =>
       document.removeEventListener("selectionchange", handleSelectionChange);
   }, []);
+
+  // A `TAB` typed on a line of its own becomes a tab block once its author leaves that line (Enter
+  // included) or the document, so the word stays editable while it might still grow into "TABLA".
+  // Only the line just left: a `TAB` that undo brought back elsewhere stays lyrics, or converting
+  // it again would wipe the redo history. Mobile never inserts a block.
+  const isMobile = useIsMobile();
+  const typingLineRef = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    const typingLine = isFocused && caretLineIndex !== null ? caretLineIndex : undefined;
+    const left = typingLineRef.current;
+    typingLineRef.current = typingLine;
+    if (!canEdit || isMobile || left === undefined || left === typingLine) return;
+    if (song[left]?.tab || !isTabLineText(lyricLines[left] ?? "")) return;
+    onReconcileLyricsText(
+      lyricsText,
+      reconcileOptions(tabLinesAfterReplace(song, lyricsText, 0, 0, ""), (lineIndex) => lineIndex !== left),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canEdit, isMobile, isFocused, caretLineIndex]);
 
   // Flattened in song order (not per line) so a chord at the start of one line can still be
   // compared against the last chord of the previous line.
@@ -676,7 +753,42 @@ export function SongView({
     if (text === lyricsText) return;
     pendingCaret.current = captureCaret(root);
     nativeEditPending.current = true;
-    onReconcileLyricsText(text);
+    // Typed `TAB`s stay lyrics: the line the caret leaves is converted on its own (see the effect).
+    onReconcileLyricsText(text, {
+      textLineIndexes: text.split("\n").flatMap((line, index) => (isTabLineText(line) && !song[index]?.tab ? [index] : [])),
+    });
+  }
+
+  /** Splits an edit's `TAB` lines into blocks (by id, see `ReconcileOptions.tabIds`) and lyrics:
+      a new one stays lyrics when `keepAsText` says so. */
+  function reconcileOptions(lines: TabLineAfterEdit[], keepAsText: (lineIndex: number) => boolean): ReconcileOptions {
+    const textLineIndexes = lines.filter((line) => line.id === null && keepAsText(line.lineIndex)).map((line) => line.lineIndex);
+    return {
+      textLineIndexes,
+      tabIds: lines.filter((line) => !textLineIndexes.includes(line.lineIndex)).map((line) => line.id),
+    };
+  }
+
+  /** How to rebuild the document after replacing `[start, end)` of `text`. A pasted `TAB` becomes
+      a block at once; a typed one waits until its author leaves the line, and mobile makes none. */
+  function editOptions(text: string, start: number, end: number, replacement: string, { typed }: { typed: boolean }) {
+    return reconcileOptions(tabLinesAfterReplace(song, text, start, end, replacement), () => typed || isMobile);
+  }
+
+  /** Puts the caret at `offset` of the edited text once it renders. Its line is known now, not at
+      the next selectionchange, so leaving a typed `TAB`'s line converts it in this same render. */
+  function placeCaretAfterEdit(newText: string, offset: number) {
+    const caret = positionFromFlatOffset(newText.split("\n"), offset);
+    pendingCaret.current = caret;
+    setCaretLineIndex(caret.lineIndex);
+  }
+
+  /** A tab block's content as the ASCII ascii-tabs copies, or `null` when it isn't shown. */
+  function tabText(lineId: string): string | null {
+    const library = loadedAsciiTabs();
+    const block = tabs[lineId];
+    if (!showTabs || !library || !block) return null;
+    return block.tabs.map((tab) => library.format(tab, { spacing: block.spacing })).join("\n\n");
   }
 
   /** The current selection as `[start, end)` offsets into the document text. */
@@ -694,20 +806,73 @@ export function SongView({
   /** Replaces `[start, end)` of `text` with pasted text. Chords written on their own line above
       a lyric line become chords over its syllables. */
   function insertChordSheet(text: string, start: number, end: number, pasted: string) {
-    const { lyricsText, placements } = parseChordSheet(
-      pasted.replace(/\r\n?/g, "\n"),
-    );
+    const sheet = pasted.replace(/\r\n?/g, "\n");
+    // Mobile never inserts a tab block: a pasted tablature stays text there.
+    const segments = isMobile ? [] : splitAsciiTabs(sheet);
+    if (segments.some((segment) => segment.kind === "tab")) {
+      void loadAsciiTabs().then(({ parse }) => insertWithTabs(text, start, end, segments, parse));
+      return;
+    }
+    const { lyricsText, placements } = parseChordSheet(sheet);
     const newText = text.slice(0, start) + lyricsText + text.slice(end);
-    pendingCaret.current = positionFromFlatOffset(
-      newText.split("\n"),
-      start + lyricsText.length,
-    );
+    placeCaretAfterEdit(newText, start + lyricsText.length);
+    const options = editOptions(text, start, end, lyricsText, { typed: false });
     if (placements.length > 0) {
       const startPosition = positionFromFlatOffset(newText.split("\n"), start);
-      onPasteText(newText, startPosition.lineIndex, startPosition.offset, placements);
+      onPasteText(newText, startPosition.lineIndex, startPosition.offset, placements, options);
     } else {
-      onReconcileLyricsText(newText);
+      onReconcileLyricsText(newText, options);
     }
+  }
+
+  /** Pastes text that holds ASCII tablature: each run of staves becomes a tab block in its place,
+      and the text around them is read as a chord sheet, as any other paste. */
+  function insertWithTabs(
+    text: string,
+    start: number,
+    end: number,
+    segments: PasteSegment[],
+    parse: (ascii: string) => TabBlockContent["tabs"][number],
+  ) {
+    const pieces: string[] = [];
+    const placements: ChordPlacement[] = [];
+    const blocks: { lineOffset: number; block: TabBlockContent }[] = [];
+    let lineCount = 0;
+    for (const segment of segments) {
+      if (segment.kind === "tab") {
+        blocks.push({ lineOffset: lineCount, block: { tabs: [parse(segment.ascii)] } });
+        pieces.push(TAB_MARKER);
+        lineCount += 1;
+        continue;
+      }
+      const sheet = parseChordSheet(segment.text);
+      for (const placement of sheet.placements) {
+        placements.push({ ...placement, lineIndex: placement.lineIndex + lineCount });
+      }
+      pieces.push(sheet.lyricsText);
+      lineCount += sheet.lyricsText.split("\n").length;
+    }
+
+    // A block takes a line of its own, even when pasted into the middle of one.
+    let inserted = pieces.join("\n");
+    const leadingBreak = segments[0]!.kind === "tab" && text.slice(lineStartBoundary(text, start), start) !== "";
+    if (leadingBreak) inserted = `\n${inserted}`;
+    if (segments.at(-1)!.kind === "tab" && text.slice(end, lineEndBoundary(text, end)) !== "") inserted += "\n";
+
+    const newText = text.slice(0, start) + inserted + text.slice(end);
+    placeCaretAfterEdit(newText, start + inserted.length);
+    const startPosition = positionFromFlatOffset(newText.split("\n"), start);
+    onPasteText(
+      newText,
+      startPosition.lineIndex,
+      startPosition.offset,
+      leadingBreak ? placements.map((placement) => ({ ...placement, lineIndex: placement.lineIndex + 1 })) : placements,
+      editOptions(text, start, end, inserted, { typed: false }),
+      blocks.map(({ lineOffset, block }) => ({
+        lineIndex: startPosition.lineIndex + (leadingBreak ? 1 : 0) + lineOffset,
+        block,
+      })),
+    );
   }
 
   /** A click on the document's empty space can leave the browser selection on the editing host
@@ -740,11 +905,19 @@ export function SongView({
     if (!root) return;
     const text = readDocument(root);
     const newText = text.slice(0, start) + replacement + text.slice(end);
-    pendingCaret.current = positionFromFlatOffset(
-      newText.split("\n"),
-      start + replacement.length,
-    );
-    onReconcileLyricsText(newText);
+    placeCaretAfterEdit(newText, start + replacement.length);
+    onReconcileLyricsText(newText, editOptions(text, start, end, replacement, { typed: true }));
+  }
+
+  /** Whether deleting `[start, end)` of `text` would take part of a tab block, or the line break
+      that keeps it on a line of its own. */
+  function touchesTabBlock(text: string, start: number, end: number): boolean {
+    const lines = text.split("\n");
+    const starts = lineStarts(lines);
+    return lines.some((line, index) => {
+      const from = starts[index]!;
+      return Boolean(song[index]?.tab) && start < from + line.length + 1 && end > from - 1;
+    });
   }
 
   // A lyric row mixes React-owned structural elements (syllable spans, non-editable gap buttons)
@@ -837,6 +1010,8 @@ export function SongView({
         default:
           return;
       }
+      // Backspace or Delete next to a tab block leaves it alone: deleting one takes selecting it.
+      if (start !== end && touchesTabBlock(text, start, end)) return;
     }
 
     const replacement =
@@ -956,6 +1131,18 @@ export function SongView({
       lineIndex += 1;
       offset = Math.min(offset, lineText(lines[lineIndex]).length);
     }
+
+    // The caret steps over a tab block, to the lyrics on its other side.
+    const step = lineIndex < caret.lineIndex ? -1 : 1;
+    while (lines[lineIndex] && isTabLine(lines[lineIndex]!)) lineIndex += step;
+    const target = lines[lineIndex];
+    if (!target) {
+      event.preventDefault();
+      return;
+    }
+    if (lineIndex !== caret.lineIndex && event.key === "ArrowLeft") offset = lineText(target).length;
+    else if (lineIndex !== caret.lineIndex && event.key === "ArrowRight") offset = 0;
+    else offset = Math.min(offset, lineText(target).length);
 
     event.preventDefault();
     restoreCaret(root, { lineIndex, offset });
@@ -1212,7 +1399,7 @@ export function SongView({
             [start, end] = [end, start];
           event.clipboardData.setData(
             "text/plain",
-            clipboardTextForRange(song, cells, merges, lines, start, end),
+            clipboardTextForRange(song, cells, merges, lines, start, end, tabText),
           );
           event.preventDefault();
         }}
@@ -1232,7 +1419,7 @@ export function SongView({
           }
           event.clipboardData.setData(
             "text/plain",
-            clipboardTextForRange(song, cells, merges, lines, start, end),
+            clipboardTextForRange(song, cells, merges, lines, start, end, tabText),
           );
           event.preventDefault();
           if (!canEdit) return;
@@ -1263,7 +1450,19 @@ export function SongView({
             ) : null}
           </div>
         ) : null}
-        {song.map((line, index) => (
+        {song.map((line, index) =>
+          line.tab ? (
+            <TabLineView
+              key={line.id}
+              lineId={line.id}
+              block={tabs[line.id] ?? EMPTY_TAB_BLOCK}
+              visible={showTabs}
+              readOnly={!canEdit}
+              onSetTabBlock={onSetTabBlock}
+              onSetTabSpacing={onSetTabSpacing}
+              onRemoveTabBlock={onRemoveTabBlock}
+            />
+          ) : (
           <LineView
             key={`${line.id}:${lineGenerations[line.id] ?? 0}`}
             line={line}
@@ -1291,7 +1490,8 @@ export function SongView({
             onDragLeaveCell={handleDragLeaveCell}
             onDropCell={handleDropCell}
           />
-        ))}
+          ),
+        )}
         </Fragment>
       </div>
       {song.length === 0 && placeholder ? (
@@ -1302,6 +1502,47 @@ export function SongView({
       {youtubeUrl ? <YoutubeEmbed url={youtubeUrl} /> : null}
       {footer}
       {showHelp ? <EditorHelp /> : null}
+    </div>
+  );
+}
+
+interface TabLineViewProps {
+  lineId: string;
+  block: TabBlockContent;
+  /** Hidden, the line stays in the document (its `TAB` marker keeps every line index in step)
+      but draws nothing, and ascii-tabs isn't loaded for it. */
+  visible: boolean;
+  readOnly: boolean;
+  onSetTabBlock?: (lineId: string, block: TabBlockContent) => void;
+  onSetTabSpacing?: (lineId: string, spacing: number) => void;
+  onRemoveTabBlock?: (lineId: string) => void;
+}
+
+/** A tab block's line: a non-editable island in the lyrics, read back as its `TAB` marker. */
+function TabLineView({
+  lineId,
+  block,
+  visible,
+  readOnly,
+  onSetTabBlock,
+  onSetTabSpacing,
+  onRemoveTabBlock,
+}: TabLineViewProps) {
+  // Mobile is read-only for tab blocks too, even in an editor that lets a phone edit lyrics.
+  const isMobile = useIsMobile();
+  return (
+    <div className="line line--tab" hidden={!visible}>
+      <div className="tab-line" data-lyrics-line data-tab-line contentEditable={false}>
+        {visible ? (
+          <TabBlock
+            block={block}
+            readOnly={readOnly || isMobile}
+            onChange={(tabs) => onSetTabBlock?.(lineId, { ...block, tabs })}
+            onSpacingChange={(spacing) => onSetTabSpacing?.(lineId, spacing)}
+            onRemove={() => onRemoveTabBlock?.(lineId)}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

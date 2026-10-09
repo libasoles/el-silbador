@@ -224,6 +224,10 @@ function LiveChordEditor({
         onReconcileLyricsText={actions.reconcileLyricsText}
         onToggleBis={actions.toggleBis}
         onPasteText={actions.pasteText}
+        tabs={state.tabs}
+        onSetTabBlock={actions.setTabBlock}
+        onSetTabSpacing={actions.setTabSpacing}
+        onRemoveTabBlock={actions.removeTabBlock}
       />
     </figure>
   );

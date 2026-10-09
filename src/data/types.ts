@@ -1,4 +1,4 @@
-import type { BisGroup, EditorState } from "../core/types";
+import type { BisGroup, EditorState, TabBlock } from "../core/types";
 
 /**
  * The subset of `EditorState` that gets persisted as `songs.content` (see the spec's serialization
@@ -12,6 +12,8 @@ export type SongContent = Pick<
   merges: Set<string>;
   /** Optional so songs and in-memory fixtures from before BIS groups remain readable. */
   bisGroups?: BisGroup[];
+  /** Optional so songs and in-memory fixtures from before tab blocks remain readable. */
+  tabs?: Record<string, TabBlock>;
 };
 
 export interface SongSummary {

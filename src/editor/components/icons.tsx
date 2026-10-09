@@ -176,6 +176,27 @@ export function NoteStackIcon({ boldNotes }: { boldNotes?: readonly string[] } =
   );
 }
 
+/** The word "TAB", the same word an author types to insert a tab block. Like `NoteStackIcon`, a
+ *  text icon rather than a lucide one. */
+export function TabsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+      <text
+        x="12"
+        y="12"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="10"
+        fontWeight="700"
+        letterSpacing="-0.3"
+        fill="currentColor"
+      >
+        TAB
+      </text>
+    </svg>
+  );
+}
+
 /** A pair of eighth notes — the sung melody, as opposed to the chord shape (ChordIcon) or the
  *  chord's constituent note names (NoteStackIcon). */
 export function MelodyNoteIcon() {

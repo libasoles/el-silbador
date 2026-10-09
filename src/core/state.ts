@@ -7,6 +7,7 @@ import {
   gapSlotId,
   flattenSyllables,
   isSubtitleLineText,
+  isTabLineText,
   isLineEdgeSlot,
   mergeKey,
   pruneMerges,
@@ -14,9 +15,40 @@ import {
   endSlotId,
   startSlotId,
 } from "./model";
+import { nextId } from "./ids";
 import type { ChordPlacement } from "./chordSheet";
 import { hyphenateWord } from "./syllabify";
-import type { BisGroup, CellsByTrack, EditorState, PitchDirection, TrackId } from "./types";
+import type { BisGroup, CellsByTrack, EditorState, PitchDirection, Song, TabBlock, TrackId } from "./types";
+
+/** Hints for rebuilding the document after a text edit, from the editor that made it. */
+export interface ReconcileOptions {
+  /** Lines that stay lyrics even if they read `TAB` (see `buildSong`): a typed `TAB` only becomes a
+   *  block once its author leaves the line, and never on mobile. */
+  textLineIndexes?: number[];
+  /** The id of every tab block in the new text, in order: the block that line keeps, or `null`
+   *  for a new one. Every `TAB` marker reads the same, so text alone can't tell which block a
+   *  deletion removed. */
+  tabIds?: (string | null)[];
+}
+
+/** A tab block content the paste brought in, for the `TAB` line at `lineIndex` of the new text. */
+export interface PastedTab {
+  lineIndex: number;
+  block: TabBlock;
+}
+
+/** A block with one empty Tab: what a new `TAB` line holds. */
+export const EMPTY_TAB_BLOCK: TabBlock = { tabs: [[]] };
+
+/** One entry per tab line of `song`: the content it already had, or an empty block. Entries of
+ *  blocks no longer in the song are dropped, so undo is what brings a deleted block back. */
+function tabsForSong(song: Song, tabs: Record<string, TabBlock>): Record<string, TabBlock> {
+  const next: Record<string, TabBlock> = {};
+  for (const line of song) {
+    if (line.tab) next[line.id] = tabs[line.id] ?? EMPTY_TAB_BLOCK;
+  }
+  return next;
+}
 
 function trackHasContent(cells: CellsByTrack, trackId: TrackId): boolean {
   const trackCells = cells[trackId];
@@ -131,6 +163,7 @@ export function createInitialState(): EditorState {
     chordVariants: {},
     pitchDirections: {},
     showUnderline: true,
+    tabs: {},
   };
 }
 
@@ -138,7 +171,7 @@ export type Action =
   | { type: "setTitle"; title: string }
   | { type: "setAuthor"; author: string }
   | { type: "setLyricsText"; text: string }
-  | { type: "reconcileLyricsText"; text: string }
+  | { type: "reconcileLyricsText"; text: string; options?: ReconcileOptions }
   | { type: "toggleBis"; startLineIndex: number; endLineIndex: number; remove: boolean }
   | {
       type: "pasteText";
@@ -146,7 +179,12 @@ export type Action =
       startLineIndex: number;
       startOffset: number;
       placements: ChordPlacement[];
+      options?: ReconcileOptions;
+      pastedTabs?: PastedTab[];
     }
+  | { type: "setTabBlock"; lineId: string; block: TabBlock }
+  | { type: "setTabSpacing"; lineId: string; spacing: number }
+  | { type: "removeTabBlock"; lineId: string }
   | { type: "resyllabify"; lineId: string; wordId: string; newText: string }
   | { type: "toggleSyllableMerge"; lineId: string; aId: string; bId: string }
   | { type: "setCellText"; trackId: TrackId; slotId: string; text: string }
@@ -163,6 +201,7 @@ export type Action =
       > & {
         merges: Set<string>;
         bisGroups?: BisGroup[];
+        tabs?: Record<string, TabBlock>;
       };
       // Whether this load is happening on a mobile device. The underline-default-on-notes rule
       // below is a desktop-only convenience — mobile always starts with the toggle off.
@@ -177,26 +216,50 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
     case "setAuthor":
       return { ...state, author: action.author };
 
-    case "setLyricsText":
+    case "setLyricsText": {
+      const song = buildSong(action.text);
       return {
         ...state,
         lyricsText: action.text,
-        song: buildSong(action.text),
+        song,
         bisGroups: [],
         merges: new Set(),
         cells: {},
         chordVariants: {},
         pitchDirections: {},
+        tabs: tabsForSong(song, {}),
       };
+    }
 
     case "reconcileLyricsText":
-      return reconcileLyricsText(state, action.text);
+      return reconcileLyricsText(state, action.text, action.options);
 
     case "toggleBis":
       return toggleBis(state, action.startLineIndex, action.endLineIndex, action.remove);
 
     case "pasteText":
-      return applyPasteText(state, action.text, action.startLineIndex, action.startOffset, action.placements);
+      return applyPasteText(
+        state,
+        action.text,
+        action.startLineIndex,
+        action.startOffset,
+        action.placements,
+        action.options,
+        action.pastedTabs,
+      );
+
+    case "setTabBlock":
+      if (!(action.lineId in state.tabs)) return state;
+      return { ...state, tabs: { ...state.tabs, [action.lineId]: action.block } };
+
+    case "setTabSpacing": {
+      const block = state.tabs[action.lineId];
+      if (!block || block.spacing === action.spacing) return state;
+      return { ...state, tabs: { ...state.tabs, [action.lineId]: { ...block, spacing: action.spacing } } };
+    }
+
+    case "removeTabBlock":
+      return removeTabBlock(state, action.lineId);
 
     case "resyllabify":
       return applyResyllabify(state, action.lineId, action.wordId, action.newText);
@@ -240,8 +303,11 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
     case "loadContent":
       // Songs saved before section labels were introduced contain regular syllables for these
       // lines. Upgrade them as they are opened, using the raw text as the source of truth.
+      // Likewise, a `TAB` line saved as lyrics (before tab blocks existed, or while its author was
+      // still on it) opens as an empty tab block.
       const loadedSong = action.content.song.map((line, index) => {
         const rawLine = action.content.lyricsText.split("\n")[index] ?? "";
+        if (isTabLineText(rawLine)) return { id: line.id, words: [], tab: true as const };
         return isSubtitleLineText(rawLine) ? { ...line, words: [], subtitle: rawLine } : line;
       });
       return {
@@ -255,6 +321,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         chordVariants: action.content.chordVariants,
         pitchDirections: action.content.pitchDirections,
         merges: pruneMerges(loadedSong, action.content.merges),
+        tabs: tabsForSong(loadedSong, action.content.tabs ?? {}),
         // Track controls are view state rather than saved song content. Opening an existing
         // song starts in the focused chords view, plus any other track that already has
         // annotations (e.g. melody notes) so readers see them without toggling anything.
@@ -279,8 +346,8 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
  * matched unambiguously. Lines and words are aligned by their ordered common prefix/suffix;
  * changed words then use the existing syllable prefix/suffix reconciliation.
  */
-function reconcileLyricsText(state: EditorState, text: string): EditorState {
-  const candidate = buildSong(text);
+function reconcileLyricsText(state: EditorState, text: string, options: ReconcileOptions = {}): EditorState {
+  const candidate = buildSong(text, options.textLineIndexes);
   const previous = state.song;
   const previousTexts = previous.map(lineText);
   const candidateTexts = candidate.map(lineText);
@@ -304,7 +371,7 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
   }
 
   const carryOvers: CarryOver[] = [];
-  const song = candidate.map((nextLine, index) => {
+  const aligned = candidate.map((nextLine, index) => {
     if (index < prefix) return previous[index];
     if (index >= candidate.length - suffix) {
       return previous[previous.length - candidate.length + index];
@@ -314,6 +381,7 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
     const oldLine = previousIndex < previous.length - suffix ? previous[previousIndex] : undefined;
     return oldLine ? reconcileLine(oldLine, nextLine, carryOvers) : nextLine;
   });
+  const song = options.tabIds ? withTabIds(aligned, options.tabIds) : aligned;
 
   const retainedSyllableIds = new Set(song.flatMap(flattenSyllables).map((syllable) => syllable.id));
   const retainedLineIds = new Set(song.map((line) => line.id));
@@ -357,7 +425,34 @@ function reconcileLyricsText(state: EditorState, text: string): EditorState {
     chordVariants,
     pitchDirections,
     merges: pruneMerges(song, state.merges),
+    tabs: tabsForSong(song, state.tabs),
   };
+}
+
+/** Gives the tab lines of `song`, in order, the ids an editor knows they have. */
+function withTabIds(song: Song, tabIds: (string | null)[]): Song {
+  let index = 0;
+  return song.map((line) => {
+    if (!line.tab) return line;
+    const id = tabIds[index++];
+    return { ...line, id: id ?? nextId("line") };
+  });
+}
+
+/** The ids of `song`'s tab blocks, in order. */
+export function tabLineIds(song: Song): string[] {
+  return song.filter((line) => line.tab).map((line) => line.id);
+}
+
+/** Deletes a tab block along with its marker line. */
+function removeTabBlock(state: EditorState, lineId: string): EditorState {
+  const index = state.song.findIndex((line) => line.id === lineId && line.tab);
+  if (index === -1) return state;
+  const lines = state.lyricsText.split("\n");
+  lines.splice(index, 1);
+  return reconcileLyricsText(state, lines.join("\n"), {
+    tabIds: tabLineIds(state.song).filter((id) => id !== lineId),
+  });
 }
 
 /**
@@ -372,8 +467,14 @@ function applyPasteText(
   startLineIndex: number,
   startOffset: number,
   placements: ChordPlacement[],
+  options?: ReconcileOptions,
+  pastedTabs: PastedTab[] = [],
 ): EditorState {
-  const next = reconcileLyricsText(state, text);
+  let next = reconcileLyricsText(state, text, options);
+  for (const { lineIndex, block } of pastedTabs) {
+    const line = next.song[lineIndex];
+    if (line?.tab) next = { ...next, tabs: { ...next.tabs, [line.id]: block } };
+  }
   if (placements.length === 0) return next;
 
   const lines = text.split("\n");
@@ -397,7 +498,13 @@ function applyPasteText(
   return { ...next, cells, tracks };
 }
 
+/** What a tab block's line is matched by: no lyric line can read this. */
+const TAB_BLOCK_MATCH_KEY = "\u0000tab";
+
+/** The text two versions of a line are matched by. A tab block never matches a lyric line, not
+ *  even a `TAB` its author is still typing. */
 function lineText(line: EditorState["song"][number]): string {
+  if (line.tab) return TAB_BLOCK_MATCH_KEY;
   if (line.subtitle !== undefined) return line.subtitle;
   return line.words.map((word) => word.syllables.map((syllable) => syllable.text).join("")).join(" ");
 }
@@ -407,6 +514,9 @@ function reconcileLine(
   nextLine: EditorState["song"][number],
   carryOvers: CarryOver[],
 ) {
+  // A tab block keeps its identity, and with it its content. A line that becomes or stops being
+  // one is a different line: the block's id must not end up on lyrics, or its content on a new block.
+  if (oldLine.tab || nextLine.tab) return oldLine.tab && nextLine.tab ? oldLine : nextLine;
   // Section labels have no syllable identities to reconcile. Retain the line identity so the
   // editor keeps its DOM position when a normal line becomes (or stops being) a section label.
   if (oldLine.subtitle !== undefined || nextLine.subtitle !== undefined) {

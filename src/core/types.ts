@@ -13,6 +13,9 @@ export interface Line {
   words: Word[];
   /** A section label kept as whole text rather than split into syllables. */
   subtitle?: string;
+  /** A tab block. Its line holds the `TAB` marker in `lyricsText`, which is never shown as text;
+   *  the block's content lives in `EditorState.tabs[line.id]`. */
+  tab?: true;
 }
 
 export type Song = Line[];
@@ -47,6 +50,16 @@ export type CellsByTrack = Partial<Record<TrackId, Record<string, string>>>;
 /** Whether a vocal note is higher ("up") or lower ("down") than the previous one. */
 export type PitchDirection = "up" | "down";
 
+/** One cell per string, 1 to 6: a fret (0–24) or `null` for an empty string. */
+export type TabColumn = (number | null)[];
+
+/** The content of a tab block: one or more Tabs of ascii-tabs (each a list of columns), plus the
+ *  dashes drawn between columns. Missing `spacing` = the library's default. */
+export interface TabBlock {
+  tabs: TabColumn[][];
+  spacing?: number;
+}
+
 export interface EditorState {
   title: string;
   author: string;
@@ -64,4 +77,6 @@ export interface EditorState {
    *  slot's note. Missing = no indicator. Only ever set on a slot whose note is non-empty. */
   pitchDirections: Record<string, PitchDirection>;
   showUnderline: boolean;
+  /** `tabs[lineId]` is the content of the tab block on that `tab` line. */
+  tabs: Record<string, TabBlock>;
 }

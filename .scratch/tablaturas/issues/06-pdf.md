@@ -9,8 +9,8 @@ Ver [spec](../spec.md).
 
 **Blocked by:** 02, 05
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Con el toggle en on, el PDF muestra las tablaturas sin controles. Con el toggle en off, no las muestra.
-- [ ] Test de las reglas de print, en la línea de los que hay en `src/editor/App.test.ts`.
+- [x] Con el toggle en on, el PDF muestra las tablaturas sin controles. Con el toggle en off, no las muestra.
+- [x] Test de las reglas de print, en la línea de los que hay en `src/editor/App.test.ts`.

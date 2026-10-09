@@ -1,5 +1,5 @@
 import { nextId, reserveIds } from "../core/ids";
-import type { BisGroup, CellsByTrack, PitchDirection, Song } from "../core/types";
+import type { BisGroup, CellsByTrack, PitchDirection, Song, TabBlock } from "../core/types";
 import { getSupabaseClient, type SupabaseClient } from "./supabaseClient";
 import type {
   SaveSongInput,
@@ -21,6 +21,8 @@ export interface StoredSongContent {
   chordVariants: Record<string, number>;
   /** Absent on songs saved before pitch direction indicators existed. */
   pitchDirections?: Record<string, PitchDirection>;
+  /** Absent on songs saved before tab blocks existed. */
+  tabs?: Record<string, TabBlock>;
 }
 
 interface SongRow {
@@ -66,6 +68,7 @@ export function serializeContent(content: SongContent): StoredSongContent {
     cells: content.cells,
     chordVariants: content.chordVariants,
     pitchDirections: content.pitchDirections,
+    tabs: content.tabs ?? {},
     merges: [...content.merges],
   };
 }
@@ -102,6 +105,8 @@ export function deserializeContent(stored: StoredSongContent): SongContent {
     // Songs saved before chord variants existed have no such column in their stored jsonb.
     chordVariants: stored.chordVariants ?? {},
     pitchDirections: stored.pitchDirections ?? {},
+    // A `TAB` line with no entry here opens as an empty block (see the editor's `loadContent`).
+    tabs: stored.tabs ?? {},
     merges: new Set(stored.merges),
   };
 }

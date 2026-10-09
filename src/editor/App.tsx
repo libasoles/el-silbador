@@ -77,6 +77,8 @@ import {
   readReaderTransposePreference,
   saveReaderTransposePreference,
 } from "./readerTransposeStorage";
+import { useTabsToggle } from "./useTabsToggle";
+import { TabsToggleButton } from "./components/TabsToggleButton";
 
 const DEFAULT_ACCENT_COLOR = "#9c4a3c";
 
@@ -592,6 +594,7 @@ function App({
       chordVariants: state.chordVariants,
       pitchDirections: state.pitchDirections,
       merges: state.merges,
+      tabs: state.tabs,
     }),
     [
       state.title,
@@ -603,6 +606,7 @@ function App({
       state.chordVariants,
       state.pitchDirections,
       state.merges,
+      state.tabs,
     ],
   );
   // Ready to autosave once the editor actually holds this song's content, and (for an existing
@@ -642,6 +646,8 @@ function App({
     Boolean(songSlug) &&
     ownerId !== undefined &&
     !canEditOnThisDevice;
+
+  const tabsToggle = useTabsToggle(state.song, canEditOnThisDevice);
 
   // localStorage is client-only, so read it after hydration. The song id survives title/slug
   // changes and keeps one reader preference per actual song.
@@ -1104,6 +1110,9 @@ function App({
                     id="mobile-sidebar-menu-controls"
                     className="mobile-sidebar-menu__controls"
                   >
+                    {tabsToggle.available && (
+                      <TabsToggleButton pressed={tabsToggle.pressed} onToggle={tabsToggle.toggle} />
+                    )}
                     {state.tracks
                       .filter((track) => track.id !== "vocalNotes")
                       .map((track) => (
@@ -1145,6 +1154,9 @@ function App({
             )}
 
             <aside className="track-toolbar" aria-label="Visibilidad de pistas">
+              {tabsToggle.available && (
+                <TabsToggleButton pressed={tabsToggle.pressed} onToggle={tabsToggle.toggle} />
+              )}
               {state.tracks
                 .filter((track) => track.id !== "vocalNotes")
                 .map((track) => (
@@ -1218,6 +1230,11 @@ function App({
                 onReconcileLyricsText={actions.reconcileLyricsText}
                 onToggleBis={actions.toggleBis}
                 onPasteText={actions.pasteText}
+                tabs={state.tabs}
+                showTabs={tabsToggle.showTabBlocks}
+                onSetTabBlock={actions.setTabBlock}
+                onSetTabSpacing={actions.setTabSpacing}
+                onRemoveTabBlock={actions.removeTabBlock}
               />
             )}
 

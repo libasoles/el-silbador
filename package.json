@@ -1,7 +1,7 @@
 {
   "name": "silbador-editor",
   "private": true,
-  "version": "0.16.12",
+  "version": "0.17.0",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -24,6 +24,7 @@
     "@supabase/postgrest-js": "^2.117.2",
     "@supabase/supabase-js": "^2.117.2",
     "@tanstack/react-query": "^5.104.0",
+    "ascii-tabs": "github:libasoles/ascii-tabs#semver:^0.1.0",
     "hyphenation.es": "^0.2.1",
     "hypher": "^0.2.5",
     "lucide-react": "^1.48.0",
