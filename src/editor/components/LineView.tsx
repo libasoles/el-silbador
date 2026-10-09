@@ -138,6 +138,9 @@ interface LineViewProps {
   lineNumber?: number;
   bisRule?: "single" | "start" | "middle" | "end";
   bisMarker?: boolean;
+  /** A just-typed TAB still behaves as text until its author confirms the block, but shares the
+      visual treatment of the other structural keyword, BIS. */
+  tabCandidate?: boolean;
   /** Whitespace at the end of the raw lyric line, which the syllable model does not retain. */
   trailingWhitespace: string;
   merges: ReadonlySet<string>;
@@ -170,6 +173,7 @@ function LyricLineView({
   lineNumber,
   bisRule,
   bisMarker = false,
+  tabCandidate = false,
   trailingWhitespace,
   merges,
   showUnderline,
@@ -816,6 +820,7 @@ function LyricLineView({
       className={
         "line" +
         (bisRule ? ` line--bis line--bis-${bisRule}` : "") +
+        (tabCandidate ? " line--tab-candidate" : "") +
         (isDragging ? " line--dragging" : "") +
         (!chordsVisible ? " line--chords-hidden" : "") +
         (readOnly ? " line--chord-underlines-only" : "")
