@@ -100,7 +100,7 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
       element.append(document.createElement("ascii-tabs-sheet"));
     } else {
       element.append(
-        ...(shouldRenderHint ? [document.createElement("ascii-tabs-hint")] : []),
+        ...(hasDismissedTabHint() ? [] : [document.createElement("ascii-tabs-hint")]),
         document.createElement("ascii-tabs-spacing"),
         part("ascii-tabs-sheet", [
           document.createElement("ascii-tabs-copy"),
@@ -139,6 +139,12 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
       element.remove();
       elementRef.current = null;
     };
+  }, [ready, readOnly]);
+
+  // Dismissing the hint must not reconnect ascii-tabs: that discards its focused cell and
+  // typing draft. The hint is presentational and can be removed without rebuilding the grid.
+  useLayoutEffect(() => {
+    if (!shouldRenderHint) elementRef.current?.querySelector(".ascii-tabs-hint")?.remove();
   }, [ready, readOnly, shouldRenderHint]);
 
   // Undo, redo and a reload change the block from outside. Writing an unchanged value back would

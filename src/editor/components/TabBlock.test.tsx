@@ -1,4 +1,5 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AsciiTabs } from "ascii-tabs/ascii-tabs.js";
 import type { TabBlock as TabBlockContent } from "../../core/types";
@@ -7,6 +8,11 @@ import { TabBlock } from "./TabBlock";
 const ONE_TAB: TabBlockContent = { tabs: [[[3, null, null, null, null, null]]] };
 const TWO_TABS: TabBlockContent = { tabs: [[[3, null, null, null, null, null]], [[null, 5, null, null, null, null]]] };
 const EMPTY_TAB: TabBlockContent = { tabs: [[]] };
+
+function ControlledBlock() {
+  const [block, setBlock] = useState(EMPTY_TAB);
+  return <TabBlock block={block} readOnly={false} onChange={tabs => setBlock({ tabs })} />;
+}
 
 afterEach(() => window.localStorage.clear());
 
@@ -21,6 +27,59 @@ async function renderBlock(props: Partial<Parameters<typeof TabBlock>[0]> = {}) 
 }
 
 describe("TabBlock", () => {
+  it("keeps cell focus and arrow navigation when the first-fret hint disappears", async () => {
+    // jsdom has no scrolling/layout; keep the real pointer and keyboard handlers.
+    const scrollIntoView = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    const { element, container } = await renderBlock({ block: EMPTY_TAB });
+    const cell = element.querySelector(".ascii-tabs-cell")!;
+    fireEvent.pointerDown(cell, { button: 0 });
+    const input = element.querySelector<HTMLInputElement>(".ascii-tabs-input")!;
+    expect(input).toHaveFocus();
+    vi.useFakeTimers();
+    try {
+      fireEvent.keyDown(input, { key: "3" });
+      fireEvent.keyDown(input, { key: "ArrowRight" });
+      expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-c", "1");
+      act(() => vi.advanceTimersByTime(2_000));
+      expect(container.querySelector(".ascii-tabs-hint")).toBeNull();
+      expect(input).toHaveFocus();
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-s", "1");
+    } finally {
+      vi.useRealTimers();
+      if (scrollIntoView) HTMLElement.prototype.scrollIntoView = scrollIntoView;
+      else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+    }
+  });
+
+  it("preserves typing and all four arrows across controlled content updates", async () => {
+    window.localStorage.setItem("el-silbador:tab-hint-dismissed", "true");
+    const scrollIntoView = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    try {
+      const view = render(<ControlledBlock />);
+      const element = await waitFor(() => {
+        const found = view.container.querySelector<AsciiTabs>("ascii-tabs");
+        if (!found?.querySelector(".ascii-tabs-cell")) throw new Error("ascii-tabs has not rendered yet");
+        return found;
+      });
+      fireEvent.pointerDown(element.querySelector(".ascii-tabs-cell")!, { button: 0 });
+      const input = element.querySelector<HTMLInputElement>(".ascii-tabs-input")!;
+      for (const key of ["1", "2", "ArrowRight", "ArrowDown", "5", "ArrowLeft", "ArrowUp"]) {
+        fireEvent.keyDown(input, { key });
+        expect(input).toHaveFocus();
+        expect(element.querySelector(".ascii-tabs-cur")).not.toBeNull();
+      }
+      expect(element.value).toEqual([[[12, null, null, null, null, null], [null, 5, null, null, null, null]]]);
+      expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-c", "0");
+      expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-s", "0");
+    } finally {
+      if (scrollIntoView) HTMLElement.prototype.scrollIntoView = scrollIntoView;
+      else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+    }
+  });
+
   it("uses the flat ascii-tabs sheet variant", async () => {
     const { element } = await renderBlock();
 

@@ -112,6 +112,40 @@ async function loadedTabs(): Promise<AsciiTabs> {
 describe("SongView tab blocks", () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  it("keeps the tablature focused through edits and hint dismissal inside the lyrics editor", async () => {
+    mockMatchMedia(false);
+    window.localStorage.removeItem("el-silbador:tab-hint-dismissed");
+    const scrollIntoView = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    try {
+      render(<Editor initial={songState("una\nTAB\nnoche")} />);
+      const element = await loadedTabs();
+      fireEvent.pointerDown(element.querySelector(".ascii-tabs-cell")!, { button: 0 });
+      const input = element.querySelector<HTMLInputElement>(".ascii-tabs-input")!;
+      expect(input).toHaveFocus();
+      vi.useFakeTimers();
+      fireEvent.keyDown(input, { key: "1" });
+      act(() => vi.advanceTimersByTime(2_000));
+      expect(document.querySelector(".ascii-tabs-hint")).toBeNull();
+      expect(input).toHaveFocus();
+      for (const key of ["2", "ArrowRight", "ArrowDown", "5", "ArrowLeft", "ArrowUp"]) {
+        fireEvent.keyDown(input, { key });
+        expect(input).toHaveFocus();
+      }
+      expect(latest.tabs[tabLineIds(latest.song)[0]!].tabs).toEqual([
+        [[12, null, null, null, null, null], [null, 5, null, null, null, null]],
+      ]);
+      expect(latest.lyricsText).toBe("una\nTAB\nnoche");
+      expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-c", "0");
+      expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-s", "0");
+    } finally {
+      vi.useRealTimers();
+      window.localStorage.removeItem("el-silbador:tab-hint-dismissed");
+      if (scrollIntoView) HTMLElement.prototype.scrollIntoView = scrollIntoView;
+      else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+    }
+  });
+
   it.each(["Enter", "Tab", " ", "blur"])("shows tabs when a typed TAB is confirmed with %j while the toggle is off", async (key) => {
     mockMatchMedia(false);
     render(<Editor initial={songState("TAB\nTA")} withTabsToggle />);
