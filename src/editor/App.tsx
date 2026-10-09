@@ -27,7 +27,7 @@ import { profileQueryKeys, songQueryKeys } from "../data/queryKeys";
 import type { SongContent, SongDetail } from "../data/types";
 import { revalidatePublicSongs } from "../app/actions";
 import type { TransposeWidget as TransposeWidgetComponent } from "../transpose/TransposeWidget";
-import { transposeCells } from "../transpose/transpose";
+import { chordLinesOf, transposeForReader } from "../transpose/transposeSong";
 import { trackEvent } from "./analytics";
 import { useAuthRequired } from "./authRequiredContext";
 import type { ConfirmDialog as ConfirmDialogComponent } from "./components/ConfirmDialog";
@@ -659,13 +659,14 @@ function App({
     setReaderTransposeOffset(readReaderTransposePreference(songDbId) ?? 0);
   }, [readerMode, songDbId]);
 
-  const displayedCells = useMemo(
+  const displayed = useMemo(
     () =>
       readerMode
-        ? transposeCells(state.cells, readerTransposeOffset)
-        : state.cells,
-    [readerMode, readerTransposeOffset, state.cells],
+        ? transposeForReader(state.song, state.cells, readerTransposeOffset)
+        : { song: state.song, cells: state.cells },
+    [readerMode, readerTransposeOffset, state.song, state.cells],
   );
+  const displayedCells = displayed.cells;
   const handleReaderTranspose = useCallback(
     (offset: number) => {
       if (!songDbId) return;
@@ -1066,6 +1067,8 @@ function App({
               onTransposeNoteCell={(slotId, text) =>
                 actions.setCellText("vocalNotes", slotId, text)
               }
+              chordLines={chordLinesOf(displayed.song)}
+              onTransposeChordLines={actions.setChordLineTexts}
               readerOffset={readerMode ? readerTransposeOffset : undefined}
               onReaderOffsetChange={
                 readerMode ? handleReaderTranspose : undefined
@@ -1201,7 +1204,7 @@ function App({
               <SongViewSkeleton />
             ) : (
               <SongView
-                song={state.song}
+                song={displayed.song}
                 lyricsText={state.lyricsText}
                 bisGroups={state.bisGroups}
                 merges={state.merges}

@@ -17,6 +17,7 @@ import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, PitchDirection, TrackDef, TrackId } from "../../core/types";
 import type { DragDelta } from "../pitchDragGesture";
 import { useIsMobile } from "../useIsMobile";
+import { ChordLineView } from "./ChordLineView";
 import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
 import { areSlotRectsReady, edgeDropZoneRect, haveEqualSlotRects, type SlotRect } from "./lineViewLayout";
@@ -209,9 +210,13 @@ function LyricLineView({
     () => new Set([...gapSlotIds, ...lineStartSlots, ...lineEndSlots]),
     [gapSlotIds, lineStartSlots, lineEndSlots],
   );
-  // A just-typed TAB is about to become a tab block, which carries no annotation: like BIS, none
-  // of its slots (the edges included) offers a cell.
-  const bisSlots = useMemo(() => (tabCandidate ? new Set(slotIds) : bisSlotIds(line)), [tabCandidate, slotIds, line]);
+  // A just-typed TAB is about to become a tab block, which carries no annotation, and a line with
+  // no syllables has nothing for one to sit on: like BIS, none of their slots (the edges
+  // included) offers a cell.
+  const bisSlots = useMemo(
+    () => (tabCandidate || line.words.length === 0 ? new Set(slotIds) : bisSlotIds(line)),
+    [tabCandidate, slotIds, line],
+  );
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
   const BisIcon = bisRule === "end" ? ArrowUpLeft : ArrowLeft;
 
@@ -986,5 +991,21 @@ function SubtitleLineView({ line, lineNumber, readOnly = false }: Pick<LineViewP
 }
 
 export function LineView(props: LineViewProps) {
-  return props.line.subtitle !== undefined ? <SubtitleLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} /> : <LyricLineView {...props} />;
+  if (props.line.subtitle !== undefined) {
+    return <SubtitleLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} />;
+  }
+  if (props.line.chordLine !== undefined) {
+    const readOnly = props.readOnly ?? false;
+    const visible = (trackId: TrackId) => props.tracks.some((track) => track.id === trackId && track.visible);
+    return (
+      <ChordLineView
+        text={props.line.chordLine}
+        labelProps={lineLabelProps(readOnly, props.lineNumber)}
+        readOnly={readOnly}
+        chordsVisible={visible("chords")}
+        chordNotesVisible={visible("chordNotes")}
+      />
+    );
+  }
+  return <LyricLineView {...props} />;
 }

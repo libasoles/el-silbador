@@ -768,6 +768,62 @@
   white-space: pre-wrap;
 }
 
+/* A chord line is text in chord typography. Its spaces are its columns, so they are kept. */
+.chord-line {
+  position: relative;
+  color: var(--chord);
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+.line--chord-line[hidden] {
+  display: none;
+}
+
+/* Room for the notes each chord shows above itself (see .chord-line__notes). */
+.line--chord-line-notes .chord-line {
+  padding-top: 3.3rem;
+}
+
+.chord-line__chord {
+  position: relative;
+  font: inherit;
+  color: inherit;
+}
+
+.chord-line__chord--button {
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.chord-line__chord--button:hover {
+  border-bottom-color: var(--border);
+}
+
+.chord-line__notes {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (max-width: 30rem) {
+  .chord-line {
+    font-size: 0.95rem;
+  }
+}
+
 .syllable-row {
   display: flex;
   align-items: center;

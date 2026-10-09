@@ -1,3 +1,4 @@
+import { isChordLineText } from "./chordSheet";
 import { nextId } from "./ids";
 import { hyphenateWord, splitIntoWords } from "./syllabify";
 import type { CellsByTrack, Line, Song, Syllable, SyllableUnit, TrackId, Word } from "./types";
@@ -37,6 +38,12 @@ export function isTabLineText(lineText: string): boolean {
   return lineText.trim() === TAB_MARKER;
 }
 
+/** Whether a raw line is lyrics, split into syllables that annotations can sit on: not empty, not
+ *  a section label, a `TAB` marker or a chord line. */
+export function isLyricLineText(lineText: string): boolean {
+  return lineText.trim() !== "" && !isSubtitleLineText(lineText) && !isTabLineText(lineText) && !isChordLineText(lineText);
+}
+
 /** Builds a fresh, fully-hyphenated song from raw lyrics text. Every id is newly minted.
  *  An empty document has no lines at all (not one line with zero words), so consumers can
  *  detect it with `song.length === 0` and show the empty-document placeholder. */
@@ -50,6 +57,7 @@ export function buildSong(lyricsText: string, textLineIndexes: readonly number[]
 function buildLine(lineText: string, keepAsText = false): Line {
   if (!keepAsText && isTabLineText(lineText)) return { id: nextId("line"), words: [], tab: true };
   if (isSubtitleLineText(lineText)) return { id: nextId("line"), words: [], subtitle: lineText };
+  if (isChordLineText(lineText)) return { id: nextId("line"), words: [], chordLine: lineText };
   const words = splitIntoWords(lineText).map((wordText) => buildWord(wordText));
   return { id: nextId("line"), words };
 }

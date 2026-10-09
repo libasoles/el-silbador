@@ -1,7 +1,7 @@
 {
   "name": "silbador-editor",
   "private": true,
-  "version": "0.17.28",
+  "version": "0.18.0",
   "type": "module",
   "scripts": {
     "dev": "next dev",

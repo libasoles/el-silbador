@@ -19,3 +19,7 @@ _Avoid_: punteo, tab (in UI copy)
 **Tabs toggle**:
 The read-mode toggle labelled "TAB" that shows or hides every tab block of a song. Off by default; shown only in read mode and only when the song has at least one tab block. The choice is remembered per browser, like the underline toggle.
 _Avoid_: tab switch
+
+**Chord line**:
+A line of a song whose text is only chords (e.g. `A   D   E7`), such as an intro or an ending without lyrics. Kept as text in the lyrics, shown in chord typography, with no syllables, underline or annotation slots; transposed and toggled with the chords. In the UI it is a "línea de acordes".
+_Avoid_: instrumental line, chord row (that is the chords track above a lyric line)

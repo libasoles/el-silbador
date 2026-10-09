@@ -13,6 +13,8 @@ export interface Line {
   words: Word[];
   /** A section label kept as whole text rather than split into syllables. */
   subtitle?: string;
+  /** A chord line: its raw text, chords spaced by column, with no syllables of its own. */
+  chordLine?: string;
   /** A tab block. Its line holds the `TAB` marker in `lyricsText`, which is never shown as text;
    *  the block's content lives in `EditorState.tabs[line.id]`. */
   tab?: true;

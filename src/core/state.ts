@@ -6,6 +6,7 @@ import {
   chordSlotForColumn,
   gapSlotId,
   flattenSyllables,
+  getLineCellSlots,
   isSubtitleLineText,
   isTabLineText,
   isLineEdgeSlot,
@@ -16,7 +17,7 @@ import {
   startSlotId,
 } from "./model";
 import { nextId } from "./ids";
-import type { ChordPlacement } from "./chordSheet";
+import { isChordLineText, type ChordPlacement } from "./chordSheet";
 import { hyphenateWord } from "./syllabify";
 import type { BisGroup, CellsByTrack, EditorState, PitchDirection, Song, TabBlock, TrackId } from "./types";
 
@@ -182,6 +183,8 @@ export type Action =
       options?: ReconcileOptions;
       pastedTabs?: PastedTab[];
     }
+  /** Rewrites the text of chord lines, by line id (e.g. transposed). */
+  | { type: "setChordLineTexts"; texts: Record<string, string> }
   | { type: "setTabBlock"; lineId: string; block: TabBlock }
   | { type: "setTabSpacing"; lineId: string; spacing: number }
   | { type: "removeTabBlock"; lineId: string }
@@ -248,6 +251,9 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         action.pastedTabs,
       );
 
+    case "setChordLineTexts":
+      return applySetChordLineTexts(state, action.texts);
+
     case "setTabBlock":
       if (!(action.lineId in state.tabs)) return state;
       return { ...state, tabs: { ...state.tabs, [action.lineId]: action.block } };
@@ -308,17 +314,26 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
       const loadedSong = action.content.song.map((line, index) => {
         const rawLine = action.content.lyricsText.split("\n")[index] ?? "";
         if (isTabLineText(rawLine)) return { id: line.id, words: [], tab: true as const };
-        return isSubtitleLineText(rawLine) ? { ...line, words: [], subtitle: rawLine } : line;
+        if (isSubtitleLineText(rawLine)) return { ...line, words: [], subtitle: rawLine };
+        if (isChordLineText(rawLine)) return { ...line, words: [], chordLine: rawLine };
+        return line;
       });
+      const loaded = chordLinesFromEmptyLines(
+        action.content.lyricsText,
+        loadedSong,
+        action.content.cells,
+        action.content.chordVariants,
+        state.tracks,
+      );
       return {
         ...state,
         title: action.content.title,
         author: action.content.author,
-        lyricsText: action.content.lyricsText,
-        song: loadedSong,
-        bisGroups: validBisGroups(action.content.lyricsText, action.content.bisGroups),
-        cells: action.content.cells,
-        chordVariants: action.content.chordVariants,
+        lyricsText: loaded.lyricsText,
+        song: loaded.song,
+        bisGroups: validBisGroups(loaded.lyricsText, action.content.bisGroups),
+        cells: loaded.cells,
+        chordVariants: loaded.chordVariants,
         pitchDirections: action.content.pitchDirections,
         merges: pruneMerges(loadedSong, action.content.merges),
         tabs: tabsForSong(loadedSong, action.content.tabs ?? {}),
@@ -506,6 +521,7 @@ const TAB_BLOCK_MATCH_KEY = "\u0000tab";
 function lineText(line: EditorState["song"][number]): string {
   if (line.tab) return TAB_BLOCK_MATCH_KEY;
   if (line.subtitle !== undefined) return line.subtitle;
+  if (line.chordLine !== undefined) return line.chordLine;
   return line.words.map((word) => word.syllables.map((syllable) => syllable.text).join("")).join(" ");
 }
 
@@ -517,9 +533,14 @@ function reconcileLine(
   // A tab block keeps its identity, and with it its content. A line that becomes or stops being
   // one is a different line: the block's id must not end up on lyrics, or its content on a new block.
   if (oldLine.tab || nextLine.tab) return oldLine.tab && nextLine.tab ? oldLine : nextLine;
-  // Section labels have no syllable identities to reconcile. Retain the line identity so the
-  // editor keeps its DOM position when a normal line becomes (or stops being) a section label.
-  if (oldLine.subtitle !== undefined || nextLine.subtitle !== undefined) {
+  // Section labels and chord lines have no syllable identities to reconcile. Retain the line
+  // identity so the editor keeps its DOM position when a normal line becomes (or stops being) one.
+  if (
+    oldLine.subtitle !== undefined ||
+    nextLine.subtitle !== undefined ||
+    oldLine.chordLine !== undefined ||
+    nextLine.chordLine !== undefined
+  ) {
     return { ...nextLine, id: oldLine.id };
   }
   const oldWords = oldLine.words;
@@ -569,6 +590,52 @@ function deleteCell(cells: CellsByTrack, trackId: TrackId, slotId: string): Cell
   const nextTrackCells = { ...cells[trackId] };
   delete nextTrackCells[slotId];
   return { ...cells, [trackId]: nextTrackCells };
+}
+
+/** Songs saved before chord lines existed kept a row of chords with no lyrics on the edges of an
+ *  empty line, which no longer offers chord slots. Each such line opens as a chord line holding
+ *  those chords, in order. */
+function chordLinesFromEmptyLines(
+  lyricsText: string,
+  song: Song,
+  cells: CellsByTrack,
+  chordVariants: Record<string, number>,
+  tracks: EditorState["tracks"],
+): Pick<EditorState, "lyricsText" | "song" | "cells" | "chordVariants"> {
+  const rawLines = lyricsText.split("\n");
+  let nextCells = cells;
+  let nextVariants = chordVariants;
+  let changed = false;
+  const nextSong = song.map((line, index) => {
+    if (line.tab || line.subtitle !== undefined || line.chordLine !== undefined) return line;
+    if ((rawLines[index] ?? "").trim() !== "") return line;
+    const chords = getLineCellSlots(line, new Set(), cells)
+      .map((slotId) => getCell(cells, "chords", slotId).trim())
+      .filter((chord) => chord !== "");
+    if (chords.length === 0) return line;
+    for (const slotId of collectLineEdgeSlotIds(tracks, nextCells, nextVariants, line.id)) {
+      nextCells = deleteCellAcrossTracks(tracks, nextCells, slotId);
+      nextVariants = deleteChordVariant(nextVariants, slotId);
+    }
+    changed = true;
+    rawLines[index] = chords.join("  ");
+    return { id: line.id, words: [], chordLine: rawLines[index] };
+  });
+  if (!changed) return { lyricsText, song, cells, chordVariants };
+  return { lyricsText: rawLines.join("\n"), song: nextSong, cells: nextCells, chordVariants: nextVariants };
+}
+
+function applySetChordLineTexts(state: EditorState, texts: Record<string, string>): EditorState {
+  const rawLines = state.lyricsText.split("\n");
+  let changed = false;
+  const song = state.song.map((line, index) => {
+    const text = texts[line.id];
+    if (line.chordLine === undefined || text === undefined || text === line.chordLine) return line;
+    changed = true;
+    rawLines[index] = text;
+    return { ...line, chordLine: text };
+  });
+  return changed ? { ...state, song, lyricsText: rawLines.join("\n") } : state;
 }
 
 /** Every start/end slot id a deleted line left behind, at whatever indices it had accumulated
