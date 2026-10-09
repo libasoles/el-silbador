@@ -21,6 +21,12 @@ async function renderBlock(props: Partial<Parameters<typeof TabBlock>[0]> = {}) 
 }
 
 describe("TabBlock", () => {
+  it("uses the flat ascii-tabs sheet variant", async () => {
+    const { element } = await renderBlock();
+
+    expect(element).toHaveAttribute("variant", "flat");
+  });
+
   it("draws the block's content in Spanish", async () => {
     const { element } = await renderBlock();
 

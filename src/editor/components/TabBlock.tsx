@@ -93,6 +93,7 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
     const element = document.createElement("ascii-tabs") as AsciiTabs;
     element.setAttribute("lang", "es");
     element.setAttribute("theme", "light");
+    element.setAttribute("variant", "flat");
     if (readOnly) {
       element.setAttribute("readonly", "");
     } else {
