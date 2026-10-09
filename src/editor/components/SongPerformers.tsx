@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { listArtistNames } from "../../data";
 import { artistQueryKeys } from "../../data/queryKeys";
-import { librarySearchPath } from "../songPaths";
 import { useIsMobile } from "../useIsMobile";
 import { ChipsInput } from "./ChipsInput";
 
@@ -44,7 +43,7 @@ export function SongPerformers({
       {performers.map((performer, index) => (
         <Fragment key={performer}>
           {index > 0 && ", "}
-          <Link href={librarySearchPath(performer)}>{performer}</Link>
+          <Link href={performerSearchPath(performer)}>{performer}</Link>
         </Fragment>
       ))}
     </p>
@@ -78,3 +77,7 @@ function PerformersEditor({
 }
 
 const NO_ARTISTS: string[] = [];
+
+function performerSearchPath(performer: string): string {
+  return `/?${new URLSearchParams({ q: performer })}`;
+}
