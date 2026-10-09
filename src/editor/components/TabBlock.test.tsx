@@ -1,9 +1,10 @@
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { AsciiTabs } from "ascii-tabs/ascii-tabs.js";
 import type { TabBlock as TabBlockContent } from "../../core/types";
 import { TabBlock } from "./TabBlock";
+import * as asciiTabsLoader from "../asciiTabsLoader";
 
 const ONE_TAB: TabBlockContent = { tabs: [[[3, null, null, null, null, null]]] };
 const TWO_TABS: TabBlockContent = { tabs: [[[3, null, null, null, null, null]], [[null, 5, null, null, null, null]]] };
@@ -25,6 +26,33 @@ async function renderBlock(props: Partial<Parameters<typeof TabBlock>[0]> = {}) 
 }
 
 describe("TabBlock", () => {
+  it("draws six empty strings per sheet while the library loads, then shows the frets", async () => {
+    const module = await asciiTabsLoader.loadAsciiTabs();
+    let finishLoading!: (result: typeof module) => void;
+    const pending = new Promise<typeof module>(resolve => { finishLoading = resolve; });
+    const loaded = vi.spyOn(asciiTabsLoader, "loadedAsciiTabs").mockReturnValue(null);
+    const load = vi.spyOn(asciiTabsLoader, "loadAsciiTabs").mockReturnValue(pending);
+    try {
+      const view = render(<TabBlock block={TWO_TABS} readOnly />);
+      const sheets = view.container.querySelectorAll(".tab-block__placeholder-sheet");
+      expect(sheets).toHaveLength(2);
+      for (const sheet of sheets) {
+        expect(Array.from(sheet.children, line => line.textContent)).toEqual(
+          ["e|", "B|", "G|", "D|", "A|", "E|"].map(label => label + "-".repeat(512)),
+        );
+      }
+      expect(view.container.querySelector("ascii-tabs")).toBeNull();
+
+      await act(async () => { finishLoading(module); });
+
+      expect(view.container.querySelector(".tab-block__placeholder")).toBeNull();
+      expect(view.container.querySelector<AsciiTabs>("ascii-tabs")?.value).toEqual(TWO_TABS.tabs);
+    } finally {
+      loaded.mockRestore();
+      load.mockRestore();
+    }
+  });
+
   it("preserves typing and all four arrows across controlled content updates", async () => {
     const scrollIntoView = HTMLElement.prototype.scrollIntoView;
     HTMLElement.prototype.scrollIntoView = vi.fn();

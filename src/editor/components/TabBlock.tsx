@@ -136,7 +136,20 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
       data-tab-block
       data-ready={ready || undefined}
     >
-      {ready ? null : <div className="tab-block__placeholder" aria-hidden="true" />}
+      {ready ? null : (
+        <div className="tab-block__placeholder" data-editable={!readOnly || undefined} aria-hidden="true">
+          {Array.from({ length: Math.max(1, block.tabs.length) }, (_, index) => (
+            <div className="tab-block__placeholder-sheet" key={index}>
+              {["e|", "B|", "G|", "D|", "A|", "E|"].map(label => (
+                <span className="tab-block__placeholder-line" key={label}>
+                  <span className="tab-block__placeholder-label">{label}</span>
+                  {"-".repeat(512)}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -16,12 +16,31 @@
   user-select: text;
 }
 
-/* Holds the block's place while ascii-tabs loads, so the lyrics below don't jump. */
+/* Match ascii-tabs' flat sheets before its lazy-loaded stylesheet is available. */
 .tab-block__placeholder {
-  height: 9.5rem;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  background: #fff;
+  font-family: var(--ascii-tabs-font);
+  color: var(--ascii-tabs-string);
+}
+
+.tab-block__placeholder[data-editable] {
+  /* Reserve the spacing control's row above the sheets. */
+  padding-top: calc(1rem + 1.5 * 0.875rem);
+}
+
+.tab-block__placeholder-sheet + .tab-block__placeholder-sheet {
+  margin-top: 24px;
+}
+
+.tab-block__placeholder-line {
+  display: block;
+  height: 1.5em;
+  line-height: 1.5em;
+  white-space: pre;
+  overflow: hidden;
+}
+
+.tab-block__placeholder-label {
+  color: var(--ascii-tabs-dash);
 }
 
 /* The spacing control sits above the sheets. The range itself retains a generous
