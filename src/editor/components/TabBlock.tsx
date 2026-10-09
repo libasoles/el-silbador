@@ -104,7 +104,6 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
           // Enabled while the last Tab is empty too, so that click can delete the block.
           part("ascii-tabs-delete", [], { enabled: "" }),
         ]),
-        document.createElement("ascii-tabs-add"),
       );
     }
     element.value = blockRef.current.tabs;
