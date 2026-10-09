@@ -10,10 +10,20 @@
   --ascii-tabs-focus: color-mix(in srgb, var(--accent) 16%, var(--bg));
   --ascii-tabs-accent: var(--accent);
   --ascii-tabs-font: var(--mono, monospace);
+  /* Keep frets and string labels aligned with the desktop lyric size, rather than ascii-tabs'
+     larger 22px default. */
+  --ascii-tabs-font-size: 1.2rem;
   margin: 0.75rem 0;
   font-family: var(--sans);
   cursor: auto;
   user-select: text;
+}
+
+/* Lyrics use the same smaller type scale on phones. Tabs remain readable while matching them. */
+@media (max-width: 30rem) {
+  .tab-block {
+    --ascii-tabs-font-size: 1.05rem;
+  }
 }
 
 /* Holds the block's place while ascii-tabs loads, so the lyrics below don't jump. */
