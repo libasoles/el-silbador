@@ -51,28 +51,12 @@ export default function TabsArticlePage() {
         <p className="article-page__meta">Guía del editor · tablaturas</p>
         <h1>Cómo usar las tablaturas</h1>
         <p className="article-page__lead">
-          Una tablatura muestra dónde poner los dedos en la guitarra, paso por
-          paso.
+          En El Silbador podés agregar tablaturas entre las líneas de una
+          canción, escribir los trastes y copiarlas. Esta guía te muestra cómo
+          usar los controles del editor y cómo mostrarlas al leer.
         </p>
 
         <div className="article-page__body">
-          <h2>Qué muestra una tablatura</h2>
-          <p>
-            Tiene seis líneas, una por cada cuerda. La línea 1 es la cuerda más
-            fina y la 6, la más gruesa. Cada número indica el traste que tenés
-            que pisar: <span className="article-syllable">0</span> quiere decir
-            cuerda al aire.
-          </p>
-          <p>
-            Los números que están uno debajo de otro se tocan juntos. Los que
-            aparecen más a la derecha se tocan después.
-          </p>
-          <ArticleChordEditor
-            sheet={RIFF}
-            tabBlocks={RIFF_TABS}
-            label="Editor con una tablatura de guitarra entre dos líneas de la canción"
-          />
-
           <h2>Mostrar u ocultar las tablaturas</h2>
           <p>
             Cuando una canción tiene tablaturas, el botón{" "}
@@ -118,6 +102,12 @@ export default function TabsArticlePage() {
             <span className="article-action">Backspace</span> o{" "}
             <span className="article-action">Supr</span>.
           </p>
+          <p>Probá cambiar los trastes en esta tablatura:</p>
+          <ArticleChordEditor
+            sheet={RIFF}
+            tabBlocks={RIFF_TABS}
+            label="Editor con una tablatura de guitarra entre dos líneas de la canción"
+          />
 
           <h2>Copiar y pegar</h2>
           <p>

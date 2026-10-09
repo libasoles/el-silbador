@@ -5,14 +5,14 @@ import { describe, expect, it } from "vitest";
 const page = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
 
 describe("tablatures article", () => {
-  it("covers reading, creating and editing tablatures", () => {
+  it("covers using tablatures in El Silbador", () => {
     for (const heading of [
-      "Qué muestra una tablatura",
       "Mostrar u ocultar las tablaturas",
       "Agregar una tablatura",
       "Escribir los trastes",
       "Copiar y pegar",
       "Más de una tablatura",
+      "Espaciado",
       "En el celular",
     ]) {
       expect(page).toContain("<h2>" + heading + "</h2>");
