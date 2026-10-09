@@ -231,6 +231,20 @@ describe("SongView tab blocks", () => {
     expect(lyricLines()[1]!.closest(".line")).toHaveClass("line--tab-candidate");
   });
 
+  it("offers no chord or note cells on a just-typed TAB", () => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("una\nTA")} />);
+    const lyrics = focusedLyrics();
+    const typed = textNodeOf(1);
+    act(() => window.getSelection()!.collapse(typed, typed.length));
+
+    input(lyrics, "insertText", "B");
+
+    const candidate = lyricLines()[1]!.closest(".line")!;
+    expect(candidate.querySelectorAll(".track-cell")).toHaveLength(0);
+    expect(lyricLines()[0]!.closest(".line")!.querySelectorAll(".track-cell").length).toBeGreaterThan(0);
+  });
+
   it.each(["Tab", " "])("turns a typed TAB into a block once the author presses %j", async (key) => {
     mockMatchMedia(false);
     render(<Editor initial={songState("una\nTA")} />);

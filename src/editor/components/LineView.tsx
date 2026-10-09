@@ -209,7 +209,9 @@ function LyricLineView({
     () => new Set([...gapSlotIds, ...lineStartSlots, ...lineEndSlots]),
     [gapSlotIds, lineStartSlots, lineEndSlots],
   );
-  const bisSlots = useMemo(() => bisSlotIds(line), [line]);
+  // A just-typed TAB is about to become a tab block, which carries no annotation: like BIS, none
+  // of its slots (the edges included) offers a cell.
+  const bisSlots = useMemo(() => (tabCandidate ? new Set(slotIds) : bisSlotIds(line)), [tabCandidate, slotIds, line]);
   const chordsVisible = tracks.some((track) => track.id === "chords" && track.visible);
   const BisIcon = bisRule === "end" ? ArrowUpLeft : ArrowLeft;
 
