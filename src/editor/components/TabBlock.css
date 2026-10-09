@@ -35,22 +35,22 @@
   --ascii-tabs-font-size: 1em;
 }
 
-/* The custom element arrives after its on-demand library. Ease it in so replacing the loading
-   placeholder does not feel like an abrupt redraw. */
+/* Ease in the loaded element without scaling: ascii-tabs measures character width with
+   getBoundingClientRect and available width with clientWidth. A scale transforms only the
+   former, leaving the Strings too wide after the animation ends. */
 .tab-block[data-ready] ascii-tabs {
   animation: tab-block-reveal 180ms ease-out both;
-  transform-origin: center;
 }
 
 @keyframes tab-block-reveal {
   from {
     opacity: 0;
-    transform: translateY(0.25rem) scale(0.96);
+    transform: translateY(0.25rem);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 

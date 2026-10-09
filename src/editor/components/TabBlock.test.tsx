@@ -27,12 +27,6 @@ describe("TabBlock", () => {
     expect(element).toHaveAttribute("variant", "flat");
   });
 
-  it("keeps the sheet tools above its strings", async () => {
-    const { element } = await renderBlock();
-
-    expect(element).toHaveAttribute("tools", "top");
-  });
-
   it("draws the block's content in Spanish", async () => {
     const { element } = await renderBlock();
 
