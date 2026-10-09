@@ -27,6 +27,11 @@ describe("articles", () => {
     expect(list).toContain("/articulos/marcas-de-estructura-y-bis");
   });
 
+  it("lists the guide for using tablatures", () => {
+    expect(list).toContain("Cómo usar las tablaturas");
+    expect(list).toContain("/articulos/usar-tablaturas");
+  });
+
   it("uses Lucide icons for article actions", () => {
     expect(page).toContain('from "lucide-react"');
   });
