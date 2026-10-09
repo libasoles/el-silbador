@@ -9,7 +9,7 @@
   --ascii-tabs-hover: color-mix(in srgb, var(--border) 45%, var(--bg));
   --ascii-tabs-focus: color-mix(in srgb, var(--accent) 16%, var(--bg));
   --ascii-tabs-accent: var(--accent);
-  --ascii-tabs-font: var(--sans);
+  --ascii-tabs-font: var(--mono, monospace);
   margin: 0.75rem 0;
   font-family: var(--sans);
   cursor: auto;

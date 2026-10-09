@@ -717,6 +717,7 @@
    kind of structural keyword as BIS until Enter, Tab or Space turns it into a tablature block. */
 .line--tab-candidate .syllable-row {
   align-items: baseline;
+  font-family: var(--sans);
   font-weight: 600;
 }
 
