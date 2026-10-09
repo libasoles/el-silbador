@@ -32,7 +32,7 @@ const RIFF_TABS = {
   },
 };
 
-const EMPTY_TAB = ["", "TAB", ""].join("\n");
+const EMPTY_TAB = ["", "", ""].join("\n");
 
 export default function TabsArticlePage() {
   return (
@@ -51,9 +51,7 @@ export default function TabsArticlePage() {
         <p className="article-page__meta">Guía del editor · tablaturas</p>
         <h1>Cómo usar las tablaturas</h1>
         <p className="article-page__lead">
-          En El Silbador podés agregar tablaturas entre las líneas de una
-          canción, escribir los trastes y copiarlas. Esta guía te muestra cómo
-          usar los controles del editor y cómo mostrarlas al leer.
+          Podés agregar tablaturas a una canción.
         </p>
 
         <div className="article-page__body">
@@ -63,29 +61,24 @@ export default function TabsArticlePage() {
             <span className="article-inline-icon">
               <TabsIcon />
             </span>{" "}
-            de la barra lateral las muestra u oculta. Al leer una canción,
-            empiezan ocultas para que la letra quede más despejada.
-          </p>
-          <p className="article-highlight">
-            La elección queda guardada en este dispositivo para las demás
-            canciones que tengan tablaturas.
+            de la barra lateral las muestra u oculta.
           </p>
 
           <h2>Agregar una tablatura</h2>
           <p>
-            En una computadora, escribí <span className="article-syllable">TAB</span>{" "}
-            en una línea vacía. Después presioná <span className="article-action">Enter</span>,{" "}
+            En una computadora, escribí{" "}
+            <span className="article-syllable">TAB</span> en una línea vacía.
+            Después presioná <span className="article-action">Enter</span>,{" "}
             <span className="article-action">Tab</span> o la barra espaciadora.
             Esa línea se convierte en una tablatura vacía.
           </p>
-          <p>Probá escribir TAB en la línea del medio:</p>
+          <p>Probá escribir TAB y presioná Enter:</p>
           <ArticleChordEditor
             sheet={EMPTY_TAB}
             label="Editor con una línea vacía para agregar una tablatura"
           />
           <p className="article-highlight">
-            TAB tiene que estar solo en la línea y en mayúsculas. Por ejemplo,
-            «tablatura» sigue siendo parte de la letra.
+            TAB debe escribirse en un renglón en blanco y en mayúsculas.
           </p>
 
           <h2>Escribir los trastes</h2>
@@ -141,8 +134,8 @@ export default function TabsArticlePage() {
           <h2>En el celular</h2>
           <p>
             En el celular podés mostrar u ocultar las tablaturas, leerlas,
-            copiarlas y exportarlas en PDF. Para agregarlas o modificarlas,
-            abrí la canción desde una computadora.
+            copiarlas y exportarlas en PDF. Para agregarlas o modificarlas, abrí
+            la canción desde una computadora.
           </p>
         </div>
       </article>
