@@ -2,11 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AsciiTabs } from "ascii-tabs/ascii-tabs.js";
 import type { TabBlock as TabBlockContent, TabColumn } from "../../core/types";
 import { loadAsciiTabs, loadedAsciiTabs } from "../asciiTabsLoader";
-import { dismissTabHint, hasDismissedTabHint, TAB_HINT_DISMISSED_EVENT } from "../tabHintStorage";
 import "./TabBlock.css";
 
 const DEFAULT_SPACING = 2;
-const HINT_FADE_DURATION_MS = 2_000;
 
 /** Events from inside the grid that must not reach the lyrics editor around it: it would take the
  *  keys typed into a fret as lyrics edits (or undo), and its caret handling would steal the focus. */
@@ -40,10 +38,6 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
   const hostRef = useRef<HTMLDivElement>(null);
   const elementRef = useRef<AsciiTabs | null>(null);
   const [ready, setReady] = useState(() => loadedAsciiTabs() !== null);
-  const [hintVisibility, setHintVisibility] = useState<"shown" | "fading" | "hidden">(() =>
-    hasDismissedTabHint() ? "hidden" : "shown",
-  );
-  const shouldRenderHint = hintVisibility !== "hidden";
   const callbacks = useRef({ onChange, onSpacingChange, onRemove });
   const blockRef = useRef(block);
   useLayoutEffect(() => {
@@ -61,20 +55,6 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
       cancelled = true;
     };
   }, [ready]);
-
-  useEffect(() => {
-    const beginHidingHint = () => {
-      setHintVisibility(visibility => (visibility === "shown" ? "fading" : visibility));
-    };
-    window.addEventListener(TAB_HINT_DISMISSED_EVENT, beginHidingHint);
-    return () => window.removeEventListener(TAB_HINT_DISMISSED_EVENT, beginHidingHint);
-  }, []);
-
-  useEffect(() => {
-    if (hintVisibility !== "fading") return;
-    const timeout = window.setTimeout(() => setHintVisibility("hidden"), HINT_FADE_DURATION_MS);
-    return () => window.clearTimeout(timeout);
-  }, [hintVisibility]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -100,7 +80,6 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
       element.append(document.createElement("ascii-tabs-sheet"));
     } else {
       element.append(
-        ...(hasDismissedTabHint() ? [] : [document.createElement("ascii-tabs-hint")]),
         document.createElement("ascii-tabs-spacing"),
         part("ascii-tabs-sheet", [
           document.createElement("ascii-tabs-copy"),
@@ -116,7 +95,6 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
       // The spacing slider's own native `change` bubbles through here too.
       if (event.target !== element || !(event instanceof CustomEvent)) return;
       callbacks.current.onChange?.(element.value);
-      if (!hasFret(blockRef.current.tabs) && hasFret(element.value)) dismissTabHint();
     };
     const handleInput = (event: Event) => {
       if (!(event.target instanceof HTMLElement) || !event.target.matches(".ascii-tabs-spacing-input")) return;
@@ -141,12 +119,6 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
     };
   }, [ready, readOnly]);
 
-  // Dismissing the hint must not reconnect ascii-tabs: that discards its focused cell and
-  // typing draft. The hint is presentational and can be removed without rebuilding the grid.
-  useLayoutEffect(() => {
-    if (!shouldRenderHint) elementRef.current?.querySelector(".ascii-tabs-hint")?.remove();
-  }, [ready, readOnly, shouldRenderHint]);
-
   // Undo, redo and a reload change the block from outside. Writing an unchanged value back would
   // rebuild the Sheets under the fret being typed.
   useLayoutEffect(() => {
@@ -163,15 +135,10 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
       className="tab-block"
       data-tab-block
       data-ready={ready || undefined}
-      data-tab-hint-fading={hintVisibility === "fading" || undefined}
     >
       {ready ? null : <div className="tab-block__placeholder" aria-hidden="true" />}
     </div>
   );
-}
-
-function hasFret(tabs: TabColumn[][]): boolean {
-  return tabs.some(tab => tab.some(column => column.some(fret => fret !== null)));
 }
 
 function part(tag: string, children: Element[], attributes: Record<string, string> = {}): HTMLElement {

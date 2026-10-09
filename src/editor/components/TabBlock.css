@@ -24,7 +24,7 @@
   background: #fff;
 }
 
-/* The hint and spacing control share the block's top row. The range itself retains a generous
+/* The spacing control sits above the sheets. The range itself retains a generous
    hit area, while only its track is drawn as a fine rule. */
 .tab-block ascii-tabs {
   display: grid;
@@ -54,27 +54,12 @@
   }
 }
 
-.tab-block .ascii-tabs-hint,
 .tab-block .ascii-tabs-spacing {
   margin: 0 0 1rem;
   font-size: 0.875rem;
 }
 
-.tab-block .ascii-tabs-hint {
-  grid-column: 1;
-  opacity: 1;
-  transition: opacity 2s ease;
-}
-
-.tab-block[data-tab-hint-fading] .ascii-tabs-hint {
-  opacity: 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .tab-block .ascii-tabs-hint {
-    transition: none;
-  }
-
   .tab-block[data-ready] ascii-tabs {
     animation: none;
   }
@@ -135,7 +120,6 @@
 
 /* The exported sheet shows the tablature, never the tools to edit or copy it. */
 @media print {
-  .tab-block .ascii-tabs-hint,
   .tab-block .ascii-tabs-spacing,
   .tab-block .ascii-tabs-button,
   .tab-block .ascii-tabs-add,
