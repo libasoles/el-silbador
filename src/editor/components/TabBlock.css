@@ -40,6 +40,18 @@
 
 .tab-block .ascii-tabs-hint {
   grid-column: 1;
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+
+.tab-block[data-tab-hint-fading] .ascii-tabs-hint {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-block .ascii-tabs-hint {
+    transition: none;
+  }
 }
 
 .tab-block .ascii-tabs-spacing {
