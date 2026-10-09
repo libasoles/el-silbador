@@ -26,7 +26,7 @@ async function renderBlock(props: Partial<Parameters<typeof TabBlock>[0]> = {}) 
 }
 
 describe("TabBlock", () => {
-  it("draws six empty strings per sheet while the library loads, then shows the frets", async () => {
+  it("draws six strings with note skeletons per sheet while loading, then shows the frets", async () => {
     const module = await asciiTabsLoader.loadAsciiTabs();
     let finishLoading!: (result: typeof module) => void;
     const pending = new Promise<typeof module>(resolve => { finishLoading = resolve; });
@@ -40,12 +40,16 @@ describe("TabBlock", () => {
         expect(Array.from(sheet.children, line => line.textContent)).toEqual(
           ["e|", "B|", "G|", "D|", "A|", "E|"].map(label => label + "-".repeat(512)),
         );
+        for (const line of sheet.children) {
+          expect(line.querySelectorAll(".skeleton.tab-block__placeholder-note").length).toBeGreaterThan(0);
+        }
       }
       expect(view.container.querySelector("ascii-tabs")).toBeNull();
 
       await act(async () => { finishLoading(module); });
 
       expect(view.container.querySelector(".tab-block__placeholder")).toBeNull();
+      expect(view.container.querySelector(".tab-block__placeholder-note")).toBeNull();
       expect(view.container.querySelector<AsciiTabs>("ascii-tabs")?.value).toEqual(TWO_TABS.tabs);
     } finally {
       loaded.mockRestore();

@@ -32,6 +32,7 @@
 }
 
 .tab-block__placeholder-line {
+  position: relative;
   display: block;
   height: 1.5em;
   line-height: 1.5em;
@@ -41,6 +42,15 @@
 
 .tab-block__placeholder-label {
   color: var(--ascii-tabs-dash);
+}
+
+.tab-block__placeholder-note {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.2ch;
+  height: 0.85em;
+  background-color: #00002d17;
 }
 
 /* The spacing control sits above the sheets. The range itself retains a generous
@@ -79,6 +89,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tab-block__placeholder-note {
+    animation: none;
+  }
+
   .tab-block[data-ready] ascii-tabs {
     animation: none;
   }

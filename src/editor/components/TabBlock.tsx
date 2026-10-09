@@ -5,6 +5,14 @@ import { loadAsciiTabs, loadedAsciiTabs } from "../asciiTabsLoader";
 import "./TabBlock.css";
 
 const DEFAULT_SPACING = 2;
+const PLACEHOLDER_NOTES = [
+  { label: "e|", positions: [18, 52] },
+  { label: "B|", positions: [30] },
+  { label: "G|", positions: [42, 70] },
+  { label: "D|", positions: [18, 60] },
+  { label: "A|", positions: [35] },
+  { label: "E|", positions: [48, 78] },
+];
 
 /** Events from inside the grid that must not reach the lyrics editor around it: it would take the
  *  keys typed into a fret as lyrics edits (or undo), and its caret handling would steal the focus. */
@@ -140,10 +148,17 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
         <div className="tab-block__placeholder" data-editable={!readOnly || undefined} aria-hidden="true">
           {Array.from({ length: Math.max(1, block.tabs.length) }, (_, index) => (
             <div className="tab-block__placeholder-sheet" key={index}>
-              {["e|", "B|", "G|", "D|", "A|", "E|"].map(label => (
+              {PLACEHOLDER_NOTES.map(({ label, positions }) => (
                 <span className="tab-block__placeholder-line" key={label}>
                   <span className="tab-block__placeholder-label">{label}</span>
                   {"-".repeat(512)}
+                  {positions.map(position => (
+                    <span
+                      className="skeleton tab-block__placeholder-note"
+                      style={{ left: `${position}%` }}
+                      key={position}
+                    />
+                  ))}
                 </span>
               ))}
             </div>
