@@ -1057,6 +1057,10 @@ export function SongView({
   // text-offset model commitNativeEdit()/restoreCaret already use, rather than letting the browser traverse
   // the DOM.
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    // This runs in the capture phase, before a tab block's grid sees the key: its arrows, Enter
+    // and Tab move between frets, and moving the lyrics caret here would take the focus from it.
+    if ((event.target as HTMLElement).closest("[data-tab-block]")) return;
+
     // A standalone TAB becomes a block as soon as its author confirms it with any of the usual
     // line-leaving keys. Enter is handled below through the normal newline path; Tab and Space
     // must be intercepted before they turn into a BIS command or trailing whitespace.
