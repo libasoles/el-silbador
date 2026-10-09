@@ -17,16 +17,23 @@ const ARTICLE = {
 
 export const metadata: Metadata = articleMetadata(ARTICLE);
 
-const RIFF = ["Introducción", "TAB", "Ya llega el alba"].join("\n");
+const RIFF = ["Introducción", "TAB", "Me voy andando"].join("\n");
 
 const RIFF_TABS = {
   1: {
     tabs: [
       [
-        [3, null, null, null, null, null],
-        [null, null, null, 5, null, null],
-        [null, 3, null, null, null, null],
-        [3, null, null, null, null, null],
+        [null, 6, null, null, 5, null],
+        [null, 5, null, null, 3, null],
+        [null, 5, null, null, null, null],
+        [null, 3, null, null, 2, null],
+        [null, 1, null, null, 0, null],
+        [null, null, null, null, null, null],
+        // [null, null, null, null, null, null],
+        // [6, 5, 5, 3, 1, null],
+        // [null, 3, null, null, null, null],
+        // [null, null, null, null, null, null],
+        // [5, 3, null, 2, 0, null],
       ],
     ],
   },
@@ -90,8 +97,11 @@ export default function TabsArticlePage() {
             casillero.
           </p>
           <p>
-            Si dos notas van juntas, escribilas en la misma columna: una arriba
-            de la otra. Para borrar un número, seleccioná el casillero y usá{" "}
+            Para editar un número, seleccioná el casillero y escribí otro
+            número.
+          </p>
+          <p>
+            Para borrar un número, seleccioná el casillero y usá{" "}
             <span className="article-action">Backspace</span> o{" "}
             <span className="article-action">Supr</span>.
           </p>
@@ -105,37 +115,21 @@ export default function TabsArticlePage() {
           <h2>Copiar y pegar</h2>
           <p>
             El botón de copiar, al lado de la tablatura, la copia como texto.
-            Podés pegarlo en otro lugar de la canción o guardarlo donde quieras.
+            Podés pegarlo en otro lugar de la canción.
           </p>
           <p>
-            También podés pegar una tablatura de seis líneas que ya tengas: El
-            Silbador la reconoce y crea el bloque automáticamente.
+            También podés pegar una tablatura de seis líneas que ya tengas de
+            otra fuente.
           </p>
 
           <h2>Más de una tablatura</h2>
-          <p>
-            El botón <span className="article-action">Nueva tablatura</span>{" "}
-            agrega otra debajo de la primera, dentro del mismo bloque. Es útil
-            para separar una introducción de un punteo o para mostrar una
-            segunda guitarra.
-          </p>
-          <p>
-            La papelera borra esa tablatura. Si es la única que queda, también
-            se borra el bloque completo.
-          </p>
+          <p>Podes agregar mas tablaturas escribiendo TAB nuevamente.</p>
 
           <h2>Espaciado</h2>
           <p>
             El control <span className="article-action">Espaciado</span> cambia
             la distancia entre las notas para que el ritmo se lea mejor. No
             cambia los trastes ni cómo suena la canción.
-          </p>
-
-          <h2>En el celular</h2>
-          <p>
-            En el celular podés mostrar u ocultar las tablaturas, leerlas,
-            copiarlas y exportarlas en PDF. Para agregarlas o modificarlas, abrí
-            la canción desde una computadora.
           </p>
         </div>
       </article>
