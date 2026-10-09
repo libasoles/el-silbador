@@ -28,12 +28,13 @@ describe("TabBlock", () => {
     expect(element.value).toEqual(ONE_TAB.tabs);
   });
 
-  it("offers the hint, spacing, copy, delete and add while editing", async () => {
+  it("offers the hint, spacing, copy and delete while editing", async () => {
     const { element } = await renderBlock();
 
-    for (const selector of [".ascii-tabs-hint", ".ascii-tabs-spacing-input", ".ascii-tabs-copy", ".ascii-tabs-delete", ".ascii-tabs-add"]) {
+    for (const selector of [".ascii-tabs-hint", ".ascii-tabs-spacing-input", ".ascii-tabs-copy", ".ascii-tabs-delete"]) {
       expect(element.querySelector(selector), selector).not.toBeNull();
     }
+    expect(element.querySelector(".ascii-tabs-add")).toBeNull();
   });
 
   it("only lets a reader copy", async () => {
