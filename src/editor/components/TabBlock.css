@@ -10,7 +10,6 @@
   --ascii-tabs-focus: color-mix(in srgb, var(--accent) 16%, var(--bg));
   --ascii-tabs-accent: var(--accent);
   --ascii-tabs-font: var(--mono, monospace);
-  --ascii-tabs-font-size: 1em;
   margin: 0.75rem 0;
   font-family: var(--sans);
   cursor: auto;
@@ -31,6 +30,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+  /* ascii-tabs defines its own default on the custom element, so set this on that element rather
+     than its parent to override the library's 22px value. */
+  --ascii-tabs-font-size: 1em;
 }
 
 .tab-block .ascii-tabs-hint,
