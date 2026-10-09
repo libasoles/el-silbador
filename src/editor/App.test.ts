@@ -95,6 +95,15 @@ describe("tab blocks", () => {
   it("inherits the surrounding font size for ascii-tabs", () => {
     expect(tabBlockStyles).toMatch(/\.tab-block ascii-tabs\s*\{[\s\S]*--ascii-tabs-font-size:\s*1em;/);
   });
+
+  it("eases a loaded tablature in, while respecting reduced-motion", () => {
+    expect(tabBlockStyles).toMatch(
+      /\.tab-block\[data-ready\] ascii-tabs\s*\{\s*animation:\s*tab-block-reveal 180ms ease-out both/,
+    );
+    expect(tabBlockStyles).toMatch(
+      /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*\.tab-block\[data-ready\] ascii-tabs\s*\{\s*animation:\s*none/,
+    );
+  });
 });
 
 describe("underline visibility", () => {
