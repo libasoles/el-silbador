@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AsciiTabs } from "ascii-tabs/ascii-tabs.js";
 import type { TabBlock as TabBlockContent } from "../../core/types";
@@ -82,12 +82,24 @@ describe("TabBlock", () => {
 
   it("fades the hint after the first fret and remembers it", async () => {
     const { container, element } = await renderBlock({ block: EMPTY_TAB });
+    vi.useFakeTimers();
 
-    element.value = ONE_TAB.tabs;
-    fireEvent(element, new CustomEvent("change", { bubbles: true }));
+    try {
+      element.value = ONE_TAB.tabs;
+      fireEvent(element, new CustomEvent("change", { bubbles: true }));
 
-    expect(container.querySelector(".tab-block")).toHaveAttribute("data-tab-hint-fading");
-    expect(window.localStorage.getItem("el-silbador:tab-hint-dismissed")).toBe("true");
+      expect(container.querySelector(".tab-block")).toHaveAttribute("data-tab-hint-fading");
+      expect(window.localStorage.getItem("el-silbador:tab-hint-dismissed")).toBe("true");
+
+      await act(async () => {});
+      act(() => vi.advanceTimersByTime(1_999));
+      expect(container.querySelector(".ascii-tabs-hint")).not.toBeNull();
+
+      act(() => vi.advanceTimersByTime(1));
+      expect(container.querySelector(".ascii-tabs-hint")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("does not show the hint again after a first fret was entered", async () => {

@@ -44,7 +44,7 @@
 .tab-block .ascii-tabs-hint {
   grid-column: 1;
   opacity: 1;
-  transition: opacity 180ms ease;
+  transition: opacity 2s ease;
 }
 
 .tab-block[data-tab-hint-fading] .ascii-tabs-hint {
