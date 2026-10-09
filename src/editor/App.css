@@ -713,6 +713,17 @@
   font-weight: 600;
 }
 
+/* A standalone TAB is still editable (it might grow into "TABLA"), but it is visibly the same
+   kind of structural keyword as BIS until Enter, Tab or Space turns it into a tablature block. */
+.line--tab-candidate .syllable-row {
+  align-items: baseline;
+  font-weight: 600;
+}
+
+.line--tab-candidate .syllable::after {
+  content: none;
+}
+
 /* An empty gap button has no text baseline of its own, so baseline alignment would rest its bottom
    on the lyric baseline and lift a merged word gap's bridge above the syllable underlines. Word
    gaps keep the bottom alignment they have in every other line. */

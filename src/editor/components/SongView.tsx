@@ -775,6 +775,25 @@ export function SongView({
     return reconcileOptions(tabLinesAfterReplace(song, text, start, end, replacement), () => typed || isMobile);
   }
 
+  /** Turns the current standalone `TAB` into its block without first adding the key that
+      confirmed it. This keeps Space from changing it into `TAB `, and lets Tab remain the block
+      shortcut instead of the BIS shortcut. */
+  function confirmTypedTab(lineIndex: number): boolean {
+    if (!canEdit || isMobile || song[lineIndex]?.tab || !isTabLineText(lyricLines[lineIndex] ?? "")) return false;
+    onReconcileLyricsText(
+      lyricsText,
+      reconcileOptions(tabLinesAfterReplace(song, lyricsText, 0, 0, ""), (index) => index !== lineIndex),
+    );
+    return true;
+  }
+
+  function confirmTypedTabAtCaret(): boolean {
+    const root = rootRef.current;
+    const range = root ? captureSelectionRange(root) : null;
+    if (!range || range.start.lineIndex !== range.end.lineIndex || range.start.offset !== range.end.offset) return false;
+    return confirmTypedTab(range.start.lineIndex);
+  }
+
   /** Puts the caret at `offset` of the edited text once it renders. Its line is known now, not at
       the next selectionchange, so leaving a typed `TAB`'s line converts it in this same render. */
   function placeCaretAfterEdit(newText: string, offset: number) {
@@ -1034,6 +1053,16 @@ export function SongView({
   // text-offset model commitNativeEdit()/restoreCaret already use, rather than letting the browser traverse
   // the DOM.
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    // A standalone TAB becomes a block as soon as its author confirms it with any of the usual
+    // line-leaving keys. Enter is handled below through the normal newline path; Tab and Space
+    // must be intercepted before they turn into a BIS command or trailing whitespace.
+    if (event.key === "Tab" || event.key === " ") {
+      if (!event.nativeEvent.isComposing && !event.metaKey && !event.ctrlKey && !event.altKey && confirmTypedTabAtCaret()) {
+        event.preventDefault();
+        return;
+      }
+    }
+
     if (event.key === "Tab") {
       if (!canEdit || event.nativeEvent.isComposing || event.metaKey || event.ctrlKey || event.altKey)
         return;
@@ -1469,6 +1498,7 @@ export function SongView({
             lineNumber={index + 1}
             bisRule={bisStyles.get(index)}
             bisMarker={BIS_AT_LINE_END.test(lyricLines[index] ?? "")}
+            tabCandidate={canEdit && !isMobile && isTabLineText(lyricLines[index] ?? "")}
             trailingWhitespace={lyricLines[index]?.match(/\s+$/)?.[0] ?? ""}
             merges={merges}
             showUnderline={showUnderline}

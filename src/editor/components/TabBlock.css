@@ -24,6 +24,54 @@
   background: #fff;
 }
 
+/* Keep the spacing control quiet and tucked against the block's right edge. The range itself
+   retains a generous hit area, while only its track is drawn as a fine rule. */
+.tab-block .ascii-tabs-spacing {
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.tab-block .ascii-tabs-spacing-input {
+  appearance: none;
+  width: 5rem;
+  height: 1rem;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.tab-block .ascii-tabs-spacing-input::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.tab-block .ascii-tabs-spacing-input::-webkit-slider-thumb {
+  appearance: none;
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-top: -0.27rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.tab-block .ascii-tabs-spacing-input::-moz-range-track {
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.tab-block .ascii-tabs-spacing-input::-moz-range-progress {
+  height: 1px;
+  background: var(--accent);
+}
+
+.tab-block .ascii-tabs-spacing-input::-moz-range-thumb {
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 /* The exported sheet shows the tablature, never the tools to edit or copy it. */
 @media print {
   .tab-block .ascii-tabs-hint,

@@ -122,6 +122,35 @@ describe("SongView tab blocks", () => {
     expect(latest.lyricsText).toBe("una\nTAB\n");
   });
 
+  it("shows a just-typed TAB like a structural keyword until it is confirmed", () => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("una\nTA")} />);
+    const lyrics = focusedLyrics();
+    const typed = textNodeOf(1);
+    act(() => window.getSelection()!.collapse(typed, typed.length));
+
+    input(lyrics, "insertText", "B");
+
+    expect(lyricLines()[1]).toHaveTextContent("TAB");
+    expect(lyricLines()[1]!.closest(".line")).toHaveClass("line--tab-candidate");
+  });
+
+  it.each(["Tab", " "])("turns a typed TAB into a block once the author presses %j", async (key) => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("una\nTA")} />);
+    const lyrics = focusedLyrics();
+    const typed = textNodeOf(1);
+    act(() => window.getSelection()!.collapse(typed, typed.length));
+    input(lyrics, "insertText", "B");
+    const end = textNodeOf(1);
+    act(() => window.getSelection()!.collapse(end, end.length));
+
+    fireEvent.keyDown(lyrics, { key });
+
+    await loadedTabs();
+    expect(latest.lyricsText).toBe("una\nTAB");
+  });
+
   it("leaves a TAB the caret was not on as lyrics, such as one undo brought back", () => {
     mockMatchMedia(false);
     render(
