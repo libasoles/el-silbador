@@ -35,6 +35,24 @@
   --ascii-tabs-font-size: 1em;
 }
 
+/* The custom element arrives after its on-demand library. Ease it in so replacing the loading
+   placeholder does not feel like an abrupt redraw. */
+.tab-block[data-ready] ascii-tabs {
+  animation: tab-block-reveal 180ms ease-out both;
+}
+
+@keyframes tab-block-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .tab-block .ascii-tabs-hint,
 .tab-block .ascii-tabs-spacing {
   margin: 0 0 1rem;
@@ -54,6 +72,10 @@
 @media (prefers-reduced-motion: reduce) {
   .tab-block .ascii-tabs-hint {
     transition: none;
+  }
+
+  .tab-block[data-ready] ascii-tabs {
+    animation: none;
   }
 }
 
