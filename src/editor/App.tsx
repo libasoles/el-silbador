@@ -1172,7 +1172,7 @@ function App({
                 disabled={state.lyricsText.trim() === ""}
                 onToggle={handleUnderlineToggle}
               />
-              {(isAdmin || (songDbId && isAuthoring)) && !isMobile && (
+              {!readOnly && (isAdmin || (songDbId && isAuthoring)) && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
                     songYoutubeUrl
@@ -1239,7 +1239,7 @@ function App({
             )}
 
             <aside className="action-toolbar" aria-label="Acciones">
-              {songDbId && (isAdmin || isAuthoring) && !isMobile && (
+              {!readOnly && songDbId && (isAdmin || isAuthoring) && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
                     togglingPublic
