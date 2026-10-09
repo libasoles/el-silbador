@@ -24,11 +24,33 @@
   background: #fff;
 }
 
-/* Keep the spacing control quiet and tucked against the block's right edge. The range itself
-   retains a generous hit area, while only its track is drawn as a fine rule. */
+/* The hint and spacing control share the block's top row. The range itself retains a generous
+   hit area, while only its track is drawn as a fine rule. */
+.tab-block ascii-tabs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.tab-block .ascii-tabs-hint,
 .tab-block .ascii-tabs-spacing {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+}
+
+.tab-block .ascii-tabs-hint {
+  grid-column: 1;
+}
+
+.tab-block .ascii-tabs-spacing {
+  grid-column: 2;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.tab-block .ascii-tabs-sheets,
+.tab-block .ascii-tabs-add {
+  grid-column: 1 / -1;
 }
 
 .tab-block .ascii-tabs-spacing-input {
