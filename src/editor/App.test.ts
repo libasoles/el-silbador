@@ -98,8 +98,10 @@ describe("tab blocks", () => {
 
   it("eases a loaded tablature in, while respecting reduced-motion", () => {
     expect(tabBlockStyles).toMatch(
-      /\.tab-block\[data-ready\] ascii-tabs\s*\{\s*animation:\s*tab-block-reveal 180ms ease-out both/,
+      /\.tab-block\[data-ready\] ascii-tabs\s*\{\s*animation:\s*tab-block-reveal 180ms ease-out both;\s*transform-origin:\s*center/,
     );
+    expect(tabBlockStyles).toMatch(/from\s*\{\s*opacity:\s*0;\s*transform:\s*translateY\(0\.25rem\) scale\(0\.96\)/);
+    expect(tabBlockStyles).toMatch(/to\s*\{\s*opacity:\s*1;\s*transform:\s*translateY\(0\) scale\(1\)/);
     expect(tabBlockStyles).toMatch(
       /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*\.tab-block\[data-ready\] ascii-tabs\s*\{\s*animation:\s*none/,
     );
