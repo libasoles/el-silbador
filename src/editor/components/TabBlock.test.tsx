@@ -43,11 +43,12 @@ describe("TabBlock", () => {
     expect(element.querySelector(".ascii-tabs-add")).toBeNull();
   });
 
-  it("only lets a reader copy", async () => {
+  it("shows sheets without a copy button while reading", async () => {
     const { element } = await renderBlock({ readOnly: true });
 
     expect(element.hasAttribute("readonly")).toBe(true);
-    expect(element.querySelector(".ascii-tabs-copy")).not.toBeNull();
+    expect(element.querySelector(".ascii-tabs-sheet")).not.toBeNull();
+    expect(element.querySelector(".ascii-tabs-copy")).toBeNull();
     for (const selector of [".ascii-tabs-hint", ".ascii-tabs-spacing-input", ".ascii-tabs-delete", ".ascii-tabs-add"]) {
       const found = element.querySelector<HTMLElement>(selector);
       expect(found === null || found.hidden || getComputedStyle(found).display === "none", selector).toBe(true);

@@ -26,7 +26,7 @@ const CONTAINED_EVENTS = [
 
 interface TabBlockProps {
   block: TabBlockContent;
-  /** Reading: only the Sheets and their copy button. */
+  /** Reading: only the Sheets. */
   readOnly: boolean;
   onChange?: (tabs: TabColumn[][]) => void;
   onSpacingChange?: (spacing: number) => void;
@@ -92,10 +92,12 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
     if (!ready || !host) return;
     const element = document.createElement("ascii-tabs") as AsciiTabs;
     element.setAttribute("lang", "es");
+    element.setAttribute("labels", "notes");
     element.setAttribute("theme", "light");
     element.setAttribute("variant", "flat");
     if (readOnly) {
       element.setAttribute("readonly", "");
+      element.append(document.createElement("ascii-tabs-sheet"));
     } else {
       element.append(
         ...(shouldRenderHint ? [document.createElement("ascii-tabs-hint")] : []),
