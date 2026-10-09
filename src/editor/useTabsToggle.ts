@@ -27,6 +27,7 @@ export function useTabsToggle(song: Song, editing: boolean) {
     pressed: tabsVisible,
     /** Whether the song draws its tab blocks. */
     showTabBlocks: tabsVisible,
+    showForEditing: () => setEditorWantsTabs(true),
     toggle: () => {
       if (editing) {
         setEditorWantsTabs((visible) => !visible);

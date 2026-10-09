@@ -79,9 +79,10 @@ interface SongViewProps {
   ) => void;
   /** The content of each tab block, by line id. */
   tabs?: Record<string, TabBlockContent>;
-  /** Whether tab blocks are drawn. Always while editing; a reader turns them on with the Tabs
-   *  toggle. */
+  /** Whether tab blocks are drawn, controlled by the Tabs toggle. */
   showTabs?: boolean;
+  /** A typed TAB has been confirmed as a new block. */
+  onInsertTabBlock?: () => void;
   onSetTabBlock?: (lineId: string, block: TabBlockContent) => void;
   onSetTabSpacing?: (lineId: string, spacing: number) => void;
   onRemoveTabBlock?: (lineId: string) => void;
@@ -603,6 +604,7 @@ export function SongView({
   onPasteText,
   tabs = NO_TABS,
   showTabs = true,
+  onInsertTabBlock,
   onSetTabBlock,
   onSetTabSpacing,
   onRemoveTabBlock,
@@ -679,6 +681,7 @@ export function SongView({
       lyricsText,
       reconcileOptions(tabLinesAfterReplace(song, lyricsText, 0, 0, ""), (lineIndex) => lineIndex !== left),
     );
+    onInsertTabBlock?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canEdit, isMobile, isFocused, caretLineIndex]);
 
@@ -784,6 +787,7 @@ export function SongView({
       lyricsText,
       reconcileOptions(tabLinesAfterReplace(song, lyricsText, 0, 0, ""), (index) => index !== lineIndex),
     );
+    onInsertTabBlock?.();
     return true;
   }
 

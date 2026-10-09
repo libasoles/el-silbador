@@ -1232,6 +1232,7 @@ function App({
                 onPasteText={actions.pasteText}
                 tabs={state.tabs}
                 showTabs={tabsToggle.showTabBlocks}
+                onInsertTabBlock={tabsToggle.showForEditing}
                 onSetTabBlock={actions.setTabBlock}
                 onSetTabSpacing={actions.setTabSpacing}
                 onRemoveTabBlock={actions.removeTabBlock}

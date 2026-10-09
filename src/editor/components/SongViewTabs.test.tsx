@@ -1,4 +1,4 @@
-import { act, fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useLayoutEffect } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AsciiTabs } from "ascii-tabs/ascii-tabs.js";
@@ -6,7 +6,9 @@ import { createInitialState, editorReducer, tabLineIds, type Action } from "../.
 import type { EditorState, TabBlock } from "../../core/types";
 import { mockMatchMedia } from "../../test/matchMedia";
 import { useEditor } from "../useEditor";
+import { useTabsToggle } from "../useTabsToggle";
 import { SongView } from "./SongView";
+import { TabsToggleButton } from "./TabsToggleButton";
 
 const RIFF: TabBlock = { tabs: [[[3, null, null, null, null, null]]] };
 
@@ -21,14 +23,17 @@ let latest: EditorState;
 function Editor({
   initial,
   canEdit = true,
+  withTabsToggle = false,
   afterLoad,
 }: {
   initial: EditorState;
   canEdit?: boolean;
+  withTabsToggle?: boolean;
   /** An edit made once the song has loaded (loading turns every `TAB` line into a block). */
   afterLoad?: (actions: ReturnType<typeof useEditor>["actions"]) => void;
 }) {
   const { state, actions } = useEditor(initial, false);
+  const tabsToggle = useTabsToggle(state.song, canEdit);
   useLayoutEffect(() => {
     latest = state;
   });
@@ -37,32 +42,37 @@ function Editor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <SongView
-      song={state.song}
-      lyricsText={state.lyricsText}
-      bisGroups={state.bisGroups}
-      merges={state.merges}
-      tracks={state.tracks}
-      cells={state.cells}
-      chordVariants={state.chordVariants}
-      pitchDirections={state.pitchDirections}
-      showUnderline={state.showUnderline}
-      showHelp={false}
-      placeholder={null}
-      canEdit={canEdit}
-      onSetCellText={actions.setCellText}
-      onSetChordVariant={actions.setChordVariant}
-      onToggleMerge={actions.toggleSyllableMerge}
-      onMoveCellText={actions.moveCellText}
-      onDragPitchDirection={actions.dragPitchDirection}
-      onReconcileLyricsText={actions.reconcileLyricsText}
-      onToggleBis={actions.toggleBis}
-      onPasteText={actions.pasteText}
-      tabs={state.tabs}
-      onSetTabBlock={actions.setTabBlock}
-      onSetTabSpacing={actions.setTabSpacing}
-      onRemoveTabBlock={actions.removeTabBlock}
-    />
+    <>
+      {withTabsToggle && tabsToggle.available && <TabsToggleButton pressed={tabsToggle.pressed} onToggle={tabsToggle.toggle} />}
+      <SongView
+        song={state.song}
+        lyricsText={state.lyricsText}
+        bisGroups={state.bisGroups}
+        merges={state.merges}
+        tracks={state.tracks}
+        cells={state.cells}
+        chordVariants={state.chordVariants}
+        pitchDirections={state.pitchDirections}
+        showUnderline={state.showUnderline}
+        showHelp={false}
+        placeholder={null}
+        canEdit={canEdit}
+        onSetCellText={actions.setCellText}
+        onSetChordVariant={actions.setChordVariant}
+        onToggleMerge={actions.toggleSyllableMerge}
+        onMoveCellText={actions.moveCellText}
+        onDragPitchDirection={actions.dragPitchDirection}
+        onReconcileLyricsText={actions.reconcileLyricsText}
+        onToggleBis={actions.toggleBis}
+        onPasteText={actions.pasteText}
+        tabs={state.tabs}
+        showTabs={withTabsToggle ? tabsToggle.showTabBlocks : true}
+        onInsertTabBlock={tabsToggle.showForEditing}
+        onSetTabBlock={actions.setTabBlock}
+        onSetTabSpacing={actions.setTabSpacing}
+        onRemoveTabBlock={actions.removeTabBlock}
+      />
+    </>
   );
 }
 
@@ -101,6 +111,35 @@ async function loadedTabs(): Promise<AsciiTabs> {
 
 describe("SongView tab blocks", () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it.each(["Enter", "Tab", " ", "blur"])("shows tabs when a typed TAB is confirmed with %j while the toggle is off", async (key) => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("TAB\nTA")} withTabsToggle />);
+    const toggle = screen.getByRole("button", { name: "Tablaturas" });
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+
+    const lyrics = focusedLyrics();
+    const typed = textNodeOf(1);
+    act(() => window.getSelection()!.collapse(typed, typed.length));
+    input(lyrics, "insertText", "B");
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    const end = textNodeOf(1);
+    act(() => window.getSelection()!.collapse(end, end.length));
+
+    if (key === "blur") act(() => lyrics.blur());
+    else fireEvent.keyDown(lyrics, { key });
+
+    expect(latest.song.filter((line) => line.tab)).toHaveLength(2);
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await loadedTabs();
+    expect(document.querySelectorAll("[data-tab-block]")).toHaveLength(2);
+    expect(window.localStorage.getItem("el-silbador:tabs-toggle-visible")).toBeNull();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(document.querySelector("[data-tab-block]")).toBeNull();
+  });
 
   it("turns a typed TAB into a block once the author presses Enter", async () => {
     mockMatchMedia(false);
