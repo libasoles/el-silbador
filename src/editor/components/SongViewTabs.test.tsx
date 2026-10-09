@@ -112,9 +112,8 @@ async function loadedTabs(): Promise<AsciiTabs> {
 describe("SongView tab blocks", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("keeps the tablature focused through edits and hint dismissal inside the lyrics editor", async () => {
+  it("keeps the tablature focused through edits inside the lyrics editor", async () => {
     mockMatchMedia(false);
-    window.localStorage.removeItem("el-silbador:tab-hint-dismissed");
     const scrollIntoView = HTMLElement.prototype.scrollIntoView;
     HTMLElement.prototype.scrollIntoView = vi.fn();
     try {
@@ -123,9 +122,7 @@ describe("SongView tab blocks", () => {
       fireEvent.pointerDown(element.querySelector(".ascii-tabs-cell")!, { button: 0 });
       const input = element.querySelector<HTMLInputElement>(".ascii-tabs-input")!;
       expect(input).toHaveFocus();
-      vi.useFakeTimers();
       fireEvent.keyDown(input, { key: "1" });
-      act(() => vi.advanceTimersByTime(2_000));
       expect(document.querySelector(".ascii-tabs-hint")).toBeNull();
       expect(input).toHaveFocus();
       for (const key of ["2", "ArrowRight", "ArrowDown", "5", "ArrowLeft", "ArrowUp"]) {
@@ -139,8 +136,6 @@ describe("SongView tab blocks", () => {
       expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-c", "0");
       expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-s", "0");
     } finally {
-      vi.useRealTimers();
-      window.localStorage.removeItem("el-silbador:tab-hint-dismissed");
       if (scrollIntoView) HTMLElement.prototype.scrollIntoView = scrollIntoView;
       else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
     }

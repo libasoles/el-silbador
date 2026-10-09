@@ -1,6 +1,6 @@
-import { act, fireEvent, render, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { AsciiTabs } from "ascii-tabs/ascii-tabs.js";
 import type { TabBlock as TabBlockContent } from "../../core/types";
 import { TabBlock } from "./TabBlock";
@@ -14,8 +14,6 @@ function ControlledBlock() {
   return <TabBlock block={block} readOnly={false} onChange={tabs => setBlock({ tabs })} />;
 }
 
-afterEach(() => window.localStorage.clear());
-
 async function renderBlock(props: Partial<Parameters<typeof TabBlock>[0]> = {}) {
   const view = render(<TabBlock block={ONE_TAB} readOnly={false} {...props} />);
   const element = await waitFor(() => {
@@ -27,34 +25,7 @@ async function renderBlock(props: Partial<Parameters<typeof TabBlock>[0]> = {}) 
 }
 
 describe("TabBlock", () => {
-  it("keeps cell focus and arrow navigation when the first-fret hint disappears", async () => {
-    // jsdom has no scrolling/layout; keep the real pointer and keyboard handlers.
-    const scrollIntoView = HTMLElement.prototype.scrollIntoView;
-    HTMLElement.prototype.scrollIntoView = vi.fn();
-    const { element, container } = await renderBlock({ block: EMPTY_TAB });
-    const cell = element.querySelector(".ascii-tabs-cell")!;
-    fireEvent.pointerDown(cell, { button: 0 });
-    const input = element.querySelector<HTMLInputElement>(".ascii-tabs-input")!;
-    expect(input).toHaveFocus();
-    vi.useFakeTimers();
-    try {
-      fireEvent.keyDown(input, { key: "3" });
-      fireEvent.keyDown(input, { key: "ArrowRight" });
-      expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-c", "1");
-      act(() => vi.advanceTimersByTime(2_000));
-      expect(container.querySelector(".ascii-tabs-hint")).toBeNull();
-      expect(input).toHaveFocus();
-      fireEvent.keyDown(input, { key: "ArrowDown" });
-      expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-s", "1");
-    } finally {
-      vi.useRealTimers();
-      if (scrollIntoView) HTMLElement.prototype.scrollIntoView = scrollIntoView;
-      else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
-    }
-  });
-
   it("preserves typing and all four arrows across controlled content updates", async () => {
-    window.localStorage.setItem("el-silbador:tab-hint-dismissed", "true");
     const scrollIntoView = HTMLElement.prototype.scrollIntoView;
     HTMLElement.prototype.scrollIntoView = vi.fn();
     try {
@@ -93,10 +64,10 @@ describe("TabBlock", () => {
     expect(element.value).toEqual(ONE_TAB.tabs);
   });
 
-  it("offers the hint, spacing, copy and delete while editing", async () => {
+  it("offers spacing, copy and delete while editing", async () => {
     const { element } = await renderBlock();
 
-    for (const selector of [".ascii-tabs-hint", ".ascii-tabs-spacing-input", ".ascii-tabs-copy", ".ascii-tabs-delete"]) {
+    for (const selector of [".ascii-tabs-spacing-input", ".ascii-tabs-copy", ".ascii-tabs-delete"]) {
       expect(element.querySelector(selector), selector).not.toBeNull();
     }
     expect(element.querySelector(".ascii-tabs-add")).toBeNull();
@@ -146,33 +117,8 @@ describe("TabBlock", () => {
     expect(onSpacingChange).toHaveBeenLastCalledWith(4);
   });
 
-  it("fades the hint after the first fret and remembers it", async () => {
-    const { container, element } = await renderBlock({ block: EMPTY_TAB });
-    vi.useFakeTimers();
-
-    try {
-      element.value = ONE_TAB.tabs;
-      fireEvent(element, new CustomEvent("change", { bubbles: true }));
-
-      expect(container.querySelector(".tab-block")).toHaveAttribute("data-tab-hint-fading");
-      expect(window.localStorage.getItem("el-silbador:tab-hint-dismissed")).toBe("true");
-
-      await act(async () => {});
-      act(() => vi.advanceTimersByTime(1_999));
-      expect(container.querySelector(".ascii-tabs-hint")).not.toBeNull();
-
-      act(() => vi.advanceTimersByTime(1));
-      expect(container.querySelector(".ascii-tabs-hint")).toBeNull();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("does not show the hint again after a first fret was entered", async () => {
-    window.localStorage.setItem("el-silbador:tab-hint-dismissed", "true");
-
-    const { element } = await renderBlock({ block: EMPTY_TAB });
-
+  it.each([false, true])("initializes without a hint, readOnly=%s", async (readOnly) => {
+    const { element } = await renderBlock({ block: EMPTY_TAB, readOnly });
     expect(element.querySelector(".ascii-tabs-hint")).toBeNull();
   });
 

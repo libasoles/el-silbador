@@ -78,7 +78,7 @@ describe("Tabs toggle", () => {
 describe("tab blocks in the PDF", () => {
   it("prints a shown block without its editing and copy tools", () => {
     expect(tabBlockStyles).toMatch(
-      /@media print\s*\{[\s\S]*\.ascii-tabs-hint,[\s\S]*\.ascii-tabs-spacing,[\s\S]*\.ascii-tabs-button,[\s\S]*\.ascii-tabs-add[\s\S]*display:\s*none/,
+      /@media print\s*\{[\s\S]*\.ascii-tabs-spacing,[\s\S]*\.ascii-tabs-button,[\s\S]*\.ascii-tabs-add[\s\S]*display:\s*none/,
     );
   });
 
