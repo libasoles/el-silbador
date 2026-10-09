@@ -3,7 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { parseChordSheet } from "../../core/chordSheet";
 import { findChordShape } from "../../core/findChordShape";
-import { beforeSlotId, flattenSyllables, mergeKey } from "../../core/model";
+import { beforeSlotId, flattenSyllables, isLyricLineText, mergeKey } from "../../core/model";
 import { createInitialState, editorReducer } from "../../core/state";
 import type { BisGroup, PitchDirection, TabBlock } from "../../core/types";
 import type { SongContent } from "../../data/types";
@@ -21,6 +21,7 @@ import { SongView } from "../../editor/components/SongView";
 import { useEditor } from "../../editor/useEditor";
 import { useIsMobile } from "../../editor/useIsMobile";
 import { TransposeWidget } from "../../transpose/TransposeWidget";
+import { chordLinesOf } from "../../transpose/transposeSong";
 
 /** The start of "Tonada de un viejo amor", as a chord sheet: each chord above its syllable. */
 export const TONADA_EXCERPT = `    A           A7     D
@@ -40,7 +41,7 @@ function contentFromChordSheet(
   bisGroups: BisGroup[] = [],
   tabBlocks: Readonly<Record<number, TabBlock>> = {},
 ): SongContent {
-  const { lyricsText, placements } = parseChordSheet(sheet);
+  const { lyricsText, placements } = parseChordSheet(sheet, isLyricLineText);
   const pasted = editorReducer(createInitialState(), {
     type: "pasteText",
     text: lyricsText,
@@ -207,6 +208,8 @@ function LiveChordEditor({
               onTransposeNoteCell={(slotId, text) =>
                 actions.setCellText("vocalNotes", slotId, text)
               }
+              chordLines={chordLinesOf(state.song)}
+              onTransposeChordLines={actions.setChordLineTexts}
             />
           ) : null}
         </div>

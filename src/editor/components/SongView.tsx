@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
-import { columnForSlot, getLineCellSlots, isTabLineText, TAB_MARKER } from "../../core/model";
+import { columnForSlot, getLineCellSlots, isLyricLineText, isTabLineText, TAB_MARKER } from "../../core/model";
 import { EMPTY_TAB_BLOCK, getCell, type PastedTab, type ReconcileOptions } from "../../core/state";
 import { lineStarts, tabLinesAfterReplace, type TabLineAfterEdit } from "../../core/tabEdits";
 import type {
@@ -836,7 +836,7 @@ export function SongView({
       void loadAsciiTabs().then(({ parse }) => insertWithTabs(text, start, end, segments, parse));
       return;
     }
-    const { lyricsText, placements } = parseChordSheet(sheet);
+    const { lyricsText, placements } = parseChordSheet(sheet, isLyricLineText);
     const newText = text.slice(0, start) + lyricsText + text.slice(end);
     placeCaretAfterEdit(newText, start + lyricsText.length);
     const options = editOptions(text, start, end, lyricsText, { typed: false });
@@ -868,7 +868,7 @@ export function SongView({
         lineCount += 1;
         continue;
       }
-      const sheet = parseChordSheet(segment.text);
+      const sheet = parseChordSheet(segment.text, isLyricLineText);
       for (const placement of sheet.placements) {
         placements.push({ ...placement, lineIndex: placement.lineIndex + lineCount });
       }

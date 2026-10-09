@@ -305,7 +305,8 @@ describe("ArticleChordEditor tracks", () => {
   it("keeps moving between a track's cells with the arrow keys", () => {
     mockMatchMedia(false);
     renderEditor();
-    const [track] = screen.getAllByRole("group", { name: "Acordes" });
+    // The example's blank first line offers no chord cells.
+    const track = screen.getAllByRole("group", { name: "Acordes" }).find((row) => row.querySelector(".track-cell"))!;
     const slotIds = [...track.querySelectorAll<HTMLElement>(".track-cell")].map((cell) => cell.dataset.slotId);
     act(() => track.querySelector<HTMLElement>(".track-cell")!.focus());
     expect(document.activeElement).toHaveAttribute("data-slot-id", slotIds[0]);

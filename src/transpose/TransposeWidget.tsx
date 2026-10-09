@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./TransposeWidget.css";
-import { decideUseFlats, transposeChord, transposeNote } from "./transpose";
+import { decideUseFlats, transposeChord, transposeChordLine, transposeNote } from "./transpose";
 
 interface TransposeWidgetProps {
   /** Chord text per slot id, as currently shown (cells.chords). */
@@ -11,6 +11,10 @@ interface TransposeWidgetProps {
   onTransposeCell: (slotId: string, text: string) => void;
   /** Writes a melody-note slot's transposed text back to wherever notes are stored. */
   onTransposeNoteCell: (slotId: string, text: string) => void;
+  /** The chords of each chord line, by line id (see `chordLineTokens`). */
+  chordLines?: Record<string, { column: number; chord: string }[]>;
+  /** Writes the transposed text of chord lines back, by line id. */
+  onTransposeChordLines?: (texts: Record<string, string>) => void;
   /** Reader mode owns the offset outside this widget so it can be restored from localStorage. */
   readerOffset?: number;
   /** Called only when a reader uses one of the +/- controls. */
@@ -27,6 +31,8 @@ export function TransposeWidget({
   noteCells,
   onTransposeCell,
   onTransposeNoteCell,
+  chordLines = {},
+  onTransposeChordLines,
   readerOffset,
   onReaderOffsetChange,
 }: TransposeWidgetProps) {
@@ -35,20 +41,34 @@ export function TransposeWidget({
 
   const chordEntries = Object.entries(chordCells ?? {}).filter(([, text]) => text.trim() !== "");
   const noteEntries = Object.entries(noteCells ?? {}).filter(([, text]) => text.trim() !== "");
-  if (chordEntries.length === 0 && noteEntries.length === 0) return null;
+  const chordLineEntries = Object.entries(chordLines).filter(([, chords]) => chords.length > 0);
+  if (chordEntries.length === 0 && noteEntries.length === 0 && chordLineEntries.length === 0) return null;
 
   function shift(semitones: number) {
     if (readerOffset !== undefined) {
       onReaderOffsetChange?.(readerOffset + semitones);
       return;
     }
-    const flats = offset === 0 ? decideUseFlats(chordEntries.map(([, text]) => text)) : useFlats;
+    const flats =
+      offset === 0
+        ? decideUseFlats([
+            ...chordEntries.map(([, text]) => text),
+            ...chordLineEntries.flatMap(([, chords]) => chords.map(({ chord }) => chord)),
+          ])
+        : useFlats;
     if (offset === 0) setUseFlats(flats);
     for (const [slotId, text] of chordEntries) {
       onTransposeCell(slotId, transposeChord(text, semitones, flats));
     }
     for (const [slotId, text] of noteEntries) {
       onTransposeNoteCell(slotId, transposeNote(text, semitones, flats));
+    }
+    if (chordLineEntries.length > 0) {
+      onTransposeChordLines?.(
+        Object.fromEntries(
+          chordLineEntries.map(([lineId, chords]) => [lineId, transposeChordLine(chords, semitones, flats)]),
+        ),
+      );
     }
     setOffset((current) => current + semitones);
   }

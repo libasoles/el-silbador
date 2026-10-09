@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { beforeSlotId, flattenSyllables, getLineCellSlots, getLineUnits, startSlotId } from "../model";
+import { beforeSlotId, endSlotId, flattenSyllables, getLineCellSlots, getLineUnits, startSlotId } from "../model";
 import { YPACARAI_LYRICS } from "../fixtures/ypacarai";
 import { createInitialState, editorReducer, getCell, type Action } from "../state";
 import type { EditorState } from "../types";
@@ -609,6 +609,58 @@ describe("loadContent", () => {
 
     expect(state.song[0].subtitle).toBe("INTRODUCCIÓN");
     expect(flattenSyllables(state.song[0])).toEqual([]);
+  });
+
+  it("opens chords saved on the edges of an empty line as a chord line", () => {
+    const saved = reduce(createInitialState(), { type: "setLyricsText", text: "\nYa nunca" });
+    const empty = saved.song[0]!;
+    const content = {
+      title: "",
+      author: "",
+      lyricsText: saved.lyricsText,
+      song: saved.song,
+      merges: new Set<string>(),
+      cells: { chords: { [startSlotId(empty.id)]: "A", [endSlotId(empty.id)]: "D7" } },
+      chordVariants: { [endSlotId(empty.id)]: 1 },
+      pitchDirections: {},
+    };
+
+    const state = reduce(createInitialState(), { type: "loadContent", content, isMobile: false });
+
+    expect(state.lyricsText).toBe("A  D7\nYa nunca");
+    expect(state.song[0]).toEqual({ id: empty.id, words: [], chordLine: "A  D7" });
+    expect(state.cells.chords).toEqual({});
+    expect(state.chordVariants).toEqual({});
+  });
+});
+
+describe("chord lines", () => {
+  it("builds a line of only chords as a chord line, keeping its spacing", () => {
+    const state = reduce(createInitialState(), { type: "setLyricsText", text: "  A    D\nYa nunca" });
+
+    expect(state.song[0]).toMatchObject({ words: [], chordLine: "  A    D" });
+    expect(getLineCellSlots(state.song[1]!, state.merges, state.cells).length).toBeGreaterThan(0);
+  });
+
+  it("keeps the line's identity while it turns into a chord line and back into lyrics", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "A\nYa nunca" });
+    const id = state.song[0]!.id;
+    expect(state.song[0]!.chordLine).toBeUndefined();
+
+    state = reduce(state, { type: "reconcileLyricsText", text: "A D\nYa nunca" });
+    expect(state.song[0]).toMatchObject({ id, chordLine: "A D" });
+
+    state = reduce(state, { type: "reconcileLyricsText", text: "A Do\nYa nunca" });
+    expect(state.song[0]!.id).toBe(id);
+    expect(state.song[0]!.chordLine).toBeUndefined();
+  });
+
+  it("rewrites a chord line's text", () => {
+    let state = reduce(createInitialState(), { type: "setLyricsText", text: "A   D\nYa nunca" });
+    state = reduce(state, { type: "setChordLineTexts", texts: { [state.song[0]!.id]: "Bb  Eb" } });
+
+    expect(state.lyricsText).toBe("Bb  Eb\nYa nunca");
+    expect(state.song[0]!.chordLine).toBe("Bb  Eb");
   });
 });
 

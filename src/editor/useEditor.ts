@@ -131,6 +131,7 @@ export function useEditor(initialContent: SongContent | undefined, isMobile: boo
       ) => dispatch({ type: "pasteText", text, startLineIndex, startOffset, placements, options, pastedTabs }),
       setTabBlock: (lineId: string, block: TabBlock) => dispatch({ type: "setTabBlock", lineId, block }),
       setTabSpacing: (lineId: string, spacing: number) => dispatch({ type: "setTabSpacing", lineId, spacing }),
+      setChordLineTexts: (texts: Record<string, string>) => dispatch({ type: "setChordLineTexts", texts }),
       removeTabBlock: (lineId: string) => dispatch({ type: "removeTabBlock", lineId }),
       resyllabify: (lineId: string, wordId: string, newText: string) =>
         dispatch({ type: "resyllabify", lineId, wordId, newText }),

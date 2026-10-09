@@ -56,6 +56,20 @@ function isChordLine(line: string): boolean {
   return trimmed.split(/\s+/).every((token) => splitChordToken(token) !== null);
 }
 
+/** Chords that are also words a line of lyrics may hold on its own (the Spanish "a" and "e"). */
+const WORD_CHORDS = new Set(["A", "E"]);
+
+/** Whether a raw line of a song is a chord line: only chords, with no lyrics under them. A lone
+ *  chord that is also a word stays lyrics until the line holds more chords. */
+export function isChordLineText(line: string): boolean {
+  return isChordLine(line) && !WORD_CHORDS.has(line.trim());
+}
+
+/** Each chord of a chord line, by the column it starts at. */
+export function chordLineTokens(line: string): { column: number; chord: string }[] {
+  return lineTokens(line);
+}
+
 export interface ChordPlacement {
   /** 0-indexed line, into the *returned* `lyricsText` (after chord lines are stripped out). */
   lineIndex: number;
@@ -79,9 +93,15 @@ function lineTokens(line: string): { column: number; chord: string }[] {
 }
 
 /** Splits pasted text into lyrics-only text plus the chord placements detected above each line.
- *  Chord lines with no following lyric line (trailing chords at the end of the paste) are kept
- *  by appending an empty lyric line to hold them. */
-export function parseChordSheet(text: string): ParsedChordSheet {
+ *  Only a row of chords right above a line of lyrics is spread over that line's syllables. A row
+ *  with no lyrics under it (an intro, an ending, one above a section label or another row of
+ *  chords) stays as text: a chord line of its own. */
+export function parseChordSheet(
+  text: string,
+  /** Whether a raw line is lyrics a row of chords can sit on: by default, any line with text.
+   *  The editor also excludes its section labels and `TAB` lines (see `isLyricLineText`). */
+  isLyricLine: (line: string) => boolean = (line) => line.trim() !== "",
+): ParsedChordSheet {
   const lyricsLines: string[] = [];
   const placements: ChordPlacement[] = [];
   let pendingTokens: { column: number; chord: string }[] = [];
@@ -95,14 +115,15 @@ export function parseChordSheet(text: string): ParsedChordSheet {
     pendingTokens = [];
   }
 
-  for (const rawLine of text.split("\n")) {
-    if (isChordLine(rawLine)) {
-      pendingTokens = pendingTokens.concat(lineTokens(rawLine));
-      continue;
+  const rawLines = text.split("\n");
+  rawLines.forEach((rawLine, index) => {
+    const next = rawLines[index + 1];
+    if (isChordLine(rawLine) && next !== undefined && !isChordLine(next) && isLyricLine(next)) {
+      pendingTokens = lineTokens(rawLine);
+      return;
     }
     flush(rawLine);
-  }
-  if (pendingTokens.length > 0) flush("");
+  });
 
   return { lyricsText: lyricsLines.join("\n"), placements };
 }

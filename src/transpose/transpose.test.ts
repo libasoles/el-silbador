@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decideUseFlats, transposeCells, transposeChord, transposeNote } from "./transpose";
+import { decideUseFlats, transposeCells, transposeChord, transposeChordLine, transposeNote } from "./transpose";
 
 describe("transposeChord", () => {
   it("shifts a plain root up in sharps", () => {
@@ -114,5 +114,15 @@ describe("transposeCells", () => {
       chordNotes: { first: "sib, re, fa" },
     });
     expect(cells.chords.first).toBe("Bb");
+  });
+});
+
+describe("transposeChordLine", () => {
+  it("keeps each chord at its column", () => {
+    expect(transposeChordLine([{ column: 2, chord: "A" }, { column: 8, chord: "D7" }], 2, false)).toBe("  B     E7");
+  });
+
+  it("keeps a space after a chord that grows into the next one", () => {
+    expect(transposeChordLine([{ column: 0, chord: "A7" }, { column: 2, chord: "D7" }], 1, true)).toBe("Bb7 Eb7");
   });
 });
