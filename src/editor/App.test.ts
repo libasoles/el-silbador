@@ -168,6 +168,9 @@ describe("BIS phrases", () => {
       /\.line--bis \.syllable-row\s*\{[\s\S]*align-items:\s*baseline[\s\S]*font-weight:\s*600/,
     );
     expect(styles).toMatch(
+      /\.line--tab-candidate \.syllable-row\s*\{[\s\S]*font-family:\s*var\(--sans\)/,
+    );
+    expect(styles).toMatch(
       /\.bis-marker\s*\{[\s\S]*color:\s*var\(--muted\)[\s\S]*font-weight:\s*500/,
     );
   });
