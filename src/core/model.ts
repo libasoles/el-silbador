@@ -28,15 +28,27 @@ export function isSubtitleLineText(lineText: string): boolean {
   return subtitleKeywords.has(normalized);
 }
 
+/** The marker a tab block leaves in `lyricsText`, and what an author types on a line of its own to
+ *  insert one. Uppercase only: a lowercase "tab", or the word inside a verse, stays lyrics. */
+export const TAB_MARKER = "TAB";
+
+/** Whether a raw lyric line is the marker of a tab block. */
+export function isTabLineText(lineText: string): boolean {
+  return lineText.trim() === TAB_MARKER;
+}
+
 /** Builds a fresh, fully-hyphenated song from raw lyrics text. Every id is newly minted.
  *  An empty document has no lines at all (not one line with zero words), so consumers can
  *  detect it with `song.length === 0` and show the empty-document placeholder. */
-export function buildSong(lyricsText: string): Song {
+export function buildSong(lyricsText: string, textLineIndexes: readonly number[] = []): Song {
   if (lyricsText === "") return [];
-  return lyricsText.split("\n").map((lineText) => buildLine(lineText));
+  return lyricsText.split("\n").map((lineText, index) => buildLine(lineText, textLineIndexes.includes(index)));
 }
 
-function buildLine(lineText: string): Line {
+/** `keepAsText` leaves a `TAB` as lyrics: one its author is still typing (so "TABLA" can still be
+ *  written), or one that may not become a block (see `ReconcileOptions.textLineIndexes`). */
+function buildLine(lineText: string, keepAsText = false): Line {
+  if (!keepAsText && isTabLineText(lineText)) return { id: nextId("line"), words: [], tab: true };
   if (isSubtitleLineText(lineText)) return { id: nextId("line"), words: [], subtitle: lineText };
   const words = splitIntoWords(lineText).map((wordText) => buildWord(wordText));
   return { id: nextId("line"), words };

@@ -22,11 +22,11 @@ Ver [spec](../spec.md).
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Una canción sin tablaturas no descarga el chunk de ascii-tabs. `npm run build` lo muestra separado.
-- [ ] Editar trastes y spacing actualiza el estado y el autosave lo guarda en Supabase. Recargar la página lo conserva.
-- [ ] Borrar el último Tab elimina el bloque. Con varios Tabs, borra solo ese.
-- [ ] En lectura no se ven hint, slider, add ni delete, y copiar funciona.
-- [ ] Tests DOM (`*.test.tsx`), mockeando `import("ascii-tabs")` donde jsdom no alcance.
+- [x] Una canción sin tablaturas no descarga el chunk de ascii-tabs. `npm run build` lo muestra separado.
+- [x] Editar trastes y spacing actualiza el estado y el autosave lo guarda en Supabase. Recargar la página lo conserva.
+- [x] Borrar el último Tab elimina el bloque. Con varios Tabs, borra solo ese.
+- [x] En lectura no se ven hint, slider, add ni delete, y copiar funciona.
+- [x] Tests DOM (`*.test.tsx`), mockeando `import("ascii-tabs")` donde jsdom no alcance.

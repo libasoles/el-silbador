@@ -10,11 +10,11 @@ Ver [spec](../spec.md).
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] `TAB` solo en una línea crea un bloque con `tabs: [[]]`. `tab`, `Tab` o `TAB` dentro de un verso no crean nada.
-- [ ] Las líneas de tablatura no generan slots ni celdas (ni acordes, melismas ni subrayado).
-- [ ] Reconciliar el texto conserva el id del bloque. Si la línea marcador desaparece, se purga `tabs[id]`, y el undo lo restaura con su contenido.
-- [ ] `serializeContent`/`deserializeContent` hacen round-trip de `tabs`, y el contenido viejo sin `tabs` carga igual.
-- [ ] Tests unitarios (`*.test.ts`) de todo lo anterior.
+- [x] `TAB` solo en una línea crea un bloque con `tabs: [[]]`. `tab`, `Tab` o `TAB` dentro de un verso no crean nada.
+- [x] Las líneas de tablatura no generan slots ni celdas (ni acordes, melismas ni subrayado).
+- [x] Reconciliar el texto conserva el id del bloque. Si la línea marcador desaparece, se purga `tabs[id]`, y el undo lo restaura con su contenido.
+- [x] `serializeContent`/`deserializeContent` hacen round-trip de `tabs`, y el contenido viejo sin `tabs` carga igual.
+- [x] Tests unitarios (`*.test.ts`) de todo lo anterior.

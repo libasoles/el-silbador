@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useReducer } from "react";
 import { createInitialState, editorReducer } from "../core/state";
-import type { Action } from "../core/state";
+import type { Action, PastedTab, ReconcileOptions } from "../core/state";
 import type { ChordPlacement } from "../core/chordSheet";
-import type { EditorState, PitchDirection, TrackId } from "../core/types";
+import type { EditorState, PitchDirection, TabBlock, TrackId } from "../core/types";
 import type { SongContent } from "../data/types";
 
 const HISTORY_LIMIT = 200;
@@ -47,6 +47,9 @@ function coalesceKeyFor(action: Action): string | null {
       return `chordVariant:${action.slotId}`;
     case "resyllabify":
       return `resyllabify:${action.lineId}:${action.wordId}`;
+    // The spacing slider fires on every step of a drag.
+    case "setTabSpacing":
+      return `tabSpacing:${action.lineId}`;
     default:
       return null;
   }
@@ -114,11 +117,21 @@ export function useEditor(initialContent: SongContent | undefined, isMobile: boo
       setTitle: (title: string) => dispatch({ type: "setTitle", title }),
       setAuthor: (author: string) => dispatch({ type: "setAuthor", author }),
       setLyricsText: (text: string) => dispatch({ type: "setLyricsText", text }),
-      reconcileLyricsText: (text: string) => dispatch({ type: "reconcileLyricsText", text }),
+      reconcileLyricsText: (text: string, options?: ReconcileOptions) =>
+        dispatch({ type: "reconcileLyricsText", text, options }),
       toggleBis: (startLineIndex: number, endLineIndex: number, remove: boolean) =>
         dispatch({ type: "toggleBis", startLineIndex, endLineIndex, remove }),
-      pasteText: (text: string, startLineIndex: number, startOffset: number, placements: ChordPlacement[]) =>
-        dispatch({ type: "pasteText", text, startLineIndex, startOffset, placements }),
+      pasteText: (
+        text: string,
+        startLineIndex: number,
+        startOffset: number,
+        placements: ChordPlacement[],
+        options?: ReconcileOptions,
+        pastedTabs?: PastedTab[],
+      ) => dispatch({ type: "pasteText", text, startLineIndex, startOffset, placements, options, pastedTabs }),
+      setTabBlock: (lineId: string, block: TabBlock) => dispatch({ type: "setTabBlock", lineId, block }),
+      setTabSpacing: (lineId: string, spacing: number) => dispatch({ type: "setTabSpacing", lineId, spacing }),
+      removeTabBlock: (lineId: string) => dispatch({ type: "removeTabBlock", lineId }),
       resyllabify: (lineId: string, wordId: string, newText: string) =>
         dispatch({ type: "resyllabify", lineId, wordId, newText }),
       toggleSyllableMerge: (lineId: string, aId: string, bId: string) =>

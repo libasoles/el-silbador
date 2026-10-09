@@ -11,12 +11,12 @@ Ver [spec](../spec.md).
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] En `/editar` el toggle no aparece.
-- [ ] En lectura sin bloques no aparece.
-- [ ] En lectura con bloques aparece primero, en off.
-- [ ] On muestra los bloques readonly, y la preferencia sobrevive al recargar y al cambiar de canción.
-- [ ] Mismo comportamiento con `mockMatchMedia(true)`.
-- [ ] Tests DOM.
+- [x] En `/editar` el toggle no aparece.
+- [x] En lectura sin bloques no aparece.
+- [x] En lectura con bloques aparece primero, en off.
+- [x] On muestra los bloques readonly, y la preferencia sobrevive al recargar y al cambiar de canción.
+- [x] Mismo comportamiento con `mockMatchMedia(true)`.
+- [x] Tests DOM.

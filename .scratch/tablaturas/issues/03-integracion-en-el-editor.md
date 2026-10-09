@@ -10,10 +10,10 @@ con CSS). Ver [spec](../spec.md).
 
 **Blocked by:** 01, 02
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Escribir `TAB` + Enter (o salir de la línea) inserta el bloque completo en esa posición.
-- [ ] Escribir trastes en la grilla no modifica la letra, y escribir en la letra no modifica la grilla.
-- [ ] Backspace al inicio de la línea siguiente al bloque no lo borra. Borrar una selección que lo cruza sí, y undo lo restaura.
-- [ ] En mobile (`mockMatchMedia(true)`) el bloque es readonly incluso para el dueño.
+- [x] Escribir `TAB` + Enter (o salir de la línea) inserta el bloque completo en esa posición.
+- [x] Escribir trastes en la grilla no modifica la letra, y escribir en la letra no modifica la grilla.
+- [x] Backspace al inicio de la línea siguiente al bloque no lo borra. Borrar una selección que lo cruza sí, y undo lo restaura.
+- [x] En mobile (`mockMatchMedia(true)`) el bloque es readonly incluso para el dueño.

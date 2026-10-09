@@ -8,10 +8,10 @@ tramo se usa `parse` con import dinámico. Ver [spec](../spec.md).
 
 **Blocked by:** 01, 03
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** done
+**Agent:** claude
 
-- [ ] Pegar solo una tablatura crea un bloque con su contenido.
-- [ ] Pegar letra + acordes + dos tablaturas separadas crea dos bloques en sus posiciones, con letra y acordes como hoy.
-- [ ] Varias staves seguidas se unen en un solo Tab, como hace `parse`.
-- [ ] Tests unitarios del detector de tramos.
+- [x] Pegar solo una tablatura crea un bloque con su contenido.
+- [x] Pegar letra + acordes + dos tablaturas separadas crea dos bloques en sus posiciones, con letra y acordes como hoy.
+- [x] Varias staves seguidas se unen en un solo Tab, como hace `parse`.
+- [x] Tests unitarios del detector de tramos.

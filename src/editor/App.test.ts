@@ -60,6 +60,36 @@ const toastProvider = readFileSync(
   new URL("./components/ToastProvider.tsx", import.meta.url),
   "utf8",
 );
+const tabBlockStyles = readFileSync(
+  new URL("./components/TabBlock.css", import.meta.url),
+  "utf8",
+);
+
+describe("Tabs toggle", () => {
+  it("comes first in the desktop toolbar and in the mobile menu", () => {
+    for (const container of ['className="track-toolbar"', 'className="mobile-sidebar-menu__controls"']) {
+      const toolbar = app.slice(app.indexOf(container));
+      expect(toolbar.indexOf("<TabsToggleButton"), container).toBeGreaterThan(-1);
+      expect(toolbar.indexOf("<TabsToggleButton"), container).toBeLessThan(toolbar.indexOf("<TrackToggleButton"));
+    }
+  });
+});
+
+describe("tab blocks in the PDF", () => {
+  it("prints a shown block without its editing and copy tools", () => {
+    expect(tabBlockStyles).toMatch(
+      /@media print\s*\{[\s\S]*\.ascii-tabs-hint,[\s\S]*\.ascii-tabs-spacing,[\s\S]*\.ascii-tabs-button,[\s\S]*\.ascii-tabs-add[\s\S]*display:\s*none/,
+    );
+  });
+
+  it("keeps each Sheet on one page when it can", () => {
+    expect(tabBlockStyles).toMatch(/@media print\s*\{[\s\S]*\.ascii-tabs-sheet\s*\{[\s\S]*break-inside:\s*avoid/);
+  });
+
+  it("prints nothing for a block a reader left hidden", () => {
+    expect(styles).toMatch(/\.line--tab\[hidden\]\s*\{\s*display:\s*none;/);
+  });
+});
 
 describe("underline visibility", () => {
   it("applies the saved global melody choice before annotation cells are revealed", () => {

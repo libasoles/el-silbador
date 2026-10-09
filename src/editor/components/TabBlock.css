@@ -1,0 +1,40 @@
+/* A tab block sits between lyric lines, in the app's palette rather than ascii-tabs' own. */
+.tab-block {
+  --ascii-tabs-paper: var(--bg);
+  --ascii-tabs-sheet: #fff;
+  --ascii-tabs-ink: var(--fg);
+  --ascii-tabs-dash: var(--muted);
+  --ascii-tabs-string: var(--border-strong);
+  --ascii-tabs-line: var(--border);
+  --ascii-tabs-hover: color-mix(in srgb, var(--border) 45%, var(--bg));
+  --ascii-tabs-focus: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  --ascii-tabs-accent: var(--accent);
+  --ascii-tabs-font: var(--mono, monospace);
+  margin: 0.75rem 0;
+  font-family: var(--sans);
+  cursor: auto;
+  user-select: text;
+}
+
+/* Holds the block's place while ascii-tabs loads, so the lyrics below don't jump. */
+.tab-block__placeholder {
+  height: 9.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+/* The exported sheet shows the tablature, never the tools to edit or copy it. */
+@media print {
+  .tab-block .ascii-tabs-hint,
+  .tab-block .ascii-tabs-spacing,
+  .tab-block .ascii-tabs-button,
+  .tab-block .ascii-tabs-add,
+  .tab-block .ascii-tabs-tools {
+    display: none !important;
+  }
+
+  .tab-block .ascii-tabs-sheet {
+    break-inside: avoid;
+  }
+}
