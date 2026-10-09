@@ -1,7 +1,7 @@
 # Cursor lateral para tablaturas
 
-**Status:** ready-for-agent
-**Agent:** unassigned
+**Status:** resolved
+**Agent:** codex
 
 ## Problem Statement
 
@@ -80,3 +80,7 @@ El autor puede llegar a esas posiciones mediante flechas o clics y usarlas para 
 - El usuario aprobó tres entregas: inserción mediante clic en laterales, navegación desde la letra y salida desde slots. Las dos últimas dependen únicamente de la primera.
 - Cada ticket incluye sus pruebas de comportamiento; no hay un ticket separado de infraestructura ni de pruebas.
 - Al implementar, seguir el flujo del repositorio: worktree y rama propios, incremento patch por commit, validación, merge local a `main` y limpieza, sin push.
+
+## Validación
+
+Implementado: pruebas con el editor renderizado y comprobación en Chrome de laterales, navegación, inserción y una tablatura con cinco filas visuales.

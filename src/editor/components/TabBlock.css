@@ -1,4 +1,35 @@
 /* A tab block sits between lyric lines, in the app's palette rather than ascii-tabs' own. */
+.tab-line {
+  position: relative;
+}
+
+.song--tab-caret { caret-color: transparent; }
+
+.tab-line:has(.tab-side) {
+  padding-inline: 0.75rem;
+}
+
+.tab-side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: text;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-side--before { left: 0; }
+.tab-side--after { right: 0; }
+
+@media print {
+  .tab-side { display: none; }
+}
+
 .tab-block {
   --ascii-tabs-paper: var(--bg);
   --ascii-tabs-sheet: #fff;

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useLayoutEffect } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AsciiTabs } from "ascii-tabs/ascii-tabs.js";
 import { createInitialState, editorReducer, tabLineIds, type Action } from "../../core/state";
 import type { EditorState, TabBlock } from "../../core/types";
@@ -110,6 +110,240 @@ async function loadedTabs(): Promise<AsciiTabs> {
 }
 
 describe("SongView tab blocks", () => {
+  it.each(["before", "after"] as const)("keeps native composition intact when writing %s a tablature", async side => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("TAB")} />);
+    await loadedTabs();
+    fireEvent.click(screen.getByRole("button", { name: side === "before" ? "Antes de la tablatura" : "Después de la tablatura" }));
+    const lyrics = focusedLyrics();
+    fireEvent.compositionStart(lyrics);
+    expect(latest.lyricsText).toBe(side === "before" ? "\nTAB" : "TAB\n");
+    const line = lyricLines()[side === "before" ? 0 : 1]!;
+    line.insertBefore(document.createTextNode("canción"), line.firstChild);
+    fireEvent.input(lyrics, { inputType: "insertCompositionText", data: "canción", isComposing: true });
+    expect(latest.lyricsText).toBe(side === "before" ? "\nTAB" : "TAB\n");
+    fireEvent.compositionEnd(lyrics, { data: "canción" });
+    expect(latest.lyricsText).toBe(side === "before" ? "canción\nTAB" : "TAB\ncanción");
+    expect(document.querySelectorAll("[data-tab-block]")).toHaveLength(1);
+  });
+
+  it.each(["before", "after"] as const)("pastes ASCII tablature %s a block without losing either block", async side => {
+    mockMatchMedia(false);
+    const initial = songState("TAB", state => ({ type: "setTabBlock", lineId: tabLineIds(state.song)[0]!, block: RIFF }));
+    render(<Editor initial={initial} />);
+    await loadedTabs();
+    fireEvent.click(screen.getByRole("button", { name: side === "before" ? "Antes de la tablatura" : "Después de la tablatura" }));
+    const lyrics = focusedLyrics();
+    fireEvent.paste(lyrics, { clipboardData: { getData: () => "e|-5-\nB|---\nG|---\nD|---\nA|---\nE|---" } });
+    await waitFor(() => expect(latest.lyricsText).toBe("TAB\nTAB"));
+    const ids = tabLineIds(latest.song);
+    expect(ids[side === "before" ? 1 : 0]).toBe(tabLineIds(initial.song)[0]);
+    expect(latest.tabs[ids[side === "before" ? 1 : 0]!]).toEqual(RIFF);
+    expect(latest.tabs[ids[side === "before" ? 0 : 1]!].tabs).toEqual([[[5, null, null, null, null, null]]]);
+  });
+
+  it("deletes an explicit selection after leaving a lateral cursor", async () => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("una\nTAB\nnoche")} />);
+    await loadedTabs();
+    fireEvent.click(screen.getByRole("button", { name: "Antes de la tablatura" }));
+    const lyrics = focusedLyrics();
+    const from = textNodeOf(0);
+    act(() => window.getSelection()!.setBaseAndExtent(from, from.length, textNodeOf(2, "first"), 0));
+    fireEvent(document, new Event("selectionchange"));
+    input(lyrics, "deleteContentBackward");
+    expect(latest.lyricsText).toBe("unanoche");
+  });
+
+  const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+  beforeEach(() => { HTMLElement.prototype.scrollIntoView = vi.fn(); });
+  afterEach(() => {
+    if (originalScrollIntoView) HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+    else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+  });
+  it("keeps vertical movement inside intermediate visual rows", async () => {
+    mockMatchMedia(false);
+    const longRiff: TabBlock = { tabs: [Array.from({ length: 80 }, () => [3, null, null, null, null, null])] };
+    render(<Editor initial={songState("TAB", state => ({ type: "setTabBlock", lineId: tabLineIds(state.song)[0]!, block: longRiff }))} />);
+    const element = await loadedTabs();
+    const staves = element.querySelectorAll(".ascii-tabs-staff");
+    expect(staves.length).toBeGreaterThan(2);
+    fireEvent.pointerDown(staves[1]!.querySelector('[data-s="0"]')!, { button: 0 });
+    const field = element.querySelector<HTMLInputElement>(".ascii-tabs-input")!;
+    fireEvent.keyDown(field, { key: "ArrowUp" });
+    expect(field).toHaveFocus();
+    expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-s", "5");
+    fireEvent.keyDown(field, { key: "ArrowDown" });
+    expect(field).toHaveFocus();
+    expect(element.querySelector(".ascii-tabs-cur")).toHaveAttribute("data-s", "0");
+    expect(latest.lyricsText).toBe("TAB");
+    expect(element.value).toEqual(longRiff.tabs);
+  });
+
+  it.each(["TAB", "TAB\nnoche", "una\nTAB", "una\nTAB\nnoche"])("types from both sides of a block in %j without changing its frets", async text => {
+    mockMatchMedia(false);
+    const initial = songState(text, state => ({ type: "setTabBlock", lineId: tabLineIds(state.song)[0]!, block: RIFF }));
+    render(<Editor initial={initial} />);
+    const element = await loadedTabs();
+    fireEvent.click(screen.getByRole("button", { name: "Antes de la tablatura" }));
+    const lyrics = focusedLyrics();
+    input(lyrics, "insertText", "hola");
+    input(lyrics, "insertText", "!");
+    expect(latest.lyricsText).toBe(text.replace("TAB", "hola!\nTAB"));
+    fireEvent.click(screen.getByRole("button", { name: "Después de la tablatura" }));
+    input(lyrics, "insertText", "fin");
+    input(lyrics, "insertText", ".");
+    expect(latest.lyricsText).toBe(text.replace("TAB", "hola!\nTAB\nfin."));
+    expect(tabLineIds(latest.song)).toEqual(tabLineIds(initial.song));
+    expect(element.value).toEqual(RIFF.tabs);
+  });
+
+  it("uses the shared position for clicks and slot exits between consecutive blocks", async () => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("TAB\nTAB")} />);
+    await loadedTabs();
+    fireEvent.click(screen.getAllByRole("button", { name: "Después de la tablatura" })[0]!);
+    expect(screen.getAllByRole("button", { name: "Antes de la tablatura" })[1]).toHaveAttribute("aria-pressed", "true");
+    const lyrics = focusedLyrics();
+    fireEvent.keyDown(lyrics, { key: "Enter" });
+    expect(latest.lyricsText).toBe("TAB\n\nTAB");
+    expect(screen.getAllByRole("button", { name: "Antes de la tablatura" })[1]).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("moves onto the new lyric line after Enter on the right", async () => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("TAB")} />);
+    await loadedTabs();
+    fireEvent.click(screen.getByRole("button", { name: "Después de la tablatura" }));
+    const lyrics = focusedLyrics();
+    fireEvent.keyDown(lyrics, { key: "Enter" });
+    expect(latest.lyricsText).toBe("TAB\n");
+    expect(screen.getByRole("button", { name: "Después de la tablatura" })).toHaveAttribute("aria-pressed", "false");
+    input(lyrics, "insertText", "noche");
+    expect(latest.lyricsText).toBe("TAB\nnoche");
+  });
+
+  it("walks vertically from lyrics through the sides and stays at document boundaries", async () => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("una\nTAB\nnoche")} />);
+    await loadedTabs();
+    const lyrics = focusedLyrics();
+    act(() => window.getSelection()!.collapse(textNodeOf(0), 1));
+    fireEvent.keyDown(lyrics, { key: "ArrowDown" });
+    expect(screen.getByRole("button", { name: "Antes de la tablatura" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.keyDown(lyrics, { key: "ArrowDown" });
+    expect(screen.getByRole("button", { name: "Después de la tablatura" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.keyDown(lyrics, { key: "ArrowDown" });
+    expect(window.getSelection()!.anchorNode).toBe(textNodeOf(2, "first"));
+    fireEvent.keyDown(lyrics, { key: "ArrowUp" });
+    expect(screen.getByRole("button", { name: "Después de la tablatura" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.keyDown(lyrics, { key: "ArrowUp" });
+    expect(screen.getByRole("button", { name: "Antes de la tablatura" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.keyDown(lyrics, { key: "ArrowUp" });
+    input(lyrics, "insertText", "!");
+    expect(latest.lyricsText).toBe("una!\nTAB\nnoche");
+  });
+
+  it("protects the block from lateral deletion and navigation adds no undo steps", async () => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("TAB")} />);
+    await loadedTabs();
+    const lyrics = focusedLyrics();
+    fireEvent.click(screen.getByRole("button", { name: "Antes de la tablatura" }));
+    for (const key of ["ArrowUp", "ArrowLeft", "Backspace", "Delete"]) fireEvent.keyDown(lyrics, { key });
+    expect(screen.getByRole("button", { name: "Antes de la tablatura" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.keyDown(lyrics, { key: "ArrowRight" });
+    for (const key of ["ArrowDown", "ArrowRight", "Backspace", "Delete"]) fireEvent.keyDown(lyrics, { key });
+    input(lyrics, "deleteContentBackward");
+    input(lyrics, "deleteContentForward");
+    expect(screen.getByRole("button", { name: "Después de la tablatura" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.keyDown(window, { key: "z", metaKey: true });
+    expect(latest.lyricsText).toBe("TAB");
+  });
+
+  it.each([{ mobile: true, canEdit: true }, { mobile: false, canEdit: false }])("offers no lateral editing for %j", async ({ mobile, canEdit }) => {
+    mockMatchMedia(mobile);
+    render(<Editor initial={songState("TAB")} canEdit={canEdit} />);
+    const element = await loadedTabs();
+    expect(element).toHaveAttribute("readonly");
+    expect(screen.queryByRole("button", { name: "Antes de la tablatura" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Después de la tablatura" })).toBeNull();
+  });
+
+  it.each(["ArrowUp", "ArrowDown"])("exits a slot at the visual boundary with %s and can insert lyrics", async key => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("TAB", state => ({ type: "setTabBlock", lineId: tabLineIds(state.song)[0]!, block: RIFF }))} />);
+    const element = await loadedTabs();
+    const string = key === "ArrowUp" ? 0 : 5;
+    fireEvent.pointerDown(element.querySelector(`[data-c="0"][data-s="${string}"]`)!, { button: 0 });
+    const field = element.querySelector<HTMLInputElement>(".ascii-tabs-input")!;
+    fireEvent.keyDown(field, { key });
+    const lyrics = document.querySelector<HTMLElement>('[aria-label="Letra de la canción"]')!;
+    expect(lyrics).toHaveFocus();
+    expect(screen.getByRole("button", { name: key === "ArrowUp" ? "Antes de la tablatura" : "Después de la tablatura" })).toHaveAttribute("aria-pressed", "true");
+    expect(latest.lyricsText).toBe("TAB");
+    input(lyrics, "insertText", "canto");
+    expect(latest.lyricsText).toBe(key === "ArrowUp" ? "canto\nTAB" : "TAB\ncanto");
+    expect(element.value).toEqual(RIFF.tabs);
+  });
+
+  it("walks consecutive tablatures once in each direction without editing the document", async () => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("una\nTAB\nTAB\nnoche")} />);
+    await loadedTabs();
+    const lyrics = focusedLyrics();
+    act(() => window.getSelection()!.collapse(textNodeOf(0), textNodeOf(0).length));
+    const before = screen.getAllByRole("button", { name: "Antes de la tablatura" });
+    const after = screen.getAllByRole("button", { name: "Después de la tablatura" });
+    for (const target of [before[0], before[1], after[1]]) {
+      fireEvent.keyDown(lyrics, { key: "ArrowRight" });
+      expect(target).toHaveAttribute("aria-pressed", "true");
+    }
+    fireEvent.keyDown(lyrics, { key: "ArrowRight" });
+    expect(window.getSelection()!.anchorNode).toBe(textNodeOf(3, "first"));
+    expect(window.getSelection()!.anchorOffset).toBe(0);
+    for (const target of [after[1], before[1], before[0]]) {
+      fireEvent.keyDown(lyrics, { key: "ArrowLeft" });
+      expect(target).toHaveAttribute("aria-pressed", "true");
+    }
+    fireEvent.keyDown(lyrics, { key: "ArrowLeft" });
+    expect(window.getSelection()!.anchorNode).toBe(textNodeOf(0));
+    expect(window.getSelection()!.anchorOffset).toBe(textNodeOf(0).length);
+    expect(latest.lyricsText).toBe("una\nTAB\nTAB\nnoche");
+  });
+
+  it.each(["before", "after"] as const)("pastes a chord sheet %s a tablature, preserving its identity and undo history", async side => {
+    mockMatchMedia(false);
+    const initial = songState("TAB", state => ({ type: "setTabBlock", lineId: tabLineIds(state.song)[0]!, block: { ...RIFF, spacing: 4 } }));
+    render(<Editor initial={initial} />);
+    await loadedTabs();
+    fireEvent.click(screen.getByRole("button", { name: side === "before" ? "Antes de la tablatura" : "Después de la tablatura" }));
+    const lyrics = focusedLyrics();
+    fireEvent.paste(lyrics, { clipboardData: { getData: () => "G\nuna noche" } });
+    expect(latest.lyricsText).toBe(side === "before" ? "una noche\nTAB" : "TAB\nuna noche");
+    expect(Object.values(latest.cells.chords ?? {})).toContain("G");
+    expect(tabLineIds(latest.song)).toEqual(tabLineIds(initial.song));
+    expect(latest.tabs).toEqual(initial.tabs);
+    fireEvent.keyDown(window, { key: "z", metaKey: true });
+    expect(latest.lyricsText).toBe("TAB");
+    expect(latest.tabs).toEqual(initial.tabs);
+    fireEvent.keyDown(window, { key: "z", metaKey: true, shiftKey: true });
+    expect(latest.lyricsText).toBe(side === "before" ? "una noche\nTAB" : "TAB\nuna noche");
+    expect(latest.tabs).toEqual(initial.tabs);
+  });
+
+  it("inserts a line before an isolated tablature and keeps its lateral caret", async () => {
+    mockMatchMedia(false);
+    render(<Editor initial={songState("TAB")} />);
+    await loadedTabs();
+    fireEvent.click(screen.getByRole("button", { name: "Antes de la tablatura" }));
+    const lyrics = focusedLyrics();
+    expect(latest.lyricsText).toBe("TAB");
+    fireEvent.keyDown(lyrics, { key: "Enter" });
+    expect(latest.lyricsText).toBe("\nTAB");
+    expect(screen.getByRole("button", { name: "Antes de la tablatura" })).toHaveAttribute("aria-pressed", "true");
+  });
+
   afterEach(() => vi.unstubAllGlobals());
 
   it("keeps the tablature focused through edits inside the lyrics editor", async () => {

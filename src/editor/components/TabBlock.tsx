@@ -38,18 +38,20 @@ interface TabBlockProps {
   onSpacingChange?: (spacing: number) => void;
   /** Deleting the block's last Tab deletes the whole block. */
   onRemove?: () => void;
+  /** Leave the grid only at the top/bottom visual boundary of the whole block. */
+  onExit?: (side: "before" | "after") => void;
 }
 
 /** A tab block drawn with ascii-tabs. Controlled: the content and spacing always come from the
  *  song, and every edit goes back to it. */
-export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove }: TabBlockProps) {
+export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove, onExit }: TabBlockProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const elementRef = useRef<AsciiTabs | null>(null);
   const [ready, setReady] = useState(() => loadedAsciiTabs() !== null);
-  const callbacks = useRef({ onChange, onSpacingChange, onRemove });
+  const callbacks = useRef({ onChange, onSpacingChange, onRemove, onExit });
   const blockRef = useRef(block);
   useLayoutEffect(() => {
-    callbacks.current = { onChange, onSpacingChange, onRemove };
+    callbacks.current = { onChange, onSpacingChange, onRemove, onExit };
     blockRef.current = block;
   });
 
@@ -113,15 +115,33 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
       event.preventDefault();
       callbacks.current.onRemove?.();
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (readOnly || !callbacks.current.onExit || event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (!(event.target instanceof HTMLElement) || !event.target.matches(".ascii-tabs-input")) return;
+      const current = element.querySelector<HTMLElement>(".ascii-tabs-cur");
+      const staff = current?.closest(".ascii-tabs-staff");
+      const staves = element.querySelectorAll(".ascii-tabs-staff");
+      const side = event.key === "ArrowUp" && current?.dataset.s === "0" && staff === staves[0]
+        ? "before"
+        : event.key === "ArrowDown" && current?.dataset.s === "5" && staff === staves[staves.length - 1]
+          ? "after"
+          : null;
+      if (!side) return;
+      event.preventDefault();
+      event.stopPropagation();
+      callbacks.current.onExit(side);
+    };
     element.addEventListener("change", handleChange);
     element.addEventListener("input", handleInput);
     element.addEventListener("delete", handleDelete);
+    element.addEventListener("keydown", handleKeyDown, true);
     host.append(element);
     elementRef.current = element;
     return () => {
       element.removeEventListener("change", handleChange);
       element.removeEventListener("input", handleInput);
       element.removeEventListener("delete", handleDelete);
+      element.removeEventListener("keydown", handleKeyDown, true);
       element.remove();
       elementRef.current = null;
     };

@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
 import { columnForSlot, getLineCellSlots, isLyricLineText, isTabLineText, TAB_MARKER } from "../../core/model";
@@ -91,6 +92,12 @@ interface SongViewProps {
 interface CaretPosition {
   lineIndex: number;
   offset: number;
+}
+
+type TabSide = "before" | "after";
+interface TabCaret {
+  lineId: string;
+  side: TabSide;
 }
 
 /** A word-boundary gap is a non-editable `<button>` with no text content of its own \u2014 it
@@ -396,7 +403,7 @@ function walkAndPlaceCaret(nodes: Node[], remaining: number): number {
     if (node.hasAttribute("data-empty-line-caret")) continue;
     // A caret inside a non-editable element with no text of its own (a line-edge drop zone, a gap
     // inside a word) can't be typed at.
-    if (node.contentEditable === "false" && !node.textContent && !node.classList.contains("syllable-gap--word-boundary"))
+    if (node.getAttribute("contenteditable") === "false" && !node.textContent && !node.classList.contains("syllable-gap--word-boundary"))
       continue;
     if (
       node.tagName === "BR" ||
@@ -658,6 +665,10 @@ export function SongView({
     function handleSelectionChange() {
       const root = rootRef.current;
       if (!root || document.activeElement !== root) return;
+      const selection = window.getSelection();
+      // Chrome may normalize a collapsed host boundary into a nearby text node. The virtual
+      // position remains authoritative until the author clicks, navigates away or selects a range.
+      if (tabCaretRef.current && selection && !selection.isCollapsed) setTabCaret(null);
       setCaretLineIndex(captureCaret(root)?.lineIndex ?? null);
     }
     document.addEventListener("selectionchange", handleSelectionChange);
@@ -670,6 +681,73 @@ export function SongView({
   // Only the line just left: a `TAB` that undo brought back elsewhere stays lyrics, or converting
   // it again would wipe the redo history. Mobile never inserts a block.
   const isMobile = useIsMobile();
+  const [tabCaret, setTabCaretState] = useState<TabCaret | null>(null);
+  const tabCaretRef = useRef<TabCaret | null>(null);
+  function setTabCaret(caret: TabCaret | null) {
+    tabCaretRef.current = caret;
+    setTabCaretState(caret);
+  }
+
+  useLayoutEffect(() => {
+    if (tabCaretRef.current && (!canEdit || isMobile || !showTabs || !song.some(line => line.tab && line.id === tabCaretRef.current?.lineId))) {
+      setTabCaret(null);
+    }
+  }, [canEdit, isMobile, showTabs, song]);
+
+  function focusTabSide(lineId: string, side: TabSide) {
+    if (!canEdit || isMobile || !showTabs) return;
+    const index = song.findIndex(line => line.id === lineId);
+    if (index < 0) return;
+    const next = song[index + 1];
+    const caret: TabCaret = side === "after" && next?.tab
+      ? { lineId: next.id, side: "before" }
+      : { lineId, side };
+    setTabCaret(caret);
+    const root = rootRef.current;
+    if (!root) return;
+    root.focus({ preventScroll: true });
+    // A host boundary gives the keyboard an editing target without selecting the TAB marker.
+    const wrapperIndex = Array.from(root.children).findIndex(child =>
+      child.querySelector("[data-tab-id]")?.getAttribute("data-tab-id") === caret.lineId);
+    if (wrapperIndex >= 0) placeCaretAt(root, wrapperIndex + (caret.side === "after" ? 1 : 0));
+    setCaretLineIndex(null);
+  }
+
+  function insertAtTabSide(value: string, pasted = false) {
+    const caret = tabCaretRef.current;
+    if (!caret || !canEdit || isMobile) return;
+    if (pasted && !value) return;
+    const index = song.findIndex(line => line.id === caret.lineId);
+    if (index < 0) return;
+    const start = lineStarts(lyricLines)[index]! + (caret.side === "after" ? TAB_MARKER.length : 0);
+    if (pasted) {
+      setTabCaret(null);
+      insertChordSheet(lyricsText, start, start, value, caret.side);
+      return;
+    }
+    const replacement = value === "\n" ? "\n" : caret.side === "before" ? `${value}\n` : `\n${value}`;
+    if (value !== "\n" || caret.side === "after") setTabCaret(null);
+    replaceRange(start, start, replacement);
+    if (value === "\n" && caret.side === "before") pendingCaret.current = null;
+    else if (caret.side === "before") placeCaretAfterEdit(lyricsText.slice(0, start) + replacement + lyricsText.slice(start), start + value.length);
+  }
+
+  function moveFromTabSide(forward: boolean) {
+    const caret = tabCaretRef.current;
+    const root = rootRef.current;
+    if (!caret || !root) return;
+    const index = song.findIndex(line => line.id === caret.lineId);
+    if (index < 0) return;
+    if (forward && caret.side === "before") return focusTabSide(caret.lineId, "after");
+    if (!forward && caret.side === "after") return focusTabSide(caret.lineId, "before");
+    const targetIndex = index + (forward ? 1 : -1);
+    const target = song[targetIndex];
+    if (!target) return;
+    if (target.tab) return focusTabSide(target.id, forward ? "after" : "before");
+    setTabCaret(null);
+    restoreCaret(root, { lineIndex: targetIndex, offset: forward ? 0 : lyricLines[targetIndex]!.length });
+    setCaretLineIndex(targetIndex);
+  }
   const typingLineRef = useRef<number | undefined>(undefined);
   useEffect(() => {
     const typingLine = isFocused && caretLineIndex !== null ? caretLineIndex : undefined;
@@ -828,18 +906,20 @@ export function SongView({
 
   /** Replaces `[start, end)` of `text` with pasted text. Chords written on their own line above
       a lyric line become chords over its syllables. */
-  function insertChordSheet(text: string, start: number, end: number, pasted: string) {
+  function insertChordSheet(text: string, start: number, end: number, pasted: string, side?: TabSide) {
     const sheet = pasted.replace(/\r\n?/g, "\n");
     // Mobile never inserts a tab block: a pasted tablature stays text there.
     const segments = isMobile ? [] : splitAsciiTabs(sheet);
     if (segments.some((segment) => segment.kind === "tab")) {
-      void loadAsciiTabs().then(({ parse }) => insertWithTabs(text, start, end, segments, parse));
+      void loadAsciiTabs().then(({ parse }) => insertWithTabs(text, start, end, segments, parse, side));
       return;
     }
-    const { lyricsText, placements } = parseChordSheet(sheet, isLyricLineText);
-    const newText = text.slice(0, start) + lyricsText + text.slice(end);
-    placeCaretAfterEdit(newText, start + lyricsText.length);
-    const options = editOptions(text, start, end, lyricsText, { typed: false });
+    const parsed = parseChordSheet(sheet, isLyricLineText);
+    const inserted = side === "before" ? `${parsed.lyricsText}\n` : side === "after" ? `\n${parsed.lyricsText}` : parsed.lyricsText;
+    const placements = side === "after" ? parsed.placements.map(placement => ({ ...placement, lineIndex: placement.lineIndex + 1 })) : parsed.placements;
+    const newText = text.slice(0, start) + inserted + text.slice(end);
+    placeCaretAfterEdit(newText, start + inserted.length - (side === "before" ? 1 : 0));
+    const options = editOptions(text, start, end, inserted, { typed: false });
     if (placements.length > 0) {
       const startPosition = positionFromFlatOffset(newText.split("\n"), start);
       onPasteText(newText, startPosition.lineIndex, startPosition.offset, placements, options);
@@ -856,6 +936,7 @@ export function SongView({
     end: number,
     segments: PasteSegment[],
     parse: (ascii: string) => TabBlockContent["tabs"][number],
+    side?: TabSide,
   ) {
     const pieces: string[] = [];
     const placements: ChordPlacement[] = [];
@@ -878,12 +959,12 @@ export function SongView({
 
     // A block takes a line of its own, even when pasted into the middle of one.
     let inserted = pieces.join("\n");
-    const leadingBreak = segments[0]!.kind === "tab" && text.slice(lineStartBoundary(text, start), start) !== "";
+    const leadingBreak = side === "after" || (segments[0]!.kind === "tab" && text.slice(lineStartBoundary(text, start), start) !== "");
     if (leadingBreak) inserted = `\n${inserted}`;
-    if (segments.at(-1)!.kind === "tab" && text.slice(end, lineEndBoundary(text, end)) !== "") inserted += "\n";
+    if (side === "before" || (segments.at(-1)!.kind === "tab" && text.slice(end, lineEndBoundary(text, end)) !== "")) inserted += "\n";
 
     const newText = text.slice(0, start) + inserted + text.slice(end);
-    placeCaretAfterEdit(newText, start + inserted.length);
+    placeCaretAfterEdit(newText, start + inserted.length - (side === "before" ? 1 : 0));
     const startPosition = positionFromFlatOffset(newText.split("\n"), start);
     onPasteText(
       newText,
@@ -904,6 +985,7 @@ export function SongView({
   function focusDocument() {
     const root = rootRef.current;
     if (!root) return;
+    if (tabCaretRef.current) return;
     // Chrome fabricates a default selection anchored on the editing host itself as a side effect
     // of `.focus()`, with no real user intent behind it. Only trust the current selection when the
     // document was already focused before this call (e.g. as part of the very click that's
@@ -955,6 +1037,16 @@ export function SongView({
   function handleBeforeInput(event: InputEvent) {
     if (!canEdit) return;
     if ((event.target as HTMLElement).closest("[data-track]")) return;
+    if (!event.cancelable || event.isComposing || event.inputType === "insertCompositionText") return;
+    if (tabCaretRef.current) {
+      event.preventDefault();
+      if (event.inputType === "insertParagraph" || event.inputType === "insertLineBreak") insertAtTabSide("\n");
+      else if (NATIVE_FAST_PATH_TYPES.has(event.inputType) && event.data) insertAtTabSide(event.data, /[\r\n]/.test(event.data));
+      else if (event.inputType === "insertFromPaste" || event.inputType === "insertFromDrop") {
+        insertAtTabSide(event.dataTransfer?.getData("text/plain") ?? "", true);
+      }
+      return;
+    }
     const inputType = event.inputType;
     // A composing keyboard's text, or anything else the browser won't let us cancel, is left to
     // the browser; `commitNativeEdit` reads it back afterwards. Writing it ourselves as well
@@ -1060,6 +1152,24 @@ export function SongView({
     // This runs in the capture phase, before a tab block's grid sees the key: its arrows, Enter
     // and Tab move between frets, and moving the lyrics caret here would take the focus from it.
     if ((event.target as HTMLElement).closest("[data-tab-block]")) return;
+    if (tabCaretRef.current && (event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) && event.key !== "Enter") {
+      if (event.key.startsWith("Arrow") || event.key.toLowerCase() === "a") setTabCaret(null);
+    }
+    if (tabCaretRef.current && event.key === "Tab") return;
+    if (tabCaretRef.current && (event.key === "Backspace" || event.key === "Delete")) {
+      event.preventDefault();
+      return;
+    }
+    if (tabCaretRef.current && event.key.startsWith("Arrow") && !event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      event.preventDefault();
+      moveFromTabSide(event.key === "ArrowRight" || event.key === "ArrowDown");
+      return;
+    }
+    if (tabCaretRef.current && event.key === "Enter" && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      event.preventDefault();
+      insertAtTabSide("\n");
+      return;
+    }
 
     // A standalone TAB becomes a block as soon as its author confirms it with any of the usual
     // line-leaving keys. Enter is handled below through the normal newline path; Tab and Space
@@ -1169,7 +1279,12 @@ export function SongView({
       offset = Math.min(offset, lineText(lines[lineIndex]).length);
     }
 
-    // The caret steps over a tab block, to the lyrics on its other side.
+    if (isTabLine(lines[lineIndex]!) && canEdit && !isMobile && showTabs) {
+      event.preventDefault();
+      focusTabSide(song[lineIndex]!.id, event.key === "ArrowLeft" || event.key === "ArrowUp" ? "after" : "before");
+      return;
+    }
+    // Hidden or read-only blocks retain the existing text-only navigation.
     const step = lineIndex < caret.lineIndex ? -1 : 1;
     while (lines[lineIndex] && isTabLine(lines[lineIndex]!)) lineIndex += step;
     const target = lines[lineIndex];
@@ -1208,6 +1323,13 @@ export function SongView({
     }
     const caret = pendingCaret.current;
     pendingCaret.current = null;
+    const virtualCaret = tabCaretRef.current;
+    if (root && virtualCaret) {
+      // Reanchor after an insertion or undo so modified native selections start at the same
+      // boundary as the visible cursor, even when the block moved to another line.
+      focusTabSide(virtualCaret.lineId, virtualCaret.side);
+      return;
+    }
     if (!root || !caret) return;
     // Setting the selection again, even to where it already is, makes a phone keyboard drop the
     // word it was working on.
@@ -1243,6 +1365,7 @@ export function SongView({
           "song" +
           (song.length === 0 ? " song--empty" : "") +
           (!hasVisibleAnnotations ? " song--annotations-hidden" : "") +
+          (isFocused && tabCaret ? " song--tab-caret" : "") +
           (!showUnderline ? " song--underline-hidden" : "")
         }
         contentEditable={canEdit}
@@ -1253,6 +1376,7 @@ export function SongView({
         role={canEdit ? "textbox" : undefined}
         aria-multiline={canEdit ? true : undefined}
         aria-label={canEdit ? "Letra de la canción" : undefined}
+        tabIndex={canEdit ? 0 : undefined}
         onFocus={(event) => {
           // React focus events bubble from chord/note inputs too; only the editing host itself
           // should establish a lyric caret.
@@ -1269,9 +1393,14 @@ export function SongView({
           );
         }}
         onBlur={(event) => {
-          if (event.target === event.currentTarget) setIsFocused(false);
+          if (event.target === event.currentTarget) {
+            setIsFocused(false);
+            setTabCaret(null);
+          }
         }}
         onPointerDownCapture={(event) => {
+          if ((event.target as HTMLElement).closest("[data-tab-side]")) return;
+          setTabCaret(null);
           if (event.button !== 0) return;
           const root = rootRef.current;
           const managed =
@@ -1337,6 +1466,8 @@ export function SongView({
           selectionGesture.current = null;
         }}
         onClick={(event) => {
+          if ((event.target as HTMLElement).closest("[data-tab-side]")) return;
+          setTabCaret(null);
           const gesture = selectionGesture.current;
           const pointerMoved = gesture?.moved ?? false;
           selectionGesture.current = null;
@@ -1406,6 +1537,9 @@ export function SongView({
         onCompositionStart={(event) => {
           if (!canEdit) return;
           if ((event.target as HTMLElement).closest("[data-track]")) return;
+          // IME input is not cancellable. Give it a real lyric row before it begins writing,
+          // then let the existing native composition flow keep the in-progress word intact.
+          if (tabCaretRef.current) flushSync(() => insertAtTabSide(""));
           const root = rootRef.current;
           composing.current = true;
           compositionStart.current = root ? selectedRange(root) : null;
@@ -1466,6 +1600,10 @@ export function SongView({
           if ((event.target as HTMLElement).closest("[data-track]")) return;
           if (!canEdit) return;
           event.preventDefault();
+          if (tabCaretRef.current) {
+            insertAtTabSide(event.clipboardData.getData("text/plain"), true);
+            return;
+          }
           const root = rootRef.current;
           if (!root) return;
           const selected = selectedRange(root);
@@ -1495,6 +1633,8 @@ export function SongView({
               block={tabs[line.id] ?? EMPTY_TAB_BLOCK}
               visible={showTabs}
               readOnly={!canEdit}
+              caretSide={isFocused && tabCaret?.lineId === line.id ? tabCaret.side : null}
+              onFocusSide={canEdit && !isMobile ? side => focusTabSide(line.id, side) : undefined}
               onSetTabBlock={onSetTabBlock}
               onSetTabSpacing={onSetTabSpacing}
               onRemoveTabBlock={onRemoveTabBlock}
@@ -1545,6 +1685,8 @@ export function SongView({
 }
 
 interface TabLineViewProps {
+  caretSide: TabSide | null;
+  onFocusSide?: (side: TabSide) => void;
   lineId: string;
   block: TabBlockContent;
   /** Hidden, the line stays in the document (its `TAB` marker keeps every line index in step)
@@ -1562,15 +1704,19 @@ function TabLineView({
   block,
   visible,
   readOnly,
+  caretSide,
+  onFocusSide,
   onSetTabBlock,
   onSetTabSpacing,
   onRemoveTabBlock,
 }: TabLineViewProps) {
   // Mobile is read-only for tab blocks too, even in an editor that lets a phone edit lyrics.
   const isMobile = useIsMobile();
+  const focusSide = visible && !readOnly && !isMobile ? onFocusSide : undefined;
   return (
     <div className="line line--tab" hidden={!visible}>
-      <div className="tab-line" data-lyrics-line data-tab-line contentEditable={false}>
+      <div className="tab-line" data-lyrics-line data-tab-line data-tab-id={lineId} contentEditable={false}>
+        <TabSideButton side="before" selected={caretSide === "before"} onFocusSide={focusSide} />
         {visible ? (
           <TabBlock
             block={block}
@@ -1578,9 +1724,32 @@ function TabLineView({
             onChange={(tabs) => onSetTabBlock?.(lineId, { ...block, tabs })}
             onSpacingChange={(spacing) => onSetTabSpacing?.(lineId, spacing)}
             onRemove={() => onRemoveTabBlock?.(lineId)}
+            onExit={!readOnly && !isMobile ? onFocusSide : undefined}
           />
         ) : null}
+        <TabSideButton side="after" selected={caretSide === "after"} onFocusSide={focusSide} />
       </div>
     </div>
+  );
+}
+
+function TabSideButton({ side, selected, onFocusSide }: {
+  side: TabSide;
+  selected: boolean;
+  onFocusSide?: (side: TabSide) => void;
+}) {
+  if (!onFocusSide) return null;
+  return (
+    <button
+      type="button"
+      className={`tab-side tab-side--${side}`}
+      data-tab-side={side}
+      aria-label={side === "before" ? "Antes de la tablatura" : "Después de la tablatura"}
+      aria-pressed={selected}
+      onPointerDown={event => event.preventDefault()}
+      onClick={() => onFocusSide(side)}
+    >
+      {selected ? <span className="lyric-caret" aria-hidden="true" /> : null}
+    </button>
   );
 }
