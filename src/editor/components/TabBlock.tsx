@@ -94,6 +94,10 @@ export function TabBlock({ block, readOnly, onChange, onSpacingChange, onRemove 
     element.setAttribute("lang", "es");
     element.setAttribute("theme", "light");
     element.setAttribute("variant", "flat");
+    // Flat sheets have no card padding, so a lateral tool column can intrude on the last
+    // String while the component is measuring its available width. Keep the controls in a
+    // row above the Sheet instead; the tab retains its full measured width below.
+    element.setAttribute("tools", "top");
     if (readOnly) {
       element.setAttribute("readonly", "");
     } else {
