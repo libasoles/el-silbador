@@ -89,6 +89,69 @@ describe("TabBlock", () => {
     expect(element).toHaveAttribute("variant", "flat");
   });
 
+  it("pastes and duplicates a group through controlled updates without editing the surrounding lyrics", async () => {
+    const onPaste = vi.fn();
+    const onKeyDown = vi.fn();
+    const view = render(<div onPaste={onPaste} onKeyDown={onKeyDown}><ControlledBlock /></div>);
+    const element = await waitFor(() => {
+      const found = view.container.querySelector<AsciiTabs>("ascii-tabs");
+      if (!found?.querySelector(".ascii-tabs-cell")) throw new Error("ascii-tabs has not rendered yet");
+      return found;
+    });
+    fireEvent.pointerDown(element.querySelector('.ascii-tabs-cell[data-c="0"][data-s="0"]')!, { button: 0 });
+    fireEvent.pointerUp(window);
+    const input = element.querySelector<HTMLInputElement>(".ascii-tabs-input")!;
+    fireEvent.paste(input, { clipboardData: { getData: () => "e|-3--5-\nB|-7----\nG|------\nD|------\nA|------\nE|------" } });
+    const group = [[3, 7, null, null, null, null], [5, null, null, null, null, null]];
+    expect(element.value).toEqual([group]);
+    expect(element.querySelectorAll(".ascii-tabs-selected")).toHaveLength(3);
+
+    fireEvent.keyDown(input, { key: "ArrowRight", altKey: true });
+
+    expect(element.value).toEqual([[...group, ...group]]);
+    expect(element.querySelectorAll(".ascii-tabs-selected")).toHaveLength(3);
+    expect(input).toHaveFocus();
+    expect(onPaste).not.toHaveBeenCalled();
+    expect(onKeyDown).not.toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: "Delete" });
+    expect(element.value[0].slice(0, 2)).toEqual(group);
+    expect(element.querySelectorAll(".ascii-tabs-selected")).toHaveLength(0);
+  });
+
+  it("saves a dragged group while preserving its relative string and column positions", async () => {
+    const view = render(<ControlledBlock />);
+    const element = await waitFor(() => {
+      const found = view.container.querySelector<AsciiTabs>("ascii-tabs");
+      if (!found?.querySelector(".ascii-tabs-cell")) throw new Error("ascii-tabs has not rendered yet");
+      return found;
+    });
+    const cell = (c: number, s: number) => element.querySelector<HTMLElement>(`.ascii-tabs-cell[data-c="${c}"][data-s="${s}"]`)!;
+    fireEvent.pointerDown(cell(0, 0), { button: 0 });
+    fireEvent.pointerUp(window);
+    fireEvent.paste(element.querySelector(".ascii-tabs-input")!, {
+      clipboardData: { getData: () => "e|-3--5-\nB|-7----\nG|------\nD|------\nA|------\nE|------" },
+    });
+    // jsdom has no hit testing; provide the cell under the release point.
+    const original = document.elementFromPoint;
+    document.elementFromPoint = () => cell(1, 1);
+    try {
+      fireEvent.pointerDown(cell(0, 0), { button: 0, pointerId: 1, pointerType: "mouse", clientX: 0, clientY: 0 });
+      fireEvent.pointerMove(window, { pointerId: 1, clientX: 20, clientY: 20 });
+      expect(element.querySelectorAll(".ascii-tabs-drag-preview .ascii-tabs-fret")).toHaveLength(3);
+      fireEvent.pointerUp(window, { pointerId: 1, clientX: 20, clientY: 20 });
+      expect(element.value[0].slice(0, 3)).toEqual([
+        [null, null, null, null, null, null],
+        [null, 3, 7, null, null, null],
+        [null, 5, null, null, null, null],
+      ]);
+      expect(element.querySelectorAll(".ascii-tabs-selected")).toHaveLength(3);
+      expect(element.querySelector(".ascii-tabs-drag-preview")).toBeNull();
+    } finally {
+      if (original) document.elementFromPoint = original;
+      else Reflect.deleteProperty(document, "elementFromPoint");
+    }
+  });
+
   it("draws the block's content in Spanish", async () => {
     const { element } = await renderBlock();
 
