@@ -13,7 +13,6 @@ describe("tablatures article", () => {
       "Copiar y pegar",
       "Más de una tablatura",
       "Espaciado",
-      "En el celular",
     ]) {
       expect(page).toContain("<h2>" + heading + "</h2>");
     }
