@@ -7,7 +7,7 @@
 
 import { findChordShape } from "./findChordShape";
 
-const CHORD_QUALITY = "(?:maj|Maj|min|Min|dim|Dim|aug|Aug|sus|Sus|add|Add|[mM])?";
+const CHORD_QUALITY = "(?:maj|Maj|min|Min|dim|Dim|°|aug|Aug|sus|Sus|add|Add|[mM])?";
 const CHORD_EXTENSION = "[0-9]{0,2}(?:sus[0-9]{0,2})?[0-9]{0,2}[+-]?";
 const CHORD_BODY = `(?:N\\.?C\\.?|[A-G](?:#|b)?${CHORD_QUALITY}${CHORD_EXTENSION}(?:/[A-G](?:#|b)?)?)`;
 const CHORD_TOKEN_RE = new RegExp(`^${CHORD_BODY}$`);

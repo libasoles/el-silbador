@@ -8,14 +8,14 @@ import { SongView } from "./SongView";
 
 const TEXT = "  A    D7\n\nYa nunca";
 
-function renderSong({ canEdit, hidden = [] }: { canEdit: boolean; hidden?: TrackId[] }) {
-  const song = buildSong(TEXT);
+function renderSong({ canEdit, hidden = [], text = TEXT }: { canEdit: boolean; hidden?: TrackId[]; text?: string }) {
+  const song = buildSong(text);
   const tracks = createInitialState().tracks.map((track) => ({ ...track, visible: !hidden.includes(track.id) }));
   const noop = vi.fn();
   render(
     <SongView
       song={song}
-      lyricsText={TEXT}
+      lyricsText={text}
       bisGroups={[]}
       merges={new Set()}
       tracks={tracks}
@@ -39,6 +39,16 @@ function renderSong({ canEdit, hidden = [] }: { canEdit: boolean; hidden?: Track
 }
 
 describe("SongView chord lines", () => {
+  it.each([false, true])("opens diminished diagrams written with ° (mobile: %s)", (mobile) => {
+    mockMatchMedia(mobile);
+    renderSong({ canEdit: false, text: "C#° D°7" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Ver diagrama de C#°" }));
+    expect(document.querySelector(".chord-tooltip__name")).toHaveTextContent("D♭dim7");
+    fireEvent.click(screen.getByRole("button", { name: "Ver diagrama de D°7" }));
+    expect(document.querySelectorAll(".chord-tooltip__name")[1]).toHaveTextContent("Ddim7");
+  });
+
   it("shows a line of only chords as its text, with no syllables or cells", () => {
     mockMatchMedia(false);
     const [chordLine] = renderSong({ canEdit: true });

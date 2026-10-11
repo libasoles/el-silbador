@@ -2,6 +2,16 @@ import { describe, expect, it } from "vitest";
 import { isChordLineText, parseChordSheet } from "../chordSheet";
 
 describe("parseChordSheet", () => {
+  it("preserves ° when importing consecutive diminished chords above lyrics", () => {
+    expect(parseChordSheet("C#°D°7\nla llama")).toEqual({
+      lyricsText: "la llama",
+      placements: [
+        { lineIndex: 0, column: 0, chord: "C#°" },
+        { lineIndex: 0, column: 3, chord: "D°7" },
+      ],
+    });
+  });
+
   it("strips chord lines out of the lyrics and records where each chord sat", () => {
     const text = [
       "D             A7sus4 A7",

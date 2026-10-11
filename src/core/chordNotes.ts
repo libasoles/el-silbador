@@ -26,7 +26,7 @@ function isMinor(rest: string): boolean {
 }
 
 function chordQuality(rest: string): Quality {
-  if (/^dim/i.test(rest)) return "diminished";
+  if (/^(?:dim|°)/i.test(rest)) return "diminished";
   if (/^aug/i.test(rest) || rest.startsWith("+")) return "augmented";
   if (isMinor(rest)) return "minor";
   return "major";

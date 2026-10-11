@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { chordToNoteNames, previousChordNotesBySlot } from "../chordNotes";
 
 describe("chordToNoteNames", () => {
+  it("reads ° as diminished, with a diminished seventh only for °7", () => {
+    expect(chordToNoteNames("B°")).toEqual(["si", "re", "fa"]);
+    expect(chordToNoteNames("B°7")).toEqual(["si", "re", "fa", "sol#"]);
+    expect(chordToNoteNames("F#°")).toEqual(chordToNoteNames("F#dim"));
+  });
+
   it("returns the major triad, root to fifth, for a bare letter", () => {
     expect(chordToNoteNames("C")).toEqual(["do", "mi", "sol"]);
   });

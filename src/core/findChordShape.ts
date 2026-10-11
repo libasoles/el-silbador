@@ -12,13 +12,20 @@ function normalize(text: string): string {
     .replace(/♯/g, "#")
     .replace(/[△Δ]/g, "maj")
     .replace(/ø/g, "m7b5")
+    .replace(/°/g, "dim")
     .replace(/\s+/g, "");
 }
 
 const SHAPES_BY_NORMALIZED_NAME = new Map<string, ChordShape>();
 for (const shape of CHORD_SHAPES) {
   for (const candidate of [shape.name, ...(shape.aliases ?? [])]) {
-    SHAPES_BY_NORMALIZED_NAME.set(normalize(candidate), shape);
+    const normalized = normalize(candidate);
+    SHAPES_BY_NORMALIZED_NAME.set(normalized, shape);
+    // The catalog uses dim7 fingerings for bare dim too. Apply that convention to
+    // every enharmonic alias, including those without an explicit bare-dim entry.
+    if (normalized.endsWith("dim7")) {
+      SHAPES_BY_NORMALIZED_NAME.set(normalized.slice(0, -1), shape);
+    }
   }
 }
 
