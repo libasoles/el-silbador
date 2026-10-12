@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { songDocumentTitle } from "../../../editor/songDocumentTitle";
 import { getSongBySlug, listPublicSongs } from "../../../data/songs";
 import type { SongDetail } from "../../../data/types";
 import { SongPageClient } from "./SongPageClient";
@@ -37,14 +38,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const song = await fetchPublicSong(slug);
-  if (!song) return { title: "Canción" };
+  if (!song) return { title: { absolute: "Canción" } };
 
   const songTitle = displayTitle(song);
   const artist = song.author.trim();
-  // Use an absolute title so the root layout's brand template does not displace the artist.
-  // The resulting title directly answers searches such as "letra de …" and "acordes de … para
-  // guitarra", while still retaining the song's primary identifying information first.
-  const title = `${artist ? `${songTitle} - ${artist}` : songTitle} | Letra y Acordes para Guitarra`;
+  // Ignore the root layout branding in song tabs.
+  const title = songDocumentTitle(songTitle, artist);
   const description = songDescription({ title: songTitle, author: artist, performers: song.performers });
   const url = `/cancion/${slug}`;
 

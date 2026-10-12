@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createInitialState } from "../core/state";
 import type { SongDetail } from "../data/types";
@@ -27,17 +27,17 @@ const song: SongDetail = {
   id: "song", slug: "song", title: "Canción", author: "Autor", ownerId: "owner",
   isPublic: false, isListed: false, youtubeUrl: null, category: null,
   forkedFrom: null, createdAt: "", updatedAt: "", performers: [],
-  content: createInitialState(),
+  content: { ...createInitialState(), title: "Canción", author: "Autor" },
 };
 
-async function renderSong(readOnly: boolean, admin: boolean, mobile = false) {
+async function renderSong(readOnly: boolean, admin: boolean, mobile = false, seeded = true) {
   mockMatchMedia(mobile);
   mocks.admin.mockResolvedValue(admin);
   const client = new QueryClient();
   client.setQueryData(songQueryKeys.bySlug(song.slug), song);
   render(
     <QueryClientProvider client={client}>
-      <App songSlug={song.slug} initialSong={song} readOnly={readOnly} />
+      <App songSlug={song.slug} initialSong={seeded ? song : null} readOnly={readOnly} />
     </QueryClientProvider>,
   );
   await waitFor(() => expect(client.getQueryData(profileQueryKeys.role("owner"))).toBe(admin));
@@ -49,6 +49,19 @@ afterEach(() => {
 });
 
 describe("authoring toolbar controls", () => {
+  it.each([false, true])("uses the song name and author as the browser tab title (server seed: %s)", async (seeded) => {
+    document.title = "Canción — El Silbador";
+    await renderSong(true, false, false, seeded);
+    expect(document.title).toBe("Canción - Autor");
+  });
+
+  it("updates the tab title when the owner edits the song identity", async () => {
+    await renderSong(false, false);
+    fireEvent.change(screen.getByDisplayValue("Canción"), { target: { value: "Zamba" } });
+    fireEvent.change(screen.getByDisplayValue("Autor"), { target: { value: "Nuevo autor" } });
+    expect(document.title).toBe("Zamba - Nuevo autor");
+  });
+
   it.each([false, true])("hides privacy and YouTube in reading mode (admin: %s)", async (admin) => {
     await renderSong(true, admin);
     expect(screen.queryByRole("button", { name: "Hacer pública" })).not.toBeInTheDocument();

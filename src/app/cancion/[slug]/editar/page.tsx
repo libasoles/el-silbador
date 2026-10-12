@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SongPageClient } from "../SongPageClient";
 
 export const metadata: Metadata = {
-  title: "Editar canción",
+  title: { absolute: "Editar canción" },
   // The editor is for the song's owner; readers and crawlers belong on the song's plain URL.
   robots: { index: false, follow: false },
 };

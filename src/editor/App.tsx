@@ -1,3 +1,4 @@
+import { songDocumentTitle } from "./songDocumentTitle";
 import {
   useCallback,
   useEffect,
@@ -422,6 +423,15 @@ function App({
   const [ownerId, setOwnerId] = useState<string | undefined>(
     () => initialSong?.ownerId,
   );
+  // Private songs and the editing route load in the browser, after server metadata resolves.
+  // Keep their tab title in sync with the current content, including unsaved identity edits.
+  useEffect(() => {
+    if (!songSlug || !contentLoaded || loadError?.songSlug === songSlug) return;
+    const previousTitle = document.title;
+    document.title = songDocumentTitle(state.title, state.author);
+    return () => { document.title = previousTitle; };
+  }, [songSlug, contentLoaded, loadError, state.title, state.author]);
+
   useEffect(() => {
     const draft = readDraft(songSlug);
     restoredDraftRef.current = draft;

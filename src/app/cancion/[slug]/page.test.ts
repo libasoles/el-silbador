@@ -64,15 +64,25 @@ describe("song metadata", () => {
     expect(metadata.twitter?.description).toBe(description);
   });
 
-  it("uses the song, artist, lyrics, chords, and guitar in the search title, regardless of performers", async () => {
+  it("uses only the song name and author in the browser tab title", async () => {
     getSongBySlug.mockResolvedValue(song());
 
     const metadata = await generateMetadata({ params });
 
-    const title = "Zamba de amor en vuelo - Jorge Milikota | Letra y Acordes para Guitarra";
+    const title = "Zamba de amor en vuelo - Jorge Milikota";
     expect(metadata.title).toEqual({ absolute: title });
     expect(metadata.openGraph?.title).toBe(title);
     expect(metadata.twitter?.title).toBe(title);
+  });
+
+  it("omits the separator when there is no author", async () => {
+    getSongBySlug.mockResolvedValue(song({ author: "  " }));
+    expect((await generateMetadata({ params })).title).toEqual({ absolute: "Zamba de amor en vuelo" });
+  });
+
+  it("uses an unbranded fallback while a private song is unavailable on the server", async () => {
+    getSongBySlug.mockRejectedValue(new Error("not found"));
+    expect((await generateMetadata({ params })).title).toEqual({ absolute: "Canción" });
   });
 
   it("tells search engines not to index public songs that are not listed", async () => {
