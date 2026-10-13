@@ -74,6 +74,15 @@ describe("Library search", () => {
     vi.unstubAllGlobals();
   });
 
+  it.each([false, true])("links every public song to its read-only page (mobile: %s)", (isMobile) => {
+    mockMatchMedia(isMobile);
+    renderLibrary();
+
+    for (const song of PUBLIC_SONGS) {
+      expect(screen.getByRole("link", { name: `${song.title}${song.author}` })).toHaveAttribute("href", `/cancion/${song.slug}`);
+    }
+  });
+
   it("finds an accented title with a query without accents and marks the original text", async () => {
     mockMatchMedia(false);
     renderLibrary();
@@ -255,7 +264,6 @@ const MY_SONG: SongSummary = {
 
 function renderSignedInLibrary(
   handlers: {
-    onOpenSong?: (song: LibrarySong) => void;
     onEditSong?: (song: LibrarySong) => void;
   },
   favorites: SongSummary[] = [
@@ -288,25 +296,23 @@ describe("Library own songs", () => {
 
   it("opens an own song read-only from its title and in the editor only from the pencil", async () => {
     mockMatchMedia(false);
-    const onOpenSong = vi.fn();
     const onEditSong = vi.fn();
-    renderSignedInLibrary({ onOpenSong, onEditSong });
+    renderSignedInLibrary({ onEditSong });
 
     const row = (await screen.findByText("Mi canción")).closest("li")!;
-    await userEvent.click(within(row).getByText("Mi canción"));
-    expect(onOpenSong).toHaveBeenCalledWith(expect.objectContaining({ slug: "mi-cancion" }));
+    expect(within(row).getByRole("link", { name: /Mi canción/ })).toHaveAttribute("href", "/cancion/mi-cancion");
     expect(onEditSong).not.toHaveBeenCalled();
 
     await userEvent.click(within(row).getByRole("button", { name: "Editar canción" }));
     expect(onEditSong).toHaveBeenCalledWith(expect.objectContaining({ slug: "mi-cancion" }));
-    expect(onOpenSong).toHaveBeenCalledOnce();
   });
 
   it("shows the pencil only next to own songs, not favorites or public ones", async () => {
     mockMatchMedia(false);
     renderSignedInLibrary({});
 
-    await screen.findByText("Favorita");
+    const favorite = await screen.findByRole("link", { name: /Favorita/ });
+    expect(favorite).toHaveAttribute("href", "/cancion/favorita");
     const pencils = screen.getAllByRole("button", { name: "Editar canción" });
     expect(pencils).toHaveLength(1);
     expect(pencils[0].closest("li")).toHaveTextContent("Mi canción");
@@ -335,7 +341,7 @@ describe("Library own songs", () => {
     mockMatchMedia(true);
     renderSignedInLibrary({});
 
-    await screen.findByText("Mi canción");
+    expect(await screen.findByRole("link", { name: /Mi canción/ })).toHaveAttribute("href", "/cancion/mi-cancion");
     expect(screen.queryByRole("button", { name: "Editar canción" })).not.toBeInTheDocument();
   });
 });

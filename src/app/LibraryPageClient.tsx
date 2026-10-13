@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Library } from "../editor/pages/Library";
 import type { LibrarySong } from "../editor/pages/librarySongs";
-import { songEditPath, songPath } from "../editor/songPaths";
+import { songEditPath } from "../editor/songPaths";
 
 /** The URL parameter that mirrors the search box, so a filtered index can be shared as a link. */
 const QUERY_PARAM = "q";
@@ -64,7 +64,6 @@ function LibraryPage({
       initialPublicSongs={initialPublicSongs}
       initialQuery={initialQuery}
       onQueryChange={onQueryChange}
-      onOpenSong={(song) => router.push(songPath(song.slug))}
       onEditSong={(song) => router.push(songEditPath(song.slug))}
       onNewSong={() => router.push("/nueva")}
     />

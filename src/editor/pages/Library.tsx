@@ -46,6 +46,7 @@ import {
   searchSongs,
 } from "./librarySearch";
 import { useIsMobile } from "../useIsMobile";
+import { songPath } from "../songPaths";
 import {
   readLibrarySkeletonCounts,
   saveLibrarySkeletonCount,
@@ -101,7 +102,7 @@ function SongRow({
 
   return (
     <li className={fadeIn ? "library-row library-row--fade-in" : "library-row"}>
-      <button type="button" className="library-row__open" onClick={onOpen}>
+      <Link href={songPath(song.slug)} className="library-row__open" onClick={onOpen}>
         <span className="library-row__title">
           <span className="library-row__title-text">
             <HighlightedText text={song.title} query={query} />
@@ -139,7 +140,7 @@ function SongRow({
             ))}
           </span>
         )}
-      </button>
+      </Link>
       {showFavorite && (
         <IconButtonTooltip
           tooltip={
@@ -321,8 +322,6 @@ interface LibraryProps {
    *  including the one Next performs on the server to produce pre-rendered HTML for crawlers —
    *  already shows real content instead of a loading skeleton. */
   initialPublicSongs?: LibrarySong[];
-  /** Opens a song read-only, whichever list it's in — even the user's own songs. */
-  onOpenSong?: (song: LibrarySong) => void;
   /** Opens one of the user's own songs in the editor (the row's pencil). */
   onEditSong?: (song: LibrarySong) => void;
   onNewSong?: () => void;
@@ -335,7 +334,6 @@ interface LibraryProps {
 export function Library({
   appVersion,
   initialPublicSongs,
-  onOpenSong,
   onEditSong,
   onNewSong,
   initialQuery = "",
@@ -519,7 +517,6 @@ export function Library({
 
   const handleOpen = (song: LibrarySong) => {
     trackEvent("open_song", { song_id: song.id });
-    onOpenSong?.(song);
   };
   const handleEdit = (song: LibrarySong) => {
     trackEvent("edit_song", { song_id: song.id });
