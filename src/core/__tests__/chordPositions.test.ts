@@ -25,8 +25,8 @@ describe("chord positions sanity", () => {
     expect(positions.length).toBe(1);
   });
 
-  it("all 210 chords load without throwing", () => {
-    expect(CHORD_SHAPES.length).toBe(210);
+  it("all 222 chords load without throwing", () => {
+    expect(CHORD_SHAPES.length).toBe(222);
     for (const shape of CHORD_SHAPES) {
       expect(() => getChordPositions(shape)).not.toThrow();
     }

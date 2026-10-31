@@ -16,4 +16,10 @@ describe("findChordShape", () => {
     expect(findChordShape("(G)")?.name).toBe("G");
     expect(findChordShape("(F#m7)")?.name).toBe("F♯m7");
   });
+
+  it.each([
+    ["F13", "F13"], ["F7(13)", "F13"], ["A13", "A13"], ["C#13", "D♭13"], ["Bb13", "B♭13"], ["Ab13", "A♭13"],
+  ])("finds the thirteenth chord %s", (text, name) => {
+    expect(findChordShape(text)?.name).toBe(name);
+  });
 });
