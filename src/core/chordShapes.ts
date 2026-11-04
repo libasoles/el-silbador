@@ -25,13 +25,21 @@ export interface ChordShape {
   position?: number;
   barres?: Barre[];
   fingers: Finger[];
+  /** Other hand-picked fingerings of the same chord, offered after the default (and the computed
+   *  barre position) by the diagram's prev/next arrows. Each inherits the chord's name, families
+   *  and aliases; only the fingering fields are given. */
+  alternatePositions?: Pick<ChordShape, "fingers" | "barres" | "position" | "notes">[];
 }
 
 export const CHORD_SHAPES: ChordShape[] = [
   // ----- MAYORES -----
   { name: 'C', families: ['major'], aliases: ['CM','Cmaj'],
     notes: 'C E G',
-    fingers: [[6,'x'],[5,3,'3'],[4,2,'2'],[3,'o'],[2,1,'1'],[1,'o']] },
+    fingers: [[6,'x'],[5,3,'3'],[4,2,'2'],[3,'o'],[2,1,'1'],[1,'o']],
+    alternatePositions: [{
+      notes: 'C E G C E',
+      fingers: [[6,3,'3'],[5,2,'2'],[4,'o'],[3,'o'],[2,1,'1'],[1,'o']],
+    }] },
   { name: 'D', families: ['major'], aliases: ['DM','Dmaj'],
     notes: 'D A D F♯',
     fingers: [[6,'x'],[5,'x'],[4,'o'],[3,2,'1'],[2,3,'3'],[1,2,'2']] },
@@ -150,8 +158,8 @@ export const CHORD_SHAPES: ChordShape[] = [
     notes: 'D A C F',
     fingers: [[6,'x'],[5,'x'],[4,'o'],[3,2,'2'],[2,1,'1'],[1,1,'1']] },
   { name: 'Em7', families: ['m7'], aliases: ['E-7'],
-    notes: 'E B E D',
-    fingers: [[6,'o'],[5,2,'1'],[4,2,'2'],[3,'x'],[2,3,'3'],[1,'x']] },
+    notes: 'E B E G D E',
+    fingers: [[6,'o'],[5,2,'2'],[4,2,'3'],[3,'o'],[2,3,'4'],[1,'o']] },
   { name: 'Fm7', families: ['m7'], aliases: [],
     notes: 'F C D♯ G♯ C F', position: 1, barres: [{fromString:6,toString:1,fret:1}],
     fingers: [[5,3,'2']] },

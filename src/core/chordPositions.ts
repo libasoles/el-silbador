@@ -110,12 +110,37 @@ function computeAlternate(shape: ChordShape): ChordShape | null {
   return buildAlternateShape(shape, family, candidates[0].shapeKey, candidates[0].fret);
 }
 
+/** Movable dim7 fingerings, rooted on the 6th or the 5th string. The chord is symmetric (every
+ *  minor third repeats it), so each shape slides to any root. Ported from the sibling
+ *  guitar-chords project's chord-positions.js. */
+function dim7Shape(shape: ChordShape, pitchClass: number, rootString: 6 | 5): ChordShape {
+  let rootFret = (pitchClass - (rootString === 6 ? 4 : 9) + 12) % 12;
+  // These shapes need frets below the root, so the open-position cycle is skipped.
+  if (rootFret < 2) rootFret += 12;
+  const fingers: Finger[] =
+    rootString === 6
+      ? [[6, rootFret, "2"], [5, "x"], [4, rootFret - 1, "1"], [3, rootFret, "3"], [2, rootFret - 1, "1"], [1, "x"]]
+      : [[6, "x"], [5, rootFret, "2"], [4, "x"], [3, rootFret - 1, "1"], [2, rootFret + 1, "3"], [1, rootFret - 1, "1"]];
+  return { ...shape, alternatePositions: undefined, barres: [], position: rootFret - 1, fingers };
+}
+
 /**
  * Returns the fingering positions available for a chord: its default shape, plus — for major,
- * minor, dom7 and m7 chords — a second, movable-barre position. Chords outside those four
- * families (dim7, aug, maj7, 9ths, slash, sus, …) only ever return their one stored shape.
+ * minor, dom7 and m7 chords — a second, movable-barre position, then any `alternatePositions`
+ * stored with the chord. A dim7 chord gets its two movable shapes instead of the barre position.
  */
 export function getChordPositions(shape: ChordShape): ChordShape[] {
+  const base: ChordShape = { ...shape, alternatePositions: undefined };
+  const pitchClass = rootPitchClass(shape.name);
+  if (/dim7$/.test(shape.name) && pitchClass != null) {
+    return [base, dim7Shape(shape, pitchClass, 6), dim7Shape(shape, pitchClass, 5)];
+  }
   const alternate = computeAlternate(shape);
-  return alternate ? [shape, alternate] : [shape];
+  const stored = (shape.alternatePositions ?? []).map((position) => ({
+    ...base,
+    barres: undefined,
+    position: undefined,
+    ...position,
+  }));
+  return [base, ...(alternate ? [alternate] : []), ...stored];
 }
