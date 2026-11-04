@@ -4,6 +4,7 @@ import { findChordShape } from "../../core/findChordShape";
 import { trackEvent } from "../analytics";
 import type { DragDelta } from "../pitchDragGesture";
 import { enableTouchDrag } from "../touchDrag";
+import { useReaderChordPositions } from "../ReaderChordPositionsContext";
 import { useCoarsePointer } from "../useIsMobile";
 import type { TapAreaReach } from "./chordTapArea";
 import { ChordTooltip } from "./ChordTooltip";
@@ -141,7 +142,14 @@ export function TrackCell({
 
   const chordShape = showChordDiagram ? findChordShape(value) : null;
   const chordPositions = chordShape ? getChordPositions(chordShape) : [];
-  const clampedVariantIndex = Math.min(chordVariantIndex, Math.max(chordPositions.length - 1, 0));
+  // A reader's own pick for this chord wins over the author's, and is remembered per song.
+  const readerPositions = useReaderChordPositions();
+  const rememberReaderPick = readOnly && chordShape ? readerPositions : null;
+  const shownVariantIndex = rememberReaderPick?.get(chordShape!.name) ?? chordVariantIndex;
+  const changeChordVariant = rememberReaderPick
+    ? (index: number) => rememberReaderPick.set(chordShape!.name, index)
+    : onChangeChordVariant;
+  const clampedVariantIndex = Math.min(shownVariantIndex, Math.max(chordPositions.length - 1, 0));
   const chordVariantShape = chordPositions[clampedVariantIndex] ?? chordShape;
 
   // A click on a known chord shows its diagram rather than jumping straight to editing;
@@ -331,13 +339,13 @@ export function TrackCell({
             shape={chordVariantShape}
             positionCount={chordPositions.length}
             onPrevPosition={
-              onChangeChordVariant
-                ? () => onChangeChordVariant((clampedVariantIndex - 1 + chordPositions.length) % chordPositions.length)
+              changeChordVariant
+                ? () => changeChordVariant((clampedVariantIndex - 1 + chordPositions.length) % chordPositions.length)
                 : undefined
             }
             onNextPosition={
-              onChangeChordVariant
-                ? () => onChangeChordVariant((clampedVariantIndex + 1) % chordPositions.length)
+              changeChordVariant
+                ? () => changeChordVariant((clampedVariantIndex + 1) % chordPositions.length)
                 : undefined
             }
             anchorEl={chipRef.current}

@@ -78,6 +78,12 @@ import {
   readReaderTransposePreference,
   saveReaderTransposePreference,
 } from "./readerTransposeStorage";
+import {
+  readReaderChordPositions,
+  saveReaderChordPositions,
+  type ReaderChordPositions,
+} from "./readerChordPositionsStorage";
+import { ReaderChordPositionsContext } from "./ReaderChordPositionsContext";
 import { useTabsToggle } from "./useTabsToggle";
 import { TabsToggleButton } from "./components/TabsToggleButton";
 
@@ -669,6 +675,23 @@ function App({
     setReaderTransposeOffset(readReaderTransposePreference(songDbId) ?? 0);
   }, [readerMode, songDbId]);
 
+  // The chord diagram positions a reader picked, remembered per song like the key above.
+  const [readerChordPositions, setReaderChordPositions] = useState<ReaderChordPositions>({});
+  useLayoutEffect(() => {
+    setReaderChordPositions(songDbId ? readReaderChordPositions(songDbId) : {});
+  }, [songDbId]);
+  const rememberedChordPositions = useMemo(
+    () => ({
+      get: (chordName: string) => readerChordPositions[chordName],
+      set: (chordName: string, index: number) => {
+        const next = { ...readerChordPositions, [chordName]: index };
+        setReaderChordPositions(next);
+        if (songDbId) saveReaderChordPositions(songDbId, next);
+      },
+    }),
+    [readerChordPositions, songDbId],
+  );
+
   const displayed = useMemo(
     () =>
       readerMode
@@ -1213,6 +1236,7 @@ function App({
             {!contentLoaded ? (
               <SongViewSkeleton />
             ) : (
+              <ReaderChordPositionsContext.Provider value={rememberedChordPositions}>
               <SongView
                 song={displayed.song}
                 lyricsText={state.lyricsText}
@@ -1250,6 +1274,7 @@ function App({
                 onSetTabSpacing={actions.setTabSpacing}
                 onRemoveTabBlock={actions.removeTabBlock}
               />
+              </ReaderChordPositionsContext.Provider>
             )}
 
             <aside className="action-toolbar" aria-label="Acciones">

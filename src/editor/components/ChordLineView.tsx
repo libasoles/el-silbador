@@ -3,6 +3,7 @@ import { chordToNoteNames } from "../../core/chordNotes";
 import { getChordPositions } from "../../core/chordPositions";
 import { chordLineTokens } from "../../core/chordSheet";
 import { findChordShape } from "../../core/findChordShape";
+import { useReaderChordPositions } from "../ReaderChordPositionsContext";
 import { ChordTooltip } from "./ChordTooltip";
 
 interface ChordLineViewProps {
@@ -56,9 +57,15 @@ export function ChordLineView({ text, labelProps, readOnly, chordsVisible, chord
 function ReadChord({ chord, showNotes }: { chord: string; showNotes: boolean }) {
   // The open diagram's anchor: the chord's own button, or null while it's closed.
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [variant, setVariant] = useState(0);
+  const [localVariant, setLocalVariant] = useState(0);
+  const remembered = useReaderChordPositions();
   const shape = findChordShape(chord);
   const positions = shape ? getChordPositions(shape) : [];
+  const variant = shape ? (remembered?.get(shape.name) ?? localVariant) : localVariant;
+  function setVariant(next: number) {
+    setLocalVariant(next);
+    if (shape) remembered?.set(shape.name, next);
+  }
   const notes = showNotes ? chordToNoteNames(chord) : null;
   const notesCell = notes ? (
     <span className="chord-line__notes" aria-hidden="true">
@@ -95,10 +102,10 @@ function ReadChord({ chord, showNotes }: { chord: string; showNotes: boolean }) 
       {anchor ? (
         <ChordTooltip
           chordName={shape.name}
-          shape={positions[variant] ?? shape}
+          shape={positions[Math.min(variant, positions.length - 1)] ?? shape}
           positionCount={positions.length}
-          onPrevPosition={() => setVariant((current) => (current - 1 + positions.length) % positions.length)}
-          onNextPosition={() => setVariant((current) => (current + 1) % positions.length)}
+          onPrevPosition={() => setVariant((variant - 1 + positions.length) % positions.length)}
+          onNextPosition={() => setVariant((variant + 1) % positions.length)}
           anchorEl={anchor}
           onClose={() => setAnchor(null)}
         />
