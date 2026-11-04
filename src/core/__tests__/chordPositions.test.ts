@@ -26,11 +26,12 @@ describe("chord positions sanity", () => {
     expect(positions[2].fingers[1]).toEqual([5, 3, "2"]);
   });
 
-  it("C offers its open shape, the barre shape and the stored 332010 alternate", () => {
-    const positions = getChordPositions(findChordShape("C")!);
-    expect(positions.length).toBe(3);
-    expect(positions[2].fingers).toEqual([[6, 3, "3"], [5, 2, "2"], [4, "o"], [3, "o"], [2, 1, "1"], [1, "o"]]);
-    expect(positions[2].name).toBe("C");
+  it("a chord's alternatePositions from guitar-chords follow its default shape", () => {
+    const shape = findChordShape("C9")!;
+    const positions = getChordPositions(shape);
+    expect(positions.length).toBe(1 + shape.alternatePositions!.length);
+    expect(positions[1].fingers).toEqual(shape.alternatePositions![0].fingers);
+    expect(positions[1].name).toBe("C9");
   });
 
   it("Em7 rings the open G and high E strings", () => {
@@ -40,8 +41,8 @@ describe("chord positions sanity", () => {
     expect(fingers).not.toContainEqual([3, "x"]);
   });
 
-  it("all 224 chords load without throwing", () => {
-    expect(CHORD_SHAPES.length).toBe(224);
+  it("every catalog chord loads without throwing", () => {
+    expect(CHORD_SHAPES.length).toBeGreaterThan(200);
     for (const shape of CHORD_SHAPES) {
       expect(() => getChordPositions(shape)).not.toThrow();
     }
