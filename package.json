@@ -1,7 +1,7 @@
 {
   "name": "silbador-editor",
   "private": true,
-  "version": "0.21.2",
+  "version": "0.21.3",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -14,9 +14,11 @@
     "supabase:stop": "supabase stop",
     "supabase:backup": "bash scripts/backup-supabase.sh",
     "start": "next start",
-    "lighthouse": "./scripts/lighthouse.sh"
+    "lighthouse": "./scripts/lighthouse.sh",
+    "build:shared": "tsc --ignoreConfig src/core/syllabify.ts --outDir shared --declaration --target es2022 --module esnext --strict"
   },
-  "dependencies": {
+  "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-toast": "^1.2.23",
     "@sentry/nextjs": "^11.1.0",
@@ -24,17 +26,6 @@
     "@supabase/postgrest-js": "^2.117.2",
     "@supabase/supabase-js": "^2.117.2",
     "@tanstack/react-query": "^5.104.0",
-    "ascii-tabs": "github:libasoles/ascii-tabs#semver:0.4.1",
-    "guitar-chords": "github:libasoles/guitar-chords#77e1da59bf3192707f0468f2c7dd0be727e5dda3",
-    "hyphenation.es": "^0.2.1",
-    "hypher": "^0.2.5",
-    "lucide-react": "^1.48.0",
-    "next": "^16.3.6",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
-  },
-  "devDependencies": {
-    "@lhci/cli": "^0.15.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -42,10 +33,31 @@
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
+    "ascii-tabs": "github:libasoles/ascii-tabs#semver:0.4.1",
+    "guitar-chords": "github:libasoles/guitar-chords#77e1da59bf3192707f0468f2c7dd0be727e5dda3",
+    "hyphenation.es": "^0.2.1",
+    "hypher": "^0.2.5",
     "jsdom": "^30.1.2",
+    "lucide-react": "^1.48.0",
+    "next": "^16.3.6",
     "oxlint": "^1.81.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "supabase": "^2.118.0",
     "typescript": "~6.0.2",
     "vitest": "^5.0.1"
-  }
+  },
+  "main": "shared/syllabify.js",
+  "types": "shared/syllabify.d.ts",
+  "exports": {
+    ".": {
+      "types": "./shared/syllabify.d.ts",
+      "default": "./shared/syllabify.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "shared/syllabify.js",
+    "shared/syllabify.d.ts"
+  ]
 }
