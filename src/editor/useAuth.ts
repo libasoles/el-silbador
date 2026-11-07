@@ -18,6 +18,7 @@ export function useAuth(): Session | null | undefined {
       })
       .catch((error: unknown) => {
         console.error("No se pudo obtener la sesión.", error);
+        if (!cancelled) setSession(null);
       });
     const unsubscribe = onAuthStateChange((next) => setSession(next));
     return () => {

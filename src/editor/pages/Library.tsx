@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useIsRestoring, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { trackEvent } from "../analytics";
 import { useAuthRequired } from "../authRequiredContext";
@@ -342,6 +342,8 @@ export function Library({
   const { session, requireAuthentication } = useAuthRequired();
   const userId = session?.user.id;
   const authenticated = Boolean(session);
+  const restoring = useIsRestoring();
+  const libraryPending = session === undefined || restoring;
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   // Mobile is read-only by product rule: no editing or deleting from the index, even for the
@@ -658,65 +660,74 @@ export function Library({
         </label>
       </header>
 
-      <div className="library-sections">
-        {session && favoritesFirst && favoritesSection}
+      {libraryPending ? (
+        <div className="library-sections" role="status" aria-label="Cargando canciones">
+          <ul className="library-list" aria-hidden="true">
+            <LibraryRowSkeleton />
+            <LibraryRowSkeleton />
+          </ul>
+        </div>
+      ) : (
+        <div className="library-sections">
+          {session && favoritesFirst && favoritesSection}
 
-        {session && (
+          {session && (
+            <LibrarySection
+              title="Tuyas"
+              songs={mySongs}
+              query={query}
+              emptyLabel="Todavía no escribiste ninguna canción."
+              favoriteIds={favoriteIds}
+              favoritePendingSongId={favoritePendingSongId ?? undefined}
+              showFavorite={false}
+              showEdit={!isMobile}
+              showDelete={!isMobile}
+              showPrivacy
+              loading={myLibraryLoading}
+              skeletonRows={skeletonCounts?.mine}
+              onOpenSong={handleOpen}
+              onToggleFavorite={handleToggleFavorite}
+              onEditSong={handleEdit}
+              onDeleteSong={setSongPendingDelete}
+            />
+          )}
+
+          {session && !favoritesFirst && favoritesSection}
+
           <LibrarySection
-            title="Tuyas"
-            songs={mySongs}
+            title={session ? "Públicas" : undefined}
+            songs={publicSongs}
             query={query}
-            emptyLabel="Todavía no escribiste ninguna canción."
+            emptyLabel="Todavía no hay canciones públicas para mostrar."
+            emptyIcon={<NeutralIllustrationIcon />}
             favoriteIds={favoriteIds}
             favoritePendingSongId={favoritePendingSongId ?? undefined}
-            showFavorite={false}
-            showEdit={!isMobile}
-            showDelete={!isMobile}
-            showPrivacy
-            loading={myLibraryLoading}
-            skeletonRows={skeletonCounts?.mine}
+            loading={publicLibraryLoading}
             onOpenSong={handleOpen}
             onToggleFavorite={handleToggleFavorite}
-            onEditSong={handleEdit}
-            onDeleteSong={setSongPendingDelete}
           />
-        )}
 
-        {session && !favoritesFirst && favoritesSection}
-
-        <LibrarySection
-          title={session ? "Públicas" : undefined}
-          songs={publicSongs}
-          query={query}
-          emptyLabel="Todavía no hay canciones públicas para mostrar."
-          emptyIcon={<NeutralIllustrationIcon />}
-          favoriteIds={favoriteIds}
-          favoritePendingSongId={favoritePendingSongId ?? undefined}
-          loading={publicLibraryLoading}
-          onOpenSong={handleOpen}
-          onToggleFavorite={handleToggleFavorite}
-        />
-
-        <section className="library-section">
-          <div className="library-section__head">
-            <h2 className="library-section__title">Estudio</h2>
-          </div>
-          <a
-            className="library-study-link"
-            href="https://acordesdeguitarra.com.ar/"
-            onClick={() => trackEvent("acordesdeguitarra_link_click")}
-          >
-            acordesdeguitarra.com.ar
-          </a>
-          <a
-            className="library-study-link"
-            href="https://partitura.com.ar/"
-            onClick={() => trackEvent("partitura_link_click")}
-          >
-            partitura.com.ar
-          </a>
-        </section>
-      </div>
+          <section className="library-section">
+            <div className="library-section__head">
+              <h2 className="library-section__title">Estudio</h2>
+            </div>
+            <a
+              className="library-study-link"
+              href="https://acordesdeguitarra.com.ar/"
+              onClick={() => trackEvent("acordesdeguitarra_link_click")}
+            >
+              acordesdeguitarra.com.ar
+            </a>
+            <a
+              className="library-study-link"
+              href="https://partitura.com.ar/"
+              onClick={() => trackEvent("partitura_link_click")}
+            >
+              partitura.com.ar
+            </a>
+          </section>
+        </div>
+      )}
 
       <footer className="library-version">
         <span>

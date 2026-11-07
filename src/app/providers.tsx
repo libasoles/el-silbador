@@ -10,13 +10,15 @@ import { PendingSongResumer } from "../editor/PendingSongResumer";
 import { ToastProvider } from "../editor/components/ToastProvider";
 import { useAuth } from "../editor/useAuth";
 import { useLoginTracking } from "../editor/loginTracking";
+import { LibraryCacheProvider } from "./LibraryCacheProvider";
+import { LIBRARY_CACHE_MAX_AGE } from "../data/libraryQueryPersistence";
+import { songQueryKeys } from "../data/queryKeys";
 
 function makeQueryClient() {
-  return new QueryClient({
+  const client = new QueryClient({
     defaultOptions: {
-      // Data comes from Supabase and only changes through our own mutations (save/delete/fork/
-      // favorite), which invalidate their queries explicitly — so there's no need to refetch just
-      // because the window regained focus or the network reconnected.
+      // Mutations invalidate their queries explicitly. Avoid extra fetches on focus/reconnect;
+      // persisted personal lists revalidate when mounted, including after a reload.
       queries: {
         staleTime: 60_000,
         refetchOnWindowFocus: false,
@@ -24,6 +26,10 @@ function makeQueryClient() {
       },
     },
   });
+  for (const queryKey of [songQueryKeys.mineAll, songQueryKeys.favoritesAll]) {
+    client.setQueryDefaults(queryKey, { gcTime: LIBRARY_CACHE_MAX_AGE, staleTime: 0 });
+  }
+  return client;
 }
 
 let browserQueryClient: QueryClient | undefined;
@@ -38,8 +44,7 @@ function getQueryClient() {
   return browserQueryClient;
 }
 
-// React Query's in-memory client is the only frontend cache. Earlier versions persisted song
-// lists to localStorage under this key; drop any leftover copy so it doesn't linger on disk.
+// Remove the obsolete cache format; personal library persistence uses its own versioned key.
 function LegacyQueryCacheCleanup() {
   useEffect(() => {
     try {
@@ -82,14 +87,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LegacyQueryCacheCleanup />
-      <AnalyticsTracker />
-      <ServiceWorkerRegistrar />
-      <ToastProvider>
-        <AuthCallbackErrorToast />
-        <PendingSongResumer session={session} />
-        <AuthRequiredProvider session={session}>{children}</AuthRequiredProvider>
-      </ToastProvider>
+      <LibraryCacheProvider session={session}>
+        <LegacyQueryCacheCleanup />
+        <AnalyticsTracker />
+        <ServiceWorkerRegistrar />
+        <ToastProvider>
+          <AuthCallbackErrorToast />
+          <PendingSongResumer session={session} />
+          <AuthRequiredProvider session={session}>{children}</AuthRequiredProvider>
+        </ToastProvider>
+      </LibraryCacheProvider>
     </QueryClientProvider>
   );
 }
