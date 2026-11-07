@@ -708,6 +708,13 @@ export function Library({
           >
             acordesdeguitarra.com.ar
           </a>
+          <a
+            className="library-study-link"
+            href="https://partitura.com.ar/"
+            onClick={() => trackEvent("partitura_link_click")}
+          >
+            partitura.com.ar
+          </a>
         </section>
       </div>
 

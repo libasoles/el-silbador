@@ -188,11 +188,16 @@
 }
 
 .library-study-link {
+  display: block;
   font-family: var(--serif);
   font-size: 1.05rem;
   color: var(--fg);
   text-decoration: none;
   transition: color 140ms ease;
+}
+
+.library-study-link + .library-study-link {
+  margin-top: 0.5rem;
 }
 
 .library-study-link:hover,
