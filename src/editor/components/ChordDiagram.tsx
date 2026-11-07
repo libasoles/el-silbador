@@ -2,10 +2,11 @@ import type { ChordShape, Finger } from "../../core/chordShapes";
 
 const STRING_COUNT = 6;
 const FRET_COUNT = 5;
-const WIDTH = 108;
-const MARGIN_X = 14;
+// Leave room for two-digit fret numbers inside the SVG's clipping boundary.
+const WIDTH = 128;
+const MARGIN_X = 24;
 const TOP = 26;
-const FRET_HEIGHT = 20;
+const FRET_HEIGHT = 26;
 const DOT_RADIUS = 8;
 const STRING_LABEL_HEIGHT = 16;
 
