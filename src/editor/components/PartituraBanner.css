@@ -1,20 +1,40 @@
 .partitura-banner {
+  position: relative;
+  width: 100%;
+  max-width: 40rem;
+  margin: 1.25rem 0;
+}
+
+.partitura-banner__remove {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  color: var(--fg);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+.partitura-banner__link {
   display: flex;
   flex-direction: column;
-  margin: 1.25rem 0;
-  max-width: 36rem;
   overflow: hidden;
   position: relative;
   color: inherit;
   text-decoration: none;
-  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
+  border: 1px solid var(--border);
   border-radius: 0.75rem;
-  background: var(--surface, transparent);
   user-select: none;
 }
 
-.partitura-banner:hover,
-.partitura-banner:focus-visible {
+.partitura-banner__link:hover,
+.partitura-banner__link:focus-visible {
   border-color: currentColor;
 }
 

@@ -143,6 +143,8 @@ interface LineViewProps {
   /** A just-typed TAB still behaves as text until its author confirms the block, but shares the
       visual treatment of the other structural keyword, BIS. */
   tabCandidate?: boolean;
+  /** Given to an editor: adds a remove button to a Partitura link's banner. */
+  onRemovePartituraLink?: (lineId: string) => void;
   /** Whitespace at the end of the raw lyric line, which the syllable model does not retain. */
   trailingWhitespace: string;
   merges: ReadonlySet<string>;
@@ -991,23 +993,26 @@ function SubtitleLineView({ line, lineNumber, readOnly = false }: Pick<LineViewP
   );
 }
 
-/** A lone Partitura link. While editing, its text stays an editable line (so the link can be
- *  changed or deleted); the banner it becomes sits under it, outside the lyrics, and is the only
- *  thing a reader sees. */
-function PartituraLinkLineView({ line, lineNumber, readOnly = false }: Pick<LineViewProps, "line" | "lineNumber" | "readOnly">) {
+/** A lone Partitura link: only its banner is shown. The link's text stays in the document, hidden
+ *  (like a tab block's marker, it keeps every line index in step), and an editor removes it with
+ *  the banner's own button. */
+function PartituraLinkLineView({ line, onRemovePartituraLink }: Pick<LineViewProps, "line" | "onRemovePartituraLink">) {
   return (
     <div className="line line--partitura-link">
-      <div className="partitura-link-line" {...lineLabelProps(readOnly, lineNumber)} data-lyrics-line hidden={readOnly}>
+      <div className="partitura-link-line" data-lyrics-line hidden>
         {line.partituraLink}
       </div>
-      <PartituraBanner text={line.partituraLink ?? ""} />
+      <PartituraBanner
+        text={line.partituraLink ?? ""}
+        onRemove={onRemovePartituraLink ? () => onRemovePartituraLink(line.id) : undefined}
+      />
     </div>
   );
 }
 
 export function LineView(props: LineViewProps) {
   if (props.line.partituraLink !== undefined) {
-    return <PartituraLinkLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} />;
+    return <PartituraLinkLineView line={props.line} onRemovePartituraLink={props.onRemovePartituraLink} />;
   }
   if (props.line.subtitle !== undefined) {
     return <SubtitleLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} />;
