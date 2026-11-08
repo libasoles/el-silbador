@@ -1,0 +1,58 @@
+.partitura-banner {
+  display: flex;
+  flex-direction: column;
+  margin: 1.25rem 0;
+  max-width: 36rem;
+  overflow: hidden;
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
+  border-radius: 0.75rem;
+  background: var(--surface, transparent);
+  user-select: none;
+}
+
+.partitura-banner:hover,
+.partitura-banner:focus-visible {
+  border-color: currentColor;
+}
+
+.partitura-banner__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+}
+
+.partitura-banner__image--empty {
+  background: rgba(127, 127, 127, 0.15);
+}
+
+.partitura-banner__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 2.5rem 0.85rem 1rem;
+}
+
+.partitura-banner__site {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.partitura-banner__title {
+  font-weight: 600;
+}
+
+.partitura-banner__description {
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.partitura-banner__icon {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  opacity: 0.6;
+}

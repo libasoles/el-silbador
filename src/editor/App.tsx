@@ -38,6 +38,7 @@ import { ChordDragTutorialExample } from "./components/ChordDragTutorialExample"
 import { MelodyTutorialExample } from "./components/MelodyTutorialExample";
 import { SongPerformers } from "./components/SongPerformers";
 import { SongView } from "./components/SongView";
+import type { PartituraLinkDialog as PartituraLinkDialogComponent } from "./components/PartituraLinkDialog";
 import type { YoutubeLinkDialog as YoutubeLinkDialogComponent } from "./components/YoutubeLinkDialog";
 import {
   DownloadIcon,
@@ -54,6 +55,7 @@ import {
   UnderlineIcon,
   XIcon,
   YoutubeIcon,
+  LinkIcon,
 } from "./components/icons";
 import { applyTheme, deriveTheme } from "./theme";
 import { clearDraft, readDraft, saveDraft } from "./draftStorage";
@@ -116,6 +118,11 @@ const ConfirmDialog = dynamic<ConfirmDialogProps>(() =>
   })),
 );
 
+const PartituraLinkDialog = dynamic<ComponentProps<typeof PartituraLinkDialogComponent>>(() =>
+  import("./components/PartituraLinkDialog").then((mod) => ({
+    default: mod.PartituraLinkDialog,
+  })),
+);
 const YoutubeLinkDialog = dynamic<YoutubeLinkDialogProps>(() =>
   import("./components/YoutubeLinkDialog").then((mod) => ({
     default: mod.YoutubeLinkDialog,
@@ -324,6 +331,7 @@ function App({
     () => initialSong?.youtubeUrl ?? null,
   );
   const [youtubeDialogOpen, setYoutubeDialogOpen] = useState(false);
+  const [partituraDialogOpen, setPartituraDialogOpen] = useState(false);
   // Who performs the song, in load order. Kept outside the editor's `content` (forks and the PDF
   // never carry them), but saved by the same autosave.
   const [performers, setPerformers] = useState<string[]>(
@@ -1231,6 +1239,18 @@ function App({
                   </button>
                 </IconButtonTooltip>
               )}
+              {!readOnly && isAdmin && !isMobile && (
+                <IconButtonTooltip tooltip="Agregar link de Partitura">
+                  <button
+                    type="button"
+                    className="track-toolbar__toggle"
+                    aria-label="Agregar link de Partitura"
+                    onClick={() => setPartituraDialogOpen(true)}
+                  >
+                    <LinkIcon />
+                  </button>
+                </IconButtonTooltip>
+              )}
             </aside>
 
             {!contentLoaded ? (
@@ -1401,6 +1421,15 @@ function App({
               currentUrl={songYoutubeUrl}
               onOpenChange={setYoutubeDialogOpen}
               onSave={handleSaveYoutubeUrl}
+            />
+          )}
+          {isAdmin && !isMobile && (
+            <PartituraLinkDialog
+              open={partituraDialogOpen}
+              onOpenChange={setPartituraDialogOpen}
+              onInsert={(url) =>
+                actions.reconcileLyricsText(state.lyricsText === "" ? url : `${state.lyricsText}\n${url}`)
+              }
             />
           )}
         </>

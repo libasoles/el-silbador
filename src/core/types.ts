@@ -15,6 +15,8 @@ export interface Line {
   subtitle?: string;
   /** A chord line: its raw text, chords spaced by column, with no syllables of its own. */
   chordLine?: string;
+  /** A line that is only a link to Partitura: its raw text, shown as a banner. */
+  partituraLink?: string;
   /** A tab block. Its line holds the `TAB` marker in `lyricsText`, which is never shown as text;
    *  the block's content lives in `EditorState.tabs[line.id]`. */
   tab?: true;
