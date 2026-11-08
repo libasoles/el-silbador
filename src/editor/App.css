@@ -768,6 +768,20 @@
   white-space: pre-wrap;
 }
 
+/* A Partitura link is edited as plain text; its banner is drawn under it. */
+.partitura-link-line {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.partitura-link-line[hidden] {
+  display: none;
+}
+
 /* A chord line is text in chord typography. Its spaces are its columns, so they are kept. */
 .chord-line {
   position: relative;

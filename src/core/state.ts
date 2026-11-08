@@ -18,6 +18,7 @@ import {
 } from "./model";
 import { nextId } from "./ids";
 import { isChordLineText, type ChordPlacement } from "./chordSheet";
+import { isPartituraLinkText } from "./partituraLink";
 import { hyphenateWord } from "./syllabify";
 import type { BisGroup, CellsByTrack, EditorState, PitchDirection, Song, TabBlock, TrackId } from "./types";
 
@@ -315,6 +316,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
         const rawLine = action.content.lyricsText.split("\n")[index] ?? "";
         if (isTabLineText(rawLine)) return { id: line.id, words: [], tab: true as const };
         if (isSubtitleLineText(rawLine)) return { ...line, words: [], subtitle: rawLine };
+        if (isPartituraLinkText(rawLine)) return { ...line, words: [], partituraLink: rawLine };
         if (isChordLineText(rawLine)) return { ...line, words: [], chordLine: rawLine };
         return line;
       });
@@ -522,6 +524,7 @@ function lineText(line: EditorState["song"][number]): string {
   if (line.tab) return TAB_BLOCK_MATCH_KEY;
   if (line.subtitle !== undefined) return line.subtitle;
   if (line.chordLine !== undefined) return line.chordLine;
+  if (line.partituraLink !== undefined) return line.partituraLink;
   return line.words.map((word) => word.syllables.map((syllable) => syllable.text).join("")).join(" ");
 }
 
@@ -539,7 +542,9 @@ function reconcileLine(
     oldLine.subtitle !== undefined ||
     nextLine.subtitle !== undefined ||
     oldLine.chordLine !== undefined ||
-    nextLine.chordLine !== undefined
+    nextLine.chordLine !== undefined ||
+    oldLine.partituraLink !== undefined ||
+    nextLine.partituraLink !== undefined
   ) {
     return { ...nextLine, id: oldLine.id };
   }
@@ -607,7 +612,7 @@ function chordLinesFromEmptyLines(
   let nextVariants = chordVariants;
   let changed = false;
   const nextSong = song.map((line, index) => {
-    if (line.tab || line.subtitle !== undefined || line.chordLine !== undefined) return line;
+    if (line.tab || line.subtitle !== undefined || line.chordLine !== undefined || line.partituraLink !== undefined) return line;
     if ((rawLines[index] ?? "").trim() !== "") return line;
     const chords = getLineCellSlots(line, new Set(), cells)
       .map((slotId) => getCell(cells, "chords", slotId).trim())

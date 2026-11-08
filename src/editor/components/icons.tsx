@@ -15,6 +15,8 @@ export { ArrowUp as ArrowUpIcon } from "lucide-react";
 export { ArrowDown as ArrowDownIcon } from "lucide-react";
 export { LockKeyhole as PrivacyIcon } from "lucide-react";
 export { X as RemoveIcon } from "lucide-react";
+export { ExternalLink as ExternalLinkIcon } from "lucide-react";
+export { Link as LinkIcon } from "lucide-react";
 
 /** A deliberately detached shackle makes the public-state lock unmistakably open at toolbar size. */
 export function PrivacyUnlockedIcon() {

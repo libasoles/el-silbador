@@ -17,6 +17,7 @@ import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, PitchDirection, TrackDef, TrackId } from "../../core/types";
 import type { DragDelta } from "../pitchDragGesture";
 import { useIsMobile } from "../useIsMobile";
+import { PartituraBanner } from "./PartituraBanner";
 import { ChordLineView } from "./ChordLineView";
 import { minimumLabelGap, requiredAnnotationGap } from "./annotationSpacing";
 import { ChordNotesRow } from "./ChordNotesRow";
@@ -990,7 +991,24 @@ function SubtitleLineView({ line, lineNumber, readOnly = false }: Pick<LineViewP
   );
 }
 
+/** A lone Partitura link. While editing, its text stays an editable line (so the link can be
+ *  changed or deleted); the banner it becomes sits under it, outside the lyrics, and is the only
+ *  thing a reader sees. */
+function PartituraLinkLineView({ line, lineNumber, readOnly = false }: Pick<LineViewProps, "line" | "lineNumber" | "readOnly">) {
+  return (
+    <div className="line line--partitura-link">
+      <div className="partitura-link-line" {...lineLabelProps(readOnly, lineNumber)} data-lyrics-line hidden={readOnly}>
+        {line.partituraLink}
+      </div>
+      <PartituraBanner text={line.partituraLink ?? ""} />
+    </div>
+  );
+}
+
 export function LineView(props: LineViewProps) {
+  if (props.line.partituraLink !== undefined) {
+    return <PartituraLinkLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} />;
+  }
   if (props.line.subtitle !== undefined) {
     return <SubtitleLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} />;
   }
