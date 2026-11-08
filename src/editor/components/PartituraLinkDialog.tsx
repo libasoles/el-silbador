@@ -6,20 +6,22 @@ import { Dialog } from "./Dialog";
 
 interface PartituraLinkDialogProps {
   open: boolean;
+  /** The link currently in the song, or `null` if none. */
+  currentUrl: string | null;
   onOpenChange: (open: boolean) => void;
-  /** Receives the validated link, to be added to the lyrics as a line of its own. */
-  onInsert: (url: string) => void;
+  /** The validated link to put in the song, or `null` to remove it. */
+  onSave: (url: string | null) => void;
 }
 
-/** Admin-only dialog for pasting a Partitura link that the editor didn't recognize on its own
- *  (or that is easier to paste than to type into the lyrics). The link becomes a banner. */
-export function PartituraLinkDialog({ open, onOpenChange, onInsert }: PartituraLinkDialogProps) {
-  const [url, setUrl] = useState("");
+/** Admin-only dialog for pasting (or changing, or removing) the Partitura link that becomes a
+ *  banner in the song. Shares its chrome with the YouTube dialog. */
+export function PartituraLinkDialog({ open, currentUrl, onOpenChange, onSave }: PartituraLinkDialogProps) {
+  const [url, setUrl] = useState(currentUrl ?? "");
   const [error, setError] = useState<string | null>(null);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setUrl("");
+      setUrl(currentUrl ?? "");
       setError(null);
     }
     onOpenChange(next);
@@ -28,12 +30,12 @@ export function PartituraLinkDialog({ open, onOpenChange, onInsert }: PartituraL
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     const valid = partituraUrlOf(url);
-    if (!valid) {
+    if (url.trim() !== "" && !valid) {
       setError("Ese link no parece ser de partitura.com.ar.");
       return;
     }
-    onInsert(valid);
-    handleOpenChange(false);
+    onSave(valid);
+    onOpenChange(false);
   };
 
   return (
@@ -50,7 +52,7 @@ export function PartituraLinkDialog({ open, onOpenChange, onInsert }: PartituraL
           />
         </label>
         <p className="youtube-link-dialog__hint">
-          Se agrega al final de la letra y se muestra como un banner. Para quitarlo, borrá esa línea.
+          Se muestra como un banner al final de la letra, para cualquiera que la vea.
         </p>
         {error && (
           <p className="dialog__error" role="alert">
@@ -59,8 +61,21 @@ export function PartituraLinkDialog({ open, onOpenChange, onInsert }: PartituraL
           </p>
         )}
         <div className="dialog__actions">
+          {currentUrl && (
+            <button
+              type="button"
+              className="dialog__button dialog__button--secondary"
+              onClick={() => {
+                onSave(null);
+                setUrl("");
+                onOpenChange(false);
+              }}
+            >
+              Quitar link
+            </button>
+          )}
           <button type="submit" className="dialog__button dialog__button--primary">
-            Agregar
+            Guardar
           </button>
         </div>
       </form>
