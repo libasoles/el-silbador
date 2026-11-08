@@ -38,6 +38,7 @@ import { ChordDragTutorialExample } from "./components/ChordDragTutorialExample"
 import { MelodyTutorialExample } from "./components/MelodyTutorialExample";
 import { SongPerformers } from "./components/SongPerformers";
 import { SongView } from "./components/SongView";
+import { partituraUrlOf } from "../core/partituraLink";
 import type { PartituraLinkDialog as PartituraLinkDialogComponent } from "./components/PartituraLinkDialog";
 import type { YoutubeLinkDialog as YoutubeLinkDialogComponent } from "./components/YoutubeLinkDialog";
 import {
@@ -883,6 +884,24 @@ function App({
     }
   };
 
+  // The song's Partitura link is a line of its lyrics (see `partituraUrlOf`): saving replaces
+  // that line, adds one at the end, or drops it.
+  const partituraLines = state.lyricsText.split("\n");
+  const partituraLineIndex = partituraLines.findIndex((line) => partituraUrlOf(line) !== null);
+  const songPartituraUrl = partituraLineIndex === -1 ? null : partituraUrlOf(partituraLines[partituraLineIndex]!);
+  const partituraLabel = songPartituraUrl ? "Editar link de Partitura" : "Agregar link de Partitura";
+  const handleSavePartituraUrl = (url: string | null) => {
+    const lines = [...partituraLines];
+    if (partituraLineIndex !== -1) {
+      if (url) lines[partituraLineIndex] = url;
+      else lines.splice(partituraLineIndex, 1);
+    } else if (url) {
+      if (state.lyricsText === "") lines.length = 0;
+      lines.push(url);
+    }
+    actions.reconcileLyricsText(lines.join("\n"));
+  };
+
   const handleSaveYoutubeUrl = async (url: string | null) => {
     // No row to write to yet (a brand-new, still-unsaved song): hold the value locally and let
     // the effect below persist it once autosave creates the row.
@@ -1240,14 +1259,15 @@ function App({
                 </IconButtonTooltip>
               )}
               {!readOnly && isAdmin && !isMobile && (
-                <IconButtonTooltip tooltip="Agregar link de Partitura">
+                <IconButtonTooltip tooltip={partituraLabel}>
                   <button
                     type="button"
                     className="track-toolbar__toggle"
-                    aria-label="Agregar link de Partitura"
+                    aria-pressed={songPartituraUrl !== null}
+                    aria-label={partituraLabel}
                     onClick={() => setPartituraDialogOpen(true)}
                   >
-                    <LinkIcon />
+                    <LinkIcon size={20} />
                   </button>
                 </IconButtonTooltip>
               )}
@@ -1425,11 +1445,11 @@ function App({
           )}
           {isAdmin && !isMobile && (
             <PartituraLinkDialog
+              key={songPartituraUrl ?? ""}
               open={partituraDialogOpen}
+              currentUrl={songPartituraUrl}
               onOpenChange={setPartituraDialogOpen}
-              onInsert={(url) =>
-                actions.reconcileLyricsText(state.lyricsText === "" ? url : `${state.lyricsText}\n${url}`)
-              }
+              onSave={handleSavePartituraUrl}
             />
           )}
         </>
