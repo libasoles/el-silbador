@@ -850,6 +850,11 @@ export function SongView({
     };
   }
 
+  /** Drops a line of the document, for a Partitura banner's remove button. */
+  function removeLyricLine(index: number) {
+    onReconcileLyricsText(lyricLines.filter((_, lineIndex) => lineIndex !== index).join("\n"));
+  }
+
   /** How to rebuild the document after replacing `[start, end)` of `text`. A pasted `TAB` becomes
       a block at once; a typed one waits until its author leaves the line, and mobile makes none. */
   function editOptions(text: string, start: number, end: number, replacement: string, { typed }: { typed: boolean }) {
@@ -1647,6 +1652,7 @@ export function SongView({
             bisRule={bisStyles.get(index)}
             bisMarker={BIS_AT_LINE_END.test(lyricLines[index] ?? "")}
             tabCandidate={canEdit && !isMobile && isTabLineText(lyricLines[index] ?? "")}
+            onRemovePartituraLink={canEdit && !isMobile ? () => removeLyricLine(index) : undefined}
             trailingWhitespace={lyricLines[index]?.match(/\s+$/)?.[0] ?? ""}
             merges={merges}
             showUnderline={showUnderline}

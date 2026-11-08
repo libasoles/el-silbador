@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { partituraUrlOf, type LinkPreview } from "../../core/partituraLink";
-import { ExternalLinkIcon } from "./icons";
+import { ExternalLinkIcon, RemoveIcon } from "./icons";
 import "./PartituraBanner.css";
 
 const previews = new Map<string, Promise<LinkPreview | null>>();
@@ -25,7 +25,7 @@ function loadPreview(url: string): Promise<LinkPreview | null> {
 /** The banner a lone Partitura link in a song becomes. It paints as soon as the link is
  *  recognized, with the link's own address as a stand-in, and fills in the page's title,
  *  description and image once its metadata arrives. */
-export function PartituraBanner({ text }: { text: string }) {
+export function PartituraBanner({ text, onRemove }: { text: string; onRemove?: () => void }) {
   const url = partituraUrlOf(text);
   const [preview, setPreview] = useState<{ url: string; data: LinkPreview } | null>(null);
 
@@ -45,12 +45,12 @@ export function PartituraBanner({ text }: { text: string }) {
   const title = data?.title ?? "Partitura";
   const description = data?.description ?? new URL(url).pathname.replace(/\/+$/, "");
   return (
+    <div className="partitura-banner" contentEditable={false}>
     <a
-      className="partitura-banner"
+      className="partitura-banner__link"
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      contentEditable={false}
       data-loaded={data ? "" : undefined}
     >
       {data?.image ? (
@@ -68,5 +68,11 @@ export function PartituraBanner({ text }: { text: string }) {
         <ExternalLinkIcon size={18} aria-hidden="true" />
       </span>
     </a>
+      {onRemove ? (
+        <button type="button" className="partitura-banner__remove" aria-label="Quitar link de Partitura" onClick={onRemove}>
+          <RemoveIcon size={16} aria-hidden="true" />
+        </button>
+      ) : null}
+    </div>
   );
 }
