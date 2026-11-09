@@ -98,6 +98,13 @@ export default function StructureAndBisArticlePage() {
             cual: no se separa en sílabas y no recibe acordes ni notas. Sirve
             para lo hablado o para aclaraciones dentro de una línea.
           </p>
+          <p>
+            Si abrís con <span className="article-syllable">{"<--"}</span> al
+            comienzo de una línea y cerrás con{" "}
+            <span className="article-syllable">{"-->"}</span> en una línea
+            posterior, todas las líneas del medio forman un bloque de texto sin
+            formato.
+          </p>
           <ArticleChordEditor
             sheet={FREE_TEXT_EXCERPT}
             label="Editor con un texto sin formato"

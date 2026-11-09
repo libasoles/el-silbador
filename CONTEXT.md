@@ -21,7 +21,7 @@ The read-mode toggle labelled "TAB" that shows or hides every tab block of a son
 _Avoid_: tab switch
 
 **Free text**:
-Words written between the markers `<--` and `-->` inside a lyric line. Kept whole as a single word (spaces included), never syllabified, and like `BIS` it takes no chords, vocal notes or underline. The markers stay visible. A `<--` with no closing `-->` is ordinary lyrics. In the UI it is "texto sin formato".
+Words written between the markers `<--` and `-->` inside a lyric line. Kept whole as a single word (spaces included), never syllabified, and like `BIS` it takes no chords, vocal notes or underline. The markers stay visible. A `<--` with no closing `-->` is ordinary lyrics. A line that opens with `<--` and has no `-->` starts a block: every line through the first later line containing `-->` is kept whole as free text. In the UI it is "texto sin formato".
 _Avoid_: comment, annotation (that is what the tracks hold)
 
 **Chord line**:

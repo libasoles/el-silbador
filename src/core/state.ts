@@ -7,6 +7,7 @@ import {
   gapSlotId,
   flattenSyllables,
   getLineCellSlots,
+  freeTextBlockFlags,
   isSubtitleLineText,
   isTabLineText,
   isLineEdgeSlot,
@@ -312,8 +313,11 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
       // lines. Upgrade them as they are opened, using the raw text as the source of truth.
       // Likewise, a `TAB` line saved as lyrics (before tab blocks existed, or while its author was
       // still on it) opens as an empty tab block.
+      const loadedRawLines = action.content.lyricsText.split("\n");
+      const loadedInBlock = freeTextBlockFlags(loadedRawLines);
       const loadedSong = action.content.song.map((line, index) => {
-        const rawLine = action.content.lyricsText.split("\n")[index] ?? "";
+        const rawLine = loadedRawLines[index] ?? "";
+        if (loadedInBlock[index]) return { ...line, words: [], freeText: rawLine };
         if (isTabLineText(rawLine)) return { id: line.id, words: [], tab: true as const };
         if (isSubtitleLineText(rawLine)) return { ...line, words: [], subtitle: rawLine };
         if (isPartituraLinkText(rawLine)) return { ...line, words: [], partituraLink: rawLine };
@@ -523,6 +527,7 @@ const TAB_BLOCK_MATCH_KEY = "\u0000tab";
 function lineText(line: EditorState["song"][number]): string {
   if (line.tab) return TAB_BLOCK_MATCH_KEY;
   if (line.subtitle !== undefined) return line.subtitle;
+  if (line.freeText !== undefined) return line.freeText;
   if (line.chordLine !== undefined) return line.chordLine;
   if (line.partituraLink !== undefined) return line.partituraLink;
   return line.words.map((word) => word.syllables.map((syllable) => syllable.text).join("")).join(" ");
@@ -540,6 +545,8 @@ function reconcileLine(
   // identity so the editor keeps its DOM position when a normal line becomes (or stops being) one.
   if (
     oldLine.subtitle !== undefined ||
+    oldLine.freeText !== undefined ||
+    nextLine.freeText !== undefined ||
     nextLine.subtitle !== undefined ||
     oldLine.chordLine !== undefined ||
     nextLine.chordLine !== undefined ||
@@ -612,7 +619,7 @@ function chordLinesFromEmptyLines(
   let nextVariants = chordVariants;
   let changed = false;
   const nextSong = song.map((line, index) => {
-    if (line.tab || line.subtitle !== undefined || line.chordLine !== undefined || line.partituraLink !== undefined) return line;
+    if (line.tab || line.subtitle !== undefined || line.freeText !== undefined || line.chordLine !== undefined || line.partituraLink !== undefined) return line;
     if ((rawLines[index] ?? "").trim() !== "") return line;
     const chords = getLineCellSlots(line, new Set(), cells)
       .map((slotId) => getCell(cells, "chords", slotId).trim())

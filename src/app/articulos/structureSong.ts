@@ -36,7 +36,9 @@ en la arena me escribias`;
 
 export const FREE_TEXT_EXCERPT = `Recitado
 <-- Hablado, sobre el acompañamiento -->
-${TONADA_SHEET}`;
+${TONADA_SHEET}
+<-- Esta parte se dice
+sin cantar, en varias líneas -->`;
 
 export const BIS_EXCERPT = `${TONADA_SHEET} BIS`;
 
