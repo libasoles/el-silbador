@@ -7,7 +7,7 @@ import {
   gapSlotId,
   flattenSyllables,
   getLineCellSlots,
-  freeTextBlockFlags,
+  freeTextBlockRoles,
   isSubtitleLineText,
   isTabLineText,
   isLineEdgeSlot,
@@ -314,10 +314,10 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
       // Likewise, a `TAB` line saved as lyrics (before tab blocks existed, or while its author was
       // still on it) opens as an empty tab block.
       const loadedRawLines = action.content.lyricsText.split("\n");
-      const loadedInBlock = freeTextBlockFlags(loadedRawLines);
+      const loadedRoles = freeTextBlockRoles(loadedRawLines);
       const loadedSong = action.content.song.map((line, index) => {
         const rawLine = loadedRawLines[index] ?? "";
-        if (loadedInBlock[index]) return { ...line, words: [], freeText: rawLine };
+        if (loadedRoles[index] === "inside") return { ...line, words: [], freeText: rawLine };
         if (isTabLineText(rawLine)) return { id: line.id, words: [], tab: true as const };
         if (isSubtitleLineText(rawLine)) return { ...line, words: [], subtitle: rawLine };
         if (isPartituraLinkText(rawLine)) return { ...line, words: [], partituraLink: rawLine };

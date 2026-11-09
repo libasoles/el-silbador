@@ -46,20 +46,31 @@ export function isLyricLineText(lineText: string): boolean {
   return lineText.trim() !== "" && !isSubtitleLineText(lineText) && !isTabLineText(lineText) && !isChordLineText(lineText) && !isPartituraLinkText(lineText);
 }
 
+export type FreeTextBlockRole = "inside" | "closing" | null;
+
 /** Which lines of a raw document belong to a multi-line free-text block: from a line that opens
- *  with `<--` and has no `-->`, through the first later line containing `-->`. An opening with no
- *  closing line is not a block. */
-export function freeTextBlockFlags(rawLines: readonly string[]): boolean[] {
-  const flags = rawLines.map(() => false);
+ *  with `<--` and has no `-->`, through the first later line containing `-->`. The lines up to the
+ *  last are `inside` (kept whole); the last is `closing` (free text up to `-->`, lyrics after it).
+ *  An opening with no closing line is not a block. */
+export function freeTextBlockRoles(rawLines: readonly string[]): FreeTextBlockRole[] {
+  const flags: FreeTextBlockRole[] = rawLines.map(() => null);
   for (let i = 0; i < rawLines.length; i++) {
     const opening = rawLines[i]!.trim();
     if (!opening.startsWith("<--") || opening.includes("-->")) continue;
     const close = rawLines.findIndex((line, j) => j > i && line.includes("-->"));
     if (close === -1) continue;
-    for (let j = i; j <= close; j++) flags[j] = true;
+    for (let j = i; j < close; j++) flags[j] = "inside";
+    flags[close] = "closing";
     i = close;
   }
   return flags;
+}
+
+/** Whether `line`, built from `rawLineText`, is the line that closes a multi-line free-text block:
+ *  its first word is free text that does not open with `<--`. */
+function closesFreeTextBlock(line: Line, rawLineText: string): boolean {
+  const first = line.words[0];
+  return first !== undefined && isFreeTextWord(first) && !rawLineText.trimStart().startsWith("<--");
 }
 
 /** Builds a fresh, fully-hyphenated song from raw lyrics text. Every id is newly minted.
@@ -68,20 +79,22 @@ export function freeTextBlockFlags(rawLines: readonly string[]): boolean[] {
 export function buildSong(lyricsText: string, textLineIndexes: readonly number[] = []): Song {
   if (lyricsText === "") return [];
   const rawLines = lyricsText.split("\n");
-  const inBlock = freeTextBlockFlags(rawLines);
+  const roles = freeTextBlockRoles(rawLines);
   return rawLines.map((lineText, index) =>
-    inBlock[index] ? { id: nextId("line"), words: [], freeText: lineText } : buildLine(lineText, textLineIndexes.includes(index)),
+    roles[index] === "inside"
+      ? { id: nextId("line"), words: [], freeText: lineText }
+      : buildLine(lineText, textLineIndexes.includes(index), roles[index] === "closing"),
   );
 }
 
 /** `keepAsText` leaves a `TAB` as lyrics: one its author is still typing (so "TABLA" can still be
  *  written), or one that may not become a block (see `ReconcileOptions.textLineIndexes`). */
-function buildLine(lineText: string, keepAsText = false): Line {
+function buildLine(lineText: string, keepAsText = false, closesBlock = false): Line {
   if (!keepAsText && isTabLineText(lineText)) return { id: nextId("line"), words: [], tab: true };
   if (isSubtitleLineText(lineText)) return { id: nextId("line"), words: [], subtitle: lineText };
   if (isPartituraLinkText(lineText)) return { id: nextId("line"), words: [], partituraLink: lineText };
   if (isChordLineText(lineText)) return { id: nextId("line"), words: [], chordLine: lineText };
-  const words = splitIntoWords(lineText).map((wordText) => buildWord(wordText));
+  const words = splitIntoWords(lineText, closesBlock).map((wordText) => buildWord(wordText));
   return { id: nextId("line"), words };
 }
 
@@ -190,7 +203,7 @@ export function bisSlotIds(line: Line): Set<string> {
  * `buildLine` produced them from that text) and picks the last syllable starting at or before the
  * chord's column — i.e. the syllable the chord sits over, or the gap slot if it sits over the whitespace between two words. */
 export function chordSlotForColumn(line: Line, rawLineText: string, column: number): string {
-  const wordStarts = wordStartColumns(rawLineText);
+  const wordStarts = wordStartColumns(rawLineText, closesFreeTextBlock(line, rawLineText));
   let bestSlotId: string | null = null;
 
   for (let i = 0; i < line.words.length && i < wordStarts.length; i++) {

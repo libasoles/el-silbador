@@ -220,17 +220,23 @@ export function hyphenateWord(rawWord) {
 /** A word of a lyric line: free text between `<--` and `-->` (spaces included) or a run of
  *  non-whitespace. A `<--` with no closing `-->` is just an ordinary word. */
 const WORD_PATTERN = /<--[\s\S]*?-->|\S+/g;
-/** Where each word of a raw lyric line starts, in the same order `splitIntoWords` returns them. */
-export function wordStartColumns(line) {
-    return [...line.matchAll(WORD_PATTERN)].map((match) => match.index);
+/** The same, for the line that closes a multi-line free-text block: the free text there starts at
+ *  the line's beginning and ends at its first `-->`. */
+const CLOSING_WORD_PATTERN = /^[\s\S]*?-->|\S+/g;
+/** Where each word of a raw lyric line starts, in the same order `splitIntoWords` returns them.
+ *  `closesBlock` marks the line that ends a multi-line free-text block. */
+export function wordStartColumns(line, closesBlock = false) {
+    return [...line.matchAll(closesBlock ? CLOSING_WORD_PATTERN : WORD_PATTERN)].map((match) => match.index);
 }
-/** Whether a word is free text: written between `<--` and `-->`, so it is never syllabified and
- *  never carries chords or notes. */
+/** Whether a word is free text: written between `<--` and `-->` (or, on the line closing a
+ *  multi-line block, ending in `-->` after spaces), so it is never syllabified and never carries
+ *  chords or notes. */
 export function isFreeTextToken(word) {
-    return word.length >= 6 && word.startsWith("<--") && word.endsWith("-->");
+    return word.length >= 6 && word.endsWith("-->") && (word.startsWith("<--") || /\s/.test(word));
 }
 /** Splits a line of lyrics into words, on whitespace, preserving nothing else about layout. Free
- *  text between `<--` and `-->` stays together as one word. */
-export function splitIntoWords(line) {
-    return line.match(WORD_PATTERN) ?? [];
+ *  text between `<--` and `-->` stays together as one word, and so does everything up to the `-->`
+ *  on a line that `closesBlock`. */
+export function splitIntoWords(line, closesBlock = false) {
+    return line.match(closesBlock ? CLOSING_WORD_PATTERN : WORD_PATTERN) ?? [];
 }
