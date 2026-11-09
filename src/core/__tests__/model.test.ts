@@ -10,6 +10,7 @@ import {
   endSlotIds,
   flattenSyllables,
   gapSlotId,
+  isFreeTextWord,
   getLineCellSlots,
   isSubtitleLineText,
   isLineEdgeSlot,
@@ -57,6 +58,7 @@ describe("section-label subtitles", () => {
     "Cogollo",
     "Primera",
     "Segunda",
+    "Recitado",
     "  Introducción  ",
   ])(
     "keeps %j whole instead of syllabifying it",
@@ -185,6 +187,36 @@ describe("word-gap slots", () => {
   it("lists the slots of BIS syllables, which never hold an annotation", () => {
     const [line] = buildSong("uno BIS dos");
     expect([...bisSlotIds(line)]).toEqual(line.words[1].syllables.map((s) => beforeSlotId(s.id)));
+  });
+});
+
+describe("free text between <-- and -->", () => {
+  it("keeps the text whole, spaces included, as one unsung word", () => {
+    const text = "uno <-- habla sin cantar --> dos";
+    const [line] = buildSong(text);
+
+    expect(line.words.map((word) => word.syllables.map((s) => s.text).join(""))).toEqual([
+      "uno",
+      "<-- habla sin cantar -->",
+      "dos",
+    ]);
+    expect(line.words[1].syllables).toHaveLength(1);
+    expect(isFreeTextWord(line.words[1])).toBe(true);
+    expect([...bisSlotIds(line)]).toEqual([beforeSlotId(line.words[1].syllables[0].id)]);
+  });
+
+  it("moves a chord written over it to the space before it", () => {
+    const text = "uno <-- hola -->";
+    const [line] = buildSong(text);
+    const lastOfUno = line.words[0].syllables.at(-1)!;
+
+    expect(chordSlotForColumn(line, text, 8)).toBe(gapSlotId(lastOfUno.id));
+  });
+
+  it("treats a <-- with no closing --> as an ordinary word", () => {
+    const [line] = buildSong("uno <-- dos");
+
+    expect(line.words.some(isFreeTextWord)).toBe(false);
   });
 });
 

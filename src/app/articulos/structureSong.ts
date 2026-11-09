@@ -9,6 +9,7 @@ export const STRUCTURE_KEYWORDS = [
   "Interludio",
   "Primera",
   "Segunda",
+  "Recitado",
   "Remate",
   "Cogollo",
   "Coda",
@@ -32,6 +33,10 @@ ${TONADA_SHEET}`;
 export const UNLABELED_EXCERPT = `
 Ya nunca te he de olvidar
 en la arena me escribias`;
+
+export const FREE_TEXT_EXCERPT = `Recitado
+<-- Hablado, sobre el acompañamiento -->
+${TONADA_SHEET}`;
 
 export const BIS_EXCERPT = `${TONADA_SHEET} BIS`;
 

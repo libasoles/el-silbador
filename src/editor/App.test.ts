@@ -193,7 +193,7 @@ describe("BIS phrases", () => {
   });
 
   it("never underlines the BIS word or lets it join a melisma, wherever it sits in the line", () => {
-    expect(lineView).toContain("isBisWord(");
+    expect(lineView).toContain("isUnsungWord(");
     expect(lineView).toContain('(bis ? " syllable--bis" : "")');
     expect(lineView).toContain(
       "disabled={!showUnderline || readOnly || touchesBis}",

@@ -1262,6 +1262,11 @@
   content: none;
 }
 
+/* Free text between `<--` and `-->` is read as written, not sung. */
+.line .syllable--free-text {
+  font-style: italic;
+}
+
 /* While dragging a chord, the syllable it would land on lights up as a whole: its text and
    underline share the accent, while the chip itself stays unchanged under the pointer. */
 .syllable--drop-target {

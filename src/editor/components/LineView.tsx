@@ -9,7 +9,8 @@ import {
   getLineCellSlots,
   getLineGaps,
   getLineUnits,
-  isBisWord,
+  isFreeTextWord,
+  isUnsungWord,
   mergeKey,
   startSlotIds,
 } from "../../core/model";
@@ -785,7 +786,8 @@ function LyricLineView({
   const wrapRowGap = isWrapped ? wrapLayout.beforeHeight + wrapLayout.afterHeight : 0;
 
   function renderWordContent(word: Line["words"][number]) {
-    const bis = isBisWord(word);
+    const bis = isUnsungWord(word);
+    const freeText = isFreeTextWord(word);
     return word.syllables.map((syllable, index) => {
       const previous = index > 0 ? word.syllables[index - 1] : null;
       const merged = previous && !bis ? merges.has(mergeKey(previous.id, syllable.id)) : false;
@@ -812,6 +814,7 @@ function LyricLineView({
               "syllable" +
               (Array.from(syllable.text).length === 1 ? " syllable--single-letter" : "") +
               (bis ? " syllable--bis" : "") +
+              (freeText ? " syllable--free-text" : "") +
               (mergedIds.has(syllable.id) ? " syllable--merged" : "") +
               (readOnly && hasChordAtSyllable(syllable.id) ? " syllable--has-chord" : "") +
               (dropTargetSyllableIds.has(syllable.id) ? " syllable--drop-target" : "")
@@ -872,7 +875,7 @@ function LyricLineView({
           const firstSyllable = word.syllables[0];
           const prevWord = wIndex > 0 ? line.words[wIndex - 1] : null;
           const prevSyllable = prevWord ? prevWord.syllables[prevWord.syllables.length - 1] : null;
-          const touchesBis = isBisWord(word) || (prevWord !== null && isBisWord(prevWord));
+          const touchesBis = isUnsungWord(word) || (prevWord !== null && isUnsungWord(prevWord));
 
           return (
             <Fragment key={word.id}>

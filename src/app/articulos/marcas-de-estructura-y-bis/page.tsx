@@ -10,6 +10,7 @@ import {
   BIS_EXCERPT,
   LABELED_EXCERPT,
   MULTI_BIS_GROUPS,
+  FREE_TEXT_EXCERPT,
   STRUCTURE_KEYWORDS,
   TONADA_SHEET,
   UNLABELED_EXCERPT,
@@ -89,6 +90,18 @@ export default function StructureAndBisArticlePage() {
             Si la línea tiene algo más, como «Estribillo final», no va a
             funcionar.
           </p>
+
+          <h2>Texto sin formato</h2>
+          <p>
+            Lo que escribas entre <span className="article-syllable">{"<--"}</span>{" "}
+            y <span className="article-syllable">{"-->"}</span> se muestra tal
+            cual: no se separa en sílabas y no recibe acordes ni notas. Sirve
+            para lo hablado o para aclaraciones dentro de una línea.
+          </p>
+          <ArticleChordEditor
+            sheet={FREE_TEXT_EXCERPT}
+            label="Editor con un texto sin formato"
+          />
 
           <h2>BIS</h2>
           <p>

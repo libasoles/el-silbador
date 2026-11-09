@@ -1,7 +1,7 @@
 import { isChordLineText } from "./chordSheet";
 import { nextId } from "./ids";
 import { isPartituraLinkText } from "./partituraLink";
-import { hyphenateWord, splitIntoWords } from "./syllabify";
+import { hyphenateWord, isFreeTextToken, splitIntoWords, wordStartColumns } from "./syllabify";
 import type { CellsByTrack, Line, Song, Syllable, SyllableUnit, TrackId, Word } from "./types";
 
 const subtitleKeywords = new Set([
@@ -15,6 +15,7 @@ const subtitleKeywords = new Set([
   "cogollo",
   "primera",
   "segunda",
+  "recitado",
 ]);
 
 /** Whether a raw lyric line is one of the section labels displayed as a subtitle.
@@ -146,10 +147,21 @@ export function isBisWord(word: Word): boolean {
   return word.syllables.map((syllable) => syllable.text).join("") === "BIS";
 }
 
-/** The slots of a line's `BIS` syllables, which never hold an annotation (see `isBisWord`). */
+/** Free text, written between `<--` and `-->`: kept whole as one syllable, and like `BIS` it
+ *  never takes the underline, a melisma or an annotation. */
+export function isFreeTextWord(word: Word): boolean {
+  return isFreeTextToken(word.syllables.map((syllable) => syllable.text).join(""));
+}
+
+/** A word that is not sung, so nothing can be annotated on or merged across it. */
+export function isUnsungWord(word: Word): boolean {
+  return isBisWord(word) || isFreeTextWord(word);
+}
+
+/** The slots of a line's unsung syllables, which never hold an annotation (see `isUnsungWord`). */
 export function bisSlotIds(line: Line): Set<string> {
   return new Set(
-    line.words.filter(isBisWord).flatMap((word) => word.syllables.map((syllable) => beforeSlotId(syllable.id))),
+    line.words.filter(isUnsungWord).flatMap((word) => word.syllables.map((syllable) => beforeSlotId(syllable.id))),
   );
 }
 
@@ -158,15 +170,15 @@ export function bisSlotIds(line: Line): Set<string> {
  * `buildLine` produced them from that text) and picks the last syllable starting at or before the
  * chord's column — i.e. the syllable the chord sits over, or the gap slot if it sits over the whitespace between two words. */
 export function chordSlotForColumn(line: Line, rawLineText: string, column: number): string {
-  const wordStarts = [...rawLineText.matchAll(/\S+/g)].map((match) => match.index);
+  const wordStarts = wordStartColumns(rawLineText);
   let bestSlotId: string | null = null;
 
   for (let i = 0; i < line.words.length && i < wordStarts.length; i++) {
     let offset = wordStarts[i];
-    const bis = isBisWord(line.words[i]);
+    const bis = isUnsungWord(line.words[i]);
     const previous = line.words[i - 1]?.syllables.at(-1);
     for (const syllable of line.words[i].syllables) {
-      // BIS takes no chord (see `isBisWord`), so one written over it moves to the space before it.
+      // BIS and free text take no chord (see `isUnsungWord`), so one written over it moves to the space before it.
       if (offset <= column) {
         bestSlotId = !bis ? beforeSlotId(syllable.id) : previous ? gapSlotId(previous.id) : startSlotId(line.id);
       }
