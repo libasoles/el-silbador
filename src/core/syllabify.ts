@@ -160,6 +160,7 @@ function getConsonantTokens(word: string, start: number, end: number): Consonant
 /** Splits a single word into its Spanish syllables. Non-letter tokens are returned as-is. */
 export function hyphenateWord(rawWord: string): string[] {
   if (!rawWord) return [];
+  if (isFreeTextToken(rawWord)) return [rawWord];
 
   let leadingPunct = "";
   let word = rawWord;
@@ -231,7 +232,23 @@ export function hyphenateWord(rawWord: string): string[] {
   return syllables;
 }
 
-/** Splits a line of lyrics into words, on whitespace, preserving nothing else about layout. */
+/** A word of a lyric line: free text between `<--` and `-->` (spaces included) or a run of
+ *  non-whitespace. A `<--` with no closing `-->` is just an ordinary word. */
+const WORD_PATTERN = /<--[\s\S]*?-->|\S+/g;
+
+/** Where each word of a raw lyric line starts, in the same order `splitIntoWords` returns them. */
+export function wordStartColumns(line: string): number[] {
+  return [...line.matchAll(WORD_PATTERN)].map((match) => match.index);
+}
+
+/** Whether a word is free text: written between `<--` and `-->`, so it is never syllabified and
+ *  never carries chords or notes. */
+export function isFreeTextToken(word: string): boolean {
+  return word.length >= 6 && word.startsWith("<--") && word.endsWith("-->");
+}
+
+/** Splits a line of lyrics into words, on whitespace, preserving nothing else about layout. Free
+ *  text between `<--` and `-->` stays together as one word. */
 export function splitIntoWords(line: string): string[] {
-  return line.split(/\s+/).filter((token) => token.length > 0);
+  return line.match(WORD_PATTERN) ?? [];
 }
