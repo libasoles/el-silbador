@@ -220,6 +220,22 @@ describe("free text between <-- and -->", () => {
   });
 });
 
+describe("multi-line free text blocks", () => {
+  it("keeps every line from <-- through --> whole, with no syllables", () => {
+    const song = buildSong("uno\n<-- habla\nsin cantar\nfin -->\ndos");
+
+    expect(song.map((line) => line.freeText)).toEqual([undefined, "<-- habla", "sin cantar", "fin -->", undefined]);
+    expect(song[2].words).toEqual([]);
+    expect(song[4].words).toHaveLength(1);
+  });
+
+  it("leaves an opening with no closing --> as ordinary lyrics", () => {
+    const song = buildSong("<-- habla\nsin cantar");
+
+    expect(song.some((line) => line.freeText !== undefined)).toBe(false);
+  });
+});
+
 describe("reconcileWordSyllables", () => {
   const syl = (id: string, text: string) => ({ id, text });
 

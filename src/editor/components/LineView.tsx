@@ -1013,9 +1013,23 @@ function PartituraLinkLineView({ line, onRemovePartituraLink }: Pick<LineViewPro
   );
 }
 
+/** A line of a multi-line free-text block: shown as written, outside the syllable layout. */
+function FreeTextLineView({ line, lineNumber, readOnly = false }: Pick<LineViewProps, "line" | "lineNumber" | "readOnly">) {
+  return (
+    <div className="line line--free-text">
+      <div className="free-text-line" {...lineLabelProps(readOnly, lineNumber)} data-lyrics-line>
+        {line.freeText}
+      </div>
+    </div>
+  );
+}
+
 export function LineView(props: LineViewProps) {
   if (props.line.partituraLink !== undefined) {
     return <PartituraLinkLineView line={props.line} onRemovePartituraLink={props.onRemovePartituraLink} />;
+  }
+  if (props.line.freeText !== undefined) {
+    return <FreeTextLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} />;
   }
   if (props.line.subtitle !== undefined) {
     return <SubtitleLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} />;

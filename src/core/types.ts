@@ -13,6 +13,8 @@ export interface Line {
   words: Word[];
   /** A section label kept as whole text rather than split into syllables. */
   subtitle?: string;
+  /** A line inside a multi-line free-text block (`<--` … `-->`): its raw text, kept whole. */
+  freeText?: string;
   /** A chord line: its raw text, chords spaced by column, with no syllables of its own. */
   chordLine?: string;
   /** A line that is only a link to Partitura: its raw text, shown as a banner. */

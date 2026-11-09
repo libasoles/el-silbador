@@ -759,6 +759,12 @@
   display: none;
 }
 
+/* Free text is read as written, in the lyrics' own type, not sung. */
+.free-text-line {
+  font-style: italic;
+  white-space: pre-wrap;
+}
+
 /* Section labels are whole, unsyllabified lines rather than lyrics. */
 .subtitle-line {
   color: var(--muted);

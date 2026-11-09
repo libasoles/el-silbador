@@ -46,12 +46,32 @@ export function isLyricLineText(lineText: string): boolean {
   return lineText.trim() !== "" && !isSubtitleLineText(lineText) && !isTabLineText(lineText) && !isChordLineText(lineText) && !isPartituraLinkText(lineText);
 }
 
+/** Which lines of a raw document belong to a multi-line free-text block: from a line that opens
+ *  with `<--` and has no `-->`, through the first later line containing `-->`. An opening with no
+ *  closing line is not a block. */
+export function freeTextBlockFlags(rawLines: readonly string[]): boolean[] {
+  const flags = rawLines.map(() => false);
+  for (let i = 0; i < rawLines.length; i++) {
+    const opening = rawLines[i]!.trim();
+    if (!opening.startsWith("<--") || opening.includes("-->")) continue;
+    const close = rawLines.findIndex((line, j) => j > i && line.includes("-->"));
+    if (close === -1) continue;
+    for (let j = i; j <= close; j++) flags[j] = true;
+    i = close;
+  }
+  return flags;
+}
+
 /** Builds a fresh, fully-hyphenated song from raw lyrics text. Every id is newly minted.
  *  An empty document has no lines at all (not one line with zero words), so consumers can
  *  detect it with `song.length === 0` and show the empty-document placeholder. */
 export function buildSong(lyricsText: string, textLineIndexes: readonly number[] = []): Song {
   if (lyricsText === "") return [];
-  return lyricsText.split("\n").map((lineText, index) => buildLine(lineText, textLineIndexes.includes(index)));
+  const rawLines = lyricsText.split("\n");
+  const inBlock = freeTextBlockFlags(rawLines);
+  return rawLines.map((lineText, index) =>
+    inBlock[index] ? { id: nextId("line"), words: [], freeText: lineText } : buildLine(lineText, textLineIndexes.includes(index)),
+  );
 }
 
 /** `keepAsText` leaves a `TAB` as lyrics: one its author is still typing (so "TABLA" can still be
