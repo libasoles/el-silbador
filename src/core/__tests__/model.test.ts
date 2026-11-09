@@ -221,12 +221,19 @@ describe("free text between <-- and -->", () => {
 });
 
 describe("multi-line free text blocks", () => {
-  it("keeps every line from <-- through --> whole, with no syllables", () => {
-    const song = buildSong("uno\n<-- habla\nsin cantar\nfin -->\ndos");
+  it("keeps the lines from <-- up to the closing one whole, with no syllables", () => {
+    const song = buildSong("uno\n<-- habla\nsin cantar\nfin --> dos");
 
-    expect(song.map((line) => line.freeText)).toEqual([undefined, "<-- habla", "sin cantar", "fin -->", undefined]);
+    expect(song.map((line) => line.freeText)).toEqual([undefined, "<-- habla", "sin cantar", undefined]);
     expect(song[2].words).toEqual([]);
-    expect(song[4].words).toHaveLength(1);
+  });
+
+  it("goes back to syllabified lyrics after the --> that closes the block", () => {
+    const song = buildSong("<-- habla\nfin --> cantar ya");
+
+    expect(song[1].words.map((word) => word.syllables.map((s) => s.text))).toEqual([["fin -->"], ["can", "tar"], ["ya"]]);
+    expect(isFreeTextWord(song[1].words[0])).toBe(true);
+    expect(isFreeTextWord(song[1].words[1])).toBe(false);
   });
 
   it("leaves an opening with no closing --> as ordinary lyrics", () => {

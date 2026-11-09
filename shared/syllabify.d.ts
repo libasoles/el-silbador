@@ -15,11 +15,14 @@
  */
 /** Splits a single word into its Spanish syllables. Non-letter tokens are returned as-is. */
 export declare function hyphenateWord(rawWord: string): string[];
-/** Where each word of a raw lyric line starts, in the same order `splitIntoWords` returns them. */
-export declare function wordStartColumns(line: string): number[];
-/** Whether a word is free text: written between `<--` and `-->`, so it is never syllabified and
- *  never carries chords or notes. */
+/** Where each word of a raw lyric line starts, in the same order `splitIntoWords` returns them.
+ *  `closesBlock` marks the line that ends a multi-line free-text block. */
+export declare function wordStartColumns(line: string, closesBlock?: boolean): number[];
+/** Whether a word is free text: written between `<--` and `-->` (or, on the line closing a
+ *  multi-line block, ending in `-->` after spaces), so it is never syllabified and never carries
+ *  chords or notes. */
 export declare function isFreeTextToken(word: string): boolean;
 /** Splits a line of lyrics into words, on whitespace, preserving nothing else about layout. Free
- *  text between `<--` and `-->` stays together as one word. */
-export declare function splitIntoWords(line: string): string[];
+ *  text between `<--` and `-->` stays together as one word, and so does everything up to the `-->`
+ *  on a line that `closesBlock`. */
+export declare function splitIntoWords(line: string, closesBlock?: boolean): string[];
