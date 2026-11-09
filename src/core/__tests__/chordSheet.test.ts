@@ -2,6 +2,16 @@ import { describe, expect, it } from "vitest";
 import { isChordLineText, parseChordSheet } from "../chordSheet";
 
 describe("parseChordSheet", () => {
+  it("ignores invisible characters copied along with the text", () => {
+    const parsed = parseChordSheet("Gm\u200b  Eb\ufeff\nYo me\u200b sueño");
+
+    expect(parsed.lyricsText).toBe("Yo me sueño");
+    expect(parsed.placements).toEqual([
+      { lineIndex: 0, column: 0, chord: "Gm" },
+      { lineIndex: 0, column: 4, chord: "Eb" },
+    ]);
+  });
+
   it("preserves ° when importing consecutive diminished chords above lyrics", () => {
     expect(parseChordSheet("C#°D°7\nla llama")).toEqual({
       lyricsText: "la llama",

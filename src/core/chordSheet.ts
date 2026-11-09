@@ -92,6 +92,10 @@ function lineTokens(line: string): { column: number; chord: string }[] {
   );
 }
 
+/** Zero-width and bidi-control characters that web pages (chord sites among them) leave in copied
+ *  text. They are invisible but make a chord like `Gm` no longer read as one. */
+const INVISIBLE_CHARS = /[\u00AD\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g;
+
 /** Splits pasted text into lyrics-only text plus the chord placements detected above each line.
  *  Only a row of chords right above a line of lyrics is spread over that line's syllables. A row
  *  with no lyrics under it (an intro, an ending, one above a section label or another row of
@@ -115,7 +119,7 @@ export function parseChordSheet(
     pendingTokens = [];
   }
 
-  const rawLines = text.split("\n");
+  const rawLines = text.replace(INVISIBLE_CHARS, "").split("\n");
   rawLines.forEach((rawLine, index) => {
     const next = rawLines[index + 1];
     if (isChordLine(rawLine) && next !== undefined && !isChordLine(next) && isLyricLine(next)) {
