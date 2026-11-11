@@ -29,6 +29,12 @@ jobs:
 
       - run: npm ci
 
+      # El package-lock.json se generó en macOS y solo trae el binding de rolldown (vitest) para darwin;
+      # npm tiene un bug con las dependencias opcionales (npm/cli#4828). Regenerar el lockfile
+      # actualizaría cientos de paquetes, así que se agrega el binding de Linux sin tocar el lockfile.
+      - name: Binding de rolldown para Linux
+        run: npm install --no-save --no-package-lock --ignore-scripts "@rolldown/binding-linux-x64-gnu@$(node -p "require('rolldown/package.json').version")"
+
       - run: npm test
 
       - name: Build y publicar en Netlify
