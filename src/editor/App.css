@@ -1274,6 +1274,15 @@
   content: none;
 }
 
+/* The markers are text the author types, shown only while the caret is in the block. */
+.free-text-mark {
+  font-size: 0;
+}
+
+.line--free-text-active .free-text-mark {
+  font-size: inherit;
+}
+
 /* Free text between `<--` and `-->` is read as written, not sung: no syllable underline. */
 .line .syllable--free-text::after {
   content: none;

@@ -144,6 +144,8 @@ interface LineViewProps {
   /** A just-typed TAB still behaves as text until its author confirms the block, but shares the
       visual treatment of the other structural keyword, BIS. */
   tabCandidate?: boolean;
+  /** The caret is in this line's free-text block, so its `<--` / `-->` markers are shown. */
+  freeTextActive?: boolean;
   /** Given to an editor: adds a remove button to a Partitura link's banner. */
   onRemovePartituraLink?: (lineId: string) => void;
   /** Whitespace at the end of the raw lyric line, which the syllable model does not retain. */
@@ -179,6 +181,7 @@ function LyricLineView({
   bisRule,
   bisMarker = false,
   tabCandidate = false,
+  freeTextActive = false,
   trailingWhitespace,
   merges,
   showUnderline,
@@ -821,7 +824,7 @@ function LyricLineView({
             }
             {...syllableDragProps(syllable.id)}
           >
-            {syllable.text}
+            {freeText ? <FreeTextMarks text={syllable.text} /> : syllable.text}
           </span>
         </Fragment>
       );
@@ -834,6 +837,7 @@ function LyricLineView({
         "line" +
         (bisRule ? ` line--bis line--bis-${bisRule}` : "") +
         (tabCandidate ? " line--tab-candidate" : "") +
+        (freeTextActive ? " line--free-text-active" : "") +
         (isDragging ? " line--dragging" : "") +
         (!chordsVisible ? " line--chords-hidden" : "") +
         (readOnly ? " line--chord-underlines-only" : "")
@@ -1013,12 +1017,24 @@ function PartituraLinkLineView({ line, onRemovePartituraLink }: Pick<LineViewPro
   );
 }
 
-/** A line of a multi-line free-text block: shown as written, outside the syllable layout. */
-function FreeTextLineView({ line, lineNumber, readOnly = false }: Pick<LineViewProps, "line" | "lineNumber" | "readOnly">) {
+/** Free text with its `<--` / `-->` markers wrapped so CSS can hide them unless the caret is in the block. */
+function FreeTextMarks({ text }: { text: string }) {
+  const [, open = "", body = "", close = ""] = text.match(/^(\s*<--)?([\s\S]*?)(-->)?$/) ?? [];
   return (
-    <div className="line line--free-text">
+    <>
+      {open ? <span className="free-text-mark">{open}</span> : null}
+      {body}
+      {close ? <span className="free-text-mark">{close}</span> : null}
+    </>
+  );
+}
+
+/** A line of a multi-line free-text block: shown as written, outside the syllable layout. */
+function FreeTextLineView({ line, lineNumber, readOnly = false, freeTextActive = false }: Pick<LineViewProps, "line" | "lineNumber" | "readOnly" | "freeTextActive">) {
+  return (
+    <div className={"line line--free-text" + (freeTextActive ? " line--free-text-active" : "")}>
       <div className="free-text-line" {...lineLabelProps(readOnly, lineNumber)} data-lyrics-line>
-        {line.freeText}
+        <FreeTextMarks text={line.freeText ?? ""} />
       </div>
     </div>
   );
@@ -1029,7 +1045,7 @@ export function LineView(props: LineViewProps) {
     return <PartituraLinkLineView line={props.line} onRemovePartituraLink={props.onRemovePartituraLink} />;
   }
   if (props.line.freeText !== undefined) {
-    return <FreeTextLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} />;
+    return <FreeTextLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} freeTextActive={props.freeTextActive} />;
   }
   if (props.line.subtitle !== undefined) {
     return <SubtitleLineView line={props.line} lineNumber={props.lineNumber} readOnly={props.readOnly} />;

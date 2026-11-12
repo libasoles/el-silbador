@@ -250,6 +250,7 @@ export function wordStartColumns(line: string, closesBlock = false): number[] {
  *  multi-line block, ending in `-->` after spaces), so it is never syllabified and never carries
  *  chords or notes. */
 export function isFreeTextToken(word: string): boolean {
+  if (word === "-->") return true;
   return word.length >= 6 && word.endsWith("-->") && (word.startsWith("<--") || /\s/.test(word));
 }
 

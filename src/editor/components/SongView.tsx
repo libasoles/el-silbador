@@ -2,7 +2,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode 
 import { flushSync } from "react-dom";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
-import { columnForSlot, getLineCellSlots, isLyricLineText, isTabLineText, TAB_MARKER } from "../../core/model";
+import { columnForSlot, freeTextBlockRoles, getLineCellSlots, isLyricLineText, isTabLineText, TAB_MARKER } from "../../core/model";
 import { EMPTY_TAB_BLOCK, getCell, type PastedTab, type ReconcileOptions } from "../../core/state";
 import { lineStarts, tabLinesAfterReplace, type TabLineAfterEdit } from "../../core/tabEdits";
 import type {
@@ -762,6 +762,19 @@ export function SongView({
     onInsertTabBlock?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canEdit, isMobile, isFocused, caretLineIndex]);
+
+  // Free-text markers show only while the caret is inside their block (never when read-only).
+  const freeTextActiveLines = new Set<number>();
+  if (canEdit && isFocused && caretLineIndex !== null) {
+    const roles = freeTextBlockRoles(lyricLines);
+    let start = caretLineIndex;
+    let end = caretLineIndex;
+    if (roles[start] !== null) {
+      while (roles[start - 1] === "inside") start--;
+      while (roles[end] === "inside") end++;
+    }
+    for (let i = start; i <= end; i++) freeTextActiveLines.add(i);
+  }
 
   // Flattened in song order (not per line) so a chord at the start of one line can still be
   // compared against the last chord of the previous line.
@@ -1652,6 +1665,7 @@ export function SongView({
             bisRule={bisStyles.get(index)}
             bisMarker={BIS_AT_LINE_END.test(lyricLines[index] ?? "")}
             tabCandidate={canEdit && !isMobile && isTabLineText(lyricLines[index] ?? "")}
+            freeTextActive={freeTextActiveLines.has(index)}
             onRemovePartituraLink={canEdit && !isMobile ? () => removeLyricLine(index) : undefined}
             trailingWhitespace={lyricLines[index]?.match(/\s+$/)?.[0] ?? ""}
             merges={merges}

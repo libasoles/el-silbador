@@ -232,6 +232,8 @@ export function wordStartColumns(line, closesBlock = false) {
  *  multi-line block, ending in `-->` after spaces), so it is never syllabified and never carries
  *  chords or notes. */
 export function isFreeTextToken(word) {
+    if (word === "-->")
+        return true;
     return word.length >= 6 && word.endsWith("-->") && (word.startsWith("<--") || /\s/.test(word));
 }
 /** Splits a line of lyrics into words, on whitespace, preserving nothing else about layout. Free
