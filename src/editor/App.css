@@ -759,10 +759,16 @@
   display: none;
 }
 
-/* Free text is read as written, in the lyrics' own type, not sung. */
+/* Free text is read as written, in the lyrics' own type and size, not sung. */
 .free-text-line {
-  font-style: italic;
+  font-size: 1.2rem;
   white-space: pre-wrap;
+}
+
+@media (max-width: 30rem) {
+  .free-text-line {
+    font-size: 1.05rem;
+  }
 }
 
 /* Section labels are whole, unsyllabified lines rather than lyrics. */
@@ -1268,9 +1274,9 @@
   content: none;
 }
 
-/* Free text between `<--` and `-->` is read as written, not sung. */
-.line .syllable--free-text {
-  font-style: italic;
+/* Free text between `<--` and `-->` is read as written, not sung: no syllable underline. */
+.line .syllable--free-text::after {
+  content: none;
 }
 
 /* While dragging a chord, the syllable it would land on lights up as a whole: its text and
