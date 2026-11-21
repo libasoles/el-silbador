@@ -10,6 +10,7 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { LibraryReturnLink } from "./components/LibraryReturnLink";
 import { useQueryClient } from "@tanstack/react-query";
 import "./App.css";
 const neutralIllustration = "/03-neutral.svg";
@@ -1056,17 +1057,17 @@ function App({
 
   return (
     <main className="app">
-      <Link className="app-mark" href="/" aria-label="Volver al índice">
+      <LibraryReturnLink className="app-mark">
         <SilbadorIcon />
-      </Link>
+      </LibraryReturnLink>
 
       <IconButtonTooltip
         className="app-close-tooltip"
         tooltip="Volver al índice"
       >
-        <Link className="app-close" href="/" aria-label="Volver al índice">
+        <LibraryReturnLink className="app-close">
           <XIcon size={26} />
-        </Link>
+        </LibraryReturnLink>
       </IconButtonTooltip>
 
       {notFound ? (

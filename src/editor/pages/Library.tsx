@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useIsRestoring, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { rememberLibraryNavigation } from "../libraryNavigation";
 import { trackEvent } from "../analytics";
 import { useAuthRequired } from "../authRequiredContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -46,7 +47,7 @@ import {
   searchSongs,
 } from "./librarySearch";
 import { useIsMobile } from "../useIsMobile";
-import { songPath } from "../songPaths";
+import { songEditPath, songPath } from "../songPaths";
 import {
   readLibrarySkeletonCounts,
   saveLibrarySkeletonCount,
@@ -102,7 +103,12 @@ function SongRow({
 
   return (
     <li className={fadeIn ? "library-row library-row--fade-in" : "library-row"}>
-      <Link href={songPath(song.slug)} className="library-row__open" onClick={onOpen}>
+      <Link
+        href={songPath(song.slug)}
+        className="library-row__open"
+        onClick={onOpen}
+        onNavigate={() => rememberLibraryNavigation(songPath(song.slug))}
+      >
         <span className="library-row__title">
           <span className="library-row__title-text">
             <HighlightedText text={song.title} query={query} />
@@ -522,6 +528,7 @@ export function Library({
   };
   const handleEdit = (song: LibrarySong) => {
     trackEvent("edit_song", { song_id: song.id });
+    rememberLibraryNavigation(songEditPath(song.slug));
     onEditSong?.(song);
   };
   const handleNew = () => {
