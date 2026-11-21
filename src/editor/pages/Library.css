@@ -441,6 +441,10 @@
 
   .library-row__author {
     flex-basis: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: 0.85rem;
   }
 
