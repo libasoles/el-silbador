@@ -1,3 +1,5 @@
+import { useChordDiagramsToggle } from "./useChordDiagramsToggle";
+import { ChordDiagramsToggleButton } from "./components/ChordDiagramsToggleButton";
 import { songDocumentTitle } from "./songDocumentTitle";
 import {
   useCallback,
@@ -674,6 +676,8 @@ function App({
     !canEditOnThisDevice;
 
   const tabsToggle = useTabsToggle(state.song, canEditOnThisDevice);
+  const showChords = useCallback(() => actions.setTrackVisibility("chords", true), [actions]);
+  const chordDiagramsToggle = useChordDiagramsToggle(songDbId, showChords);
 
   // localStorage is client-only, so read it after hydration. The song id survives title/slug
   // changes and keeps one reader preference per actual song.
@@ -1186,6 +1190,7 @@ function App({
                     id="mobile-sidebar-menu-controls"
                     className="mobile-sidebar-menu__controls"
                   >
+                    <ChordDiagramsToggleButton pressed={chordDiagramsToggle.pressed} onToggle={chordDiagramsToggle.toggle} />
                     {tabsToggle.available && (
                       <TabsToggleButton pressed={tabsToggle.pressed} onToggle={tabsToggle.toggle} />
                     )}
@@ -1230,6 +1235,7 @@ function App({
             )}
 
             <aside className="track-toolbar" aria-label="Visibilidad de pistas">
+              <ChordDiagramsToggleButton pressed={chordDiagramsToggle.pressed} onToggle={chordDiagramsToggle.toggle} />
               {tabsToggle.available && (
                 <TabsToggleButton pressed={tabsToggle.pressed} onToggle={tabsToggle.toggle} />
               )}
@@ -1322,6 +1328,7 @@ function App({
                 onPasteText={actions.pasteText}
                 tabs={state.tabs}
                 showTabs={tabsToggle.showTabBlocks}
+                showChordDiagrams={chordDiagramsToggle.pressed}
                 onInsertTabBlock={tabsToggle.showForEditing}
                 onSetTabBlock={actions.setTabBlock}
                 onSetTabSpacing={actions.setTabSpacing}

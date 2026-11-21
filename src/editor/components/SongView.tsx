@@ -1,3 +1,4 @@
+import { SongChordDiagrams } from "./SongChordDiagrams";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
@@ -82,6 +83,7 @@ interface SongViewProps {
   tabs?: Record<string, TabBlockContent>;
   /** Whether tab blocks are drawn, controlled by the Tabs toggle. */
   showTabs?: boolean;
+  showChordDiagrams?: boolean;
   /** A typed TAB has been confirmed as a new block. */
   onInsertTabBlock?: () => void;
   onSetTabBlock?: (lineId: string, block: TabBlockContent) => void;
@@ -611,6 +613,7 @@ export function SongView({
   onPasteText,
   tabs = NO_TABS,
   showTabs = true,
+  showChordDiagrams = false,
   onInsertTabBlock,
   onSetTabBlock,
   onSetTabSpacing,
@@ -1377,6 +1380,7 @@ export function SongView({
 
   return (
     <div className="song-wrapper">
+      {showChordDiagrams && <SongChordDiagrams song={song} cells={cells} merges={merges} />}
       <div
         ref={rootRef}
         className={

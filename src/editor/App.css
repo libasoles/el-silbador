@@ -1459,3 +1459,26 @@
 .syllable-gap--merged:focus-visible::after {
   box-shadow: 0 0 0 1px var(--border-strong);
 }
+
+.song-chord-diagrams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.song-chord-diagrams__chord {
+  margin: 0;
+  width: 6rem;
+  text-align: center;
+  break-inside: avoid;
+}
+
+.song-chord-diagrams__chord figcaption {
+  font-weight: 600;
+}
+
+.song-chord-diagrams__chord .chord-diagram {
+  width: 100%;
+  height: auto;
+}
