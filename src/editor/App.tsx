@@ -1095,26 +1095,38 @@ function App({
                       </a>
                     </IconButtonTooltip>
                   )}
-                  <input
-                    type="text"
-                    className="title-input"
-                    placeholder="Título"
-                    value={state.title}
-                    onChange={(event) => actions.setTitle(event.target.value)}
-                    readOnly={!canEditOnThisDevice}
-                    aria-label="Título"
-                  />
+                  {isMobile ? (
+                    <h1 className="title-input song-heading-text">
+                      {state.title || "Título"}
+                    </h1>
+                  ) : (
+                    <input
+                      type="text"
+                      className="title-input"
+                      placeholder="Título"
+                      value={state.title}
+                      onChange={(event) => actions.setTitle(event.target.value)}
+                      readOnly={!canEditOnThisDevice}
+                      aria-label="Título"
+                    />
+                  )}
                 </div>
                 {(state.title.trim() !== "" || state.author.trim() !== "") && (
-                  <input
-                    type="text"
-                    className="author-input"
-                    placeholder="Autor o intérprete"
-                    value={state.author}
-                    onChange={(event) => actions.setAuthor(event.target.value)}
-                    readOnly={!canEditOnThisDevice}
-                    aria-label="Autor o intérprete"
-                  />
+                  isMobile ? (
+                    <p className="author-input song-heading-text">
+                      {state.author || "Autor o intérprete"}
+                    </p>
+                  ) : (
+                    <input
+                      type="text"
+                      className="author-input"
+                      placeholder="Autor o intérprete"
+                      value={state.author}
+                      onChange={(event) => actions.setAuthor(event.target.value)}
+                      readOnly={!canEditOnThisDevice}
+                      aria-label="Autor o intérprete"
+                    />
+                  )
                 )}
               </>
             )}

@@ -129,6 +129,12 @@
   color: var(--muted);
 }
 
+.song-heading-text {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .title-input:read-only,
 .author-input:read-only {
   cursor: default;
