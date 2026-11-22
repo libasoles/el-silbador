@@ -8,6 +8,7 @@ const MARGIN_X = 24;
 const TOP = 26;
 const FRET_HEIGHT = 26;
 const DOT_RADIUS = 8;
+const BARRE_HEIGHT = 5;
 const STRING_LABEL_HEIGHT = 16;
 
 /** Standard tuning, low to high — string 6 (low E) through string 1 (high E). */
@@ -135,11 +136,11 @@ export function ChordDiagram({ shape }: ChordDiagramProps) {
         <rect
           key={`barre-${index}`}
           className="chord-diagram__barre"
-          x={stringX(Math.max(barre.fromString, barre.toString)) - DOT_RADIUS}
-          y={fretY(barre.fret - 0.5) - DOT_RADIUS}
-          width={stringX(Math.min(barre.fromString, barre.toString)) - stringX(Math.max(barre.fromString, barre.toString)) + DOT_RADIUS * 2}
-          height={DOT_RADIUS * 2}
-          rx={DOT_RADIUS}
+          x={stringX(Math.max(barre.fromString, barre.toString)) - BARRE_HEIGHT / 2}
+          y={fretY(barre.fret - 0.5) - BARRE_HEIGHT / 2}
+          width={stringX(Math.min(barre.fromString, barre.toString)) - stringX(Math.max(barre.fromString, barre.toString)) + BARRE_HEIGHT}
+          height={BARRE_HEIGHT}
+          rx={BARRE_HEIGHT / 2}
         />
       ))}
 

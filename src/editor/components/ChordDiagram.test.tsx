@@ -24,7 +24,7 @@ describe("ChordDiagram", () => {
     const cellHeight = Number(frets[1].getAttribute("y1")) - Number(frets[0].getAttribute("y1"));
     const cellWidth = Math.abs(Number(strings[1].getAttribute("x1")) - Number(strings[0].getAttribute("x1")));
     expect(cellHeight / cellWidth).toBeGreaterThanOrEqual(1.5);
-    expect(svg.querySelector(".chord-diagram__barre")).toHaveAttribute("y", String(Number(frets[0].getAttribute("y1")) + cellHeight / 2 - 8));
+    expect(svg.querySelector(".chord-diagram__barre")).toHaveAttribute("y", String(Number(frets[0].getAttribute("y1")) + cellHeight / 2 - 2.5));
     expect(screen.getByText("2")).toHaveAttribute("y", String(Number(frets[0].getAttribute("y1")) + cellHeight * 1.5));
   });
 });
