@@ -3,8 +3,9 @@ import type { ChordShape, Finger } from "../../core/chordShapes";
 const STRING_COUNT = 6;
 const FRET_COUNT = 5;
 // Leave room for two-digit fret numbers inside the SVG's clipping boundary.
-const WIDTH = 128;
-const MARGIN_X = 24;
+const STRING_STEP = 16;
+const MARGIN_X = 10;
+const POSITION_MARGIN_LEFT = 22;
 const TOP = 26;
 const FRET_HEIGHT = 26;
 const DOT_RADIUS = 8;
@@ -52,9 +53,8 @@ function fingeredStringNames(shape: ChordShape): Record<number, string> {
   return names;
 }
 
-function stringX(stringNumber: number): number {
-  const step = (WIDTH - 2 * MARGIN_X) / (STRING_COUNT - 1);
-  return MARGIN_X + (STRING_COUNT - stringNumber) * step;
+function stringXAt(stringNumber: number, marginLeft: number): number {
+  return marginLeft + (STRING_COUNT - stringNumber) * STRING_STEP;
 }
 
 function fretY(fretRow: number): number {
@@ -84,12 +84,15 @@ export function ChordDiagram({ shape }: ChordDiagramProps) {
   const position = shape.position ?? 1;
   const height = fretY(FRET_COUNT) + 6 + STRING_LABEL_HEIGHT;
   const stringNames = fingeredStringNames(shape);
+  const marginLeft = position > 1 ? POSITION_MARGIN_LEFT : MARGIN_X;
+  const stringX = (stringNumber: number) => stringXAt(stringNumber, marginLeft);
+  const width = marginLeft + (STRING_COUNT - 1) * STRING_STEP + MARGIN_X;
 
   return (
     <svg
       className="chord-diagram"
-      viewBox={`0 0 ${WIDTH} ${height}`}
-      width={WIDTH}
+      viewBox={`0 0 ${width} ${height}`}
+      width={width}
       height={height}
       role="img"
       aria-label={`Diagrama del acorde ${shape.name}`}

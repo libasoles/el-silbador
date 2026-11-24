@@ -1469,7 +1469,6 @@
 
 .song-chord-diagrams__chord {
   margin: 0;
-  width: 7rem;
   text-align: center;
   break-inside: avoid;
 }
@@ -1479,6 +1478,8 @@
 }
 
 .song-chord-diagrams__chord .chord-diagram {
-  width: 100%;
+  max-width: 100%;
   height: auto;
+  background: #fff;
+  border-radius: 0.25rem;
 }
