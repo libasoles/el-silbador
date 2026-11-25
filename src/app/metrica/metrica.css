@@ -453,7 +453,7 @@
   margin: 0 0 1rem;
 }
 @media (max-width: 30rem) {
-  .notebook-guide__icon { height: 3rem; margin: 0 auto 0.75rem; }
+  .notebook-guide__icon { height: 2.5rem; margin: 0 auto 0.75rem; }
 }
 
 @media (min-width: 651px) {
