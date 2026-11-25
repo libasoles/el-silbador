@@ -5,9 +5,13 @@
 export function buildContentSecurityPolicy({
   supabaseUrl,
   isDev,
+  skipUpgradeInsecure = false,
 }: {
   supabaseUrl?: string;
   isDev: boolean;
+  /** Only for the Lighthouse audit, which serves the production build over plain http: there,
+   *  upgrade-insecure-requests turns Next's http prefetches into failing https requests. */
+  skipUpgradeInsecure?: boolean;
 }): string {
   const supabaseOrigin = originOf(supabaseUrl);
   const directives: Record<string, string[]> = {
@@ -41,7 +45,7 @@ export function buildContentSecurityPolicy({
   const policy = Object.entries(directives)
     .map(([name, sources]) => `${name} ${sources.join(" ")}`)
     .join("; ");
-  return isDev ? policy : `${policy}; upgrade-insecure-requests`;
+  return isDev || skipUpgradeInsecure ? policy : `${policy}; upgrade-insecure-requests`;
 }
 
 function originOf(url: string | undefined): string | null {

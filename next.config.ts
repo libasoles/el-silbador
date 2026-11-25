@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
             value: buildContentSecurityPolicy({
               supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
               isDev: process.env.NODE_ENV !== "production",
+              skipUpgradeInsecure: process.env.CSP_SKIP_UPGRADE_INSECURE === "1",
             }),
           },
           { key: "X-Content-Type-Options", value: "nosniff" },
