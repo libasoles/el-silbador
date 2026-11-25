@@ -5,6 +5,13 @@ import "./metrica.css";
 
 const description = "Un cuaderno para escribir versos en métricas tradicionales, y encontrar rimas.";
 
+const shareImage = {
+  url: "/og-metrica.png",
+  width: 1200,
+  height: 630,
+  alt: "Métrica de versos y rimas en El Silbador: una décima con conteo de sílabas y familias de rima.",
+};
+
 export const metadata: Metadata = {
   title: "Métrica de versos y rimas",
   description,
@@ -16,8 +23,14 @@ export const metadata: Metadata = {
     siteName: "El Silbador",
     locale: "es_AR",
     type: "website",
+    images: [shareImage],
   },
-  twitter: { card: "summary_large_image", title: "Métrica de versos y rimas — El Silbador", description },
+  twitter: {
+    card: "summary_large_image",
+    title: "Métrica de versos y rimas — El Silbador",
+    description,
+    images: [shareImage],
+  },
 };
 
 export default function MetricaPage() {
