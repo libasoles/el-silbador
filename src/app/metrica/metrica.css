@@ -384,12 +384,18 @@
 }
 
 @media (min-width: 701px) {
+  .metrica-notebook .detect-row { align-items: center; }
+  .metrica-notebook .detect-row .vnum,
+  .metrica-notebook .detect-row .rhyme-badge,
+  .metrica-notebook .detect-row .rhyme-text {
+    align-self: center;
+    margin-top: 0;
+    padding-top: 0;
+  }
   .metrica-notebook .detect-row .rhyme-text {
     display: flex;
     align-items: center;
-    align-self: start;
     min-height: 34px;
-    margin-top: 2px;
   }
   .metrica-notebook .detect-result.hide-notes .rhyme-text { display: none; }
 }
