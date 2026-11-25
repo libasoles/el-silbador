@@ -190,7 +190,7 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .campo-words .drop { display: inline-flex; align-items: center; padding: 0 .5rem; }
 .metrica-notebook.campo .campo-words .drop svg { width: 1rem; height: 1rem; }
 
-.metrica-notebook.campo .campo-picker { max-width: 30rem; background: var(--paper); box-shadow: none; }
+.metrica-notebook.campo .campo-picker { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
 .metrica-notebook.campo .spell-btn { display: inline-flex; align-items: center; gap: .2rem; font: 500 .75rem/1.4 var(--sans); }
 .metrica-notebook.campo .spell-btn svg { width: .9rem; height: .9rem; }
 
@@ -233,3 +233,36 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo #campo-count .metrica-icon { flex: none; margin-top: .2em; }
 .metrica-notebook.campo #campo-count .metrica-icon[hidden] { display: none; }
 .metrica-notebook.campo #campo-count svg { width: 1rem; height: 1rem; }
+
+/* Let heading text wrap while its controls stay beside the first line. */
+.metrica-notebook.campo .campo-step h2 { flex-wrap: nowrap; align-items: flex-start; }
+.metrica-notebook.campo .campo-title-text { min-width: 0; }
+.metrica-notebook.campo .campo-step h2 .campo-num { margin-top: -.15rem; }
+.metrica-notebook.campo .campo-field-head,
+.metrica-notebook.campo .campo-free-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.metrica-notebook.campo #campo-free-section h2 { margin: 0; }
+.metrica-notebook.campo #campo-free-section .detect-tools { flex: none; margin: -.2rem 0 0; }
+.metrica-notebook.campo .campo-free-head { margin-bottom: .75rem; }
+.metrica-notebook.campo #campo-free-section .composer-settings > summary { border: 0; background: none; width: 2rem; height: 2rem; }
+.metrica-notebook.campo .campo-chips li,
+.metrica-notebook.campo .campo-chips li.folk,
+.metrica-notebook.campo .campo-chips li.own,
+.metrica-notebook.campo .campo-chips li.own.used { background: #e3ead9; border: 1px solid #c5cfb7; }
+.metrica-notebook.campo .campo-chips .chip:hover { background: #d3dfc5; }
+.metrica-notebook.campo .campo-chips li.more { background: none; border: 0; }
+.metrica-notebook.campo .composer-lab .composer-heading h3 { font-size: 1.1rem; line-height: 1.5; }
+.metrica-notebook.campo .composer-lab .vline .vnum { font-size: .8rem; }
+
+.metrica-notebook.campo #campo-free-section .composer-settings { margin: 0; }
+.metrica-notebook.campo #campo-free-section .composer-settings > summary { padding: 0; }
+@media (max-width: 30rem) {
+ .metrica-notebook.campo #campo-add label .campo-hint { display: none; }
+ .metrica-notebook.campo .spell-panel {
+  position: fixed; left: 50%; top: 50%; right: auto; transform: translate(-50%, -50%);
+  width: calc(100vw - 2rem); max-width: 27.5rem; max-height: calc(100dvh - 2rem);
+  margin: 0; z-index: 80; overscroll-behavior: contain;
+ }
+ .metrica-notebook.campo .spell-fix { flex-wrap: wrap; }
+ .metrica-notebook.campo .spell-fix input { flex-basis: 100%; min-width: 0; }
+ .metrica-notebook.campo .spell-fix button { flex: 1; }
+}
