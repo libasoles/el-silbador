@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notebookSans } from "./fonts";
 import { SilbadorIcon } from "../../editor/components/icons";
 import { MetricaEditor } from "./MetricaEditor";
 import "./metrica.css";
@@ -35,11 +36,10 @@ export const metadata: Metadata = {
 
 export default function MetricaPage() {
   return (
-    <main className="metrica-page">
+    <main className={`metrica-page ${notebookSans.variable}`}>
       <a className="app-mark" href="/" aria-label="Volver a El Silbador">
         <SilbadorIcon />
       </a>
-      <nav className="notebook-pages" aria-label="Cuadernos de versos"><a href="/metrica" aria-current="page">Métrica</a><a href="/verso-libre">Verso libre</a></nav>
       <MetricaEditor />
       <noscript>Activá JavaScript para usar el cuaderno de métrica.</noscript>
     </main>

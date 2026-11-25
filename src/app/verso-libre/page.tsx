@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notebookSans } from "../metrica/fonts";
 import { SilbadorIcon } from "../../editor/components/icons";
 import { MetricaEditor } from "../metrica/MetricaEditor";
 import "../metrica/metrica.css";
@@ -12,9 +13,8 @@ export const metadata: Metadata = {
   twitter: { title: "Verso libre — El Silbador", description },
 };
 export default function VersoLibrePage() {
-  return <main className="metrica-page verso-libre-page">
+  return <main className={`metrica-page verso-libre-page ${notebookSans.variable}`}>
     <a className="app-mark" href="/" aria-label="Volver a El Silbador"><SilbadorIcon /></a>
-    <nav className="notebook-pages" aria-label="Cuadernos de versos"><a href="/metrica">Métrica</a><a href="/verso-libre" aria-current="page">Verso libre</a></nav>
     <MetricaEditor mode="libre" />
     <noscript>Activá JavaScript para usar el cuaderno de verso libre.</noscript>
   </main>;
