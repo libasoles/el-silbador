@@ -263,7 +263,7 @@ function fieldWords(){
 // Los boxes «El tema» y «El campo semántico» pueden pasar a un drawer lateral: el tema a la izquierda y el campo a la derecha. Un solo botón con chevron lo abre y, una vez abierto, se vuelve una X que lo cierra y devuelve el box a su lugar.
 const FIELD_SHOWN=20;
 let fieldDrawer=false,temaDrawer=false;
-const ICON_LEFT=icons["panel-left-close"],ICON_RIGHT=icons["panel-right-close"],ICON_CLOSE=icons.x;
+const ICON_LEFT=icons["chevron-left"],ICON_RIGHT=icons["chevron-right"],ICON_CLOSE=icons.x;
 // Palabras (o frases) del campo que ya aparecen en los versos del cuaderno; se compara sin tildes ni mayúsculas.
 function usedInVerses(list){
  const lines=(editor?editor.lines():[]).map(l=>` ${fold(l).match(/[a-zñü]+/g)?.join(' ')||''} `);
@@ -591,7 +591,7 @@ function makeSpellCheck({btn,panel,store,sources,hidden,place,fix}){
   ignoredCount=found.length-issues.length;
   btn.hidden=hidden();
   if(btn.hidden&&!panel.hidden)setOpen(false);
-  btn.innerHTML=issues.length?`Ortografía · ${issues.length}`:`Ortografía ${icons.check}`;
+  btn.innerHTML=issues.length?`${icons["circle-alert"]} Ortografía · ${issues.length}`:`${icons["circle-check"]} Ortografía`;
   btn.classList.toggle('has-issues',issues.length>0);
   btn.setAttribute('aria-label',issues.length?`Revisar ortografía: ${issues.length} ${issues.length===1?'palabra dudosa':'palabras dudosas'}`:'Revisar ortografía: nada para corregir');
   if(!panel.hidden)render();

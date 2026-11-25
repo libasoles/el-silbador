@@ -142,30 +142,34 @@
 .metrica-notebook.campo #campo-free-section .detect-tools{display:flex;justify-content:flex-end;margin:-44px 0 8px}.metrica-notebook.campo #campo-free-section h2{margin-right:48px}
 .metrica-notebook.campo #campo-pick-section.is-off{opacity:1}
 
-/* Paper, typography and controls follow the same notebook as Métrica and Verso libre. */
-.metrica-notebook.campo { max-width: none; padding: 0; margin: 0; }
+/* Campo shares its paper with the selected composition tab. */
+.campo-semantico-page { --campo-paper: #fffcf6; --campo-blue: #0055a4; }
+body:has(.campo-semantico-page) { background: #fffcf6; }
+.campo-semantico-page .metrica-notebook.campo { --paper: var(--campo-paper); max-width: none; padding: 0; margin: 0; }
+.campo-semantico-page .fichas::before { background: var(--campo-paper); }
+.campo-semantico-page .ficha.on { background: var(--campo-paper); }
 .metrica-notebook.campo #campo-panel { padding: 2rem; background: var(--paper); box-shadow: 0 4px 18px rgb(43 48 42 / .08); }
-.metrica-notebook.campo .campo-step { padding: 1.5rem 0; margin: 0; background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
-.metrica-notebook.campo .campo-step:first-child { padding-top: 0; box-shadow: none; }
-.metrica-notebook.campo .campo-step:last-child { border-bottom: 0; }
-.metrica-notebook.campo .campo-step h2 { font: 400 1.4rem/1.35 var(--serif); flex-wrap: wrap; gap: .6rem; }
-.metrica-notebook.campo .campo-num { width: 1.65rem; height: 1.65rem; font: .8rem var(--sans); background: var(--accent); }
+.metrica-notebook.campo .campo-step { padding: 1.5rem; margin: 0 0 1.25rem; background: #f7f4ec; border: 1px solid var(--line); border-radius: 6px; }
+.metrica-notebook.campo .campo-step:first-child { box-shadow: none; }
+.metrica-notebook.campo .campo-step:last-child { margin-bottom: 0; }
+.metrica-notebook.campo .campo-step h2 { font: 500 1.4rem/1.35 var(--sans); letter-spacing: 0; flex-wrap: wrap; gap: .6rem; }
+.metrica-notebook.campo .campo-num { display: inline-grid; place-items: center; width: 2rem; height: 2rem; padding: 0; font: 400 1.15rem/1 var(--serif); letter-spacing: 0; font-variant-numeric: lining-nums tabular-nums; background: var(--campo-blue); }
 .metrica-notebook.campo label,.metrica-notebook.campo .campo-label { font: 500 .9rem/1.6 var(--sans); }
 .metrica-notebook.campo .campo-hint,.metrica-notebook.campo .campo-note,.metrica-notebook.campo .campo-empty { font-size: .85rem; line-height: 1.7; }
 .metrica-notebook.campo .campo-count { font-size: .9rem; }
 .metrica-notebook.campo input[type=text],.metrica-notebook.campo textarea { font-size: 1rem; background: var(--paper); border: 1px solid var(--line); }
 .metrica-notebook.campo textarea:focus,.metrica-notebook.campo input[type=text]:focus,.metrica-notebook.campo #campo-scheme:focus { outline: 2px solid #3e7bd6; outline-offset: 2px; }
-.metrica-notebook.campo .primary { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .55rem 1rem; font: .9rem var(--sans); color: var(--bg); background: var(--fg); border: 1px solid var(--fg); border-radius: 4px; }
+.metrica-notebook.campo .primary { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .55rem 1rem; font: .9rem var(--sans); color: #fff; background: var(--campo-blue); border: 1px solid var(--campo-blue); border-radius: 4px; }
 .metrica-notebook.campo .primary:hover { opacity: .85; }
 .metrica-notebook.campo .campo-danger { background: var(--accent); border-color: var(--accent); }
 .metrica-notebook.campo .campo-words .pick { font-size: .95rem; }
 .metrica-notebook.campo .campo-card { background: var(--paper); padding: 1rem; }
-.metrica-notebook.campo .campo-card h3 { font-size: 1.5rem; }
+.metrica-notebook.campo .campo-card h3 { font: 500 1.5rem/1.3 var(--sans); }
 .metrica-notebook.campo .campo-card h4 { font: 500 .75rem/1.5 var(--sans); }
 .metrica-notebook.campo .campo-chips .chip,.metrica-notebook.campo .campo-chips li.own { font-size: .9rem; }
 .metrica-notebook.campo .campo-note.campo-alert { background: #f8f3e7; border: 0; border-left: 2px solid var(--accent); font-weight: 400; padding: .75rem 1rem; }
-.metrica-notebook.campo #campo-field-section { background: var(--paper); }
-.metrica-notebook.campo #campo-field-section.is-off { background: transparent; }
+.metrica-notebook.campo #campo-field-section { background: #f7f4ec; }
+.metrica-notebook.campo #campo-field-section.is-off { background: #f7f4ec; }
 .metrica-notebook.campo #campo-field-section.is-drawer,.metrica-notebook.campo #campo-tema-section.is-drawer-left { padding: 1.5rem; background: var(--paper); }
 .metrica-notebook.campo .spell-btn { font-size: .75rem; padding: .3rem .65rem; }
 .metrica-notebook.campo .campo-confirm,.metrica-notebook.campo .spell-panel,.metrica-notebook.campo .campo-popover { background: var(--paper); font-size: .9rem; }
@@ -190,3 +194,18 @@
 .metrica-notebook.campo .campo-picker { max-width: 30rem; background: var(--paper); box-shadow: none; }
 .metrica-notebook.campo .spell-btn { display: inline-flex; align-items: center; gap: .2rem; font: 500 .75rem/1.4 var(--sans); }
 .metrica-notebook.campo .spell-btn svg { width: .9rem; height: .9rem; }
+
+/* Secondary actions keep the same blue as primary actions. Spelling reports its state. */
+.metrica-notebook.campo .outline { color: var(--campo-blue); border-color: var(--campo-blue); }
+.metrica-notebook.campo .outline:hover { background: #e6eff8; }
+.metrica-notebook.campo .close-x,.metrica-notebook.campo .campo-more { color: var(--campo-blue); }
+.metrica-notebook.campo .spell-btn { background: transparent; color: #287044; border: 1px solid currentColor; }
+.metrica-notebook.campo .spell-btn:not(.has-issues) { background: transparent; }
+.metrica-notebook.campo .spell-btn.has-issues { color: #ae492e; }
+.metrica-notebook.campo .spell-btn:hover { background: var(--paper); }
+.metrica-notebook.campo .spell-panel h2,.metrica-notebook.campo .campo-confirm h2,
+.metrica-notebook.campo .composer-lab .composer-heading h3 { font-family: var(--sans); }
+.metrica-notebook.campo .custom-chips .outline.active { background: #e6eff8; border-color: var(--campo-blue); }
+@media (max-width: 30rem) {
+ .metrica-notebook.campo .campo-step { padding: 1.25rem .85rem; }
+}

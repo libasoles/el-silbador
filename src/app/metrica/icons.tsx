@@ -1,5 +1,5 @@
 import {
-  Check, PanelLeftClose, PanelRightClose, RotateCcw, ArrowRight, ChevronDown, CircleAlert, CircleCheck, CircleHelp, Copy, Info,
+  Check, ChevronLeft, ChevronRight, RotateCcw, ArrowRight, ChevronDown, CircleAlert, CircleCheck, CircleHelp, Copy, Info,
   Lightbulb, Plus, Settings, Trash2, X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -7,8 +7,8 @@ import type { LucideIcon } from "lucide-react";
 // React portals render icons into placeholders owned by the imperative editor.
 export const notebookIconComponents: Record<string, LucideIcon> = {
   check: Check,
-  "panel-left-close": PanelLeftClose,
-  "panel-right-close": PanelRightClose,
+  "chevron-left": ChevronLeft,
+  "chevron-right": ChevronRight,
   "rotate-ccw": RotateCcw,
   "arrow-right": ArrowRight,
   "chevron-down": ChevronDown,
