@@ -506,7 +506,8 @@ function mountComposer(root,forms,options={}){
   return {tone:'warn',html:lines(`<b>Verso ${i+1}</b>`,`<b>${sum}</b>`,`La forma pide ${met(meter)}.`,diff>0?`Sobra${diff>1?'n':''} ${syl(diff)}.`:`Falta${-diff>1?'n':''} ${syl(-diff)}.`,ending,need,joinsNote,hiatusNote,fix,note)};
  }
  const metricDialog=q('#metric-dialog');
- function closeMetric(){if(metricDialog.close)metricDialog.close();else metricDialog.removeAttribute('open');metricReturnFocus?.focus();}
+ function closeMetric(refocus=true){if(metricDialog.close)metricDialog.close();else metricDialog.removeAttribute('open');if(refocus)metricReturnFocus?.focus();}
+ listen(document,'pointerdown',e=>{if(metricDialog.hasAttribute('open')&&!metricDialog.contains(e.target)&&!e.target.closest('[data-metric-help]'))closeMetric(false);});
  q('#metric-close').onclick=closeMetric;metricDialog.addEventListener('click',e=>{if(e.target===metricDialog)closeMetric();});
  function toggleJoin(control){const i=+control.closest('[data-verse-row]').dataset.verseRow,key=control.dataset.join,set=joins[i];if(set.has(key))set.delete(key);else set.add(key);sync();}
  list.addEventListener('click',e=>{
@@ -516,7 +517,7 @@ function mountComposer(root,forms,options={}){
   const lastSlot=lab&&e.target.closest('.vtext .slot.last-word');
   if(lastSlot){const i=+lastSlot.closest('[data-verse-row]').dataset.verseRow;if(states[i].status==='mismatch'&&sel()?.isCollapsed!==false){openSuggest(i,lastSlot,true);return;}}
   const button=e.target.closest('[data-suggest]');
-  if(!button){const row=e.target.closest('[data-verse-row]');if(row&&!e.target.closest('.vtext'))focusLine(+row.dataset.verseRow);return;}
+  if(!button){const row=e.target.closest('[data-verse-row]');if(row&&!e.target.closest('.vtext,button,a,input,select,textarea,summary,[role="button"],.rhyme-badge'))focusLine(+row.dataset.verseRow);return;}
   openSuggest(+button.dataset.suggest,button,false);});
  // «replace»: se cambia la última palabra de un verso que no rima; el resto del verso se conserva.
  function openSuggest(row,button,replace){
@@ -615,7 +616,7 @@ function mountComposer(root,forms,options={}){
   const badge=e.target.closest?.('.rhyme-badge');if(!badge)return;
   const again=badgeOf===badge;hideBadgeTip();if(!again)showBadgeTip(badge);
  });
- listen(document,'pointerdown',e=>{if(badgeTip&&!e.target.closest?.('.rhyme-badge'))hideBadgeTip();});
+ listen(document,'pointerdown',e=>{if(badgeTip&&!badgeTip.contains(e.target)&&!badgeOf?.contains(e.target))hideBadgeTip();});
  listen(document,'keydown',e=>{if(e.key==='Escape')hideBadgeTip();});
  listen(window,'scroll',hideBadgeTip,{passive:true});listen(window,'resize',hideBadgeTip);
  listen(document,'pointerdown',e=>{if(!vList.hidden&&!e.target.closest('.variant-menu'))closeVariants(false);});

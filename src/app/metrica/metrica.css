@@ -334,3 +334,6 @@
 }
 
 .metrica-page { --sans: var(--notebook-sans), "DM Sans", sans-serif; }
+
+/* Touching the explanation itself must not reach the verse underneath. */
+.metrica-notebook .badge-tip { pointer-events: auto; }

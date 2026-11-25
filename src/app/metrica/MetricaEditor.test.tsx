@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { mockMatchMedia } from "../../test/matchMedia";
 import { MetricaEditor } from "./MetricaEditor";
 
 beforeEach(() => {
@@ -176,4 +177,32 @@ it("shares settings across traditional forms and variants", () => {
   fireEvent.click(screen.getByLabelText("Configuración del editor"));
   expect(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" })).toBeChecked();
   expect(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" })).not.toBeChecked();
+});
+
+it("opens a rhyme popup on mobile without focusing the verse and dismisses outside", () => {
+  mockMatchMedia(true);
+  render(<MetricaEditor />);
+  const badge = screen.getAllByRole("img", { name: "Familia de rima a" })[0];
+  fireEvent.pointerDown(badge, { pointerType: "touch" });
+  fireEvent.click(badge, { pointerType: "touch" });
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Requiere rimar con otros");
+  expect(screen.getAllByRole("textbox").every(field => field !== document.activeElement)).toBe(true);
+  fireEvent.pointerDown(screen.getByRole("tooltip"), { pointerType: "touch" });
+  expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  fireEvent.pointerDown(document.body, { pointerType: "touch" });
+  expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+});
+
+it("opens metric explanations without focusing a verse and dismisses outside", () => {
+  mockMatchMedia(true);
+  render(<MetricaEditor />);
+  const help = screen.getByRole("button", { name: /Verso 1:.*sílabas métricas. Ver explicación/ });
+  fireEvent.pointerDown(help, { pointerType: "touch" });
+  fireEvent.click(help);
+  const dialog = screen.getByRole("dialog", { name: "¿Qué es una sílaba métrica?" });
+  expect(screen.getAllByRole("textbox").every(field => field !== document.activeElement)).toBe(true);
+  fireEvent.pointerDown(dialog, { pointerType: "touch" });
+  expect(dialog).toHaveAttribute("open");
+  fireEvent.pointerDown(document.body, { pointerType: "touch" });
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
