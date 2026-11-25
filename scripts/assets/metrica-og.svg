@@ -2,12 +2,12 @@
 <title>Métrica de versos y rimas — El Silbador</title>
 <desc>Una décima de diez versos con ocho sílabas y rimas abbaaccddc, junto a un ejemplo de conteo silábico.</desc>
 <style>
-text { font-family: Georgia, serif; fill: #2a2622; }
+text { font-family: Helvetica, Arial, sans-serif; fill: #111111; }
 .sans { font-family: Helvetica, Arial, sans-serif; }
 .verse { font-size: 27px; }
-.count { font: 16px Helvetica, Arial, sans-serif; fill: #6e655a; text-anchor: middle; }
+.count { font: 16px Helvetica, Arial, sans-serif; fill: #666666; text-anchor: middle; }
 </style>
-<rect width="1200" height="630" fill="#fbfaf7"/>
+<rect width="1200" height="630" fill="#ffffff"/>
 <svg xmlns="http://www.w3.org/2000/svg" x="56" y="42" width="78" height="78" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
   
   <g fill="none" stroke="#000" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round">
@@ -29,37 +29,37 @@ text { font-family: Georgia, serif; fill: #2a2622; }
 </svg>
 
 <text x="145" y="86" class="sans" font-size="24">El Silbador</text>
-<text x="64" y="205" font-size="78">Métrica</text>
-<text x="64" y="274" font-size="63">de versos</text>
-<text x="64" y="343" font-size="63" style="fill:#9c4a3c">y rimas</text>
-<text x="66" y="403" class="sans" font-size="22" style="fill:#6e655a">Escribí. Contá sílabas.</text>
-<text x="66" y="435" class="sans" font-size="22" style="fill:#6e655a">Encontrá la rima.</text>
-<text x="82.0" y="508" text-anchor="middle" font-size="26" style="fill:#2a2622">Sa</text><path d="M64 519h36" stroke="#b6baa9" stroke-width="2"/>
-<text x="129.0" y="508" text-anchor="middle" font-size="26" style="fill:#2a2622">bes</text><path d="M107 519h44" stroke="#b6baa9" stroke-width="2"/>
-<text x="174.0" y="508" text-anchor="middle" font-size="26" style="fill:#2a2622">tú</text><path d="M158 519h32" stroke="#b6baa9" stroke-width="2"/>
-<text x="212.0" y="508" text-anchor="middle" font-size="26" style="fill:#2a2622">lo</text><path d="M197 519h30" stroke="#b6baa9" stroke-width="2"/>
-<text x="271.0" y="508" text-anchor="middle" font-size="26" style="fill:#2a2622">que‿es</text><path d="M234 519h74" stroke="#b6baa9" stroke-width="2"/>
-<text x="327.5" y="508" text-anchor="middle" font-size="26" style="fill:#2a2622">a</text><path d="M315 519h25" stroke="#b6baa9" stroke-width="2"/>
-<text x="371.0" y="508" text-anchor="middle" font-size="26" style="fill:#9c4a3c">mar</text><path d="M347 519h48" stroke="#9c4a3c" stroke-width="2"/>
+<text x="64" y="205" font-size="72" font-weight="500">Métrica</text>
+<text x="64" y="274" font-size="60" font-weight="500">de versos</text>
+<text x="64" y="343" font-size="60" font-weight="500" style="fill:#111111">y rimas</text>
+<text x="66" y="403" class="sans" font-size="22" style="fill:#666666">Escribí. Contá sílabas.</text>
+<text x="66" y="435" class="sans" font-size="22" style="fill:#666666">Encontrá la rima.</text>
+<text x="82.0" y="508" text-anchor="middle" font-size="22" style="fill:#111111">Sa</text><path d="M64 519h36" stroke="#aaaaaa" stroke-width="2"/>
+<text x="129.0" y="508" text-anchor="middle" font-size="22" style="fill:#111111">bes</text><path d="M107 519h44" stroke="#aaaaaa" stroke-width="2"/>
+<text x="174.0" y="508" text-anchor="middle" font-size="22" style="fill:#111111">tú</text><path d="M158 519h32" stroke="#aaaaaa" stroke-width="2"/>
+<text x="212.0" y="508" text-anchor="middle" font-size="22" style="fill:#111111">lo</text><path d="M197 519h30" stroke="#aaaaaa" stroke-width="2"/>
+<text x="271.0" y="508" text-anchor="middle" font-size="22" style="fill:#111111">que‿es</text><path d="M234 519h74" stroke="#aaaaaa" stroke-width="2"/>
+<text x="327.5" y="508" text-anchor="middle" font-size="22" style="fill:#111111">a</text><path d="M315 519h25" stroke="#aaaaaa" stroke-width="2"/>
+<text x="371.0" y="508" text-anchor="middle" font-size="22" style="fill:#111111">mar</text><path d="M347 519h48" stroke="#111111" stroke-width="2"/>
 
-<text x="66" y="548" class="sans" font-size="16" style="fill:#6e655a">7 + final agudo = 8 sílabas</text>
-<text x="66" y="596" class="sans" font-size="16" style="fill:#6e655a">elsilbador.com.ar/metrica</text>
+<text x="66" y="548" class="sans" font-size="16" style="fill:#666666">7 + final agudo = 8 sílabas</text>
+<text x="66" y="596" class="sans" font-size="16" style="fill:#666666">elsilbador.com.ar/metrica</text>
 <!-- The selected tab opens into the sheet of verse. -->
-<path d="M506 113V80Q506 72 514 72H612Q620 72 620 80V113" fill="none" stroke="#ded7ca"/>
-<text x="563" y="99" text-anchor="middle" class="sans" font-size="17" style="fill:#6e655a">Copla</text>
-<path d="M620 113V72Q620 64 628 64H734Q742 64 742 72V113H1142V568H506V113Z" fill="#fbfaf7" stroke="#b8ad9c"/>
-<text x="681" y="97" text-anchor="middle" class="sans" font-size="18" style="fill:#9c4a3c">Décima</text>
-<text x="550" y="143" class="sans" font-size="12" letter-spacing="1.3" style="fill:#6e655a">DIEZ VERSOS · OCHO SÍLABAS · ABBAACCDDC</text>
-<text x="550" y="182" class="verse">¿Sabes tú lo que es amar?</text><text x="1046" y="181" class="count">8</text><circle cx="1098" cy="173" r="13" fill="none" stroke="#9c4a3c" stroke-width="1.5"/><text x="1098" y="179" text-anchor="middle" font-size="20" style="fill:#9c4a3c">a</text>
-<text x="550" y="219" class="verse">¿sabes tú lo que es sufrir?</text><text x="1046" y="218" class="count">8</text><circle cx="1098" cy="210" r="13" fill="none" stroke="#6a4b79" stroke-width="1.5"/><text x="1098" y="216" text-anchor="middle" font-size="20" style="fill:#6a4b79">b</text>
-<text x="550" y="256" class="verse">fuego en el alma sentir</text><text x="1046" y="255" class="count">8</text><circle cx="1098" cy="247" r="13" fill="none" stroke="#6a4b79" stroke-width="1.5"/><text x="1098" y="253" text-anchor="middle" font-size="20" style="fill:#6a4b79">b</text>
-<text x="550" y="293" class="verse">y no poderlo apagar?</text><text x="1046" y="292" class="count">8</text><circle cx="1098" cy="284" r="13" fill="none" stroke="#9c4a3c" stroke-width="1.5"/><text x="1098" y="290" text-anchor="middle" font-size="20" style="fill:#9c4a3c">a</text>
-<text x="550" y="330" class="verse">En constante delirar</text><text x="1046" y="329" class="count">8</text><circle cx="1098" cy="321" r="13" fill="none" stroke="#9c4a3c" stroke-width="1.5"/><text x="1098" y="327" text-anchor="middle" font-size="20" style="fill:#9c4a3c">a</text>
-<text x="550" y="367" class="verse">sucumbir al desconsuelo</text><text x="1046" y="366" class="count">8</text><circle cx="1098" cy="358" r="13" fill="none" stroke="#38634e" stroke-width="1.5"/><text x="1098" y="364" text-anchor="middle" font-size="20" style="fill:#38634e">c</text>
-<text x="550" y="404" class="verse">luchar con ardiente anhelo</text><text x="1046" y="403" class="count">8</text><circle cx="1098" cy="395" r="13" fill="none" stroke="#38634e" stroke-width="1.5"/><text x="1098" y="401" text-anchor="middle" font-size="20" style="fill:#38634e">c</text>
-<text x="550" y="441" class="verse">soñar con un imposible</text><text x="1046" y="440" class="count">8</text><circle cx="1098" cy="432" r="13" fill="none" stroke="#986921" stroke-width="1.5"/><text x="1098" y="438" text-anchor="middle" font-size="20" style="fill:#986921">d</text>
-<text x="550" y="478" class="verse">y a la pena más horrible</text><text x="1046" y="477" class="count">8</text><circle cx="1098" cy="469" r="13" fill="none" stroke="#986921" stroke-width="1.5"/><text x="1098" y="475" text-anchor="middle" font-size="20" style="fill:#986921">d</text>
-<text x="550" y="515" class="verse">unir la dicha del cielo?</text><text x="1046" y="514" class="count">8</text><circle cx="1098" cy="506" r="13" fill="none" stroke="#38634e" stroke-width="1.5"/><text x="1098" y="512" text-anchor="middle" font-size="20" style="fill:#38634e">c</text>
+<path d="M506 113V80Q506 72 514 72H612Q620 72 620 80V113" fill="none" stroke="#dddddd"/>
+<text x="563" y="99" text-anchor="middle" class="sans" font-size="17" style="fill:#666666">Copla</text>
+<path d="M620 113V72Q620 64 628 64H734Q742 64 742 72V113H1142V568H506V113Z" fill="#ffffff" stroke="#aaaaaa"/>
+<text x="681" y="97" text-anchor="middle" class="sans" font-size="18" style="fill:#111111">Décima</text>
+<text x="550" y="143" class="sans" font-size="12" letter-spacing="1.3" style="fill:#666666">DIEZ VERSOS · OCHO SÍLABAS · ABBAACCDDC</text>
+<text x="550" y="182" class="verse">¿Sabes tú lo que es amar?</text><text x="1046" y="181" class="count">8</text><circle cx="1098" cy="173" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="179" text-anchor="middle" font-size="20" style="fill:#111111">a</text>
+<text x="550" y="219" class="verse">¿sabes tú lo que es sufrir?</text><text x="1046" y="218" class="count">8</text><circle cx="1098" cy="210" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="216" text-anchor="middle" font-size="20" style="fill:#111111">b</text>
+<text x="550" y="256" class="verse">fuego en el alma sentir</text><text x="1046" y="255" class="count">8</text><circle cx="1098" cy="247" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="253" text-anchor="middle" font-size="20" style="fill:#111111">b</text>
+<text x="550" y="293" class="verse">y no poderlo apagar?</text><text x="1046" y="292" class="count">8</text><circle cx="1098" cy="284" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="290" text-anchor="middle" font-size="20" style="fill:#111111">a</text>
+<text x="550" y="330" class="verse">En constante delirar</text><text x="1046" y="329" class="count">8</text><circle cx="1098" cy="321" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="327" text-anchor="middle" font-size="20" style="fill:#111111">a</text>
+<text x="550" y="367" class="verse">sucumbir al desconsuelo</text><text x="1046" y="366" class="count">8</text><circle cx="1098" cy="358" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="364" text-anchor="middle" font-size="20" style="fill:#111111">c</text>
+<text x="550" y="404" class="verse">luchar con ardiente anhelo</text><text x="1046" y="403" class="count">8</text><circle cx="1098" cy="395" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="401" text-anchor="middle" font-size="20" style="fill:#111111">c</text>
+<text x="550" y="441" class="verse">soñar con un imposible</text><text x="1046" y="440" class="count">8</text><circle cx="1098" cy="432" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="438" text-anchor="middle" font-size="20" style="fill:#111111">d</text>
+<text x="550" y="478" class="verse">y a la pena más horrible</text><text x="1046" y="477" class="count">8</text><circle cx="1098" cy="469" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="475" text-anchor="middle" font-size="20" style="fill:#111111">d</text>
+<text x="550" y="515" class="verse">unir la dicha del cielo?</text><text x="1046" y="514" class="count">8</text><circle cx="1098" cy="506" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="512" text-anchor="middle" font-size="20" style="fill:#111111">c</text>
 
-<path d="M550 535H1111" stroke="#ded7ca"/>
+<path d="M550 535H1111" stroke="#dddddd"/>
 </svg>
