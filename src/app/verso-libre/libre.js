@@ -1,4 +1,5 @@
-export function mountLibre(page,{icons,detect,matchForms,forms,readLine,esc,mountFichas,notebookSettings,cleanups,onRegionChange}) {
+import { mountRhymeTips } from "../metrica/rhymeTips";
+export function mountLibre(page,{listen,icons,detect,matchForms,forms,readLine,esc,mountFichas,notebookSettings,cleanups,onRegionChange}) {
 const $=s=>page.querySelector(s);
 const save=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));$('#libre-save').textContent='';}catch{$('#libre-save').textContent='No se pudo guardar: copiá tu texto para conservarlo.';}};
 const load=(k,fallback)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??fallback;}catch{return fallback;}};
@@ -66,7 +67,7 @@ function verseHtml(r){
   group.forEach((g,k)=>{
    const start=startOf(g),piece=esc(r.line.slice(start,start+g.text.length));
    if(k)slot+=esc(r.line.slice(end,start));
-   slot+=r.tonic&&start===r.tonic[0]?`<mark class="detect-tonic">${piece}</mark>`:g.tonic&&ajustes.accents?`<span class="other-accent">${piece}</span>`:piece;
+   slot+=r.tonic&&start===r.tonic[0]?`<span class="detect-tonic">${piece}</span>`:g.tonic&&ajustes.accents?`<span class="other-accent">${piece}</span>`:piece;
    end=start+g.text.length;
   });
   html+=esc(r.line.slice(cursor,startOf(group[0])))+`<span class="slot${group.length>1?' joined':''}">${slot}</span>`;
@@ -76,7 +77,7 @@ function verseHtml(r){
 }
 // --- Detectar: cuenta y agrupa rimas del texto, sin corregir nada. ---
 function renderDetect(){
- const rows=detect($('#detect-text').value);
+ const rows=detect($('#detect-text').value),seenFamilies=new Set();
  $('#detect-hint-icon').hidden=!!rows.length;
  $('#detect-summary-text').innerHTML=rows.length?`<p class="detect-verse-total">${rows.length} ${rows.length===1?'verso':'versos'}</p><p class="detect-analysis-label">Esquema detectado: <span>${esc(rows.map(r=>r.count+r.letter).join(' '))}</span></p>`:'Escribí o pegá tus versos con tildes: son importantes para detectar bien los acentos y las rimas.';
  const found=matchForms(rows,forms),exact=found.filter(f=>!f.approximate);
@@ -84,8 +85,14 @@ function renderDetect(){
  const colored=scheme=>scheme.split(' ').map(t=>t.replace(/^(\d+)(.)$/,(_,n,l)=>`${n}<b class="${l==='—'?'fam-free':`fam-${l}`}">${l}</b>`)).join(' ');
  const item=f=>`<li><span class="detect-form-title">${f.stanzas>1?`${f.stanzas} × `:''}${esc(f.name)}</span>${f.scheme?` <span class="detect-form-scheme">${colored(f.scheme)}</span>`:' <span class="detect-form-scheme">rima en los versos pares</span>'}<button type="button" class="detect-go" data-go-form="${f.form}" data-go-variant="${f.variant}" aria-label="Pasar el texto a la solapa ${esc(forms[f.form].title)}" data-tooltip="Pasar el texto a la solapa ${esc(forms[f.form].title)}">${icons["arrow-right"]}</button></li>`;
  $('#detect-form-name').innerHTML=!found.length?'':`<p class="detect-analysis-label">${exact.length?'Coincide con:':'Se parece a (con medidas aproximadas):'}</p><ul>${(exact.length?exact:found).map(item).join('')}</ul>`;
- $('#detect-result').innerHTML=rows.map((r,i)=>{const first=i===0||rows[i-1].stanza!==r.stanza,n=ajustes.restart?(first?1:(rows[i-1].n||0)+1):i+1;r.n=n;return `<article class="compose-line detect-row${first&&i?' stanza-start':''}" data-rhyme-family="${r.letter}"><span class="vnum">${n}</span><span class="detect-text">${verseHtml(r)}</span><span class="detect-count" data-tooltip="Sílabas métricas${r.pronounced!==r.count?`: ${r.pronounced} pronunciadas más el ajuste del final`:''}"><b>${r.count}</b> sílabas</span><span class="rhyme-badge ${r.letter==='—'?'fam-free':`fam-${r.letter}`}" role="img" aria-label="${r.letter==='—'?'Sin rima detectada':`Rima ${r.letter}, ${r.kind}`}">${r.letter}</span><span class="rhyme-text">${r.letter==='—'?'Sin pareja':`Rima ${r.letter} · ${r.kind}`}</span></article>`;}).join('');
+ $('#detect-result').innerHTML=rows.map((r,i)=>{const first=i===0||rows[i-1].stanza!==r.stanza,n=ajustes.restart?(first?1:(rows[i-1].n||0)+1):i+1;r.n=n;const reference=r.letter!=='—'&&!seenFamilies.has(r.letter);seenFamilies.add(r.letter);return `<article class="compose-line detect-row${first&&i?' stanza-start':''}" data-rhyme-family="${r.letter}"><span class="vnum">${n}</span><span class="detect-text">${verseHtml(r)}</span><button type="button" class="detect-count" aria-haspopup="dialog"><b>${r.count}</b> ${r.count===1?'sílaba métrica':'sílabas métricas'}</button><button type="button" class="rhyme-badge ${r.letter==='—'?'fam-free':`fam-${r.letter}`}" data-rhyme-family="${r.letter}" data-rhyme-kind="${r.kind}" aria-label="${r.letter==='—'?'Sin rima detectada':`Rima ${r.letter}, ${r.kind}`}">${r.letter}</button><span class="rhyme-text">${r.letter==='—'?'Sin pareja':reference?`Referencia ${r.letter}`:`Rima ${r.letter} · ${r.kind}`}</span></article>`;}).join('');
 }
+
+const familyClass=family=>family==='—'?'fam-free':`fam-${family}`;
+cleanups.push(mountRhymeTips(page,$('#detect-result'),{esc,familyClass,listen,message:badge=>{
+ const family=badge.dataset.rhymeFamily;
+ return family==='—'?'Sin rima detectada: no se encontró otro verso con la misma terminación.':`Rima ${esc(badge.dataset.rhymeKind)}: este verso rima con los otros <span class="rhyme-badge ${familyClass(family)}" aria-hidden="true">${esc(family)}</span>`;
+}}));
 
 area.addEventListener('input',()=>{renderDetect();setText(tabs.active,area.value);const name=tabsBox.querySelector(`#tab-${tabs.active}`);if(name)name.textContent=tabLabel(tabs.tabs.find(t=>t.id===tabs.active),tabs.tabs.findIndex(t=>t.id===tabs.active));});
 // La flecha lleva el texto a la solapa de la forma detectada en Métrica (lab.html), en su variante.

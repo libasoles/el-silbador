@@ -1,5 +1,6 @@
 import { mountNotebookTabs } from "./notebookTabs";
 import { mountCampo } from "../campo-semantico/campo";
+import { mountRhymeTips } from "./rhymeTips";
 import { mountLibre } from "../verso-libre/libre";
 import { mountNotebookSettings } from "./notebookSettings";
 
@@ -7,6 +8,7 @@ import { mountNotebookSettings } from "./notebookSettings";
 // This imperative editor owns only the descendants of `page`; React owns its lifecycle.
 export function mountMetrica(page, icons, mode = "metrica") {
  const controller=new AbortController(),cleanups=[];
+ const listen=(target,type,handler,options={})=>target.addEventListener(type,handler,{...options,signal:controller.signal});
  const notebookSettings=mountNotebookSettings(page,icons.settings,controller.signal);
  const mountFichas=box=>mountNotebookTabs(box,{signal:controller.signal,onCleanup:fn=>cleanups.push(fn)});
 
@@ -605,28 +607,7 @@ function mountComposer(root,forms,options={}){
  vButton.onkeydown=e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();openVariants();}};
  vList.onclick=e=>{const li=e.target.closest('[data-v]');if(!li)return;select(selected,+li.dataset.v);vButton.focus();};
  vList.onkeydown=e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();markVariant(vActive+(e.key==='ArrowDown'?1:-1));}else if(e.key==='Home'||e.key==='End'){e.preventDefault();markVariant(e.key==='Home'?0:vList.children.length);}else if(e.key==='Enter'||e.key===' '){e.preventDefault();select(selected,vActive);vButton.focus();}else if(e.key==='Escape'||e.key==='Tab'){e.preventDefault();e.stopPropagation();closeVariants();}};
- // Explicación del indicador de rima: con el cursor aparece al pasar por encima; sin hover (celular), al tocarlo. Muestra el indicador real, con su color.
- let badgeTip=null,badgeOf=null;
- const hideBadgeTip=()=>{badgeTip?.remove();badgeTip=badgeOf=null;};
- function showBadgeTip(badge){
-  hideBadgeTip();const family=badge.dataset.rhymeFamily;
-  badgeTip=document.createElement('div');badgeTip.className='badge-tip';badgeTip.setAttribute('role','tooltip');badgeOf=badge;
-  badgeTip.innerHTML=family==='—'?'Verso libre: no requiere rima':`Requiere rimar con otros <span class="rhyme-badge ${familyClass(family)}" aria-hidden="true">${esc(family)}</span>`;
-  root.appendChild(badgeTip);
-  const b=badge.getBoundingClientRect(),w=badgeTip.offsetWidth,h=badgeTip.offsetHeight;
-  badgeTip.style.left=Math.max(8,Math.min(window.innerWidth-w-8,b.right-w))+'px';
-  badgeTip.style.top=(b.top-h-8>8?b.top-h-8:b.bottom+8)+'px';
- }
- list.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const badge=e.target.closest?.('.rhyme-badge');if(badge&&badge!==badgeOf)showBadgeTip(badge);});
- list.addEventListener('pointerout',e=>{if(e.pointerType==='mouse'&&e.target.closest?.('.rhyme-badge'))hideBadgeTip();});
- list.addEventListener('click',e=>{
-  if(e.pointerType==='mouse')return;
-  const badge=e.target.closest?.('.rhyme-badge');if(!badge)return;
-  const again=badgeOf===badge;hideBadgeTip();if(!again)showBadgeTip(badge);
- });
- listen(document,'pointerdown',e=>{if(badgeTip&&!badgeTip.contains(e.target)&&!badgeOf?.contains(e.target))hideBadgeTip();});
- listen(document,'keydown',e=>{if(e.key==='Escape')hideBadgeTip();});
- listen(window,'scroll',hideBadgeTip,{passive:true});listen(window,'resize',hideBadgeTip);
+ mountRhymeTips(root,list,{esc,familyClass,listen});
  listen(document,'pointerdown',e=>{if(!vList.hidden&&!e.target.closest('.variant-menu'))closeVariants(false);});
  // Reemplaza el texto de una forma y variante con los renglones dados (por ejemplo, los detectados), completando hasta un múltiplo de la estrofa.
  function load(i,v,text){select(i,v);const n=cur().pattern.length;lines=text.map(String);while(lines.length%n||!lines.length)lines.push('');tails=lines.map(()=>'');joins=lines.map(()=>new Set());history=[];at=-1;sync();}
@@ -821,7 +802,7 @@ if(mode==='campo'){
 }
 if(mode==='libre'){
  loadRegion();
- mountLibre(page,{icons,detect,matchForms,forms,readLine,esc,mountFichas,notebookSettings,cleanups,onRegionChange});
+ mountLibre(page,{listen,icons,detect,matchForms,forms,readLine,esc,mountFichas,notebookSettings,cleanups,onRegionChange});
  return ()=>{controller.abort();cleanups.forEach(cleanup=>cleanup());page.replaceChildren();};
 }
 const composer=mountComposer($('#composition-editor'),forms,{lab:true,onSelect:(f,i,v)=>{if(active.tool||i!==active.form)return;variantNow=v;writeHash();}});

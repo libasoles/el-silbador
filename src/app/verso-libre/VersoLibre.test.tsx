@@ -16,12 +16,15 @@ it("uses only the syllable border to underline the final stressed syllable acros
   document.head.append(style);
   try {
     const view = render(<MetricaEditor mode="libre" />);
-    write("Por el monte va mi canto\nPor el sendero claro\ncanta la brisa");
+    write("Mi padre es mi abuelo\nmi madre mi hermana\nel monte es mi casa");
+    fireEvent.click(screen.getByLabelText("Configuración del editor"));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" }));
     const tonics = view.container.querySelectorAll<HTMLElement>(".detect-tonic");
     expect(tonics).toHaveLength(3);
     for (const tonic of tonics) {
       expect(getComputedStyle(tonic.closest(".slot")!).borderBottomStyle).toBe("solid");
       expect(getComputedStyle(tonic).textDecoration).toBe("none");
+      expect(tonic.tagName).toBe("SPAN");
     }
   } finally {
     style.remove();
@@ -34,7 +37,7 @@ it("counts syllables, detects rhymes and recognizes a copla", () => {
   expect(screen.getByText("Esquema detectado:")).toHaveTextContent("Esquema detectado: 8— 8a 8— 8a");
   expect(screen.getByText("Coincide con:")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Pasar el texto a la solapa Copla" })).toBeInTheDocument();
-  expect(screen.getAllByRole("img", { name: "Rima a, asonante" })).toHaveLength(2);
+  expect(screen.getAllByRole("button", { name: "Rima a, asonante" })).toHaveLength(2);
   expect(view.container.querySelector(".detect-text .slot")).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "A medida" })).not.toBeInTheDocument();
 });
@@ -76,4 +79,35 @@ it("shares display settings and handles unavailable storage in StrictMode", () =
   fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" }));
   expect(view.container.querySelector("#detect-result")).toHaveClass("hide-nums");
   expect(within(screen.getByRole("tablist")).getAllByRole("tab")).toHaveLength(1);
+});
+it("opens the metric syllables explanation and returns focus to the count", async () => {
+  render(<MetricaEditor mode="libre" />);
+  write(poem);
+  const count = screen.getAllByRole("button", { name: /8 sílabas métricas/ })[0];
+  count.focus();
+  fireEvent.click(count);
+  expect(screen.getByRole("dialog", { name: "¿Qué son las sílabas métricas?" })).toBeInTheDocument();
+  expect(screen.getByText(/sinalefa/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Cerrar" }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  await vi.waitFor(() => expect(count).toHaveFocus());
+});
+it("explains detected rhyme families on click and closes on Escape", () => {
+  render(<MetricaEditor mode="libre" />);
+  write(poem);
+  fireEvent.click(screen.getAllByRole("button", { name: "Rima a, asonante" })[0]);
+  expect(screen.getByRole("tooltip")).toHaveTextContent(/Rima asonante.*otros.*a/);
+  fireEvent.keyDown(document, { key: "Escape" });
+  expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+  fireEvent.click(screen.getAllByRole("button", { name: "Sin rima detectada" })[0]);
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Sin rima detectada: no se encontró otro verso con la misma terminación.");
+});
+
+it("labels only the first occurrence of each rhyme family as its reference", () => {
+  const view = render(<MetricaEditor mode="libre" />);
+  write(poem);
+  const notes = [...view.container.querySelectorAll(".rhyme-text")].map(note => note.textContent);
+  expect(notes).toEqual(["Sin pareja", "Referencia a", "Sin pareja", "Rima a · asonante"]);
+  write("con el viento del lugar");
+  expect(screen.queryByText("Referencia a")).not.toBeInTheDocument();
 });
