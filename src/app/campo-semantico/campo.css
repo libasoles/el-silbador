@@ -297,3 +297,10 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
  .metrica-notebook.campo .campo-step h2 .campo-num { grid-column: 1; justify-self: start; }
  .metrica-notebook.campo .campo-step h2 .campo-title-text { grid-row: 2; grid-column: 1 / -1; }
 }
+
+/* Mobile: los huecos de sílaba son más angostos para que entren 8 por verso. */
+@media (max-width: 30rem) {
+ .metrica-notebook.campo .composer-lab .vline { column-gap: 8px; }
+ .metrica-notebook.campo .composer-lab .vline .vnum { margin-left: 0; font-size: 16px; }
+ .metrica-notebook.campo .composer-lab .slot { min-width: 1.2em; margin-right: .08em; padding: 0 .08em 2px; }
+}
