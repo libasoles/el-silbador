@@ -446,4 +446,12 @@
 .notebook-guide a { display: inline-flex; align-items: center; gap: 0.4rem; color: inherit; text-underline-offset: 0.2em; }
 .notebook-guide a svg { flex-shrink: 0; }
 
-.notebook-guide__icon { display: block; margin-bottom: 0.75rem; }
+.notebook-guide__icon {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.75rem;
+  background-color: currentColor;
+  -webkit-mask: url("/04-happy.svg") center / contain no-repeat;
+  mask: url("/04-happy.svg") center / contain no-repeat;
+}
