@@ -55,7 +55,9 @@ export function parseLinkPreview(html: string, pageUrl: string): LinkPreview {
   let image = pick("og:image", "twitter:image");
   if (image) {
     try {
-      image = new URL(image, pageUrl).href;
+      const resolved = new URL(image, pageUrl);
+      // The page is untrusted input: only an https image is ever handed to an <img src>.
+      image = resolved.protocol === "https:" ? resolved.href : null;
     } catch {
       image = null;
     }

@@ -113,6 +113,23 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
     expect(reloaded.content.merges).toEqual(new Set(["a|b", "c|d"]));
   });
 
+  it("rejects a song whose content, title or author is over the size limits", async () => {
+    await signInAs(userA);
+
+    await expect(saveSong({ content: makeContent({ lyricsText: "a".repeat(1_000_001) }) })).rejects.toMatchObject({
+      code: "23514",
+    });
+    await expect(saveSong({ content: makeContent({ title: "t".repeat(121) }) })).rejects.toMatchObject({
+      code: "23514",
+    });
+    await expect(saveSong({ content: makeContent({ author: "a".repeat(121) }) })).rejects.toMatchObject({
+      code: "23514",
+    });
+
+    const saved = await saveSong({ content: makeContent({ title: "t".repeat(120), author: "a".repeat(120) }) });
+    createdSongIds.push(saved.id);
+  });
+
   it("lists a brand-new song that has no title or content yet", async () => {
     await signInAs(userA);
     const saved = await saveSong({ content: makeContent() });

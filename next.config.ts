@@ -1,10 +1,29 @@
 import { withSentryConfig } from "@sentry/nextjs/config";
 import path from "node:path";
 import type { NextConfig } from "next";
+import { buildContentSecurityPolicy } from "./src/security/csp";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   outputFileTracingRoot: path.join(__dirname),
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: buildContentSecurityPolicy({
+              supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+              isDev: process.env.NODE_ENV !== "production",
+            }),
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [{ source: "/tutoriales", destination: "/articulos", permanent: true }];
   },
