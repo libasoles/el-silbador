@@ -45,13 +45,12 @@ export default function ArticlesPage() {
           <article className="article-preview" key={article.title}>
             <p className="article-preview__date">{article.date}</p>
             <h2>
-              <Link href={article.href}>{article.title}</Link>
+              <Link href={article.href}>
+                <ArrowRight aria-hidden="true" size={16} strokeWidth={1.75} />
+                <span>{article.title}</span>
+              </Link>
             </h2>
             <p className="article-preview__summary">{article.summary}</p>
-            <Link className="article-preview__more" href={article.href}>
-              Leer artículo{" "}
-              <ArrowRight aria-hidden="true" size={16} strokeWidth={1.75} />
-            </Link>
             <ul className="article-preview__topics" aria-label="Temas">
               {article.topics.map((topic) => (
                 <li key={topic}>{topic}</li>
