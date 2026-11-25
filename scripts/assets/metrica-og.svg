@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
 <title>Métrica de versos y rimas — El Silbador</title>
-<desc>Una décima de diez versos con ocho sílabas y rimas abbaaccddc, junto a un ejemplo de conteo silábico.</desc>
+<desc>Una copla de cuatro versos de ocho sílabas con rima asonante en los versos pares, junto a un ejemplo de conteo silábico.</desc>
 <style>
 text { font-family: Helvetica, Arial, sans-serif; fill: #111111; }
 .sans { font-family: Helvetica, Arial, sans-serif; }
@@ -44,22 +44,9 @@ text { font-family: Helvetica, Arial, sans-serif; fill: #111111; }
 
 <text x="66" y="548" class="sans" font-size="16" style="fill:#666666">7 + final agudo = 8 sílabas</text>
 <text x="66" y="596" class="sans" font-size="16" style="fill:#666666">elsilbador.com.ar/metrica</text>
-<!-- The selected tab opens into the sheet of verse. -->
-<path d="M506 113V80Q506 72 514 72H612Q620 72 620 80V113" fill="none" stroke="#dddddd"/>
-<text x="563" y="99" text-anchor="middle" class="sans" font-size="17" style="fill:#666666">Copla</text>
-<path d="M620 113V72Q620 64 628 64H734Q742 64 742 72V113H1142V568H506V113Z" fill="#ffffff" stroke="#aaaaaa"/>
-<text x="681" y="97" text-anchor="middle" class="sans" font-size="18" style="fill:#111111">Décima</text>
-<text x="550" y="143" class="sans" font-size="12" letter-spacing="1.3" style="fill:#666666">DIEZ VERSOS · OCHO SÍLABAS · ABBAACCDDC</text>
-<text x="550" y="182" class="verse">¿Sabes tú lo que es amar?</text><text x="1046" y="181" class="count">8</text><circle cx="1098" cy="173" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="179" text-anchor="middle" font-size="20" style="fill:#111111">a</text>
-<text x="550" y="219" class="verse">¿sabes tú lo que es sufrir?</text><text x="1046" y="218" class="count">8</text><circle cx="1098" cy="210" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="216" text-anchor="middle" font-size="20" style="fill:#111111">b</text>
-<text x="550" y="256" class="verse">fuego en el alma sentir</text><text x="1046" y="255" class="count">8</text><circle cx="1098" cy="247" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="253" text-anchor="middle" font-size="20" style="fill:#111111">b</text>
-<text x="550" y="293" class="verse">y no poderlo apagar?</text><text x="1046" y="292" class="count">8</text><circle cx="1098" cy="284" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="290" text-anchor="middle" font-size="20" style="fill:#111111">a</text>
-<text x="550" y="330" class="verse">En constante delirar</text><text x="1046" y="329" class="count">8</text><circle cx="1098" cy="321" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="327" text-anchor="middle" font-size="20" style="fill:#111111">a</text>
-<text x="550" y="367" class="verse">sucumbir al desconsuelo</text><text x="1046" y="366" class="count">8</text><circle cx="1098" cy="358" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="364" text-anchor="middle" font-size="20" style="fill:#111111">c</text>
-<text x="550" y="404" class="verse">luchar con ardiente anhelo</text><text x="1046" y="403" class="count">8</text><circle cx="1098" cy="395" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="401" text-anchor="middle" font-size="20" style="fill:#111111">c</text>
-<text x="550" y="441" class="verse">soñar con un imposible</text><text x="1046" y="440" class="count">8</text><circle cx="1098" cy="432" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="438" text-anchor="middle" font-size="20" style="fill:#111111">d</text>
-<text x="550" y="478" class="verse">y a la pena más horrible</text><text x="1046" y="477" class="count">8</text><circle cx="1098" cy="469" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="475" text-anchor="middle" font-size="20" style="fill:#111111">d</text>
-<text x="550" y="515" class="verse">unir la dicha del cielo?</text><text x="1046" y="514" class="count">8</text><circle cx="1098" cy="506" r="13" fill="none" stroke="#111111" stroke-width="1.5"/><text x="1098" y="512" text-anchor="middle" font-size="20" style="fill:#111111">c</text>
-
-<path d="M550 535H1111" stroke="#dddddd"/>
+<text x="560" y="150" class="sans" font-size="15" letter-spacing="1.6" style="fill:#666666">COPLA · CUATRO VERSOS · OCHO SÍLABAS</text>
+<text x="560" y="250" font-size="48">Por el monte va mi canto</text>
+<text x="560" y="338" font-size="48">con el viento del lugar</text><circle cx="1124" cy="320" r="20" fill="none" stroke="#111111" stroke-width="2"/><text x="1124" y="328" text-anchor="middle" font-size="28" style="fill:#111111">a</text>
+<text x="560" y="426" font-size="48">lleva tierra del camino</text>
+<text x="560" y="514" font-size="48">con recuerdos de mamá</text><circle cx="1124" cy="496" r="20" fill="none" stroke="#111111" stroke-width="2"/><text x="1124" y="504" text-anchor="middle" font-size="28" style="fill:#111111">a</text>
 </svg>

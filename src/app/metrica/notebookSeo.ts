@@ -30,7 +30,7 @@ export function notebookMetadata(mode: NotebookMode): Metadata {
     width: mode === "metrica" ? 1200 : 1734,
     height: mode === "metrica" ? 630 : 907,
     alt: mode === "metrica"
-      ? "Métrica de versos y rimas en El Silbador: una décima con conteo de sílabas y familias de rima."
+      ? "Métrica de versos y rimas en El Silbador: una copla con conteo de sílabas y rima."
       : "El Silbador, cancionero y cuadernos para escribir canciones",
   };
   // Next replaces nested objects; each route needs complete social metadata.
