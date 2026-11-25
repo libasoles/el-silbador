@@ -1109,6 +1109,7 @@ function App({
                       type="text"
                       className="title-input"
                       placeholder="Título"
+                      maxLength={120} // Matches songs_title_length_limit (migration 0014).
                       value={state.title}
                       onChange={(event) => actions.setTitle(event.target.value)}
                       readOnly={!canEditOnThisDevice}
@@ -1126,6 +1127,7 @@ function App({
                       type="text"
                       className="author-input"
                       placeholder="Autor o intérprete"
+                      maxLength={120} // Matches songs_author_length_limit (migration 0014).
                       value={state.author}
                       onChange={(event) => actions.setAuthor(event.target.value)}
                       readOnly={!canEditOnThisDevice}
