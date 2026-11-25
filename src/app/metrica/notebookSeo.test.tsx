@@ -19,12 +19,17 @@ describe("notebook search and sharing", () => {
     const html = document.createElement("div");
     html.innerHTML = renderToStaticMarkup(<Page />);
     expect(html.querySelectorAll("h1")).toHaveLength(1);
-    expect(html.querySelector("h1")?.textContent).toBe(NOTEBOOK_PAGES[mode].title);
-    expect(html.textContent).toContain(NOTEBOOK_PAGES[mode].explanation);
+    expect(html.querySelector("h1")?.textContent).toBe("Herramientas de métrica y rima");
+    expect(html.textContent).toContain("Analizá poemas, canciones o escribí tus propios versos.");
     for (const [key, page] of Object.entries(NOTEBOOK_PAGES)) {
       if (key !== mode) expect(html.querySelector(`a[href="${page.path}"]`)).not.toBeNull();
     }
-    expect(html.querySelector('a[href="/articulos"]')).not.toBeNull();
+    expect(html.querySelector('a[href="/articulos"]')).toBeNull();
+    expect(html.querySelectorAll("nav a")).toHaveLength(2);
+    for (const link of html.querySelectorAll("nav a")) {
+      expect(link.firstElementChild?.tagName.toLowerCase()).toBe("svg");
+      expect(link.firstElementChild?.getAttribute("aria-hidden")).toBe("true");
+    }
   });
 
   it.each(pages)("uses route-specific canonical and complete social cards for $mode", ({ mode, metadata }) => {
