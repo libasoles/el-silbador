@@ -7,7 +7,7 @@ beforeEach(() => { localStorage.clear(); window.history.replaceState(null, "", "
 afterEach(() => vi.restoreAllMocks());
 const poem = "Por el monte va mi canto\ncon el viento del lugar\nlleva tierra del camino\ncon recuerdos de mamá";
 function write(text: string) {
-  fireEvent.input(screen.getByRole("textbox", { name: "Texto, un verso por renglón" }), { target: { value: text } });
+  fireEvent.input(screen.getByRole("textbox", { name: "Un verso por renglón" }), { target: { value: text } });
 }
 it("counts syllables, detects rhymes and recognizes a copla", () => {
   const view = render(<MetricaEditor mode="libre" />);

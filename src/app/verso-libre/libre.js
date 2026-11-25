@@ -77,7 +77,8 @@ function verseHtml(r){
 // --- Detectar: cuenta y agrupa rimas del texto, sin corregir nada. ---
 function renderDetect(){
  const rows=detect($('#detect-text').value);
- $('#detect-summary').textContent=rows.length?`${rows.length} ${rows.length===1?'verso':'versos'} · esquema detectado: ${rows.map(r=>r.count+r.letter).join(' ')}`:'Escribí o pegá tus versos con tildes: son importantes para detectar bien los acentos y las rimas.';
+ $('#detect-hint-icon').hidden=!!rows.length;
+ $('#detect-summary-text').textContent=rows.length?`${rows.length} ${rows.length===1?'verso':'versos'} · esquema detectado: ${rows.map(r=>r.count+r.letter).join(' ')}`:'Escribí o pegá tus versos con tildes: son importantes para detectar bien los acentos y las rimas.';
  const found=matchForms(rows,forms),exact=found.filter(f=>!f.approximate);
  // Cada coincidencia va en su renglón, con las letras de rima en su color.
  const colored=scheme=>scheme.split(' ').map(t=>t.replace(/^(\d+)(.)$/,(_,n,l)=>`${n}<b class="${l==='—'?'fam-free':`fam-${l}`}">${l}</b>`)).join(' ');
