@@ -12,7 +12,8 @@ function write(text: string) {
 it("counts syllables, detects rhymes and recognizes a copla", () => {
   const view = render(<MetricaEditor mode="libre" />);
   write(poem);
-  expect(screen.getByText(/4 versos · esquema detectado: 8— 8a 8— 8a/)).toBeInTheDocument();
+  expect(screen.getByText("4 versos")).toBeInTheDocument();
+  expect(screen.getByText("Esquema detectado:")).toHaveTextContent("Esquema detectado: 8— 8a 8— 8a");
   expect(screen.getByText("Coincide con:")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Pasar el texto a la solapa Copla" })).toBeInTheDocument();
   expect(screen.getAllByRole("img", { name: "Rima a, asonante" })).toHaveLength(2);
@@ -51,7 +52,8 @@ it("shares display settings and handles unavailable storage in StrictMode", () =
   const view = render(<StrictMode><MetricaEditor mode="libre" /></StrictMode>);
   write("Por el valle va mi voz");
   expect(screen.getByText(/No se pudo guardar/)).toBeInTheDocument();
-  expect(screen.getByText(/1 verso · esquema detectado: 8—/)).toBeInTheDocument();
+  expect(screen.getByText("1 verso")).toBeInTheDocument();
+  expect(screen.getByText("Esquema detectado:")).toHaveTextContent("Esquema detectado: 8—");
   fireEvent.click(screen.getByLabelText("Configuración del editor"));
   fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" }));
   expect(view.container.querySelector("#detect-result")).toHaveClass("hide-nums");

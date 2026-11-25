@@ -356,3 +356,29 @@
   .metrica-notebook #detect-text { min-height: 24rem; }
   .metrica-notebook #detect-text::placeholder { font: 16px/1.7 var(--sans); }
 }
+
+.metrica-notebook .detect-verse-total { margin: 0 0 .5rem; }
+.metrica-notebook .detect-analysis-label {
+  margin: 0 0 1rem;
+  font: 400 1rem/1.6 var(--sans);
+  color: var(--ink);
+}
+@media (max-width: 30rem) {
+  .metrica-notebook .detect-row {
+    grid-template-columns: 2ch minmax(0, 1fr) auto;
+    grid-template-areas: "num text badge" ". count count" ". note note";
+    column-gap: 16px;
+  }
+  .metrica-notebook .detect-row .vnum {
+    grid-area: num;
+    align-self: start;
+    margin: 0 0 0 -10px;
+    padding-top: .45em;
+    font: 400 1.1rem/1.5 var(--serif);
+    text-align: right;
+  }
+  .metrica-notebook .detect-row .detect-text { grid-area: text; }
+  .metrica-notebook .detect-row .detect-count { grid-area: count; }
+  .metrica-notebook .detect-row .rhyme-badge { grid-area: badge; }
+  .metrica-notebook .detect-row .rhyme-text { grid-area: note; }
+}

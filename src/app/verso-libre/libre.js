@@ -78,12 +78,12 @@ function verseHtml(r){
 function renderDetect(){
  const rows=detect($('#detect-text').value);
  $('#detect-hint-icon').hidden=!!rows.length;
- $('#detect-summary-text').textContent=rows.length?`${rows.length} ${rows.length===1?'verso':'versos'} · esquema detectado: ${rows.map(r=>r.count+r.letter).join(' ')}`:'Escribí o pegá tus versos con tildes: son importantes para detectar bien los acentos y las rimas.';
+ $('#detect-summary-text').innerHTML=rows.length?`<p class="detect-verse-total">${rows.length} ${rows.length===1?'verso':'versos'}</p><p class="detect-analysis-label">Esquema detectado: <span>${esc(rows.map(r=>r.count+r.letter).join(' '))}</span></p>`:'Escribí o pegá tus versos con tildes: son importantes para detectar bien los acentos y las rimas.';
  const found=matchForms(rows,forms),exact=found.filter(f=>!f.approximate);
  // Cada coincidencia va en su renglón, con las letras de rima en su color.
  const colored=scheme=>scheme.split(' ').map(t=>t.replace(/^(\d+)(.)$/,(_,n,l)=>`${n}<b class="${l==='—'?'fam-free':`fam-${l}`}">${l}</b>`)).join(' ');
  const item=f=>`<li><span class="detect-form-title">${f.stanzas>1?`${f.stanzas} × `:''}${esc(f.name)}</span>${f.scheme?` <span class="detect-form-scheme">${colored(f.scheme)}</span>`:' <span class="detect-form-scheme">rima en los versos pares</span>'}<button type="button" class="detect-go" data-go-form="${f.form}" data-go-variant="${f.variant}" aria-label="Pasar el texto a la solapa ${esc(forms[f.form].title)}" data-tooltip="Pasar el texto a la solapa ${esc(forms[f.form].title)}">${icons["arrow-right"]}</button></li>`;
- $('#detect-form-name').innerHTML=!found.length?'':`<p>${exact.length?'Coincide con:':'Se parece a (con medidas aproximadas):'}</p><ul>${(exact.length?exact:found).map(item).join('')}</ul>`;
+ $('#detect-form-name').innerHTML=!found.length?'':`<p class="detect-analysis-label">${exact.length?'Coincide con:':'Se parece a (con medidas aproximadas):'}</p><ul>${(exact.length?exact:found).map(item).join('')}</ul>`;
  $('#detect-result').innerHTML=rows.map((r,i)=>{const first=i===0||rows[i-1].stanza!==r.stanza,n=ajustes.restart?(first?1:(rows[i-1].n||0)+1):i+1;r.n=n;return `<article class="compose-line detect-row${first&&i?' stanza-start':''}" data-rhyme-family="${r.letter}"><span class="vnum">${n}</span><span class="detect-text">${verseHtml(r)}</span><span class="detect-count" data-tooltip="Sílabas métricas${r.pronounced!==r.count?`: ${r.pronounced} pronunciadas más el ajuste del final`:''}"><b>${r.count}</b> sílabas</span><span class="rhyme-badge ${r.letter==='—'?'fam-free':`fam-${r.letter}`}" role="img" aria-label="${r.letter==='—'?'Sin rima detectada':`Rima ${r.letter}, ${r.kind}`}">${r.letter}</span><span class="rhyme-text">${r.letter==='—'?'Sin pareja':`Rima ${r.letter} · ${r.kind}`}</span></article>`;}).join('');
 }
 
