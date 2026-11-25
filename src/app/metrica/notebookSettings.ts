@@ -2,7 +2,6 @@ const labels = {
   nums: "Mostrar numeración de las sílabas",
   "other-accents": "Mostrar todos los acentos",
   restart: "Reiniciar la numeración en cada grupo",
-  filters: "Mostrar filtros en las sugerencias de rima",
   notes: "Mostrar aclaraciones bajo los versos",
 } as const;
 
@@ -14,10 +13,9 @@ const storageKey = "el-silbador-metrica-settings";
 // One page-level preference store for every form, variant and custom scheme.
 export function mountNotebookSettings(page: HTMLElement, icon: string, signal: AbortSignal) {
   const settings: NotebookSettings = {
-    nums: true, "other-accents": false, restart: false, filters: false, notes: false,
+    nums: true, "other-accents": false, restart: false, notes: false,
   };
   try {
-    settings.filters = localStorage.getItem("el-silbador-metrica-filtros") === "1";
     const saved: unknown = JSON.parse(localStorage.getItem(storageKey) || "null");
     if (saved && typeof saved === "object") {
       for (const id of Object.keys(labels) as SettingId[]) {
@@ -44,13 +42,6 @@ export function mountNotebookSettings(page: HTMLElement, icon: string, signal: A
       try { localStorage.setItem(storageKey, JSON.stringify(settings)); } catch { /* Keep session preferences. */ }
       subscribers.forEach(subscriber => subscriber(settings));
     }, { signal });
-    const explanation = id === "filters" ? "Región, registro y acentuación de las palabras."
-      : id === "notes" ? "Textos como «Verso libre» o «Rima a coincide»." : null;
-    if (explanation) {
-      const paragraph = document.createElement("p");
-      paragraph.textContent = explanation;
-      controls.append(paragraph);
-    }
   }
   page.prepend(menu);
   document.addEventListener("pointerdown", event => {

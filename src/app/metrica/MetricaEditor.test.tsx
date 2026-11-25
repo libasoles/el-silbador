@@ -109,11 +109,9 @@ it("shares a single settings menu across forms, variants and the custom notebook
   fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar aclaraciones bajo los versos" }));
   fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" }));
   fireEvent.click(screen.getByRole("checkbox", { name: "Reiniciar la numeración en cada grupo" }));
-  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar filtros en las sugerencias de rima" }));
   for (const composer of view.container.querySelectorAll(".composer")) {
     expect(composer).toHaveClass("hide-nums");
     expect(composer).not.toHaveClass("hide-notes");
-    expect(composer.querySelector("#suggest-filters")).not.toHaveAttribute("hidden");
   }
   fireEvent.click(screen.getByRole("button", { name: "Copla" }));
   writeVerse(1, "Por el monte va mi canto");

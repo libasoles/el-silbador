@@ -244,7 +244,8 @@
   background: none;
 }
 .metrica-notebook .metrica-settings .composer-settings-menu {
-  width: 22rem;
+  width: max-content;
+  min-width: 22rem;
   max-width: calc(100vw - 2rem);
   max-height: calc(100svh - 5rem);
   overflow-y: auto;

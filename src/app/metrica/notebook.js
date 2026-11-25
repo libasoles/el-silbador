@@ -670,8 +670,7 @@ function mountComposer(root,forms,options={}){
   restartNumbers=settings.restart;
   root.classList.toggle('hide-notes',!settings.notes);
   root.classList.toggle('hide-nums',!settings.nums);
-  q('#suggest-filters').hidden=!settings.filters;
-  paint();
+    paint();
   if(dialog.hasAttribute('open'))suggestions();
  }));
  select(0);return {select,load,current:cur,lines:()=>[...lines],mapLines,moveVerse};
