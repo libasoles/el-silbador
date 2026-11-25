@@ -39,7 +39,11 @@ it("adds phrases with Enter or Tab, deduplicates and builds the semantic field",
   const input = screen.getByRole("textbox", { name: wordsLabel });
   fireEvent.change(input, { target: { value: "camino" } });
   fireEvent.keyDown(input, { key: "Tab" });
-  expect(within(list).getAllByRole("listitem")).toHaveLength(4);
+  expect(within(list).getAllByRole("listitem")).toHaveLength(3);
+  expect(screen.getByRole("list", { name: "Palabras por agregar" })).toHaveTextContent("camino");
+  fireEvent.change(input, { target: { value: "río, sol" } });
+  fireEvent.click(screen.getByRole("button", { name: "Agregar" }));
+  expect(within(list).getAllByRole("listitem")).toHaveLength(6);
   select("amor");
   const field = screen.getByRole("region", { name: "El campo semántico de la canción" });
   expect(within(field).getByText("amor")).toBeInTheDocument();

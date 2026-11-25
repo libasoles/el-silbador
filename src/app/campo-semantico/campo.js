@@ -47,9 +47,43 @@ function renderWords(){
  $('#campo-words').toggleAttribute('inert',n===0);
  renderResults();renderField();renderLock();persist();
 }
-$('#campo-add').addEventListener('submit',e=>{e.preventDefault();const input=$('#campo-word');addWords(input.value);input.value='';renderWords();input.focus();});
-// Sólo Enter (envío del formulario) y Tab confirman la entrada; Tab con el campo vacío sigue su camino.
-$('#campo-word').addEventListener('keydown',e=>{if(e.key!=='Tab'||e.shiftKey||!e.target.value.trim())return;e.preventDefault();addWords(e.target.value);e.target.value='';renderWords();e.target.focus();});
+// Las palabras que se escriben quedan como fichas (la coma o Tab las cierran) y "Agregar" las envía todas juntas.
+let pending=[];
+const wordInput=$('#campo-word');
+function renderPending(){
+ $('#campo-tokens').innerHTML=pending.map((w,i)=>`<li class="campo-token"><span>${esc(w)}</span><button type="button" data-untoken="${i}" aria-label="Quitar ${esc(w)}">${icons.x}</button></li>`).join('');
+}
+function tokenize(text){
+ for(const raw of text.split(/[,;]+/)){
+  const w=raw.replace(/\s+/g,' ').trim();
+  if(w)pending.push(w);
+ }
+ renderPending();
+}
+function submitWords(){
+ tokenize(wordInput.value);wordInput.value='';
+ addWords(pending.join(','));pending=[];renderPending();renderWords();wordInput.focus();
+}
+$('#campo-add').addEventListener('submit',e=>{e.preventDefault();submitWords();});
+wordInput.addEventListener('input',()=>{
+ if(!/[,;]/.test(wordInput.value))return;
+ const parts=wordInput.value.split(/[,;]/),rest=parts.pop();
+ tokenize(parts.join(','));wordInput.value=rest.replace(/^\s+/,'');
+});
+wordInput.addEventListener('keydown',e=>{
+ if(e.key==='Backspace'&&!wordInput.value&&pending.length){pending.pop();renderPending();return;}
+ if(e.key!=='Tab'||e.shiftKey||!wordInput.value.trim())return;
+ e.preventDefault();tokenize(wordInput.value);wordInput.value='';
+});
+$('#campo-tokens').addEventListener('click',e=>{const b=e.target.closest('[data-untoken]');if(!b)return;pending.splice(+b.dataset.untoken,1);renderPending();wordInput.focus();});
+// La primera letra de lo que se escribe va siempre en mayúscula.
+for(const sel of ['#campo-topic','#campo-plot','#campo-free-text'])$(sel)?.addEventListener('input',e=>{
+ const el=e.target,v=el.value,k=v.search(/\S/);
+ if(k<0)return;
+ const up=v[k].toLocaleUpperCase('es');
+ if(up===v[k])return;
+ const s=el.selectionStart,t=el.selectionEnd;el.value=v.slice(0,k)+up+v.slice(k+1);el.setSelectionRange(s,t);
+});
 $('#campo-words').addEventListener('click',e=>{
  const pick=e.target.closest('[data-pick]'),drop=e.target.closest('[data-drop]');
  if(pick){const x=bank[+pick.dataset.pick];x.on=!x.on;}

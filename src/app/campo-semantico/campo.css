@@ -6,7 +6,7 @@
 .metrica-notebook.campo label,.metrica-notebook.campo .campo-label{display:block;font-weight:600;font-size:18px}
 .metrica-notebook.campo .campo-hint{display:block;font-weight:400;font-size:16px;color:var(--muted);margin-top:2px}
 .metrica-notebook.campo input[type=text]{width:100%;font:inherit;font-size:19px;background:#fff;color:var(--ink);padding:9px 12px;border:1px solid #9aa18f;border-radius:5px;margin-top:8px}
-.metrica-notebook.campo textarea{width:100%;font:inherit;font-size:19px;background:#fff;color:var(--ink);padding:9px 12px;border:1px solid #9aa18f;border-radius:5px;margin-top:8px;resize:vertical;min-height:110px}
+.metrica-notebook.campo textarea{width:100%;font:inherit;font-size:19px;background:#fff;color:var(--ink);padding:9px 12px;border:1px solid #9aa18f;border-radius:5px;margin-top:8px;resize:vertical;min-height:calc(6 * 1.5em + 1.5rem)}
 .metrica-notebook.campo input[type=text]:focus-visible,.metrica-notebook.campo textarea:focus-visible,.metrica-notebook.campo .campo-picker:focus-visible{outline:3px solid var(--purple);outline-offset:2px}
 .metrica-notebook.campo .campo-add-row{display:flex;gap:10px;align-items:flex-start}.metrica-notebook.campo .campo-add-row input{flex:1;min-width:0}.metrica-notebook.campo .campo-add-row .primary{margin-top:8px}
 .metrica-notebook.campo .campo-count{margin:10px 0 18px;font-size:18px;font-weight:600}.metrica-notebook.campo .campo-count.ok{color:var(--green)}.metrica-notebook.campo .campo-count.short{color:#0055a4}
@@ -71,7 +71,7 @@
 .metrica-notebook.campo #campo-copy{font-size:16px;min-height:0;padding:6px 14px}
 .metrica-notebook.campo .campo-note.campo-alert{background:#fff0c7;border:2px solid #9a691a;border-left:6px solid #9a691a;border-radius:6px;padding:10px 14px;color:#332d20;font-weight:600}
 .metrica-notebook.campo .campo-step.is-off .campo-note{opacity:1}
-.metrica-notebook.campo .campo-chips .chip b{font-weight:800;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.metrica-notebook.campo .campo-chips .chip b{font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 .metrica-notebook.campo #campo-editor .eyebrow{display:none}
 .metrica-notebook.campo .campo-h4-info{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .metrica-notebook.campo .info-btn{display:inline-flex;align-items:center;justify-content:center;background:none;border:0;padding:2px;color:var(--muted);cursor:pointer;border-radius:50%;text-transform:none}
@@ -147,8 +147,8 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .campo-semantico-page .metrica-notebook.campo { --paper: var(--campo-paper); max-width: none; padding: 0; margin: 0; }
 .campo-semantico-page .fichas::before { background: var(--campo-paper); }
 .campo-semantico-page .ficha.on { background: var(--campo-paper); }
-.metrica-notebook.campo #campo-panel { padding: 2rem; background: var(--paper); box-shadow: 0 4px 18px rgb(43 48 42 / .08); }
-.metrica-notebook.campo .campo-step { padding: 1.5rem; margin: 0 0 1.25rem; background: #f7f4ec; border: 1px solid var(--line); border-radius: 6px; }
+.metrica-notebook.campo #campo-panel { padding: 1.25rem .75rem; background: var(--paper); box-shadow: 0 4px 18px rgb(43 48 42 / .08); }
+.metrica-notebook.campo .campo-step { padding: 1.25rem 1rem; margin: 0 0 1.25rem; background: #f7f4ec; border: 1px solid var(--line); border-radius: 6px; }
 .metrica-notebook.campo .campo-step:first-child { box-shadow: none; }
 .metrica-notebook.campo .campo-step:last-child { margin-bottom: 0; }
 .metrica-notebook.campo .campo-step h2 { font: 500 1.4rem/1.35 var(--sans); letter-spacing: 0; flex-wrap: wrap; gap: .6rem; }
@@ -266,3 +266,13 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
  .metrica-notebook.campo .spell-fix input { flex-basis: 100%; min-width: 0; }
  .metrica-notebook.campo .spell-fix button { flex: 1; }
 }
+
+.metrica-notebook.campo .campo-tokens { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: 8px; padding: .3rem .5rem; background: var(--paper); border: 1px solid var(--line); border-radius: 5px; }
+.metrica-notebook.campo .campo-tokens:focus-within { outline: 2px solid #3e7bd6; outline-offset: 2px; }
+.metrica-notebook.campo .campo-tokens ul { display: contents; list-style: none; margin: 0; padding: 0; }
+.metrica-notebook.campo .campo-token { display: inline-flex; align-items: center; gap: .25rem; padding: .1rem .25rem .1rem .6rem; background: #e3ead9; border: 1px solid #c5cfb7; border-radius: 4px; font-size: 1rem; }
+.metrica-notebook.campo .campo-token span::first-letter { text-transform: uppercase; }
+.metrica-notebook.campo .campo-token button { display: inline-flex; padding: .2rem; background: none; border: 0; cursor: pointer; color: var(--muted); }
+.metrica-notebook.campo .campo-token button svg { width: .9rem; height: .9rem; }
+.metrica-notebook.campo .campo-tokens input[type=text] { flex: 1; min-width: 8rem; width: auto; margin: 0; padding: .4rem .25rem; border: 0; background: none; }
+.metrica-notebook.campo .campo-tokens input[type=text]:focus { outline: 0; }
