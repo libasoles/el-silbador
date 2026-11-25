@@ -276,3 +276,16 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .campo-token button svg { width: .9rem; height: .9rem; }
 .metrica-notebook.campo .campo-tokens input[type=text] { flex: 1; min-width: 8rem; width: auto; margin: 0; padding: .4rem .25rem; border: 0; background: none; }
 .metrica-notebook.campo .campo-tokens input[type=text]:focus { outline: 0; }
+
+/* Revisión ortográfica: más aire antes del aviso y la sugerencia en verde semibold, sin caja. */
+.metrica-notebook.campo .spell-panel .spell-kind { margin-left: .75rem; }
+.metrica-notebook.campo .spell-fix input { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; padding: 5px 2px; font-weight: 600; color: var(--green); }
+.metrica-notebook.campo .spell-fix input:focus { outline: 0; border-bottom-color: var(--green); }
+
+/* Grilla de estructura: tamaño de celda como en el original, sin estirarse al ancho del panel. */
+.metrica-notebook.campo .campo-picker { max-width: 36rem; }
+.metrica-notebook.campo .campo-grid { gap: 3px; }
+@media (max-width: 30rem) {
+ .metrica-notebook.campo .campo-picker-size { font-size: .95rem; margin-top: .75rem; min-height: 0; }
+ .metrica-notebook.campo .campo-keyboard-hint { display: none; }
+}
