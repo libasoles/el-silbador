@@ -26,6 +26,9 @@ export function buildContentSecurityPolicy({
       "https://*.google-analytics.com",
       "https://*.analytics.google.com",
       "https://*.sentry.io",
+      "https://es.wiktionary.org",
+      "https://en.wiktionary.org",
+      "https://rae-api.com",
     ],
     "frame-src": ["https://www.youtube-nocookie.com"],
     // Sentry Replay compresses events in a blob: worker.

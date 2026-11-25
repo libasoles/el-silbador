@@ -18,6 +18,15 @@ describe("buildContentSecurityPolicy", () => {
     expect(prod).toMatch(/connect-src [^;]*https:\/\/abc\.supabase\.co(?=[ ;])/);
   });
 
+  it("allows dictionary requests without permitting third-party dictionary scripts", () => {
+    const connect = prod.split("; ").find(d => d.startsWith("connect-src"))!;
+    const scripts = prod.split("; ").find(d => d.startsWith("script-src"))!;
+    for (const origin of ["https://es.wiktionary.org", "https://en.wiktionary.org", "https://rae-api.com"]) {
+      expect(connect).toContain(origin);
+      expect(scripts).not.toContain(origin);
+    }
+  });
+
   it("only allows eval and plain http in development", () => {
     const dev = buildContentSecurityPolicy({ supabaseUrl: "http://127.0.0.1:54321", isDev: true });
     expect(prod).not.toContain("unsafe-eval");

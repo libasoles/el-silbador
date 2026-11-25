@@ -1,0 +1,18 @@
+Diccionario de rimas de El Silbador
+
+Adaptado de diccionario.js del taller Verso y raíz (campo-semantico.html).
+Cambio de formato: el objeto JavaScript original se distribuye como JSON, sin
+alterar las palabras ni el orden de frecuencia de cada grupo de rima asonante.
+
+Fuentes declaradas por el generador original tools/build-dictionary.mjs:
+- Diccionario español Hunspell de LibreOffice, expandido con sus reglas de
+  afijos. Distribuido mediante wooorm/dictionaries (GPL/LGPL/MPL).
+  https://github.com/wooorm/dictionaries/tree/main/dictionaries/es
+- Lista de frecuencias de hermitdave/FrequencyWords (CC BY-SA 4.0), utilizada
+  para filtrar las formas más frecuentes.
+  https://github.com/hermitdave/FrequencyWords
+  https://creativecommons.org/licenses/by-sa/4.0/
+
+Consultas complementarias en línea: Wikcionario en español y Wiktionary
+(secciones de español en inglés), con caché de siete días; rae-api.com como
+respaldo. Las consultas envían la palabra solicitada, no la composición.

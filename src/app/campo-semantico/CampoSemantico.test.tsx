@@ -1,0 +1,140 @@
+import { StrictMode } from "react";
+import { fireEvent, render, screen, within, waitFor } from "@testing-library/react";
+import { beforeEach, afterEach, expect, it, vi } from "vitest";
+import { MetricaEditor } from "../metrica/MetricaEditor";
+
+const wordsLabel = /Escribí al menos 10 palabras/;
+function add(words: string) {
+  const input = screen.getByRole("textbox", { name: wordsLabel });
+  fireEvent.change(input, { target: { value: words } });
+  fireEvent.click(screen.getByRole("button", { name: "Agregar" }));
+}
+function select(word: string) {
+  fireEvent.click(within(screen.getByRole("list", { name: /Palabras del tema/ })).getByRole("button", { name: word }));
+}
+function scheme(view: ReturnType<typeof render>, value: string) {
+  const el = view.container.querySelector<HTMLElement>("#campo-scheme")!;
+  el.textContent = value;
+  fireEvent.input(el);
+}
+function response(data: unknown) { return { ok: true, json: async () => data }; }
+beforeEach(() => {
+  localStorage.clear();
+  window.history.replaceState(null, "", "/campo-semantico");
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+    if (String(url).startsWith("/diccionario")) return response({ io: "gentío estío" });
+    if (String(url).includes("rae-api")) return response({ data: { meanings: [] } });
+    return response({ parse: { wikitext: "" }, query: { categorymembers: [] } });
+  }));
+});
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+it("adds phrases with Enter or Tab, deduplicates and builds the semantic field", async () => {
+  render(<MetricaEditor mode="campo" />);
+  add("amor, tierra, AMÓR, volver al pueblo");
+  const list = screen.getByRole("list", { name: /Palabras del tema/ });
+  expect(within(list).getAllByRole("listitem")).toHaveLength(3);
+  const input = screen.getByRole("textbox", { name: wordsLabel });
+  fireEvent.change(input, { target: { value: "camino" } });
+  fireEvent.keyDown(input, { key: "Tab" });
+  expect(within(list).getAllByRole("listitem")).toHaveLength(4);
+  select("amor");
+  const field = screen.getByRole("region", { name: "El campo semántico de la canción" });
+  expect(within(field).getByText("amor")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "odio" }));
+  expect(within(field).getByText("odio")).toBeInTheDocument();
+  select("amor");
+  expect(within(field).queryByText("odio")).not.toBeInTheDocument();
+  await waitFor(() => expect(fetch).toHaveBeenCalled());
+});
+
+it("unlocks the matrix, recognizes forms and reuses the metric composer", () => {
+  const view = render(<MetricaEditor mode="campo" />);
+  expect(view.container.querySelector("#campo-matrix-body")).toHaveAttribute("inert");
+  add("tierra"); select("tierra");
+  expect(view.container.querySelector("#campo-matrix-body")).not.toHaveAttribute("inert");
+  scheme(view, "8a 8b 8b 8a");
+  expect(screen.getByText("Redondilla")).toBeInTheDocument();
+  const verse = screen.getByRole("textbox", { name: "Verso 1" });
+  verse.textContent = "Por el valle va mi canto";
+  fireEvent.input(verse);
+  expect(verse).toHaveTextContent("Por el valle va mi canto");
+  expect(screen.getAllByRole("textbox", { name: /^Verso \d/ })).toHaveLength(4);
+  fireEvent.click(screen.getByRole("button", { name: "Agregar un grupo de versos" }));
+  expect(screen.getAllByRole("textbox", { name: /^Verso \d/ })).toHaveLength(8);
+});
+
+it("keeps independent compositions, keyboard navigation and restored drafts", () => {
+  const view = render(<MetricaEditor mode="campo" />);
+  fireEvent.input(screen.getByRole("textbox", { name: /¿De qué trata/ }), { target: { value: "Mi pueblo" } });
+  add("tierra"); select("tierra"); scheme(view, "8a 8b");
+  const verse = screen.getByRole("textbox", { name: "Verso 1" });
+  verse.textContent = "Por el valle va mi canto"; fireEvent.input(verse);
+  fireEvent.input(screen.getByRole("textbox", { name: "Texto, un verso por renglón" }), { target: { value: "Por el valle va mi voz" } });
+  fireEvent.click(screen.getByRole("button", { name: "Nueva composición" }));
+  expect(screen.getByRole("textbox", { name: /¿De qué trata/ })).toHaveValue("");
+  expect(screen.queryByRole("textbox", { name: "Verso 1" })).not.toBeInTheDocument();
+  fireEvent.keyDown(screen.getByRole("tab", { selected: true }), { key: "ArrowLeft" });
+  expect(screen.getByRole("tab", { name: "Mi pueblo" })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByRole("textbox", { name: "Verso 1" })).toHaveTextContent("Por el valle va mi canto");
+  expect(screen.getByRole("textbox", { name: "Texto, un verso por renglón" })).toHaveValue("Por el valle va mi voz");
+  view.unmount(); render(<MetricaEditor mode="campo" />);
+  expect(screen.getByRole("tab", { name: "Mi pueblo" })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByRole("textbox", { name: "Verso 1" })).toHaveTextContent("Por el valle va mi canto");
+});
+
+it("requires confirmation to delete a composition and preserves another document", async () => {
+  render(<MetricaEditor mode="campo" />);
+  add("tierra");
+  fireEvent.click(screen.getByRole("button", { name: "Nueva composición" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Composición 1" }));
+  fireEvent.click(screen.getByRole("button", { name: "Eliminar Composición 1" }));
+  const dialog = screen.getByRole("dialog", { name: /¿Eliminar/ });
+  fireEvent.click(within(dialog).getAllByRole("button", { name: "Cancelar" })[1]);
+  expect(screen.getByRole("tab", { name: "Composición 1" })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Eliminar Composición 1" }));
+  fireEvent.click(within(screen.getByRole("dialog", { name: /¿Eliminar/ })).getByRole("button", { name: "Eliminar" }));
+  await waitFor(() => expect(screen.queryByRole("tab", { name: "Composición 1" })).not.toBeInTheDocument());
+  expect(screen.getByRole("tab", { name: "Composición 2" })).toHaveAttribute("aria-selected", "true");
+});
+
+it("loads dictionary rhymes and follows Spanish, English and RAE fallback calls", async () => {
+  vi.mocked(fetch).mockImplementation(async (input) => {
+    const url = String(input);
+    if (url.startsWith("/diccionario")) return response({ io: "gentío estío" }) as Response;
+    if (url.includes("rae-api")) return response({ data: { meanings: [{ senses: [{ synonyms: ["impulso"], antonyms: ["apatía"] }] }] } }) as Response;
+    if (url.includes("action=parse")) return response({ parse: { wikitext: url.includes("en.wiktionary") ? "==Spanish==\n{{syn|es|vigor}}" : "" } }) as Response;
+    return response({ query: { categorymembers: [{ title: "bravío" }] } }) as Response;
+  });
+  render(<MetricaEditor mode="campo" />);
+  add("brío"); select("brío");
+  await waitFor(() => expect(screen.getByRole("button", { name: "gentío" })).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByRole("button", { name: "vigor" })).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByRole("button", { name: "impulso" })).toBeInTheDocument());
+  expect(fetch).toHaveBeenCalledWith(expect.stringContaining("es.wiktionary.org"));
+  expect(fetch).toHaveBeenCalledWith(expect.stringContaining("en.wiktionary.org"));
+  expect(fetch).toHaveBeenCalledWith("https://rae-api.com/api/words/br%C3%ADo");
+});
+
+it("offers spelling corrections and analyzes free verse", async () => {
+  const view = render(<MetricaEditor mode="campo" />);
+  add("cancion, tierra");
+  await waitFor(() => expect(screen.getByRole("button", { name: /Revisar ortografía: 1/ })).toBeInTheDocument());
+  fireEvent.click(screen.getByRole("button", { name: /Revisar ortografía: 1/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Corregir" }));
+  select("canción");
+  fireEvent.input(screen.getByRole("textbox", { name: "Texto, un verso por renglón" }), { target: { value: "Por el valle va mi voz\ncon el viento del lugar" } });
+  expect(view.container.querySelector("#campo-free-summary")).toHaveTextContent("2 versos");
+  expect(view.container.querySelectorAll("#campo-free-result .slot").length).toBeGreaterThan(0);
+});
+
+it("handles storage and network failures, including StrictMode remounts", async () => {
+  vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw Error("storage blocked"); });
+  vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw Error("storage blocked"); });
+  vi.mocked(fetch).mockRejectedValue(Error("offline"));
+  render(<StrictMode><MetricaEditor mode="campo" /></StrictMode>);
+  add("amor"); select("amor");
+  expect(screen.getByText(/No se pudo guardar/)).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByText(/No pude cargar el diccionario/)).toBeInTheDocument());
+  expect(screen.getByRole("button", { name: "odio" })).toBeInTheDocument();
+});
