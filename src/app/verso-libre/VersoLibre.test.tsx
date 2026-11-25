@@ -86,11 +86,13 @@ it("opens the metric syllables explanation and returns focus to the count", asyn
   const count = screen.getAllByRole("button", { name: /8 sílabas métricas/ })[0];
   count.focus();
   fireEvent.click(count);
-  expect(screen.getByRole("dialog", { name: "Sílabas métricas" })).toBeInTheDocument();
-  const dialog = screen.getByRole("dialog", { name: "Sílabas métricas" });
+  expect(screen.getByRole("dialog", { name: "¿Qué es una sílaba métrica?" })).toBeInTheDocument();
+  const dialog = screen.getByRole("dialog", { name: "¿Qué es una sílaba métrica?" });
   for (const ending of ["agudo", "grave", "esdrújulo"]) {
     expect(within(dialog).getByRole("heading", { name: `Final ${ending}` })).toBeInTheDocument();
   }
+  expect(within(dialog).getAllByRole("heading", { name: "¿Qué es una sílaba métrica?" })).toHaveLength(1);
+  expect(dialog).toHaveTextContent("Los tres ejemplos tienen el último acento en el lugar 7 y cuentan como 8 sílabas métricas.");
   expect(dialog.querySelectorAll(".metric-syl")).toHaveLength(24);
   expect(within(dialog).getByText("7 pronunciadas + 1")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Cerrar explicación de métrica" }));

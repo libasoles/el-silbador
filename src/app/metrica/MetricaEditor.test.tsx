@@ -219,6 +219,7 @@ it.each([
   fireEvent.click(screen.getByRole("button", { name: /Verso 1:.*Ver explicación/ }));
   const dialog = screen.getByRole("dialog", { name: "Sílabas métricas - verso 1" });
   expect(within(dialog).getByRole("heading", { name: "Sílabas métricas - verso 1" })).toBeInTheDocument();
+  expect(dialog).toHaveTextContent("Los tres ejemplos tienen el último acento en el lugar 7 y cuentan como 8 sílabas métricas.");
   expect(within(dialog).getByText(text => text.includes(`otra acentuación (${alternatives})`))).toBeInTheDocument();
   expect(within(dialog).getAllByText("son iguales a")).toHaveLength(4);
   expect(within(dialog).getByText("Es la unidad del conteo de sílabas en los versos.").tagName).toBe("P");

@@ -2,7 +2,7 @@ import { metricDialogMarkup, mountMetricDialog } from "../metrica/metricDialog";
 import { mountRhymeTips } from "../metrica/rhymeTips";
 export function mountLibre(page,{listen,icons,detect,matchForms,forms,readLine,esc,mountFichas,notebookSettings,cleanups,onRegionChange}) {
 const $=s=>page.querySelector(s);
-page.insertAdjacentHTML('beforeend',metricDialogMarkup(readLine,icons));
+page.insertAdjacentHTML('beforeend',metricDialogMarkup(readLine,icons,{freeVerse:true}));
 $('#metric-current').hidden=true;
 const metricDialog=mountMetricDialog(page,listen);
 listen(page,'click',event=>{
