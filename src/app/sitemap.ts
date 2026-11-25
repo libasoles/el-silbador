@@ -11,6 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: "https://elsilbador.com.ar/", changeFrequency: "weekly", priority: 1 },
+    { url: "https://elsilbador.com.ar/metrica", changeFrequency: "monthly", priority: 0.7 },
     { url: "https://elsilbador.com.ar/articulos", changeFrequency: "monthly", priority: 0.7 },
     {
       url: "https://elsilbador.com.ar/articulos/usar-acordes-en-el-editor",
