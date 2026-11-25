@@ -35,4 +35,10 @@ describe("buildContentSecurityPolicy", () => {
     expect(dev).toContain("http://127.0.0.1:54321");
     expect(dev).not.toContain("upgrade-insecure-requests");
   });
+
+  it("can omit upgrade-insecure-requests for the http-only Lighthouse build", () => {
+    const audit = buildContentSecurityPolicy({ isDev: false, skipUpgradeInsecure: true });
+    expect(audit).not.toContain("upgrade-insecure-requests");
+    expect(audit).toContain("object-src 'none'");
+  });
 });

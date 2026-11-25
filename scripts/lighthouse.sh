@@ -71,6 +71,9 @@ fi
 export NEXT_PUBLIC_SUPABASE_URL="$api_url"
 export NEXT_PUBLIC_SUPABASE_ANON_KEY="$anon_key"
 export NEXT_PUBLIC_GA_MEASUREMENT_ID=""
+# The audited build is served over plain http on localhost; the CSP's upgrade-insecure-requests would
+# rewrite Next's prefetches to https and log console errors that fail the best-practices score.
+export CSP_SKIP_UPGRADE_INSECURE=1
 
 cd "$repo_root"
 npm run build
