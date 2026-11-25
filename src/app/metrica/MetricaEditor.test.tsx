@@ -113,7 +113,7 @@ it("suggests rhyme endings, copies chosen endings, and explains the meter", asyn
   fireEvent.click(screen.getByRole("button", { name: "Copiar todo el texto" }));
   expect(writeText).toHaveBeenCalledWith(`\ncon el viento del lugar\n\n${word}`);
   fireEvent.click(screen.getByRole("button", { name: /Verso 2:.*sílabas métricas. Ver explicación/ }));
-  expect(screen.getByRole("dialog", { name: "¿Qué es una sílaba métrica?" })).toBeInTheDocument();
+  expect(screen.getByRole("dialog", { name: "Sílabas métricas - verso 2" })).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Cerrar explicación de métrica" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   await screen.findByText("Texto copiado");
@@ -176,4 +176,24 @@ it("shares settings across traditional forms and variants", () => {
   fireEvent.click(screen.getByLabelText("Configuración del editor"));
   expect(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" })).toBeChecked();
   expect(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" })).not.toBeChecked();
+});
+
+
+it.each([
+  ["Por el valle canto", "aguda o esdrújula"],
+  ["Por el valle canción", "grave o esdrújula"],
+  ["Los pájaros", "aguda o grave"],
+  ["Por el valle va mi canto tan lejano", "aguda o esdrújula"],
+])("explains the meter and suggests other endings for %s", async (verse, alternatives) => {
+  render(<MetricaEditor />);
+  writeVerse(1, verse);
+  fireEvent.click(screen.getByRole("button", { name: /Verso 1:.*Ver explicación/ }));
+  const dialog = screen.getByRole("dialog", { name: "Sílabas métricas - verso 1" });
+  expect(within(dialog).getByRole("heading", { name: "¿Qué es una sílaba métrica?" })).toBeInTheDocument();
+  expect(within(dialog).getByText(text => text.includes(`otra acentuación (${alternatives})`))).toBeInTheDocument();
+  expect(within(dialog).getAllByText("son iguales a")).toHaveLength(4);
+  expect(within(dialog).getByText("Es la unidad del conteo de sílabas en los versos.").tagName).toBe("P");
+  expect(dialog.querySelector(".metric-banner")).toBeNull();
+  expect(dialog.querySelectorAll(".metric-equality code")).toHaveLength(8);
+  await waitFor(() => expect(dialog.querySelector(".metric-status-icon svg")).toBeInTheDocument());
 });
