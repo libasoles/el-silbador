@@ -350,7 +350,6 @@ export function Library({
   const userId = session?.user.id;
   const authenticated = Boolean(session);
   const restoring = useIsRestoring();
-  const libraryPending = session === undefined || restoring;
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   // Mobile is read-only by product rule: no editing or deleting from the index, even for the
@@ -384,8 +383,10 @@ export function Library({
   // `undefined` session means the initial auth check hasn't resolved yet, so this section should
   // still read as loading rather than flashing an empty "no songs" state; `null` (confirmed
   // signed out) never fetches, so it isn't "loading" even though the query itself stays disabled.
+  // While the persisted cache is restoring, queries are paused and report "not loading", so
+  // `restoring` keeps the personal sections on their skeleton instead of a false empty state.
   const myLibraryLoading =
-    session === undefined || (Boolean(userId) && myQueryLoading);
+    session === undefined || restoring || (Boolean(userId) && myQueryLoading);
 
   const { data: publicLibrarySongs = [], isLoading: publicLibraryLoading } =
     useQuery({
@@ -404,7 +405,7 @@ export function Library({
     enabled: Boolean(userId),
   });
   const favoritesLoading =
-    session === undefined || (Boolean(userId) && favoritesQueryLoading);
+    session === undefined || restoring || (Boolean(userId) && favoritesQueryLoading);
 
   const skeletonCounts = useMemo(
     () => (userId ? readLibrarySkeletonCounts(userId) : undefined),
@@ -668,79 +669,72 @@ export function Library({
         </label>
       </header>
 
-      {libraryPending ? (
-        <div className="library-sections" role="status" aria-label="Cargando canciones">
-          <ul className="library-list" aria-hidden="true">
-            <LibraryRowSkeleton />
-            <LibraryRowSkeleton />
-          </ul>
-        </div>
-      ) : (
-        <div className="library-sections">
-          {session && favoritesFirst && favoritesSection}
+      {/* Public songs come from the server, so this renders in the prerendered HTML and never waits
+          for the session. Personal sections only appear for a signed-in user, above these. */}
+      <div className="library-sections">
+        {session && favoritesFirst && favoritesSection}
 
-          {session && (
-            <LibrarySection
-              title="Tuyas"
-              songs={mySongs}
-              query={query}
-              emptyLabel="Todavía no escribiste ninguna canción."
-              favoriteIds={favoriteIds}
-              favoritePendingSongId={favoritePendingSongId ?? undefined}
-              showFavorite={false}
-              showEdit={!isMobile}
-              showDelete={!isMobile}
-              showPrivacy
-              loading={myLibraryLoading}
-              skeletonRows={skeletonCounts?.mine}
-              onOpenSong={handleOpen}
-              onToggleFavorite={handleToggleFavorite}
-              onEditSong={handleEdit}
-              onDeleteSong={setSongPendingDelete}
-            />
-          )}
-
-          {session && !favoritesFirst && favoritesSection}
-
+        {session && (
           <LibrarySection
-            title={session ? "Públicas" : undefined}
-            songs={publicSongs}
+            title="Tuyas"
+            songs={mySongs}
             query={query}
-            emptyLabel="Todavía no hay canciones públicas para mostrar."
-            emptyIcon={<NeutralIllustrationIcon />}
+            emptyLabel="Todavía no escribiste ninguna canción."
             favoriteIds={favoriteIds}
             favoritePendingSongId={favoritePendingSongId ?? undefined}
-            loading={publicLibraryLoading}
+            showFavorite={false}
+            showEdit={!isMobile}
+            showDelete={!isMobile}
+            showPrivacy
+            loading={myLibraryLoading}
+            skeletonRows={skeletonCounts?.mine}
             onOpenSong={handleOpen}
             onToggleFavorite={handleToggleFavorite}
+            onEditSong={handleEdit}
+            onDeleteSong={setSongPendingDelete}
           />
+        )}
 
-          <section className="library-section">
-            <div className="library-section__head">
-              <h2 className="library-section__title">Estudio</h2>
-            </div>
-            <Link className="library-study-link" href="/metrica">
-              escritura métrica
-            </Link>
-            <a
-              className="library-study-link"
-              href="https://acordesdeguitarra.com.ar/"
-              onClick={() => trackEvent("acordesdeguitarra_link_click")}
-            >
-              acordesdeguitarra.com.ar
-              <ExternalLinkIcon size={14} aria-hidden="true" />
-            </a>
-            <a
-              className="library-study-link"
-              href="https://partitura.com.ar/"
-              onClick={() => trackEvent("partitura_link_click")}
-            >
-              partitura.com.ar
-              <ExternalLinkIcon size={14} aria-hidden="true" />
-            </a>
-          </section>
-        </div>
-      )}
+        {session && !favoritesFirst && favoritesSection}
+
+        <LibrarySection
+          title={session ? "Públicas" : undefined}
+          songs={publicSongs}
+          query={query}
+          emptyLabel="Todavía no hay canciones públicas para mostrar."
+          emptyIcon={<NeutralIllustrationIcon />}
+          favoriteIds={favoriteIds}
+          favoritePendingSongId={favoritePendingSongId ?? undefined}
+          loading={publicLibraryLoading}
+          onOpenSong={handleOpen}
+          onToggleFavorite={handleToggleFavorite}
+        />
+
+        <section className="library-section">
+          <div className="library-section__head">
+            <h2 className="library-section__title">Estudio</h2>
+          </div>
+          <Link className="library-study-link" href="/metrica">
+            escritura métrica
+          </Link>
+          <a
+            className="library-study-link"
+            href="https://acordesdeguitarra.com.ar/"
+            onClick={() => trackEvent("acordesdeguitarra_link_click")}
+          >
+            acordesdeguitarra.com.ar
+            <ExternalLinkIcon size={14} aria-hidden="true" />
+          </a>
+          <a
+            className="library-study-link"
+            href="https://partitura.com.ar/"
+            onClick={() => trackEvent("partitura_link_click")}
+          >
+            partitura.com.ar
+            <ExternalLinkIcon size={14} aria-hidden="true" />
+          </a>
+        </section>
+      </div>
 
       <footer className="library-version">
         <span>

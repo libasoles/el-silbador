@@ -68,8 +68,9 @@ describe("persistent personal library", () => {
     seed();
     const queryClient = client();
     const ui = render(view(queryClient, undefined));
-    expect(screen.getByRole("status", { name: "Cargando canciones" })).toBeInTheDocument();
-    expect(screen.queryByText("Pública")).not.toBeInTheDocument();
+    // The server-provided public list is visible straight away; only personal data waits for auth.
+    expect(screen.getByText(publicSong.title)).toBeInTheDocument();
+    expect(screen.queryByText("Tuyas")).not.toBeInTheDocument();
     expect(listMySongs).not.toHaveBeenCalled();
 
     ui.rerender(view(queryClient, sessionFor("me")));
