@@ -78,13 +78,6 @@
 .metrica-notebook .composer-lab.hide-nums .slot::after,.metrica-notebook .composer-lab.hide-nums .vtext.as-slot::after{display:none}
 .metrica-notebook .composer-lab.hide-nums .slot,.metrica-notebook .composer-lab.hide-nums .vtext.as-slot{margin-bottom:.5rem}
 
-.metrica-notebook .composer-lab.hide-lines .slot,.metrica-notebook .composer-lab.hide-lines .vtext.as-slot,.metrica-notebook .composer-lab.hide-lines button.slot.guide{border-bottom:0;padding-bottom:0}
-.metrica-notebook .composer-lab.hide-lines.hide-nums .slot,.metrica-notebook .composer-lab.hide-lines.hide-nums .vtext.as-slot{margin-bottom:0}
-.metrica-notebook .composer-lab.hide-lines .slot.expected-stress:not(.guide),.metrica-notebook .composer-lab.hide-lines .vtext.as-slot.expected-stress{background:#f4ddd5;border-radius:4px}
-.metrica-notebook .composer-lab.hide-lines .tail-word .slot.expected-stress{background:#e4d8ec}
-.metrica-notebook .composer-lab.hide-lines.hide-nums .vtext .slot{margin:0;padding:0;min-width:0}
-.metrica-notebook .composer-lab.hide-lines.hide-nums .vtext .slot.expected-stress{padding:0 .04em}
-.metrica-notebook .composer-lab.hide-lines.hide-nums .vtext.as-slot{margin-right:.4em}
 
 .metrica-notebook .composer-lab #suggest-context,.metrica-notebook .composer-lab #rhyme-dialog>p.small{display:none}
 .metrica-notebook .composer-lab #suggest-close{display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border-radius:50%}
@@ -237,4 +230,22 @@
   .metrica-notebook .ficha-name { font-size: .8rem; padding: .5rem .65rem; }
   .metrica-notebook .composer { padding: 1.5rem 0 0; }
   .metrica-notebook .composer-heading h3 { font-size: 1.4rem; }
+}
+
+/* Settings belong to the page, outside every tab's editable content. */
+.metrica-notebook .metrica-settings {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 20;
+}
+.metrica-notebook .metrica-settings > summary {
+  border: 0;
+  background: none;
+}
+.metrica-notebook .metrica-settings .composer-settings-menu {
+  width: 22rem;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100svh - 5rem);
+  overflow-y: auto;
 }

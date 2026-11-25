@@ -86,13 +86,70 @@ it("persists display settings and toggles individual sinalefas", () => {
   fireEvent.click(join);
   expect(screen.getByRole("button", { name: /Sinalefa unida: canta y en/ })).toHaveAttribute("aria-pressed", "true");
   fireEvent.click(screen.getByLabelText("Configuración del editor"));
-  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar subrayado de las sílabas" }));
-  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar notas bajo los versos" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar aclaraciones bajo los versos" }));
   view.unmount();
   const again = render(<MetricaEditor />);
-  expect(again.container.querySelector(".composer")).toHaveClass("hide-lines");
+  expect(again.container.querySelector(".composer")).toHaveClass("hide-nums");
+  expect(again.container.querySelector(".composer")).not.toHaveClass("hide-lines");
   expect(again.container.querySelector(".composer")).not.toHaveClass("hide-notes");
   expect(screen.getByRole("button", { name: /Sinalefa unida: canta y en/ })).toHaveAttribute("aria-pressed", "true");
+});
+
+it("shares a single settings menu across forms, variants and the custom notebook", () => {
+  const view = render(<MetricaEditor />);
+  fireEvent.click(screen.getByRole("button", { name: "A medida" }));
+  fireEvent.input(screen.getByRole("textbox", { name: "Esquema de la estrofa" }), {
+    target: { value: "8a 8b 8a 8b" },
+  });
+  fireEvent.click(screen.getByLabelText("Configuración del editor"));
+  expect(screen.getAllByLabelText("Configuración del editor")).toHaveLength(1);
+  expect(screen.getByLabelText("Configuración del editor").closest(".composer")).toBeNull();
+  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar aclaraciones bajo los versos" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Reiniciar la numeración en cada grupo" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar filtros en las sugerencias de rima" }));
+  for (const composer of view.container.querySelectorAll(".composer")) {
+    expect(composer).toHaveClass("hide-nums");
+    expect(composer).not.toHaveClass("hide-notes");
+    expect(composer.querySelector("#suggest-filters")).not.toHaveAttribute("hidden");
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Copla" }));
+  writeVerse(1, "Por el monte va mi canto");
+  expect(view.container.querySelector("#composition-editor .other-accent")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Agregar un grupo de versos" }));
+  expect(view.container.querySelector('#composition-editor [data-verse-row="4"] .vnum')).toHaveTextContent("1");
+  fireEvent.click(screen.getByRole("button", { name: /Variante/ }));
+  fireEvent.click(screen.getByRole("option", { name: /Redondilla/ }));
+  expect(view.container.querySelector("#composition-editor")).toHaveClass("hide-nums");
+  fireEvent.click(screen.getByRole("button", { name: "Décima" }));
+  expect(view.container.querySelector("#composition-editor")).not.toHaveClass("hide-notes");
+  view.unmount();
+  const again = render(<MetricaEditor />);
+  fireEvent.click(screen.getByLabelText("Configuración del editor"));
+  expect(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" })).toBeChecked();
+  expect(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" })).not.toBeChecked();
+  fireEvent.click(screen.getByRole("button", { name: "A medida" }));
+  expect(again.container.querySelector("#custom-editor")).toHaveClass("hide-nums");
+  expect(again.container.querySelector("#custom-editor")).not.toHaveClass("hide-notes");
+});
+
+it("keeps underlines enabled even when old preferences disabled them", () => {
+  localStorage.setItem("el-silbador-metrica-settings", JSON.stringify({ underline: false }));
+  localStorage.setItem("el-silbador-metrica-settings-medida", JSON.stringify({ underline: false }));
+  const view = render(<MetricaEditor />);
+  fireEvent.click(screen.getByLabelText("Configuración del editor"));
+  expect(screen.queryByRole("checkbox", { name: "Mostrar subrayado de las sílabas" })).not.toBeInTheDocument();
+  expect(screen.queryByText("Si no, los versos se numeran seguidos.")).not.toBeInTheDocument();
+  expect(screen.queryByText("El acento requerido por la métrica se destaca en terracota; los demás, en naranja.")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "A medida" }));
+  fireEvent.input(screen.getByRole("textbox", { name: "Esquema de la estrofa" }), {
+    target: { value: "8a 8b" },
+  });
+  for (const composer of view.container.querySelectorAll(".composer")) {
+    expect(composer).not.toHaveClass("hide-lines");
+  }
 });
 
 it("suggests rhyme endings, copies chosen endings, and explains the meter", async () => {
