@@ -107,7 +107,10 @@ it("explains detected rhyme families on click and closes on Escape", () => {
   render(<MetricaEditor mode="libre" />);
   write(poem);
   fireEvent.click(screen.getAllByRole("button", { name: "Rima a, asonante" })[0]);
-  expect(screen.getByRole("tooltip")).toHaveTextContent(/Rima asonante.*otros.*a/);
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Este verso deberá rimar con otros de tipo a");
+  expect(screen.getByRole("tooltip").querySelector(".rhyme-badge")).toHaveTextContent("a");
+  fireEvent.click(screen.getAllByRole("button", { name: "Rima a, asonante" })[1]);
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Este verso rima con otro de tipo a");
   fireEvent.keyDown(document, { key: "Escape" });
   expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   fireEvent.click(screen.getAllByRole("button", { name: "Sin rima detectada" })[0]);

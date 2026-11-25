@@ -99,7 +99,7 @@ function renderDetect(){
 const familyClass=family=>family==='—'?'fam-free':`fam-${family}`;
 cleanups.push(mountRhymeTips(page,$('#detect-result'),{esc,familyClass,listen,message:badge=>{
  const family=badge.dataset.rhymeFamily;
- return family==='—'?'Sin rima detectada: no se encontró otro verso con la misma terminación.':`Rima ${esc(badge.dataset.rhymeKind)}: este verso rima con los otros <span class="rhyme-badge ${familyClass(family)}" aria-hidden="true">${esc(family)}</span>`;
+ return family==='—'?'Sin rima detectada: no se encontró otro verso con la misma terminación.':null;
 }}));
 
 area.addEventListener('input',()=>{renderDetect();setText(tabs.active,area.value);const name=tabsBox.querySelector(`#tab-${tabs.active}`);if(name)name.textContent=tabLabel(tabs.tabs.find(t=>t.id===tabs.active),tabs.tabs.findIndex(t=>t.id===tabs.active));});

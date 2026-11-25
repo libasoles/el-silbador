@@ -185,7 +185,7 @@ it("opens a rhyme popup on mobile without focusing the verse and dismisses outsi
   const badge = screen.getAllByRole("img", { name: "Familia de rima a" })[0];
   fireEvent.pointerDown(badge, { pointerType: "touch" });
   fireEvent.click(badge, { pointerType: "touch" });
-  expect(screen.getByRole("tooltip")).toHaveTextContent("Requiere rimar con otros");
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Este verso deberá rimar con otros de tipo");
   expect(screen.getAllByRole("textbox").every(field => field !== document.activeElement)).toBe(true);
   fireEvent.pointerDown(screen.getByRole("tooltip"), { pointerType: "touch" });
   expect(screen.getByRole("tooltip")).toBeInTheDocument();

@@ -5,7 +5,9 @@ export function mountRhymeTips(root,list,{esc,familyClass,listen,message}) {
  function showBadgeTip(badge){
   hideBadgeTip();const family=badge.dataset.rhymeFamily;
   badgeTip=document.createElement('div');badgeTip.className='badge-tip';badgeTip.setAttribute('role','tooltip');badgeOf=badge;
-  badgeTip.innerHTML=message?message(badge):family==='—'?'Verso libre: no requiere rima':`Requiere rimar con otros <span class="rhyme-badge ${familyClass(family)}" aria-hidden="true">${esc(family)}</span>`;
+  const first=[...list.querySelectorAll('.rhyme-badge')].find(other=>other.dataset.rhymeFamily===family)===badge;
+  const text=first?'Este verso deberá rimar con otros de tipo':'Este verso rima con otro de tipo';
+  badgeTip.innerHTML=message?.(badge)??(family==='—'?'Verso libre: no requiere rima':`${text} <span class="rhyme-badge ${familyClass(family)}" aria-hidden="true">${esc(family)}</span>`);
   root.appendChild(badgeTip);
   const b=badge.getBoundingClientRect(),w=badgeTip.offsetWidth,h=badgeTip.offsetHeight;
   badgeTip.style.left=Math.max(8,Math.min(window.innerWidth-w-8,b.right-w))+'px';
