@@ -365,8 +365,8 @@
 }
 @media (max-width: 30rem) {
   .metrica-notebook .detect-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "num num" "text badge" "count note";
+    grid-template-columns: minmax(0, 1fr) auto 24px;
+    grid-template-areas: "num num num" "text text badge" "count note note";
     gap: 8px;
   }
   .metrica-notebook .detect-row .vnum {
@@ -377,7 +377,12 @@
     font: 400 13px/1.2 var(--serif);
     text-align: left;
   }
-  .metrica-notebook .detect-row .detect-text { grid-area: text; }
+  .metrica-notebook .detect-row .detect-text { grid-area: text; font-size: 18px; }
+  .metrica-notebook .detect-text .slot {
+    min-width: 1.25em;
+    margin-right: .12em;
+    padding-inline: .08em;
+  }
   .metrica-notebook .detect-row .detect-count { grid-area: count; }
   .metrica-notebook .detect-row .rhyme-badge {
     grid-area: badge;
@@ -421,7 +426,7 @@
 .metrica-notebook .detect-row button.rhyme-badge { display: inline-grid; place-items: center; padding: 0; }
 @media (max-width: 30rem) {
   .verso-libre-page .metrica-notebook #detect-panel { padding-inline: 0; }
-  .metrica-notebook #detect-text { font: 16px/1.7 var(--sans); padding-inline: .5rem; }
+  .metrica-notebook #detect-text { font: 18px/1.7 var(--serif); padding-inline: .5rem; }
 }
 
 .metrica-notebook .detect-row .vnum { font-size: 13px; }
