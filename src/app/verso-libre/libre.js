@@ -1,6 +1,14 @@
+import { metricDialogMarkup, mountMetricDialog } from "../metrica/metricDialog";
 import { mountRhymeTips } from "../metrica/rhymeTips";
 export function mountLibre(page,{listen,icons,detect,matchForms,forms,readLine,esc,mountFichas,notebookSettings,cleanups,onRegionChange}) {
 const $=s=>page.querySelector(s);
+page.insertAdjacentHTML('beforeend',metricDialogMarkup(readLine,icons));
+$('#metric-current').hidden=true;
+const metricDialog=mountMetricDialog(page,listen);
+listen(page,'click',event=>{
+ const count=event.target.closest('.detect-count');
+ if(count)metricDialog.open(count);
+});
 const save=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));$('#libre-save').textContent='';}catch{$('#libre-save').textContent='No se pudo guardar: copiá tu texto para conservarlo.';}};
 const load=(k,fallback)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??fallback;}catch{return fallback;}};
 const slug=t=>t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,'-');
