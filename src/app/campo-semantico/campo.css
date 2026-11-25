@@ -140,7 +140,6 @@
 
 .metrica-notebook.campo #campo-free-text{display:block;width:100%;margin-top:8px;font:inherit;font-size:18px;line-height:1.6;background:#fffcf6;color:var(--ink);padding:14px 16px;border:1px solid #9aa18f;border-radius:5px;resize:vertical}
 .metrica-notebook.campo #campo-free-section .detect-tools{display:flex;justify-content:flex-end;margin:-44px 0 8px}.metrica-notebook.campo #campo-free-section h2{margin-right:48px}
-.metrica-notebook.campo #campo-pick-section.is-off{opacity:1}
 
 /* Campo shares its paper with the selected composition tab. */
 .campo-semantico-page { --campo-paper: #fffcf6; --campo-blue: #0055a4; }
@@ -177,7 +176,7 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .detect-result.hide-lines .slot { border-bottom: 0; padding-bottom: 0; }
 .metrica-notebook.campo .detect-result.hide-lines.hide-nums .slot { margin: 0; padding: 0; min-width: 0; }
 @media (max-width: 30rem) {
- .metrica-notebook.campo #campo-panel { padding: 1.5rem 1rem 4rem; box-shadow: none; }
+ .metrica-notebook.campo #campo-panel { padding: 1.5rem .5rem 4rem; box-shadow: none; }
  .metrica-notebook.campo .campo-step h2 { font-size: 1.25rem; }
  .metrica-notebook.campo .campo-card { padding: .75rem; min-width: 0; }
  .metrica-notebook.campo .campo-results { grid-template-columns: minmax(0,1fr); }
@@ -207,7 +206,7 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .composer-lab .composer-heading h3 { font-family: var(--sans); }
 .metrica-notebook.campo .custom-chips .outline.active { background: #e6eff8; border-color: var(--campo-blue); }
 @media (max-width: 30rem) {
- .metrica-notebook.campo .campo-step { padding: 1.25rem .85rem; }
+ .metrica-notebook.campo .campo-step { padding: 1.25rem .65rem; }
 }
 
 /* Keep the original result cards and align every information control with its label. */
@@ -226,3 +225,11 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .campo-info-popup { overscroll-behavior: contain; text-transform: none; letter-spacing: 0; font: 400 .95rem/1.6 var(--sans); }
 .metrica-notebook.campo .campo-info-popup::before { display: none; }
 .metrica-notebook.campo .campo-info-popup p { font-size: inherit; }
+
+.metrica-notebook.campo .campo-plot-label { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+.metrica-notebook.campo .campo-optional { font-size: .75rem; font-weight: 400; color: var(--muted); }
+.metrica-notebook.campo #campo-plot-count { font-size: .75rem; font-weight: 400; }
+.metrica-notebook.campo #campo-count { display: flex; align-items: flex-start; gap: .5rem; text-align: left; }
+.metrica-notebook.campo #campo-count .metrica-icon { flex: none; margin-top: .2em; }
+.metrica-notebook.campo #campo-count .metrica-icon[hidden] { display: none; }
+.metrica-notebook.campo #campo-count svg { width: 1rem; height: 1rem; }

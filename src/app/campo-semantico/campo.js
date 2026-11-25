@@ -5,6 +5,11 @@ const $=s=>page.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const listen=(target,type,handler)=>target.addEventListener(type,handler,{signal:controller.signal});
 const MIN_WORDS=10,MIN_COLS=4,GRID_COLS=12,GRID_ROWS=10,SHOWN=12,MORE_STEP=20;
+const mobile=window.matchMedia?.('(max-width: 30rem)');
+const exampleInputs=[...page.querySelectorAll('[placeholder^="Por ejemplo:"]')].map(input=>({input,placeholder:input.placeholder}));
+function syncExamples(){for(const {input,placeholder} of exampleInputs)input.placeholder=mobile?.matches?placeholder.replace(/^Por ejemplo: /,''):placeholder;}
+syncExamples();
+if(mobile)listen(mobile,'change',syncExamples);
 loadRegion();
 const KINDS=[{id:'consonante',title:'Rimas consonantes'},{id:'asonante',title:'Rimas asonantes'},{id:'sinonimo',title:'Sinónimos'},{id:'antonimo',title:'Antónimos'},{id:'relacionada',title:'Relacionadas'}];
 const base=catalog(forms,variantOf,meterAt);
@@ -33,8 +38,13 @@ function renderWords(){
  $('#campo-words').innerHTML=bank.map((x,i)=>`<li class="${x.on?'on':''}"><button type="button" class="pick" data-pick="${i}" aria-pressed="${x.on}"><span class="campo-pick-check" aria-hidden="true">${x.on?icons.check:''}</span>${esc(x.w)}</button><button type="button" class="drop" data-drop="${i}" aria-label="Quitar ${esc(x.w)} de la lista" data-tooltip="Quitar">${icons.x}</button></li>`).join('');
  const n=bank.length,missing=MIN_WORDS-n;
  const count=$('#campo-count');
- count.textContent=n===0?`Todavía no hay palabras. Hacen falta ${MIN_WORDS} como mínimo.`:missing>0?`${n} ${n===1?'palabra':'palabras'}: faltan ${missing} para llegar a ${MIN_WORDS}.`:`${n} palabras. ¡Excelente! Tenés un buen caudal para empezar a escribir.`;
+ $('#campo-count-text').textContent=n===0?`Todavía no hay palabras. Hacen falta ${MIN_WORDS} como mínimo.`:missing>0?`${n} ${n===1?'palabra':'palabras'}: faltan ${missing} para llegar a ${MIN_WORDS}.`:`${n} palabras. ¡Excelente! Tenés un buen caudal para empezar a escribir.`;
  count.className='campo-count '+(missing>0?'short':'ok');
+ count.querySelector('[data-metrica-icon]').hidden=n!==0;
+ const pickSection=$('#campo-pick-section');
+ pickSection.classList.toggle('is-off',n===0);
+ pickSection.setAttribute('aria-disabled',String(n===0));
+ $('#campo-words').toggleAttribute('inert',n===0);
  renderResults();renderField();renderLock();persist();
 }
 $('#campo-add').addEventListener('submit',e=>{e.preventDefault();const input=$('#campo-word');addWords(input.value);input.value='';renderWords();input.focus();});

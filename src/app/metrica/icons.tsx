@@ -1,6 +1,6 @@
 import {
   Check, ChevronLeft, ChevronRight, RotateCcw, ArrowRight, ChevronDown, CircleAlert, CircleCheck, CircleHelp, Copy, Info,
-  Lightbulb, Plus, Settings, Trash2, X,
+  Lightbulb, Plus, Settings, Trash2, TriangleAlert, X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -21,6 +21,7 @@ export const notebookIconComponents: Record<string, LucideIcon> = {
   plus: Plus,
   settings: Settings,
   "trash-2": Trash2,
+  "triangle-alert": TriangleAlert,
   x: X,
 };
 

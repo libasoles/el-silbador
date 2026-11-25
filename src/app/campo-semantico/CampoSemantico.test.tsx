@@ -3,6 +3,8 @@ import { fireEvent, render, screen, within, waitFor } from "@testing-library/rea
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { MetricaEditor } from "../metrica/MetricaEditor";
 
+import { mockMatchMedia } from "../../test/matchMedia";
+
 const wordsLabel = /Escribí al menos 10 palabras/;
 function add(words: string) {
   const input = screen.getByRole("textbox", { name: wordsLabel });
@@ -151,4 +153,27 @@ it("opens the assonance popup by clicking the Lucide icon and closes it with Esc
   fireEvent.keyDown(document, { key: "Escape" });
   expect(screen.queryByRole("dialog", { name: "Rima asonante" })).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "¿Qué es una rima asonante?" })).toHaveFocus();
+});
+
+it("disables selection until a word is added and disables it again after removal", async () => {
+  const view = render(<MetricaEditor mode="campo" />);
+  const step = screen.getByRole("region", { name: /Seleccioná las mejores/ });
+  expect(step).toHaveAttribute("aria-disabled", "true");
+  expect(view.container.querySelector("#campo-words")).toHaveAttribute("inert");
+  await waitFor(() => expect(view.container.querySelector("#campo-count svg")).toHaveClass("lucide-triangle-alert"));
+  add("tierra");
+  expect(step).toHaveAttribute("aria-disabled", "false");
+  expect(view.container.querySelector("#campo-words")).not.toHaveAttribute("inert");
+  expect(view.container.querySelector("#campo-count [data-metrica-icon]")).not.toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Quitar tierra de la lista" }));
+  expect(step).toHaveAttribute("aria-disabled", "true");
+  expect(screen.getByText(/Todavía no hay palabras/)).toBeInTheDocument();
+});
+
+it.each([false, true])("shows concise examples on mobile (%s)", (mobile) => {
+  mockMatchMedia(mobile);
+  render(<MetricaEditor mode="campo" />);
+  const prefix = mobile ? "" : "Por ejemplo: ";
+  expect(screen.getByRole("textbox", { name: /¿De qué trata/ })).toHaveAttribute("placeholder", prefix + "volver al pueblo después de muchos años");
+  expect(screen.getByRole("textbox", { name: /Argumento/ })).toHaveAttribute("placeholder", prefix + "alguien regresa a su pueblo y encuentra la casa abandonada, pero la calle arbolada sigue igual.");
 });
