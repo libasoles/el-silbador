@@ -10,6 +10,7 @@ import { EditorFeatureShowcase } from "../components/EditorFeatureShowcase";
 import { IconButtonTooltip } from "../components/IconButtonTooltip";
 import {
   EditIcon,
+  ExternalLinkIcon,
   LogInIcon,
   LogOutIcon,
   NeutralIllustrationIcon,
@@ -718,12 +719,16 @@ export function Library({
             <div className="library-section__head">
               <h2 className="library-section__title">Estudio</h2>
             </div>
+            <Link className="library-study-link" href="/metrica">
+              escritura métrica
+            </Link>
             <a
               className="library-study-link"
               href="https://acordesdeguitarra.com.ar/"
               onClick={() => trackEvent("acordesdeguitarra_link_click")}
             >
               acordesdeguitarra.com.ar
+              <ExternalLinkIcon size={14} aria-hidden="true" />
             </a>
             <a
               className="library-study-link"
@@ -731,6 +736,7 @@ export function Library({
               onClick={() => trackEvent("partitura_link_click")}
             >
               partitura.com.ar
+              <ExternalLinkIcon size={14} aria-hidden="true" />
             </a>
           </section>
         </div>

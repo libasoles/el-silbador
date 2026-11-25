@@ -188,7 +188,10 @@
 }
 
 .library-study-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
   font-family: var(--serif);
   font-size: 1.05rem;
   color: var(--fg);
