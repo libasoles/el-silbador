@@ -275,7 +275,7 @@
 
 .metrica-notebook #detect-panel{padding:1.5rem 0}
 .metrica-notebook .detect-text{counter-reset:n;font:24px/1.5 var(--serif);overflow-wrap:anywhere;min-width:0}
-.metrica-notebook .detect-tonic{background:none;color:var(--rust);font-weight:600}
+.metrica-notebook .detect-tonic{background:none;color:var(--rust);font-weight:600;text-decoration:none}
 .metrica-notebook .detect-row{display:grid;grid-template-columns:26px minmax(0,1fr) 96px 34px 150px;gap:12px;padding:1rem 0;border-bottom:1px solid var(--line)}
 .metrica-notebook .detect-row.stanza-start{margin-top:1.5rem}
 .metrica-notebook .detect-form-name ul{padding:0;list-style:none}.metrica-notebook .detect-form-name li{display:flex;align-items:center;flex-wrap:wrap;gap:.75rem;margin:.5rem 0}
