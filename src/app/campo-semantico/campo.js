@@ -197,6 +197,40 @@ function askWiki(kind,word,run){
  wikiAsked.add(key);wikiPending++;
  run().then(data=>{wikiData.set(key,data);},()=>{wikiFailed=true;}).finally(()=>{wikiPending--;if(!controller.signal.aborted)renderResults();});
 }
+// Position rich help beside its trigger, keeping it above sticky sections and inside the viewport.
+function placeInfo(popup,trigger){
+ if(!popup||!trigger)return;
+ const gap=8,edge=16,anchor=trigger.getBoundingClientRect();
+ popup.classList.add('campo-info-popup');
+ Object.assign(popup.style,{position:'fixed',width:`${Math.min(380,window.innerWidth-edge*2)}px`,maxWidth:'none',maxHeight:`${Math.min(520,window.innerHeight-edge*2)}px`,overflowY:'auto',right:'auto',transform:'none',zIndex:'60'});
+ const {width,height}=popup.getBoundingClientRect();
+ const left=Math.max(edge,Math.min(anchor.right-width,window.innerWidth-width-edge));
+ const below=anchor.bottom+gap,above=anchor.top-gap-height;
+ const top=below+height<=window.innerHeight-edge?below:above>=edge?above:Math.max(edge,window.innerHeight-height-edge);
+ Object.assign(popup.style,{left:`${left}px`,top:`${top}px`});
+}
+const infoDetails=[...page.querySelectorAll('#campo-results-info,#campo-scheme-info')];
+for(const details of infoDetails){
+ const trigger=details.querySelector('summary'),popup=details.querySelector('.composer-tooltip');
+ popup.id=`${details.id}-popup`;
+ popup.setAttribute('role','dialog');
+ popup.setAttribute('aria-label',trigger.getAttribute('aria-label'));
+ trigger.setAttribute('aria-haspopup','dialog');
+ trigger.setAttribute('aria-controls',popup.id);
+ trigger.setAttribute('aria-expanded','false');
+ listen(details,'toggle',()=>{trigger.setAttribute('aria-expanded',String(details.open));if(details.open)placeInfo(popup,trigger);});
+}
+function positionOpenInfo(){
+ const visible=trigger=>{const rect=trigger.getBoundingClientRect();return rect.bottom>=0&&rect.top<=window.innerHeight;};
+ for(const details of infoDetails)if(details.open){
+  const trigger=details.querySelector('summary');
+  if(visible(trigger))placeInfo(details.querySelector('.composer-tooltip'),trigger);else details.open=false;
+ }
+ const popup=$('#campo-results .campo-popover'),trigger=$('#campo-results .info-btn[aria-expanded="true"]');
+ if(popup&&trigger){if(visible(trigger))placeInfo(popup,trigger);else{infoOpen=null;renderResults();}}
+}
+listen(window,'resize',positionOpenInfo);
+listen(window,'scroll',positionOpenInfo,{capture:true});
 const INFO_ICON=icons["info"];
 const ASO_TEXT=['En la rima asonante cuentan solo las vocales desde la última sílaba tónica, la que lleva el acento. Las consonantes no importan.','En ca-<b>LÁN</b>-dria, la sílaba tónica es «lán» y las vocales que cuentan son <b>a</b> (de lán) y <b>a</b> (del final -dria): a–a. Por eso rima con pa-<b>LA</b>-bra.','Si hay un diptongo, cuenta la vocal fuerte (a, e, o) y no la débil (i, u): en «dria» cuenta la a, no la i. Por eso «fiaca» (FIA-ca, a–a) también rima con calandria.','Las vocales en negrita son las que se comparan. Las rimas van de las más a las menos parecidas: primero las que tienen el mismo largo de final (grave con grave, esdrújula con esdrújula) y, dentro de eso, las que comparten más letras finales con la palabra.'].map(t=>`<p>${t}</p>`).join('');
 let infoOpen=null;// palabra de la tarjeta cuyo popup está abierto
@@ -230,6 +264,7 @@ function renderResults(){
   const noAnt=searching?'Buscando en diccionarios en línea…':inLexicon?'No tengo antónimos registrados.':'No encontramos sugerencias.';
   return `<article class="campo-card"><h3>${esc(w)}</h3><h4>Rimas consonantes</h4>${chipList(r?.consonant||[],noRhyme,'consonante',w)}<h4 class="campo-h4-info">Rimas asonantes <button type="button" class="info-btn" data-info="${esc(w)}" aria-haspopup="dialog" aria-expanded="${infoOpen===w}" aria-controls="aso-info-${i}" aria-label="¿Qué es una rima asonante?">${INFO_ICON}</button>${infoOpen===w?`<div class="campo-popover" id="aso-info-${i}" role="dialog" aria-label="Rima asonante"><button type="button" class="close-x campo-popover-x" data-info="${esc(w)}" aria-label="Cerrar explicación">${icons["x"]}</button>${ASO_TEXT}</div>`:''}</h4>${chipList(r?.assonant||[],noRhyme,'asonante',w)}<h4>Sinónimos</h4>${chipList(syn,noSyn,'sinonimo',w)}<h4>Antónimos</h4>${chipList(ant,noAnt,'antonimo',w)}${rel.length?`<h4>Relacionadas</h4>${chipList(rel,'','relacionada',w)}`:''}</article>`;
  }).join('');
+ positionOpenInfo();
 }
 onRegionChange(()=>{rhymeCache.clear();renderResults();});
 // Pasar por el paso 2 (escribir o tocar una palabra) inicia la descarga del diccionario en segundo plano.
@@ -247,7 +282,8 @@ $('#campo-results').addEventListener('click',e=>{
 });
 
 // El popup se cierra con un clic afuera o con Escape (devolviendo el foco al ícono).
-listen(document,'click',e=>{if(infoOpen&&!e.target.closest('.campo-popover')&&!e.target.closest('[data-info]')){infoOpen=null;renderResults();}});
+// La ruta original del evento conserva el botón aunque renderResults haya retirado el SVG pulsado.
+listen(document,'click',e=>{if(infoOpen&&!e.composedPath().some(node=>node instanceof Element&&node.matches('.campo-popover,[data-info]'))){infoOpen=null;renderResults();}});
 listen(document,'keydown',e=>{
  if(e.key!=='Escape'||!infoOpen)return;
  const w=infoOpen;infoOpen=null;renderResults();

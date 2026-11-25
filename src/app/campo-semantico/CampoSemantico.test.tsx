@@ -138,3 +138,17 @@ it("handles storage and network failures, including StrictMode remounts", async 
   await waitFor(() => expect(screen.getByText(/No pude cargar el diccionario/)).toBeInTheDocument());
   expect(screen.getByRole("button", { name: "odio" })).toBeInTheDocument();
 });
+
+
+it("opens the assonance popup by clicking the Lucide icon and closes it with Escape", async () => {
+  render(<MetricaEditor mode="campo" />);
+  add("amor"); select("amor");
+  const trigger = () => screen.getByRole("button", { name: "¿Qué es una rima asonante?" });
+  await waitFor(() => expect(trigger().querySelector("svg")).not.toBeNull());
+  fireEvent.click(trigger().querySelector("svg")!);
+  expect(screen.getByRole("dialog", { name: "Rima asonante" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "¿Qué es una rima asonante?" })).toHaveAttribute("aria-expanded", "true");
+  fireEvent.keyDown(document, { key: "Escape" });
+  expect(screen.queryByRole("dialog", { name: "Rima asonante" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "¿Qué es una rima asonante?" })).toHaveFocus();
+});
