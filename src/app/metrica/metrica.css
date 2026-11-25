@@ -216,10 +216,10 @@
   z-index: 2;
   pointer-events: none;
 }
-.metrica-notebook .ficha { background: var(--paper); box-shadow: none; }
+.metrica-notebook .ficha { background: #ece8dc; box-shadow: none; }
 .metrica-notebook .ficha-name { font: .85rem/1.4 var(--sans); padding: .65rem .85rem; }
-.metrica-notebook .ficha.on { background: var(--paper); }
-.metrica-notebook .ficha.on .ficha-name { color: var(--accent); }
+.metrica-notebook .ficha.on { background: #fffcf6; }
+.metrica-notebook .ficha.on .ficha-name { color: var(--ink); }
 .metrica-notebook .ficha-cuerpo { background: var(--paper); box-shadow: none; border-radius: 0; }
 .metrica-notebook .variant-label { font: 500 .85rem var(--sans); color: var(--muted); }
 .metrica-notebook .variant-menu button { background: var(--paper); border: 1px solid var(--line); font-size: .9rem; min-height: 2.5rem; }
@@ -284,3 +284,21 @@
 @media(max-width:700px){.metrica-notebook .detect-row{grid-template-columns:28px minmax(0,1fr) 38px}.metrica-notebook .detect-count{grid-column:2}.metrica-notebook .detect-text{font-size:20px}}
 
 .metrica-notebook .detect-result.hide-notes .rhyme-text{display:none}
+
+/* Original verso-y-raíz paper palette, shared by both notebooks. */
+.metrica-notebook .fichas,
+.metrica-notebook .ficha-cuerpo {
+  --paper: #fffcf6;
+  --ink: #2b302a;
+  --muted: #6a7064;
+  --rust: #ae492e;
+  --green: #344e40;
+  --line: #dbdacd;
+  color: var(--ink);
+}
+.metrica-notebook .ficha-cuerpo { background: var(--paper); }
+.metrica-notebook .ficha-break::before,
+.metrica-notebook .ficha-break::after { background: #ece8dc; }
+.metrica-notebook .ficha-name:hover { background: none; }
+.metrica-notebook .ficha-x:hover { color: var(--rust); background: #f4e4dd; }
+.metrica-notebook .ficha-add:hover { background: #e8ecdf; color: var(--green); }
