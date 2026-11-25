@@ -125,3 +125,19 @@ it("labels only the first occurrence of each rhyme family as its reference", () 
   write("con el viento del lugar");
   expect(screen.queryByText("Referencia a")).not.toBeInTheDocument();
 });
+
+it("closes the one-verse-per-line banner for good", () => {
+  const first = render(<MetricaEditor mode="libre" />);
+  expect(screen.getByText("Un verso por renglón", { selector: "p" })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Cerrar aviso" }));
+  expect(screen.getByText("Un verso por renglón", { selector: "p" })).not.toBeVisible();
+  first.unmount();
+  render(<MetricaEditor mode="libre" />);
+  expect(screen.getByText("Un verso por renglón", { selector: "p" })).not.toBeVisible();
+});
+
+it("colors the letters of the detected scheme", () => {
+  render(<MetricaEditor mode="libre" />);
+  write("Por el monte va mi canto\ncon el viento del lugar\nlleva tierra del camino\ncon recuerdos de mamá");
+  expect(screen.getByText("Esquema detectado:").querySelector("b")).toHaveClass(/fam-/);
+});

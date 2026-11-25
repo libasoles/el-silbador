@@ -11,6 +11,9 @@ listen(page,'click',event=>{
 });
 const save=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));$('#libre-save').textContent='';}catch{$('#libre-save').textContent='No se pudo guardar: copiá tu texto para conservarlo.';}};
 const load=(k,fallback)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??fallback;}catch{return fallback;}};
+const BANNER_KEY='el-silbador-libre-aviso-cerrado';
+try{if(localStorage.getItem(BANNER_KEY))$('#detect-banner').hidden=true;}catch{}
+listen($('#detect-banner-x'),'click',()=>{$('#detect-banner').hidden=true;try{localStorage.setItem(BANNER_KEY,'1');}catch{}});
 const slug=t=>t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,'-');
 
 // --- Solapas: cada una es un documento «detectar» con su propio texto. La primera hereda el texto que se guardaba antes. ---
@@ -87,7 +90,7 @@ function verseHtml(r){
 function renderDetect(){
  const rows=detect($('#detect-text').value),seenFamilies=new Set();
  $('#detect-hint-icon').hidden=!!rows.length;
- $('#detect-summary-text').innerHTML=rows.length?`<p class="detect-verse-total">${rows.length} ${rows.length===1?'verso':'versos'}</p><p class="detect-analysis-label">Esquema detectado: <span>${esc(rows.map(r=>r.count+r.letter).join(' '))}</span></p>`:'Escribí o pegá tus versos con tildes: son importantes para detectar bien los acentos y las rimas.';
+ $('#detect-summary-text').innerHTML=rows.length?`<p class="detect-verse-total">${rows.length} ${rows.length===1?'verso':'versos'}</p><p class="detect-analysis-label">Esquema detectado: <span class="detect-form-scheme">${rows.map(r=>r.count+(r.letter==='—'?'<b class="fam-free">—</b>':`<b class="fam-${r.letter}">${esc(r.letter)}</b>`)).join(' ')}</span></p>`:'Escribí o pegá tus versos con tildes: son importantes para detectar bien los acentos y las rimas.';
  const found=matchForms(rows,forms),exact=found.filter(f=>!f.approximate);
  // Cada coincidencia va en su renglón, con las letras de rima en su color.
  const colored=scheme=>scheme.split(' ').map(t=>t.replace(/^(\d+)(.)$/,(_,n,l)=>`${n}<b class="${l==='—'?'fam-free':`fam-${l}`}">${l}</b>`)).join(' ');
