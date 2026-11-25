@@ -248,8 +248,8 @@ function renderResults(){
  const picked=bank.filter(x=>x.on);
  if(picked.length)ensureDictionary();
  const wikiNote=wikiPending>0?' Consultando diccionarios en línea…':wikiFailed?' No pude consultar algún diccionario en línea.':'';
- const dictNote=dictState==='loading'?' Ampliando las rimas con el diccionario…':dictState==='error'?' No pude cargar el diccionario: se muestran sólo las rimas del vocabulario del taller.':dictState==='ready'?' Las rimas del diccionario van de las más usadas a las menos usadas.':'';
- $('#campo-results-note').textContent=!bank.length?'Agregá palabras en el paso 2 y elegí las mejores en el paso 3.':!picked.length?'Elegí una o más palabras en el paso 3 para ver sus rimas, sinónimos y antónimos.':`${picked.length} ${picked.length===1?'palabra elegida':'palabras elegidas'}.${dictNote}${wikiNote}`;
+ const dictNote=dictState==='loading'?' Ampliando las rimas con el diccionario…':dictState==='error'?' No pude cargar el diccionario: se muestran sólo las rimas del vocabulario del taller.':'';
+ $('#campo-results-note').textContent=!bank.length?'Agregá palabras en el paso 2 y elegí las mejores en el paso 3.':!picked.length?'Elegí una o más palabras en el paso 3 para ver sus rimas, sinónimos y antónimos.':`${dictNote}${wikiNote}`.trim();
  $('#campo-results').innerHTML=picked.map(({w},i)=>{
   let r=rhymesOf(w),syn=synonyms(w),ant=antonyms(w);
   const inLexicon=known(w),info=wordInfo(restoreTilde(w)),tail=info&&rhymeOf(info,'consonante');
@@ -319,7 +319,7 @@ function renderField(){
  const list=fieldWords(),used=usedInVerses(list),shown=fieldDrawer?list.length:Math.min(list.length,FIELD_SHOWN),left=list.length-shown;
  if(!list.length)fieldDrawer=false;
  const toggle=$('#campo-field-toggle');
- $('#campo-field-note').textContent=list.length?(used.size?`En verde, las ${used.size===1?'palabra que ya usaste':'palabras que ya usaste'} en tus versos.`:''):'Elegí palabras en el paso 3 y sumá rimas, sinónimos o antónimos en el paso 4.';
+ $('#campo-field-note').textContent=list.length?'':'Elegí palabras en el paso 3 y sumá rimas, sinónimos o antónimos en el paso 4.';
  $('#campo-field-section').classList.toggle('is-drawer',fieldDrawer);
  toggle.hidden=!list.length;
  toggle.innerHTML=fieldDrawer?ICON_CLOSE:ICON_RIGHT;
@@ -497,7 +497,7 @@ function applyFreeSet(){
 }
 function renderFree(){
  const rows=detect(freeArea.value);
- $('#campo-free-summary').textContent=rows.length?`${rows.length} ${rows.length===1?'verso':'versos'} · esquema detectado: ${rows.map(r=>r.count+r.letter).join(' ')}`:'Escribí o pegá tus versos con tildes: son importantes para detectar bien los acentos y las rimas.';
+ $('#campo-free-summary').textContent=rows.length?`${rows.length} ${rows.length===1?'verso':'versos'} · esquema detectado: ${rows.map(r=>r.count+r.letter).join(' ')}`:'Escribí o pegá tus versos con tildes, son importantes para detectar bien los acentos y las rimas.';
  $('#campo-free-result').innerHTML=rows.map((r,i)=>{const first=i===0||rows[i-1].stanza!==r.stanza,n=first?1:(rows[i-1].n||0)+1;r.n=n;return `<article class="compose-line detect-row${first&&i?' stanza-start':''}" data-rhyme-family="${r.letter}"><span class="vnum">${n}</span><span class="detect-text">${freeVerse(r)}</span><span class="detect-count" title="Sílabas métricas${r.pronounced!==r.count?`: ${r.pronounced} pronunciadas más el ajuste del final`:''}"><b>${r.count}</b> sílabas</span><span class="rhyme-badge ${r.letter==='—'?'fam-free':`fam-${r.letter}`}" role="img" aria-label="${r.letter==='—'?'Sin rima detectada':`Rima ${r.letter}, ${r.kind}`}">${r.letter}</span><span class="rhyme-text">${r.letter==='—'?'Sin pareja':`Rima ${r.letter} · ${r.kind}`}</span></article>`;}).join('');
 }
 const persistFree=()=>save(keyOf('el-silbador-campo-libre'),{text:freeArea.value});

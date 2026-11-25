@@ -549,7 +549,9 @@ function mountComposer(root,forms,options={}){
  q('#suggest-list').onclick=e=>{const b=e.target.closest('[data-pick]');if(!b)return;const base=basePrefix();if(lab&&!base.trim()){lines[popupRow]='';tails[popupRow]=b.dataset.pick;}else{lines[popupRow]=[base.trimEnd(),b.dataset.pick].filter(Boolean).join(' ');tails[popupRow]='';}sync();close();focusLine(popupRow,0);};
  q('#suggest-clear').onclick=()=>{tails[popupRow]='';sync();close();focusLine(popupRow);};
  // Cada verso es un campo editable; el texto y las sílabas subrayadas son la misma superficie.
- function edit(el){const i=+el.dataset.line,caret=selectionOf(el);lines[i]=readIsland(el);if(tails[i]){const f=cur();if(readLine(full(i),joins[i]).count>=meterAt(f,i)){lines[i]=full(i);tails[i]='';}}persist();record();paint();options.onChange?.();if(document.activeElement===el&&caret)setCaret(el,caret.end);}
+ function edit(el){const i=+el.dataset.line,caret=selectionOf(el);lines[i]=readIsland(el);
+  // The keyboard can replace the DOM with the same text (autocorrect or dictation). Rebuild its syllable spans even when the reading is unchanged.
+  el._html=null;if(tails[i]){const f=cur();if(readLine(full(i),joins[i]).count>=meterAt(f,i)){lines[i]=full(i);tails[i]='';}}persist();record();paint();options.onChange?.();if(document.activeElement===el&&caret)setCaret(el,caret.end);}
  list.addEventListener('input',e=>{const el=e.target.closest?.('.vtext');if(el&&!composing)edit(el);});
  list.addEventListener('compositionstart',()=>{composing=true;});
  list.addEventListener('compositionend',e=>{composing=false;const el=e.target.closest?.('.vtext');if(el)edit(el);});

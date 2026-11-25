@@ -72,14 +72,14 @@ it("keeps independent compositions, keyboard navigation and restored drafts", ()
   add("tierra"); select("tierra"); scheme(view, "8a 8b");
   const verse = screen.getByRole("textbox", { name: "Verso 1" });
   verse.textContent = "Por el valle va mi canto"; fireEvent.input(verse);
-  fireEvent.input(screen.getByRole("textbox", { name: "Texto, un verso por renglón" }), { target: { value: "Por el valle va mi voz" } });
+  fireEvent.input(screen.getByRole("textbox", { name: "Un verso por renglón" }), { target: { value: "Por el valle va mi voz" } });
   fireEvent.click(screen.getByRole("button", { name: "Nueva composición" }));
   expect(screen.getByRole("textbox", { name: /¿De qué trata/ })).toHaveValue("");
   expect(screen.queryByRole("textbox", { name: "Verso 1" })).not.toBeInTheDocument();
   fireEvent.keyDown(screen.getByRole("tab", { selected: true }), { key: "ArrowLeft" });
   expect(screen.getByRole("tab", { name: "Mi pueblo" })).toHaveAttribute("aria-selected", "true");
   expect(screen.getByRole("textbox", { name: "Verso 1" })).toHaveTextContent("Por el valle va mi canto");
-  expect(screen.getByRole("textbox", { name: "Texto, un verso por renglón" })).toHaveValue("Por el valle va mi voz");
+  expect(screen.getByRole("textbox", { name: "Un verso por renglón" })).toHaveValue("Por el valle va mi voz");
   view.unmount(); render(<MetricaEditor mode="campo" />);
   expect(screen.getByRole("tab", { name: "Mi pueblo" })).toHaveAttribute("aria-selected", "true");
   expect(screen.getByRole("textbox", { name: "Verso 1" })).toHaveTextContent("Por el valle va mi canto");
@@ -125,7 +125,7 @@ it("offers spelling corrections and analyzes free verse", async () => {
   fireEvent.click(screen.getByRole("button", { name: /Revisar ortografía: 1/ }));
   fireEvent.click(screen.getByRole("button", { name: "Corregir" }));
   select("canción");
-  fireEvent.input(screen.getByRole("textbox", { name: "Texto, un verso por renglón" }), { target: { value: "Por el valle va mi voz\ncon el viento del lugar" } });
+  fireEvent.input(screen.getByRole("textbox", { name: "Un verso por renglón" }), { target: { value: "Por el valle va mi voz\ncon el viento del lugar" } });
   expect(view.container.querySelector("#campo-free-summary")).toHaveTextContent("2 versos");
   expect(view.container.querySelectorAll("#campo-free-result .slot").length).toBeGreaterThan(0);
 });
@@ -176,4 +176,17 @@ it.each([false, true])("shows concise examples on mobile (%s)", (mobile) => {
   const prefix = mobile ? "" : "Por ejemplo: ";
   expect(screen.getByRole("textbox", { name: /¿De qué trata/ })).toHaveAttribute("placeholder", prefix + "volver al pueblo después de muchos años");
   expect(screen.getByRole("textbox", { name: /Argumento/ })).toHaveAttribute("placeholder", prefix + "alguien regresa a su pueblo y encuentra la casa abandonada, pero la calle arbolada sigue igual.");
+});
+
+it("restores syllable markup when a keyboard replaces a verse with the same text", () => {
+  render(<MetricaEditor mode="campo" />);
+  add("camino"); select("camino");
+  const field = document.querySelector<HTMLElement>("#campo-scheme")!;
+  field.textContent = "8a 8b"; fireEvent.input(field);
+  const verse = screen.getByRole("textbox", { name: "Verso 1" });
+  for (let i = 0; i < 2; i++) {
+    verse.textContent = "camino";
+    fireEvent.input(verse);
+    expect([...verse.querySelectorAll(".slot")].map(slot => slot.textContent)).toEqual(["ca", "mi", "no"]);
+  }
 });
