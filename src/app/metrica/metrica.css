@@ -382,3 +382,18 @@
   .metrica-notebook .detect-row .rhyme-badge { grid-area: badge; }
   .metrica-notebook .detect-row .rhyme-text { grid-area: note; }
 }
+
+@media (min-width: 701px) {
+  .metrica-notebook .detect-row .rhyme-text {
+    display: flex;
+    align-items: center;
+    align-self: start;
+    min-height: 34px;
+    margin-top: 2px;
+  }
+  .metrica-notebook .detect-result.hide-notes .rhyme-text { display: none; }
+}
+.metrica-notebook #detect-text:focus {
+  border-color: #0055a4;
+  outline-color: #0055a4;
+}
