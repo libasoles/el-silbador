@@ -26,12 +26,10 @@ export function notebookMetadata(mode: NotebookMode): Metadata {
   const page = NOTEBOOK_PAGES[mode];
   const title = `${page.title} — El Silbador`;
   const image = {
-    url: mode === "metrica" ? "/og-metrica.png" : "/banner.png",
-    width: mode === "metrica" ? 1200 : 1734,
-    height: mode === "metrica" ? 630 : 907,
-    alt: mode === "metrica"
-      ? "Métrica de versos y rimas en El Silbador: una copla con conteo de sílabas y rima."
-      : "El Silbador, cancionero y cuadernos para escribir canciones",
+    url: "/og-metrica.png",
+    width: 1200,
+    height: 630,
+    alt: "El Silbador: una copla con conteo de sílabas y rima, en los cuadernos para escribir canciones.",
   };
   // Next replaces nested objects; each route needs complete social metadata.
   return {
