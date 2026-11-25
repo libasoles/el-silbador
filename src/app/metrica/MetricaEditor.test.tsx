@@ -16,11 +16,12 @@ function writeVerse(number: number, text: string) {
   return field;
 }
 
-it("opens all ten forms and the custom notebook without the original navigation", () => {
+it("opens all ten forms without custom schemes", () => {
   render(<MetricaEditor />);
   const forms = within(screen.getByRole("group", { name: "Formas" }));
-  expect(forms.getAllByRole("button")).toHaveLength(11);
+  expect(forms.getAllByRole("button")).toHaveLength(10);
   expect(screen.getAllByRole("textbox")).toHaveLength(4);
+  expect(screen.queryByRole("button", { name: "A medida" })).not.toBeInTheDocument();
   expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
   expect(screen.queryByText("verso y raíz")).not.toBeInTheDocument();
   fireEvent.click(forms.getByRole("button", { name: "Décima" }));
@@ -96,60 +97,6 @@ it("persists display settings and toggles individual sinalefas", () => {
   expect(screen.getByRole("button", { name: /Sinalefa unida: canta y en/ })).toHaveAttribute("aria-pressed", "true");
 });
 
-it("shares a single settings menu across forms, variants and the custom notebook", () => {
-  const view = render(<MetricaEditor />);
-  fireEvent.click(screen.getByRole("button", { name: "A medida" }));
-  fireEvent.input(screen.getByRole("textbox", { name: "Esquema de la estrofa" }), {
-    target: { value: "8a 8b 8a 8b" },
-  });
-  fireEvent.click(screen.getByLabelText("Configuración del editor"));
-  expect(screen.getAllByLabelText("Configuración del editor")).toHaveLength(1);
-  expect(screen.getByLabelText("Configuración del editor").closest(".composer")).toBeNull();
-  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" }));
-  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar aclaraciones bajo los versos" }));
-  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" }));
-  fireEvent.click(screen.getByRole("checkbox", { name: "Reiniciar la numeración en cada grupo" }));
-  for (const composer of view.container.querySelectorAll(".composer")) {
-    expect(composer).toHaveClass("hide-nums");
-    expect(composer).not.toHaveClass("hide-notes");
-  }
-  fireEvent.click(screen.getByRole("button", { name: "Copla" }));
-  writeVerse(1, "Por el monte va mi canto");
-  expect(view.container.querySelector("#composition-editor .other-accent")).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Agregar un grupo de versos" }));
-  expect(view.container.querySelector('#composition-editor [data-verse-row="4"] .vnum')).toHaveTextContent("1");
-  fireEvent.click(screen.getByRole("button", { name: /Variante/ }));
-  fireEvent.click(screen.getByRole("option", { name: /Redondilla/ }));
-  expect(view.container.querySelector("#composition-editor")).toHaveClass("hide-nums");
-  fireEvent.click(screen.getByRole("button", { name: "Décima" }));
-  expect(view.container.querySelector("#composition-editor")).not.toHaveClass("hide-notes");
-  view.unmount();
-  const again = render(<MetricaEditor />);
-  fireEvent.click(screen.getByLabelText("Configuración del editor"));
-  expect(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" })).toBeChecked();
-  expect(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" })).not.toBeChecked();
-  fireEvent.click(screen.getByRole("button", { name: "A medida" }));
-  expect(again.container.querySelector("#custom-editor")).toHaveClass("hide-nums");
-  expect(again.container.querySelector("#custom-editor")).not.toHaveClass("hide-notes");
-});
-
-it("keeps underlines enabled even when old preferences disabled them", () => {
-  localStorage.setItem("el-silbador-metrica-settings", JSON.stringify({ underline: false }));
-  localStorage.setItem("el-silbador-metrica-settings-medida", JSON.stringify({ underline: false }));
-  const view = render(<MetricaEditor />);
-  fireEvent.click(screen.getByLabelText("Configuración del editor"));
-  expect(screen.queryByRole("checkbox", { name: "Mostrar subrayado de las sílabas" })).not.toBeInTheDocument();
-  expect(screen.queryByText("Si no, los versos se numeran seguidos.")).not.toBeInTheDocument();
-  expect(screen.queryByText("El acento requerido por la métrica se destaca en terracota; los demás, en naranja.")).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "A medida" }));
-  fireEvent.input(screen.getByRole("textbox", { name: "Esquema de la estrofa" }), {
-    target: { value: "8a 8b" },
-  });
-  for (const composer of view.container.querySelectorAll(".composer")) {
-    expect(composer).not.toHaveClass("hide-lines");
-  }
-});
-
 it("suggests rhyme endings, copies chosen endings, and explains the meter", async () => {
   const writeText = vi.fn().mockResolvedValue(undefined);
   vi.stubGlobal("navigator", { clipboard: { writeText } });
@@ -170,21 +117,6 @@ it("suggests rhyme endings, copies chosen endings, and explains the meter", asyn
   fireEvent.click(screen.getByRole("button", { name: "Cerrar explicación de métrica" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   await screen.findByText("Texto copiado");
-});
-
-it("creates custom schemes, retains hidden verses and restores the notebook", () => {
-  const view = render(<MetricaEditor />);
-  fireEvent.click(screen.getByRole("button", { name: "A medida" }));
-  const scheme = screen.getByRole("textbox", { name: "Esquema de la estrofa" });
-  fireEvent.input(scheme, { target: { value: "8a 8b 8a 8b" } });
-  writeVerse(4, "con el viento del lugar");
-  fireEvent.input(scheme, { target: { value: "8a 8b" } });
-  fireEvent.input(scheme, { target: { value: "8a 8b 8a 8b" } });
-  expect(screen.getByRole("textbox", { name: "Verso 4" })).toHaveTextContent("con el viento del lugar");
-  view.unmount();
-  render(<MetricaEditor />);
-  expect(screen.getByRole("textbox", { name: "Esquema de la estrofa" })).toHaveValue("8a 8b 8a 8b");
-  expect(screen.getByRole("textbox", { name: "Verso 4" })).toHaveTextContent("con el viento del lugar");
 });
 
 it("mounts in StrictMode and still works when browser storage is unavailable", () => {
@@ -221,4 +153,27 @@ it("shows shared styled tooltips for dynamic controls and dismisses them on inte
   expect(await screen.findByRole("tooltip")).toHaveTextContent("cuenta como una sílaba");
   fireEvent.click(screen.getByRole("button", { name: "Décima" }));
   await waitFor(() => expect(screen.queryByRole("tooltip")).not.toBeInTheDocument());
+});
+
+it("shares settings across traditional forms and variants", () => {
+  const view = render(<MetricaEditor />);
+  fireEvent.click(screen.getByLabelText("Configuración del editor"));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar aclaraciones bajo los versos" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Reiniciar la numeración en cada grupo" }));
+  writeVerse(1, "Por el monte va mi canto");
+  expect(view.container.querySelector(".other-accent")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Agregar un grupo de versos" }));
+  expect(view.container.querySelector('[data-verse-row="4"] .vnum')).toHaveTextContent("1");
+  fireEvent.click(screen.getByRole("button", { name: /Variante/ }));
+  fireEvent.click(screen.getByRole("option", { name: /Redondilla/ }));
+  expect(view.container.querySelector(".composer")).toHaveClass("hide-nums");
+  fireEvent.click(screen.getByRole("button", { name: "Décima" }));
+  expect(view.container.querySelector(".composer")).not.toHaveClass("hide-notes");
+  view.unmount();
+  render(<MetricaEditor />);
+  fireEvent.click(screen.getByLabelText("Configuración del editor"));
+  expect(screen.getByRole("checkbox", { name: "Mostrar todos los acentos" })).toBeChecked();
+  expect(screen.getByRole("checkbox", { name: "Mostrar numeración de las sílabas" })).not.toBeChecked();
 });

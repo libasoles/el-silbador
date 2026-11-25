@@ -39,6 +39,7 @@ export default function MetricaPage() {
       <a className="app-mark" href="/" aria-label="Volver a El Silbador">
         <SilbadorIcon />
       </a>
+      <nav className="notebook-pages" aria-label="Cuadernos de versos"><a href="/metrica" aria-current="page">Métrica</a><a href="/verso-libre">Verso libre</a></nav>
       <MetricaEditor />
       <noscript>Activá JavaScript para usar el cuaderno de métrica.</noscript>
     </main>

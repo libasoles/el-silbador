@@ -1,8 +1,9 @@
+import { mountLibre } from "../verso-libre/libre";
 import { mountNotebookSettings } from "./notebookSettings";
 
 // Adapted from verso-y-raíz/lab.html. Keep the metric, rhyme and editing behavior together.
 // This imperative editor owns only the descendants of `page`; React owns its lifecycle.
-export function mountMetrica(page, icons) {
+export function mountMetrica(page, icons, mode = "metrica") {
  const controller=new AbortController(),cleanups=[];
  const listen=(target,type,handler,options={})=>target.addEventListener(type,handler,{...options,signal:controller.signal});
  const notebookSettings=mountNotebookSettings(page,icons.settings,controller.signal);
@@ -723,20 +724,6 @@ const forms=[
  ]}
 ];
 
-// Lee un esquema escrito a mano, como «8a 8a 8b 8c 8b 8c», y lo convierte en medidas y familias de rima.
-const MAX_VERSES=40,MIN_METER=1,MAX_METER=20;
-function parseScheme(text){
- const pattern=[],meters=[],ignored=[];
- for(const token of text.trim().split(/[\s,;/]+/).filter(Boolean)){
-  const m=/^(\d{1,2})([a-zñ]|[—–-])?$/i.exec(token);
-  if(!m||+m[1]<MIN_METER||+m[1]>MAX_METER){ignored.push(token);continue;}
-  if(pattern.length>=MAX_VERSES){ignored.push(token);continue;}
-  meters.push(+m[1]);
-  pattern.push(!m[2]||/[—–-]/.test(m[2])?'—':m[2].toLocaleLowerCase('es'));
- }
- return {pattern,meters,ignored};
-}
-
 // Mide cada verso y agrupa los finales que riman; solo informa, no corrige ni exige nada.
 function detect(text){
  // Una línea en blanco separa estrofas: cada verso recuerda la suya.
@@ -865,9 +852,14 @@ function writeHash(){
  const tab=active.tool?slug(tools.find(([id])=>id===active.tool)[1]):slug(forms[active.form].title),id=!active.tool&&variantNow>0&&forms[active.form].variants?.[variantNow]?.id;
  try{history.replaceState(null,'',`#${tab}${id?`/${id}`:''}`);}catch{}
 }
+if(mode==='libre'){
+ loadRegion();
+ mountLibre(page,{icons,detect,matchForms,forms,readLine,esc,mountFichas,notebookSettings,cleanups,onRegionChange});
+ return ()=>{controller.abort();cleanups.forEach(cleanup=>cleanup());page.replaceChildren();};
+}
 const composer=mountComposer($('#composition-editor'),forms,{lab:true,onSelect:(f,i,v)=>{if(active.tool||i!==active.form)return;variantNow=v;writeHash();}});
 const switcher=$('#form-switch'),layoutTabs=mountFichas(switcher);
-const tools=[['custom','A medida']];
+const tools=[];
 // Las solapas van de la medida más corta a la más larga; a igual medida, de la estrofa más breve a la más extensa.
 const byLength=forms.map((f,i)=>i).sort((a,b)=>(forms[a].meters?.[0]||forms[a].meter||8)-(forms[b].meters?.[0]||forms[b].meter||8)||forms[a].pattern.length-forms[b].pattern.length);
 switcher.innerHTML=byLength.map(i=>`<div class="ficha${i===0?' on':''}"><button class="ficha-name" data-form="${i}" aria-pressed="${i===0}">${forms[i].title}</button></div>`).join('')+tools.map(([id,title])=>`<div class="ficha"><button class="ficha-name" data-tool="${id}" aria-pressed="false">${title}</button></div>`).join('');layoutTabs();
@@ -898,28 +890,6 @@ try{
  }
 }catch{}
 ready=true;writeHash();
-
-// A medida: el esquema escrito define medidas y familias de rima; los renglones se generan mientras se escribe.
-// Sin elegir tipo de rima: se compara por las vocales desde la tónica, y la consonante cumple lo mismo.
-const customForm={title:'A medida',pattern:['a'],meters:[8],kind:'asonante'};
-let customEditor;
-const customExamples=['8a 8b 8b 8a','8a 8a 8b 8c 8b 8c','7— 5a 7— 5a','11A 11B 11A 11B'];
-$('#custom-chips').innerHTML=customExamples.map(s=>`<button type="button" class="outline" data-scheme="${s}">${s}</button>`).join('');
-function renderCustom(){
- const text=$('#custom-scheme').value,{pattern,meters,ignored}=parseScheme(text);
- try{localStorage.setItem('el-silbador-metrica-medida',JSON.stringify({text}));}catch{}
- const skipped=ignored.length?` No entendí ${ignored.map(t=>`«${t}»`).join(', ')}: usá un número y una letra, como 8a.`:'';
- $('#custom-editor').hidden=!pattern.length;
- if(!pattern.length){$('#custom-status').textContent=text.trim()?`No hay versos todavía.${skipped}`:'Escribí un esquema o elegí uno de los ejemplos.';return;}
- Object.assign(customForm,{pattern,meters});
- if(customEditor)customEditor.select(0);else customEditor=mountComposer($('#custom-editor'),[customForm],{lab:true,resizable:true,storage:'-medida'});
- $('#custom-status').textContent=`${pattern.length} ${pattern.length===1?'verso':'versos'}.${skipped}`;
-}
-$('#custom-scheme').addEventListener('input',renderCustom);
-$('#custom-form').addEventListener('submit',e=>e.preventDefault());
-$('#custom-chips').addEventListener('click',e=>{const b=e.target.closest('[data-scheme]');if(!b)return;$('#custom-scheme').value=b.dataset.scheme;renderCustom();});
-try{const saved=JSON.parse(localStorage.getItem('el-silbador-metrica-medida')||'null');if(saved)$('#custom-scheme').value=String(saved.text||'');}catch{}
-renderCustom();
 
  return ()=>{controller.abort();cleanups.forEach(cleanup=>cleanup());page.replaceChildren();};
 }
