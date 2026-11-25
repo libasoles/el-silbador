@@ -99,7 +99,8 @@ input {
   pointer-events: none;
 }
 
-.icon-button-tooltip::after {
+.icon-button-tooltip::after,
+.app-tooltip {
   content: attr(data-tooltip);
   position: absolute;
   top: 50%;
@@ -120,6 +121,15 @@ input {
   transition: opacity 120ms ease;
   /* Above the neighbouring buttons and the song's chips, which are positioned too. */
   z-index: 30;
+}
+
+/* Portal tooltips share the bubble styling and escape editor overflow. */
+.app-tooltip {
+  position: fixed;
+  right: auto;
+  transform: none;
+  opacity: 1;
+  z-index: 60;
 }
 
 /* IconButtonTooltip picks the side: its preferred one, or another when that runs off screen. */

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { DOMTooltips } from "../../editor/components/DOMTooltips";
 import { notebookMarkup } from "./markup";
 import { mountMetrica } from "./notebook.js";
 import { notebookIcons, notebookIconComponents } from "./icons";
@@ -31,6 +32,7 @@ export function MetricaEditor() {
   return (
     <>
       <div className="metrica-notebook" ref={host} />
+      <DOMTooltips container={host} />
       {iconTargets.map((target, index) => {
         const Icon = notebookIconComponents[target.dataset.metricaIcon ?? ""];
         return Icon ? createPortal(<Icon size={20} aria-hidden="true" />, target, String(index)) : null;

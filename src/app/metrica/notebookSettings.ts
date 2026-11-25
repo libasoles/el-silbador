@@ -28,7 +28,7 @@ export function mountNotebookSettings(page: HTMLElement, icon: string, signal: A
   const subscribers = new Set<Subscriber>();
   const menu = document.createElement("details");
   menu.className = "composer-settings metrica-settings";
-  menu.innerHTML = `<summary aria-label="Configuración del editor" title="Configuración del editor">${icon}</summary><div class="composer-settings-menu"></div>`;
+  menu.innerHTML = `<summary aria-label="Configuración del editor" data-tooltip="Configuración del editor">${icon}</summary><div class="composer-settings-menu"></div>`;
   const controls = menu.querySelector(".composer-settings-menu")!;
   for (const id of Object.keys(labels) as SettingId[]) {
     const label = document.createElement("label");
