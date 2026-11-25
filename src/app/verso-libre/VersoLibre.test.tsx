@@ -1,4 +1,5 @@
 import { StrictMode } from "react";
+import { readFileSync } from "node:fs";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { MetricaEditor } from "../metrica/MetricaEditor";
@@ -9,6 +10,23 @@ const poem = "Por el monte va mi canto\ncon el viento del lugar\nlleva tierra de
 function write(text: string) {
   fireEvent.input(screen.getByRole("textbox", { name: "Un verso por renglón" }), { target: { value: text } });
 }
+it("uses only the syllable border to underline the final stressed syllable across meters", () => {
+  const style = document.createElement("style");
+  style.textContent = readFileSync("src/app/metrica/metrica.css", "utf8");
+  document.head.append(style);
+  try {
+    const view = render(<MetricaEditor mode="libre" />);
+    write("Por el monte va mi canto\nPor el sendero claro\ncanta la brisa");
+    const tonics = view.container.querySelectorAll<HTMLElement>(".detect-tonic");
+    expect(tonics).toHaveLength(3);
+    for (const tonic of tonics) {
+      expect(getComputedStyle(tonic.closest(".slot")!).borderBottomStyle).toBe("solid");
+      expect(getComputedStyle(tonic).textDecoration).toBe("none");
+    }
+  } finally {
+    style.remove();
+  }
+});
 it("counts syllables, detects rhymes and recognizes a copla", () => {
   const view = render(<MetricaEditor mode="libre" />);
   write(poem);
