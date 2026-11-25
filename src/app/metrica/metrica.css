@@ -446,12 +446,16 @@
 .notebook-guide a { display: inline-flex; align-items: center; gap: 0.4rem; color: inherit; text-underline-offset: 0.2em; }
 .notebook-guide a svg { flex-shrink: 0; }
 
+.notebook-guide__heading { display: flex; align-items: center; gap: 0.6rem; }
 .notebook-guide__icon {
-  display: block;
-  width: 2.5rem;
-  height: 2.5rem;
-  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
   background-color: currentColor;
   -webkit-mask: url("/04-happy.svg") center / contain no-repeat;
   mask: url("/04-happy.svg") center / contain no-repeat;
+}
+@media (max-width: 30rem) {
+  .notebook-guide__heading { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .notebook-guide__icon { width: 3.5rem; height: 3.5rem; }
 }

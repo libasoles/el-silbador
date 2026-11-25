@@ -6,8 +6,10 @@ import { NOTEBOOK_PAGES, type NotebookMode } from "./notebookSeo";
 export function NotebookGuide({ mode }: { mode: NotebookMode }) {
   return (
     <section className="notebook-guide" aria-labelledby="notebook-title">
-      <span className="notebook-guide__icon" aria-hidden="true" />
-      <h1 id="notebook-title">Herramientas de métrica y rima</h1>
+      <div className="notebook-guide__heading">
+        <span className="notebook-guide__icon" aria-hidden="true" />
+        <h1 id="notebook-title">Herramientas de métrica y rima</h1>
+      </div>
       <p>Analizá poemas, canciones o escribí tus propios versos.</p>
       <nav aria-label="Más herramientas para escribir canciones">
         {Object.entries(NOTEBOOK_PAGES).filter(([key]) => key !== mode).map(([key, entry]) => (
