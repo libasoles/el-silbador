@@ -226,3 +226,23 @@ it.each([
   expect(dialog.querySelectorAll(".metric-equality code")).toHaveLength(8);
   await waitFor(() => expect(dialog.querySelector(".metric-status-icon svg")).toBeInTheDocument());
 });
+
+
+it("emphasizes consonant rhyme endings from the stressed vowel in verse notes", () => {
+  const view = render(<MetricaEditor />);
+  fireEvent.click(screen.getByRole("button", { name: "Décima" }));
+  writeVerse(1, "Salerno");
+  writeVerse(4, "invierno");
+  writeVerse(5, "camino");
+  writeVerse(2, "pasar");
+  writeVerse(3, "mar");
+  const notes = [...view.container.querySelectorAll(".rhyme-text")];
+  expect(notes[0]).toHaveTextContent("Referencia a · erno");
+  expect(notes[1]).toHaveTextContent("Referencia b · ar");
+  expect(notes[2]).toHaveTextContent("✓ Rima b coincide · ar");
+  expect(notes[3]).toHaveTextContent("✓ Rima a coincide · erno");
+  expect(notes[4]).toHaveTextContent("! Rima a no coincide: se espera erno");
+  for (const [index, ending] of [[0, "erno"], [1, "ar"], [2, "ar"], [3, "erno"], [4, "erno"]] as const) {
+    expect(notes[index].querySelector("strong")).toHaveTextContent(ending);
+  }
+});

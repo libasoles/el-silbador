@@ -404,10 +404,11 @@ function mountComposer(root,forms,options={}){
   }
   if(tail)ghosts+=`<button type="button"${lab?' tabindex="-1"':''} class="tail-word" data-suggest="${i}" aria-label="Verso ${i+1}: terminación «${esc(tail)}». Cambiarla">${tailHtml}</button>`;
   if(needsGuide&&!lab)ghosts+=`<button type="button" class="rhyme-search" data-suggest="${i}">Buscar rima ${esc(anchor.key)} ↗</button>`;
-  const rhymeText=status==='empty'?(anchor?`Pendiente · rima ${family}: ${anchor.key}`:family==='—'?'Verso libre':`Rima ${family} · elegí un primer final`):status==='free'?'Verso libre':status==='anchor'?`Referencia ${family} · ${anchor.key}`:status==='match'?`✓ Rima ${family} coincide · ${anchor.key}`:`! Rima ${family} no coincide: se espera ${anchor.key}`;
+  const rhymeKey=anchor?`<strong>${esc(anchor.key)}</strong>`:'';
+  const rhymeText=status==='empty'?(anchor?`Pendiente · rima ${esc(family)}: ${rhymeKey}`:family==='—'?'Verso libre':`Rima ${esc(family)} · elegí un primer final`):status==='free'?'Verso libre':status==='anchor'?`Referencia ${esc(family)} · ${rhymeKey}`:status==='match'?`✓ Rima ${esc(family)} coincide · ${rhymeKey}`:`! Rima ${esc(family)} no coincide: se espera ${rhymeKey}`;
   const mark=status==='match'?'ok':status==='mismatch'?'bad':'';
   const end=`<button type="button"${lab?' tabindex="-1"':''} class="metric-help" data-metric-help="${i}" aria-haspopup="dialog" aria-label="Verso ${i+1}: ${r.last?r.count+' de ':''}${meter} sílabas métricas. Ver explicación">${r.last?`${r.groups.length}/${meter}`:`0/${meter}`} ${metricIcon(!r.last?'circle-help':r.count===meter?'circle-check':'circle-alert')}</button><span class="rhyme-badge ${familyClass(family)}${mark?` is-${mark}`:''}" role="img" aria-label="${family==='—'?'Verso libre':`Familia de rima ${esc(family)}`}" data-rhyme-family="${esc(family)}">${family==='—'?'—':esc(family)}</span>`;
-  const note=`<span class="rhyme-text${mark?` rhyme-${mark}`:''}">${esc(rhymeText)}</span>${r.last&&!lab?` <span class="ending-adjustment">Final ${esc(r.last.type)}</span>`:''}`;
+  const note=`<span class="rhyme-text${mark?` rhyme-${mark}`:''}">${rhymeText}</span>${r.last&&!lab?` <span class="ending-adjustment">Final ${esc(r.last.type)}</span>`:''}`;
   return {html,ghosts,end,note,asSlot,slots:displaySlots,placeholder:i===0&&!lines.some(l=>l.trim())};
  }
  const setHtml=(el,html)=>{if(el._html!==html){el.innerHTML=html;el._html=html;}};
