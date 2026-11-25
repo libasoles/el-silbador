@@ -446,19 +446,20 @@
 .notebook-guide a { display: inline-flex; align-items: center; gap: 0.4rem; color: inherit; text-underline-offset: 0.2em; }
 .notebook-guide a svg { flex-shrink: 0; }
 
-.notebook-guide__heading { display: flex; align-items: center; gap: 0.6rem; }
 .notebook-guide__icon {
-  flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
-  background-color: currentColor;
-  -webkit-mask: url("/04-happy.svg") center / contain no-repeat;
-  mask: url("/04-happy.svg") center / contain no-repeat;
+  display: block;
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto 2.5rem;
 }
 @media (max-width: 30rem) {
-  .notebook-guide__heading { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
-  .notebook-guide__icon { width: 3.5rem; height: 3.5rem; }
+  .notebook-guide__icon { width: 3.5rem; height: 3.5rem; margin-bottom: 1.5rem; }
 }
+
+@media (min-width: 651px) {
+  .metrica-notebook .rhyme-badge { width: 32px; height: 32px; border-width: 2px; font-size: 18px; }
+}
+
 
 .metrica-notebook .detect-form-scheme .fam-a{color:#3e7bd6}.metrica-notebook .detect-form-scheme .fam-b{color:#3f8f4f}.metrica-notebook .detect-form-scheme .fam-c{color:#d08a1f}.metrica-notebook .detect-form-scheme .fam-d{color:#b2478d}.metrica-notebook .detect-form-scheme .fam-e{color:#1f8f94}.metrica-notebook .detect-form-scheme .fam-f{color:#8a5a2b}.metrica-notebook .detect-form-scheme .fam-g{color:#6a4b79}.metrica-notebook .detect-form-scheme .fam-h{color:#c14b3a}
 .metrica-notebook .detect-form-scheme b{font-weight:700}
