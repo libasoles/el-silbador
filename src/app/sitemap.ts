@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+import { ARTICLES } from "./articulos/articleList";
+import { NOTEBOOK_PAGES } from "./metrica/notebookSeo";
 import { listPublicSongs } from "../data/songs";
 
 // Without this, Next treats sitemap.xml as static and bakes it once at build time, so a song
@@ -11,25 +13,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: "https://elsilbador.com.ar/", changeFrequency: "weekly", priority: 1 },
-    { url: "https://elsilbador.com.ar/verso-libre", changeFrequency: "monthly", priority: 0.7 },
-    { url: "https://elsilbador.com.ar/campo-semantico", changeFrequency: "monthly", priority: 0.7 },
-    { url: "https://elsilbador.com.ar/metrica", changeFrequency: "monthly", priority: 0.7 },
+    ...Object.values(NOTEBOOK_PAGES).map((page) => ({
+      url: `https://elsilbador.com.ar${page.path}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
     { url: "https://elsilbador.com.ar/articulos", changeFrequency: "monthly", priority: 0.7 },
-    {
-      url: "https://elsilbador.com.ar/articulos/usar-acordes-en-el-editor",
-      changeFrequency: "monthly",
+    ...ARTICLES.map((article) => ({
+      url: `https://elsilbador.com.ar${article.href}`,
+      changeFrequency: "monthly" as const,
       priority: 0.6,
-    },
-    {
-      url: "https://elsilbador.com.ar/articulos/notas-de-la-cancion",
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: "https://elsilbador.com.ar/articulos/marcas-de-estructura-y-bis",
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
+    })),
     ...songs.map((song) => ({
       url: `https://elsilbador.com.ar/cancion/${song.slug}`,
       lastModified: song.updatedAt,
