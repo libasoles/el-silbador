@@ -425,3 +425,8 @@
 }
 
 .metrica-notebook .detect-row .vnum { font-size: 13px; }
+
+@media (max-width: 30rem) {
+  /* Center the 40px trash control over the 20px rhyme badges. */
+  .metrica-notebook .composer-lab .group-tools { right: -10px; }
+}
