@@ -15,6 +15,7 @@ import {
   serializeContent,
   setSongPerformers,
   setSongPublic,
+  setSongKey,
   setSongYoutubeUrl,
   toggleFavorite,
 } from "../songs";
@@ -481,6 +482,52 @@ describe.skipIf(!hasEnv)("data-access module (integration)", () => {
       createdSongIds.push(fork.id);
 
       expect(fork.category).toBe("Folklore");
+    });
+  });
+
+  describe("song key", () => {
+    it("lets an admin fix the key and go back to inferring it", async () => {
+      await signInAs(adminUser);
+      const song = await saveSong({ content: makeContent({ title: "Con tonalidad" }) });
+      createdSongIds.push(song.id);
+      expect((await getSong(song.id)).songKey).toBeNull();
+
+      expect((await setSongKey(song.id, "9:minor")).songKey).toBe("9:minor");
+      expect((await getSong(song.id)).songKey).toBe("9:minor");
+      expect((await setSongKey(song.id, null)).songKey).toBeNull();
+    });
+
+    it("rejects a malformed key", async () => {
+      await signInAs(adminUser);
+      const song = await saveSong({ content: makeContent({ title: "Mal formada" }) });
+      createdSongIds.push(song.id);
+      await expect(setSongKey(song.id, "12:major")).rejects.toThrow();
+      await expect(setSongKey(song.id, "do mayor")).rejects.toThrow();
+    });
+
+    it("ignores a non-admin owner's attempt to set or change the key", async () => {
+      await signInAs(userA);
+      const song = await saveSong({ content: makeContent({ title: "Mía" }) });
+      createdSongIds.push(song.id);
+      await setSongKey(song.id, "2:major");
+      expect((await getSong(song.id)).songKey).toBeNull();
+
+      await adminClient.from("songs").update({ song_key: "0:major" }).eq("id", song.id);
+      await setSongKey(song.id, "7:minor");
+      expect((await getSong(song.id)).songKey).toBe("0:major");
+    });
+
+    it("copies the key into a fork", async () => {
+      await signInAs(adminUser);
+      const original = await saveSong({ content: makeContent({ title: "Original en Re" }) });
+      createdSongIds.push(original.id);
+      await setSongKey(original.id, "2:major");
+      await setSongPublic(original.id, true);
+
+      await signInAs(userB);
+      const fork = await forkSong(original.id);
+      createdSongIds.push(fork.id);
+      expect((await getSong(fork.id)).songKey).toBe("2:major");
     });
   });
 

@@ -1,5 +1,5 @@
 import { SongChordDiagrams } from "./SongChordDiagrams";
-import { inferKey, parseMelodyNote } from "../../core/reharmonization";
+import { inferKey, parseKey, parseMelodyNote, serializeKey } from "../../core/reharmonization";
 import { ReharmonizationPopup } from "./ReharmonizationPopup";
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
@@ -61,6 +61,10 @@ interface SongViewProps {
   /** Reharmonization is on (admins only; decided by the app): syllables with a vocal note open
    *  the chord-suggestion popup, which writes to the chords track. */
   reharmonization?: boolean;
+  /** The key an admin saved with the song ("<tonic>:<major|minor>"); null = infer it. */
+  songKey?: string | null;
+  /** Given to admins only: fixes the song's key (null goes back to inferring it). */
+  onChangeSongKey?: (songKey: string | null) => void;
   /** Puts the caret in the document as soon as it mounts. Only for the editor page itself: on a
    *  page that merely embeds an editor (an article), focusing it would open a phone's keyboard
    *  on arrival. */
@@ -608,6 +612,8 @@ export function SongView({
   placeholder,
   canEdit,
   reharmonization = false,
+  songKey: savedKey = null,
+  onChangeSongKey,
   autoFocus = false,
   onSetCellText,
   onSetChordVariant,
@@ -802,7 +808,9 @@ export function SongView({
     const noteOf = (slotId: string) => getCell(cells, "vocalNotes", slotId).trim();
     const written = chordSlotOrder.map(chordOf).filter((text) => text !== "");
     const melody = chordSlotOrder.map(noteOf).filter((text) => text !== "");
-    const inferred = inferKey(melody, written);
+    // A key an admin fixed for the song replaces the inferred one.
+    const fixedKey = parseKey(savedKey);
+    const inferred = fixedKey ? { key: fixedKey } : inferKey(melody, written);
     const index = reharmonizationSlot ? chordSlotOrder.indexOf(reharmonizationSlot) : -1;
     if (index === -1 || !inferred) return null;
     const before = chordSlotOrder.slice(0, index).reverse().findIndex((id) => chordOf(id) !== "");
@@ -816,6 +824,7 @@ export function SongView({
       .filter((id) => parseMelodyNote(noteOf(id)) !== null).length;
     return {
       key: inferred.key,
+      keyIsFixed: fixedKey !== null,
       written,
       previous: previousIndex === -1 ? null : chordOf(chordSlotOrder[previousIndex]!),
       next: nextIndex === -1 ? null : chordOf(chordSlotOrder[nextIndex]!),
@@ -823,7 +832,7 @@ export function SongView({
       noteText: noteOf(reharmonizationSlot!),
       current: chordOf(reharmonizationSlot!),
     };
-  }, [cells, chordSlotOrder, reharmonizationSlot]);
+  }, [cells, chordSlotOrder, reharmonizationSlot, savedKey]);
   const reharmonizationNote = reharmonizationContext
     ? parseMelodyNote(reharmonizationContext.noteText)
     : null;
@@ -1748,6 +1757,8 @@ export function SongView({
           noteText={reharmonizationContext.noteText}
           notePitchClass={reharmonizationNote}
           songKey={reharmonizationContext.key}
+          keyIsFixed={reharmonizationContext.keyIsFixed}
+          onChangeKey={onChangeSongKey ? (key) => onChangeSongKey(key ? serializeKey(key) : null) : undefined}
           previous={reharmonizationContext.previous}
           next={reharmonizationContext.next}
           syllablesBetween={reharmonizationContext.syllablesBetween}

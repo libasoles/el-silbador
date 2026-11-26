@@ -48,6 +48,20 @@ export function keyName(key: SongKey): string {
   return `${SOLFEGE_NAMES[key.tonic]} ${key.minor ? "menor" : "mayor"}`;
 }
 
+/** The form a key is stored in, e.g. "0:major" (see supabase/migrations/0015_song_key.sql). */
+export function serializeKey(key: SongKey): string {
+  return `${key.tonic}:${key.minor ? "minor" : "major"}`;
+}
+
+export function parseKey(text: string | null | undefined): SongKey | null {
+  const match = /^(\d|1[01]):(major|minor)$/.exec(text ?? "");
+  return match ? { tonic: Number(match[1]), minor: match[2] === "minor" } : null;
+}
+
+export const ALL_KEYS: SongKey[] = [false, true].flatMap((minor) =>
+  Array.from({ length: 12 }, (_, tonic) => ({ tonic, minor })),
+);
+
 export function keyEquals(a: SongKey, b: SongKey): boolean {
   return a.tonic === b.tonic && a.minor === b.minor;
 }

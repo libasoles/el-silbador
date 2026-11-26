@@ -34,6 +34,7 @@ interface SongRow {
   is_public: boolean;
   is_listed: boolean;
   youtube_url: string | null;
+  song_key: string | null;
   category: string | null;
   forked_from: string | null;
   created_at: string;
@@ -56,7 +57,7 @@ interface FavoriteRow {
 // the PDF never carry them; every list embeds them so the library can search them without a
 // query per song.
 const SUMMARY_COLUMNS =
-  "id, slug, title, owner_id, content, is_public, is_listed, youtube_url, category, forked_from, created_at, updated_at, song_performers(position, artists(name))";
+  "id, slug, title, owner_id, content, is_public, is_listed, youtube_url, song_key, category, forked_from, created_at, updated_at, song_performers(position, artists(name))";
 
 export function serializeContent(content: SongContent): StoredSongContent {
   return {
@@ -121,6 +122,7 @@ function toSummary(row: SongRow): SongSummary {
     isPublic: row.is_public,
     isListed: row.is_listed,
     youtubeUrl: row.youtube_url,
+    songKey: row.song_key,
     category: row.category,
     forkedFrom: row.forked_from,
     createdAt: row.created_at,
@@ -338,6 +340,22 @@ export async function setSongYoutubeUrl(songId: string, youtubeUrl: string | nul
   const { data, error } = await supabase
     .from("songs")
     .update({ youtube_url: youtubeUrl })
+    .eq("id", songId)
+    .select(SUMMARY_COLUMNS)
+    .single();
+  if (error) throw error;
+
+  return toSummary(data as unknown as SongRow);
+}
+
+/** Fixes a song's key for reharmonization (`null` goes back to inferring it). Only an admin's
+ *  write sticks; see supabase/migrations/0015_song_key.sql. */
+export async function setSongKey(songId: string, songKey: string | null): Promise<SongSummary> {
+  const supabase = await getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("songs")
+    .update({ song_key: songKey })
     .eq("id", songId)
     .select(SUMMARY_COLUMNS)
     .single();

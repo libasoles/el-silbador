@@ -31,6 +31,9 @@ export interface SongSummary {
   /** Set by an admin only (see supabase/migrations/0007_song_youtube_link.sql); rendered below
    *  the lyrics on the song page. `null` when no link has been attached. */
   youtubeUrl: string | null;
+  /** A key an admin fixed for reharmonization, as "<tonic 0-11>:<major|minor>" (see
+   *  supabase/migrations/0015_song_key.sql); a fork keeps its source's. `null` = infer it. */
+  songKey?: string | null;
   /** E.g. "Folklore". Set by admins only, directly in the database (see
    *  supabase/migrations/0013_song_category.sql); a fork keeps its source's. `null` when unset. */
   category: string | null;

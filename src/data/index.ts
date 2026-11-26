@@ -16,6 +16,7 @@ export {
   saveSong,
   setSongPerformers,
   setSongPublic,
+  setSongKey,
   setSongYoutubeUrl,
   toggleFavorite,
 } from "./songs";

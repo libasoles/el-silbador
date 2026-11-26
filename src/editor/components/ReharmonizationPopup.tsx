@@ -1,6 +1,9 @@
 import { useState } from "react";
 import {
+  ALL_KEYS,
   keyName,
+  parseKey,
+  serializeKey,
   modeAvailable,
   suggestChords,
   type SongKey,
@@ -32,6 +35,10 @@ export interface ReharmonizationPopupProps {
   currentChord: string;
   /** Writes (or, with "", removes) the chord on the selected syllable. */
   onWriteChord: (text: string) => void;
+  /** The key was fixed by an admin (saved with the song) rather than inferred. */
+  keyIsFixed?: boolean;
+  /** Fixes the key (or, with null, goes back to inferring it). Admins only; omitted otherwise. */
+  onChangeKey?: (key: SongKey | null) => void;
 }
 
 /** The popup opened by clicking a syllable that has a vocal note while reharmonization is on. */
@@ -47,6 +54,8 @@ export function ReharmonizationPopup({
   writtenChords,
   currentChord,
   onWriteChord,
+  keyIsFixed = false,
+  onChangeKey,
 }: ReharmonizationPopupProps) {
   const [mode, setMode] = useState<SuggestionMode>(1);
   // The text the syllable held before this popup's last change, so it can be undone.
@@ -92,7 +101,24 @@ export function ReharmonizationPopup({
           );
         })}
       </div>
-      <p className="reharmonization__key">Tonalidad: {keyName(songKey)}</p>
+      {onChangeKey ? (
+        <label className="reharmonization__key">
+          Tonalidad:{" "}
+          <select
+            value={keyIsFixed ? serializeKey(songKey) : ""}
+            onChange={(event) => onChangeKey(parseKey(event.target.value))}
+          >
+            <option value="">{`Automática (${keyName(songKey)})`}</option>
+            {ALL_KEYS.map((key) => (
+              <option key={serializeKey(key)} value={serializeKey(key)}>
+                {keyName(key)}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <p className="reharmonization__key">Tonalidad: {keyName(songKey)}</p>
+      )}
       {mode === 4 && !modeAvailable(base, 4) ? (
         <p className="reharmonization__empty">Escribe al menos un acorde</p>
       ) : (

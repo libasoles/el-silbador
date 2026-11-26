@@ -8,7 +8,17 @@ import { SongView } from "./SongView";
 
 const TEXT = "Ya nunca";
 
-function renderSong({ reharmonization, chords = {} }: { reharmonization: boolean; chords?: Record<string, string> }) {
+function renderSong({
+  reharmonization,
+  chords = {},
+  songKey = null,
+  onChangeSongKey,
+}: {
+  reharmonization: boolean;
+  chords?: Record<string, string>;
+  songKey?: string | null;
+  onChangeSongKey?: (key: string | null) => void;
+}) {
   const song = buildSong(TEXT);
   const [ya] = flattenSyllables(song[0]!);
   const yaSlot = beforeSlotId(ya!.id);
@@ -29,6 +39,8 @@ function renderSong({ reharmonization, chords = {} }: { reharmonization: boolean
       placeholder={null}
       canEdit={false}
       reharmonization={reharmonization}
+      songKey={songKey}
+      onChangeSongKey={onChangeSongKey}
       onSetCellText={onSetCellText}
       onSetChordVariant={noop}
       onToggleMerge={noop}
@@ -77,6 +89,37 @@ describe("SongView reharmonization", () => {
     expect(screen.getByRole("radio", { name: /^4\./ })).toBeDisabled();
     expect(onSetCellText).not.toHaveBeenCalled();
     expect(yaSlot).toBeTruthy();
+  });
+
+  it("suggests from the saved key instead of the inferred one", () => {
+    mockMatchMedia(false);
+    // The note is "do", which belongs to do mayor but not to re mayor: with re mayor fixed, every
+    // suggestion is flagged as outside the key.
+    renderSong({ reharmonization: true, songKey: "2:major" });
+    fireEvent.click(screen.getByText("Ya"));
+    const buttons = within(screen.getByRole("list", { name: "Sugerencias" })).getAllByRole("button");
+    expect(buttons.every((b) => b.textContent!.includes("fuera de la tonalidad"))).toBe(true);
+  });
+
+  it("lets an admin fix the key or go back to the inferred one; others only see it", () => {
+    mockMatchMedia(false);
+    const onChangeSongKey = vi.fn();
+    renderSong({ reharmonization: true, songKey: "2:major", onChangeSongKey });
+    fireEvent.click(screen.getByText("Ya"));
+    const select = screen.getByRole("combobox");
+    expect(select).toHaveValue("2:major");
+
+    fireEvent.change(select, { target: { value: "9:minor" } });
+    expect(onChangeSongKey).toHaveBeenLastCalledWith("9:minor");
+    fireEvent.change(select, { target: { value: "" } });
+    expect(onChangeSongKey).toHaveBeenLastCalledWith(null);
+  });
+
+  it("shows no key selector without permission to change it", () => {
+    mockMatchMedia(false);
+    renderSong({ reharmonization: true });
+    fireEvent.click(screen.getByText("Ya"));
+    expect(screen.queryByRole("combobox")).toBeNull();
   });
 
   it("leaves syllables inert when reharmonization is off", () => {

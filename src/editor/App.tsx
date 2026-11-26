@@ -24,6 +24,7 @@ import {
   getSong,
   getSongBySlug,
   isCurrentUserAdmin,
+  setSongKey,
   setSongPublic,
   setSongYoutubeUrl,
 } from "../data";
@@ -330,6 +331,10 @@ function App({
   const [forking, setForking] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [reharmonizationOn, setReharmonizationOn] = useState(false);
+  // The key an admin fixed for this song; null = reharmonization infers it.
+  const [songKey, setSongKeyState] = useState<string | null>(
+    () => initialSong?.songKey ?? null,
+  );
   const [songIsPublic, setSongIsPublic] = useState(
     () => initialSong?.isPublic ?? false,
   );
@@ -531,6 +536,7 @@ function App({
       setOwnerId(cachedDetail.ownerId);
       setSongIsPublic(cachedDetail.isPublic);
       setSongYoutubeUrlState(cachedDetail.youtubeUrl);
+      setSongKeyState(cachedDetail.songKey ?? null);
       setForkedFrom(cachedDetail.forkedFrom);
       if (!isSameSongAlreadyOpen(cachedDetail.id)) {
         // A restored draft only carries `content`, so the performers still come from the song.
@@ -553,6 +559,7 @@ function App({
         setOwnerId(detail.ownerId);
         setSongIsPublic(detail.isPublic);
         setSongYoutubeUrlState(detail.youtubeUrl);
+        setSongKeyState(detail.songKey ?? null);
         setForkedFrom(detail.forkedFrom);
         // Only the first resolution (cache or network, whichever wins) may load content into the
         // editor — see the comment above.
@@ -908,6 +915,24 @@ function App({
       lines.push(url);
     }
     actions.reconcileLyricsText(lines.join("\n"));
+  };
+
+  const handleChangeSongKey = (next: string | null) => {
+    const previous = songKey;
+    setSongKeyState(next);
+    // A song that isn't saved yet has no row to write to; the choice lasts for this session.
+    if (!songDbId) return;
+    setSongKey(songDbId, next)
+      .then((updated) => setSongKeyState(updated.songKey ?? null))
+      .catch((error: unknown) => {
+        console.error("No se pudo guardar la tonalidad.", error);
+        setSongKeyState(previous);
+        showToast({
+          variant: "error",
+          title: "No se pudo guardar la tonalidad",
+          description: "Volvé a intentarlo.",
+        });
+      });
   };
 
   const handleSaveYoutubeUrl = async (url: string | null) => {
@@ -1346,6 +1371,8 @@ function App({
                 placeholder={SONG_PLACEHOLDER}
                 canEdit={canEditOnThisDevice}
                 reharmonization={reharmonizationActive}
+                songKey={songKey}
+                onChangeSongKey={isAdmin ? handleChangeSongKey : undefined}
                 autoFocus
                 onSetCellText={actions.setCellText}
                 onSetChordVariant={actions.setChordVariant}
