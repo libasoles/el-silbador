@@ -159,14 +159,17 @@ it("opens the assonance popup by clicking the Lucide icon and closes it with Esc
   expect(screen.getByRole("button", { name: "¿Qué es una rima asonante?" })).toHaveFocus();
 });
 
-it("closes an info tooltip when clicking outside and uses a lightbulb in steps 1 and 5", async () => {
+it("closes an info tooltip when clicking outside and puts a lightbulb inside the tooltips of steps 1 and 5", async () => {
   const view = render(<MetricaEditor mode="campo" />);
   await waitFor(() => expect(view.container.querySelector("#campo-scheme-info svg")).not.toBeNull());
   const step = (id: string) => view.container.querySelector(`#${id}`)!;
   for (const id of ["campo-tema-section", "campo-matrix-section"]) {
-    expect(step(id).querySelector(".composer-info summary svg")).toHaveClass("lucide-lightbulb");
+    for (const tip of step(id).querySelectorAll(".composer-info")) {
+      expect(tip.querySelector("summary svg")).toHaveClass("lucide-info");
+      expect(tip.querySelector(".composer-tooltip > p:first-child > .campo-tip-bulb svg")).toHaveClass("lucide-lightbulb");
+    }
   }
-  expect(step("campo-results-section")?.querySelector(".composer-info summary svg") ?? null).not.toHaveClass("lucide-lightbulb");
+  expect(step("campo-results-section").querySelector(".campo-tip-bulb")).toBeNull();
   const details = view.container.querySelector<HTMLDetailsElement>("#campo-scheme-info")!;
   details.open = true;
   fireEvent.click(details.querySelector("summary")!);
