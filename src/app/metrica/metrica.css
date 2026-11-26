@@ -270,7 +270,7 @@
 .metrica-notebook .composer-actions>.composer-copied,.metrica-notebook .composer-copied{margin-left:0;font-size:13px;color:var(--green);white-space:nowrap}.metrica-notebook .group-tools .composer-copied{position:absolute;right:100%;top:0;height:40px;line-height:40px;margin-right:4px}
 
 @media (max-width: 30rem) {
-  .page-shell:has(.metrica-page) { padding: 4.75rem 1rem 1.5rem; }
+  .page-shell:has(.metrica-page) { padding: 4.75rem .5rem 1.5rem; }
 }
 
 .metrica-notebook #detect-panel{padding:1.5rem 0}
