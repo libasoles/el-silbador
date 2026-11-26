@@ -141,7 +141,7 @@ it("handles storage and network failures, including StrictMode remounts", async 
   render(<StrictMode><MetricaEditor mode="campo" /></StrictMode>);
   add("amor"); select("amor");
   expect(screen.getByText(/No se pudo guardar/)).toBeInTheDocument();
-  await waitFor(() => expect(screen.getByText(/No pude cargar el diccionario/)).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText(/No pudimos cargar el diccionario/)).toBeInTheDocument());
   expect(screen.getByRole("button", { name: "odio" })).toBeInTheDocument();
 });
 

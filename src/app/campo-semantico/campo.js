@@ -283,8 +283,8 @@ let infoOpen=null;// palabra de la tarjeta cuyo popup está abierto
 function renderResults(){
  const picked=bank.filter(x=>x.on);
  if(picked.length)ensureDictionary();
- const wikiNote=wikiPending>0?' Consultando diccionarios en línea…':wikiFailed?' No pude consultar algún diccionario en línea.':'';
- const dictNote=dictState==='loading'?' Ampliando las rimas con el diccionario…':dictState==='error'?' No pude cargar el diccionario: se muestran sólo las rimas del vocabulario del taller.':'';
+ const wikiNote=wikiPending>0?' Consultando diccionarios en línea…':wikiFailed?' No pudimos consultar algún diccionario en línea.':'';
+ const dictNote=dictState==='loading'?' Ampliando las rimas con el diccionario…':dictState==='error'?' No pudimos cargar el diccionario: se muestran sólo las rimas del vocabulario del taller.':'';
  $('#campo-results-note').textContent=!bank.length?'Agregá palabras en el paso 2 y elegí las mejores en el paso 3.':!picked.length?'Elegí una o más palabras en el paso 3 para ver sus rimas, sinónimos y antónimos.':`${dictNote}${wikiNote}`.trim();
  $('#campo-results').innerHTML=picked.map(({w},i)=>{
   let r=rhymesOf(w),syn=synonyms(w),ant=antonyms(w);
@@ -305,9 +305,9 @@ function renderResults(){
   // Las relacionadas (no son sinónimos exactos) van aparte y sin repetir lo que ya está en sinónimos o antónimos.
   const rel=wl?addNew([],wl.rel||[],[w,...syn,...ant].map(x=>x.word??x)):[];
   const searching=wikiPending>0&&((wikiAsked.has(`lex|${fold(w)}`)&&!wl)||(wikiAsked.has(raeKey)&&!rae));
-  const noRhyme=r?(dictState==='loading'?'Buscando más rimas en el diccionario…':'No encontré rimas para esta palabra.'):'No pude leer esta palabra para buscar rimas.';
-  const noSyn=searching?'Buscando en diccionarios en línea…':inLexicon?'No tengo sinónimos registrados.':'No encontramos sugerencias.';
-  const noAnt=searching?'Buscando en diccionarios en línea…':inLexicon?'No tengo antónimos registrados.':'No encontramos sugerencias.';
+  const noRhyme=r?(dictState==='loading'?'Buscando más rimas en el diccionario…':'No encontramos rimas para esta palabra.'):'No pudimos leer esta palabra para buscar rimas.';
+  const noSyn=searching?'Buscando en diccionarios en línea…':inLexicon?'No tenemos sinónimos registrados.':'No encontramos sugerencias.';
+  const noAnt=searching?'Buscando en diccionarios en línea…':inLexicon?'No tenemos antónimos registrados.':'No encontramos sugerencias.';
   return `<article class="campo-card"><h3>${esc(w)}</h3><h4>Rimas consonantes</h4>${chipList(r?.consonant||[],noRhyme,'consonante',w)}<h4 class="campo-h4-info">Rimas asonantes <button type="button" class="info-btn" data-info="${esc(w)}" aria-haspopup="dialog" aria-expanded="${infoOpen===w}" aria-controls="aso-info-${i}" aria-label="¿Qué es una rima asonante?">${INFO_ICON}</button>${infoOpen===w?`<div class="campo-popover" id="aso-info-${i}" role="dialog" aria-label="Rima asonante"><button type="button" class="close-x campo-popover-x" data-info="${esc(w)}" aria-label="Cerrar explicación">${icons["x"]}</button>${ASO_TEXT}</div>`:''}</h4>${chipList(r?.assonant||[],noRhyme,'asonante',w)}<h4>Sinónimos</h4>${chipList(syn,noSyn,'sinonimo',w)}<h4>Antónimos</h4>${chipList(ant,noAnt,'antonimo',w)}${rel.length?`<h4>Relacionadas</h4>${chipList(rel,'','relacionada',w)}`:''}</article>`;
  }).join('');
  positionOpenInfo();
@@ -692,7 +692,7 @@ function makeSpellCheck({btn,panel,store,sources,hidden,place,fix}){
   const item=(it,i)=>it.resolved
    ?`<li class="spell-resolved" data-issue="${i}"><p>${icons["circle-check"]} <b>${esc(it.word)}</b> <span class="spell-kind">${it.how==='ignorada'?'ignorada':'corregida'}</span></p></li>`
    :`<li data-issue="${i}"><p><b>${esc(it.word)}</b> <span class="spell-kind">${it.kind==='tilde'?'¿falta la tilde?':it.kind==='dieresis'?'¿falta la diéresis?':'¿error de tipeo?'}</span>${it.where?` <span class="spell-where">${it.where}</span>`:''}</p><div class="spell-fix"><label class="sr-only" for="${id}-in-${i}">Corrección para ${esc(it.word)}</label><input id="${id}-in-${i}" type="text" value="${esc(it.suggestions[0])}" spellcheck="false" autocomplete="off"><button type="button" class="primary" data-fix="${i}">Corregir</button><button type="button" class="outline" data-ignore="${i}">Ignorar</button></div>${it.suggestions.length>1?`<p class="spell-alt">Otras: ${it.suggestions.slice(1).map(w=>`<button type="button" class="link" data-use="${i}" data-word="${esc(w)}">${esc(w)}</button>`).join(' ')}</p>`:''}</li>`;
-  const list=(shown.length?`<ul>${shown.map(item).join('')}</ul>`:'')+(pending?'':'<div class="spell-happy"><img src="/04-happy.svg" alt="" width="64" height="64"><p class="campo-empty">No encontré palabras dudosas.</p></div>');
+  const list=(shown.length?`<ul>${shown.map(item).join('')}</ul>`:'')+(pending?'':'<div class="spell-happy"><img src="/04-happy.svg" alt="" width="64" height="64"><p class="campo-empty">No encontramos palabras dudosas.</p></div>');
   panel.innerHTML=`<div class="spell-head"><h2 id="${id}-title">Revisión ortográfica</h2><button type="button" class="spell-icon" data-close aria-label="Cerrar">${X_SVG}</button></div>${list}${ignoredCount?`<button type="button" class="spell-reset" data-reset>${RESET_SVG} Volver a revisar las ignoradas</button>`:''}`;
  }
  function setOpen(open){panel.hidden=!open;btn.setAttribute('aria-expanded',String(open));shown=[];if(open){syncShown();render();panel.querySelector('input,button')?.focus();}}
