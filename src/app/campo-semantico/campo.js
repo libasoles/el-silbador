@@ -531,7 +531,7 @@ function applyFreeSet(){
 }
 function renderFree(){
  const rows=detect(freeArea.value);
- $('#campo-free-summary').textContent=rows.length?`${rows.length} ${rows.length===1?'verso':'versos'} · esquema detectado: ${rows.map(r=>r.count+r.letter).join(' ')}`:'Escribí o pegá tus versos con tildes, son importantes para detectar bien los acentos y las rimas.';
+ $('#campo-free-summary [data-metrica-icon]').hidden=rows.length>0;$('#campo-free-summary-text').textContent=rows.length?`${rows.length} ${rows.length===1?'verso':'versos'} · esquema detectado: ${rows.map(r=>r.count+r.letter).join(' ')}`:'Escribí o pegá tus versos con tildes, son importantes para detectar bien los acentos y las rimas.';
  $('#campo-free-result').innerHTML=rows.map((r,i)=>{const first=i===0||rows[i-1].stanza!==r.stanza,n=first?1:(rows[i-1].n||0)+1;r.n=n;return `<article class="compose-line detect-row${first&&i?' stanza-start':''}" data-rhyme-family="${r.letter}"><span class="vnum">${n}</span><span class="detect-text">${freeVerse(r)}</span><span class="detect-count" title="Sílabas métricas${r.pronounced!==r.count?`: ${r.pronounced} pronunciadas más el ajuste del final`:''}"><b>${r.count}</b> sílabas</span><span class="rhyme-badge ${r.letter==='—'?'fam-free':`fam-${r.letter}`}" role="img" aria-label="${r.letter==='—'?'Sin rima detectada':`Rima ${r.letter}, ${r.kind}`}">${r.letter}</span><span class="rhyme-text">${r.letter==='—'?'Sin pareja':`Rima ${r.letter} · ${r.kind}`}</span></article>`;}).join('');
 }
 const persistFree=()=>save(keyOf('el-silbador-campo-libre'),{text:freeArea.value});

@@ -313,3 +313,15 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
  .metrica-notebook.campo .composer-lab .vline .vnum { margin-left: 0; font-size: 16px; }
  .metrica-notebook.campo .composer-lab .slot { min-width: 1.2em; margin-right: .08em; padding: 0 .08em 2px; }
 }
+
+/* Mobile: the word box fills the row. */
+@media (max-width: 650px) {
+ .metrica-notebook.campo .campo-add-row { align-items: stretch; }
+ .metrica-notebook.campo .campo-tokens { width: 100%; }
+}
+/* Spell dialog footer sits apart from the list. */
+.metrica-notebook.campo .spell-panel .spell-reset { margin-top: 1.25rem; }
+/* Free-field hint: lightbulb before the text. */
+.metrica-notebook.campo .campo-free-summary { display: flex; align-items: flex-start; gap: .5rem; }
+.metrica-notebook.campo .campo-free-summary [data-metrica-icon] { flex: none; margin-top: .2em; }
+.metrica-notebook.campo .campo-free-summary [data-metrica-icon] svg { display: block; width: 1.125rem; height: 1.125rem; }
