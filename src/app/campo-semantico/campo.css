@@ -302,7 +302,7 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
  .metrica-notebook.campo #cuaderno-title .campo-title-text { white-space: nowrap; }
 }
 
-.metrica-notebook.campo .campo-optional-icon { display: flex; justify-content: center; margin-top: .75rem; color: var(--muted); }
+.metrica-notebook.campo .campo-optional-icon { display: flex; justify-content: center; margin-bottom: .75rem; color: var(--muted); }
 .metrica-notebook.campo .campo-optional-icon svg { width: 1.5rem; height: 1.5rem; }
 
 /* Campo semántico de la canción: título alineado con el chevron y más aire debajo. */

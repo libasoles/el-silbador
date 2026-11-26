@@ -166,7 +166,10 @@ it("closes an info tooltip when clicking outside and puts a lightbulb inside the
   for (const id of ["campo-tema-section", "campo-matrix-section"]) {
     for (const tip of step(id).querySelectorAll(".composer-info")) {
       expect(tip.querySelector("summary svg")).toHaveClass("lucide-info");
-      expect(tip.querySelector(".composer-tooltip > p:first-child > .campo-tip-bulb svg")).toHaveClass("lucide-lightbulb");
+      const bulb = tip.querySelector(".composer-tooltip > p:first-child > .campo-tip-bulb svg");
+      // The scheme tooltip explains notation, not a tip: no bulb there.
+      if (tip.id === "campo-scheme-info") expect(bulb).toBeNull();
+      else expect(bulb).toHaveClass("lucide-lightbulb");
     }
   }
   expect(step("campo-results-section").querySelector(".campo-tip-bulb")).toBeNull();
@@ -177,7 +180,9 @@ it("closes an info tooltip when clicking outside and puts a lightbulb inside the
   fireEvent.click(document.body);
   expect(details.open).toBe(false);
   expect(screen.getByText(/para ver las formas clásicas/)).toBeInTheDocument();
-  expect(view.container.querySelector(".campo-optional-icon svg")).toHaveClass("lucide-biceps-flexed");
+  const icon = view.container.querySelector(".campo-optional-icon")!;
+  expect(icon.querySelector("svg")).toHaveClass("lucide-biceps-flexed");
+  expect(icon.nextElementSibling?.tagName).toBe("P");
 });
 
 it("checks spelling only in the free-field text and fixes it in place", async () => {
