@@ -338,3 +338,11 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .campo-chips li.own.used { background: #dcebf6; border: 1px solid #5b8bb0; }
 .metrica-notebook.campo .campo-chips .chip[aria-pressed=true],
 .metrica-notebook.campo .campo-chips .chip[aria-pressed=true]:hover { background: transparent; color: var(--ink); }
+
+/* Pie del campo libre: el botón de ortografía a la derecha; el panel se abre hacia arriba para no salirse del card. */
+.metrica-notebook.campo .campo-free-foot { display: flex; justify-content: flex-end; margin-top: .75rem; }
+.metrica-notebook.campo .campo-free-foot:has(.spell-btn[hidden]) { display: none; }
+.metrica-notebook.campo #spell-panel-libre { top: auto; bottom: 3.5rem; }
+@media (max-width: 30rem) {
+ .metrica-notebook.campo #spell-panel-libre { top: 50%; bottom: auto; }
+}

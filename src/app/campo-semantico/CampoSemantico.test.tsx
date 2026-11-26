@@ -177,6 +177,23 @@ it("closes an info tooltip when clicking outside and uses a lightbulb in steps 1
   expect(view.container.querySelector(".campo-optional-icon svg")).toHaveClass("lucide-biceps-flexed");
 });
 
+it("checks spelling only in the free-field text and fixes it in place", async () => {
+  const view = render(<MetricaEditor mode="campo" />);
+  const button = view.container.querySelector<HTMLButtonElement>("#spell-btn-libre")!;
+  expect(button.hidden).toBe(true);
+  const area = view.container.querySelector<HTMLTextAreaElement>("#campo-free-text")!;
+  fireEvent.input(area, { target: { value: "Una cancion para volver" } });
+  await waitFor(() => expect(button.hidden).toBe(false));
+  await waitFor(() => expect(button).toHaveClass("has-issues"));
+  fireEvent.click(button);
+  const panel = view.container.querySelector<HTMLElement>("#spell-panel-libre")!;
+  expect(within(panel).getByText("cancion")).toBeInTheDocument();
+  fireEvent.click(within(panel).getByRole("button", { name: "Corregir" }));
+  expect(area.value).toBe("Una canción para volver");
+  // Words from other cards are not this card's business.
+  expect(view.container.querySelector("#spell-btn")).not.toBe(button);
+});
+
 it("disables selection until a word is added and disables it again after removal", async () => {
   const view = render(<MetricaEditor mode="campo" />);
   const step = screen.getByRole("region", { name: /Seleccioná las mejores/ });

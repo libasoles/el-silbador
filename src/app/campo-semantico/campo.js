@@ -721,6 +721,20 @@ const versesSpell=makeSpellCheck({
   checkSpelling();
  }
 });
+// Tercera revisión, al pie del campo libre: sólo lo escrito en ese cuadro de texto.
+const freeLines=()=>freeArea.value.split('\n');
+const freeSpell=makeSpellCheck({
+ btn:$('#spell-btn-libre'),panel:$('#spell-panel-libre'),store:'el-silbador-campo-ignoradas-libre',
+ sources:()=>freeLines().map((l,i)=>[String(i+1),l]),
+ hidden:()=>!freeArea.value.trim(),
+ place:versesPlace,
+ fix(from,to){
+  to=validFix(from,to);if(!to)return;
+  freeArea.value=freeLines().map(l=>replaceWord(l,from,to)).join('\n');
+  freeArea.dispatchEvent(new Event('input',{bubbles:true}));
+  checkSpelling();
+ }
+});
 function checkSpelling(){
  // El diccionario llega async: se pide en cuanto hay palabras y, al cargar, onload vuelve a revisar.
  if(bank.length)ensureDictionary();
@@ -729,11 +743,12 @@ function checkSpelling(){
  if(dictSet&&!spellHasDict)speller=makeSpell();
  wordsSpell.check();
  versesSpell.check();
+ freeSpell.check();
 }
 // Pasivo: se vuelve a revisar al escribir, sin interrumpir.
 let spellTimer;
 const scheduleSpell=()=>{clearTimeout(spellTimer);spellTimer=setTimeout(checkSpelling,400);};
-for(const sel of ['#campo-topic','#campo-plot','#campo-word','#campo-editor'])$(sel).addEventListener('input',scheduleSpell);
+for(const sel of ['#campo-topic','#campo-plot','#campo-word','#campo-editor','#campo-free-text'])$(sel).addEventListener('input',scheduleSpell);
 for(const [sel,type] of [['#campo-add','submit'],['#campo-words','click']])$(sel).addEventListener(type,scheduleSpell);
 checkSpelling();
 
