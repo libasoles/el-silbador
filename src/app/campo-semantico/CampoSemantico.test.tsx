@@ -177,9 +177,8 @@ it("disables selection until a word is added and disables it again after removal
 it.each([false, true])("shows concise examples on mobile (%s)", (mobile) => {
   mockMatchMedia(mobile);
   render(<MetricaEditor mode="campo" />);
-  const prefix = mobile ? "" : "Por ejemplo: ";
-  expect(screen.getByRole("textbox", { name: /¿De qué trata/ })).toHaveAttribute("placeholder", prefix + "volver al pueblo después de muchos años");
-  expect(screen.getByRole("textbox", { name: /Argumento/ })).toHaveAttribute("placeholder", prefix + "alguien regresa a su pueblo y encuentra la casa abandonada, pero la calle arbolada sigue igual.");
+  expect(screen.getByRole("textbox", { name: /¿De qué trata/ })).toHaveAttribute("placeholder", (mobile ? "Volver" : "Por ejemplo: volver") + " al pueblo después de muchos años");
+  expect(screen.getByRole("textbox", { name: /Argumento/ })).toHaveAttribute("placeholder", (mobile ? "Alguien" : "Por ejemplo: alguien") + " regresa a su pueblo y encuentra la casa abandonada, pero la calle arbolada sigue igual.");
 });
 
 it("restores syllable markup when a keyboard replaces a verse with the same text", () => {

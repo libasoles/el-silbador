@@ -7,7 +7,7 @@ const listen=(target,type,handler)=>target.addEventListener(type,handler,{signal
 const MIN_WORDS=10,MIN_COLS=4,GRID_COLS=12,GRID_ROWS=10,SHOWN=12,MORE_STEP=20;
 const mobile=window.matchMedia?.('(max-width: 30rem)');
 const exampleInputs=[...page.querySelectorAll('[placeholder^="Por ejemplo:"]')].map(input=>({input,placeholder:input.placeholder}));
-function syncExamples(){for(const {input,placeholder} of exampleInputs)input.placeholder=mobile?.matches?placeholder.replace(/^Por ejemplo: /,''):placeholder;}
+function syncExamples(){for(const {input,placeholder} of exampleInputs)input.placeholder=mobile?.matches?placeholder.replace(/^Por ejemplo: (.)/,(_,first)=>first.toUpperCase()):placeholder;}
 syncExamples();
 if(mobile)listen(mobile,'change',syncExamples);
 loadRegion();

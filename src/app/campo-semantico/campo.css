@@ -206,7 +206,7 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .composer-lab .composer-heading h3 { font-family: var(--serif); }
 .metrica-notebook.campo .custom-chips .outline.active { background: #e6eff8; border-color: var(--campo-blue); }
 @media (max-width: 30rem) {
- .metrica-notebook.campo .campo-step { padding: 1.25rem .65rem; }
+ .metrica-notebook.campo .campo-step { padding: 1.25rem .5rem; }
 }
 
 /* Keep the original result cards and align every information control with its label. */
