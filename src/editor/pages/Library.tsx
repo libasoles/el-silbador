@@ -48,6 +48,7 @@ import {
   searchSongs,
 } from "./librarySearch";
 import { useIsMobile } from "../useIsMobile";
+import { useIncrementalList } from "./useIncrementalList";
 import { songEditPath, songPath } from "../songPaths";
 import {
   readLibrarySkeletonCounts,
@@ -277,6 +278,8 @@ function LibrarySection({
   onEditSong,
   onDeleteSong,
 }: LibrarySectionProps) {
+  const { visible, hasMore, sentinelRef } = useIncrementalList(songs, query);
+
   return (
     <section className="library-section">
       {title && (
@@ -299,7 +302,7 @@ function LibrarySection({
         </div>
       ) : (
         <ul className="library-list">
-          {songs.map((song) => (
+          {visible.map((song) => (
             <SongRow
               key={song.id}
               song={song}
@@ -317,6 +320,7 @@ function LibrarySection({
               onDelete={() => onDeleteSong?.(song)}
             />
           ))}
+          {hasMore && <li ref={sentinelRef} className="library-list__sentinel" aria-hidden="true" />}
         </ul>
       )}
     </section>
