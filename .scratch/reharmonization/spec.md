@@ -41,10 +41,7 @@ Si la tonalidad no cambia pero una nota queda fuera, los modos 1, 2 y 3 siguen m
 
 ## Entregas (cada una incrementa la versión menor)
 
-1. Núcleo de teoría musical con tests, sin UI.
-2. Botón y popup con modos 1 y 2.
-3. Modos 3 y 4.
-4. Tonalidad guardada en BD.
+Cortes verticales en `issues/` (01 prefactor del parser; 02 tracer con botón y modo 1; luego modos 2, 3, 4, tonalidad guardada y notas fuera de la tonalidad, en paralelo después del 02). El detalle y los bloqueos están en cada ticket.
 
 ## Dependencia externa
 
