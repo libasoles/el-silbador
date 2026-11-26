@@ -159,6 +159,24 @@ it("opens the assonance popup by clicking the Lucide icon and closes it with Esc
   expect(screen.getByRole("button", { name: "¿Qué es una rima asonante?" })).toHaveFocus();
 });
 
+it("closes an info tooltip when clicking outside and uses a lightbulb in steps 1 and 5", async () => {
+  const view = render(<MetricaEditor mode="campo" />);
+  await waitFor(() => expect(view.container.querySelector("#campo-scheme-info svg")).not.toBeNull());
+  const step = (id: string) => view.container.querySelector(`#${id}`)!;
+  for (const id of ["campo-tema-section", "campo-matrix-section"]) {
+    expect(step(id).querySelector(".composer-info summary svg")).toHaveClass("lucide-lightbulb");
+  }
+  expect(step("campo-results-section")?.querySelector(".composer-info summary svg") ?? null).not.toHaveClass("lucide-lightbulb");
+  const details = view.container.querySelector<HTMLDetailsElement>("#campo-scheme-info")!;
+  details.open = true;
+  fireEvent.click(details.querySelector("summary")!);
+  details.open = true;
+  fireEvent.click(document.body);
+  expect(details.open).toBe(false);
+  expect(screen.getByText(/para ver las formas clásicas/)).toBeInTheDocument();
+  expect(view.container.querySelector(".campo-optional-icon svg")).toHaveClass("lucide-biceps-flexed");
+});
+
 it("disables selection until a word is added and disables it again after removal", async () => {
   const view = render(<MetricaEditor mode="campo" />);
   const step = screen.getByRole("region", { name: /Seleccioná las mejores/ });

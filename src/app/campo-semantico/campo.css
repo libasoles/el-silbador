@@ -290,18 +290,20 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
  .metrica-notebook.campo .campo-keyboard-hint { display: none; }
 }
 
-/* Mobile: solo en las secciones 4 y 6 el título baja debajo del número; los controles del encabezado (ortografía, info) siguen arriba a la derecha. */
+/* Mobile: en la sección 4 el título baja debajo del número; los controles del encabezado (ortografía, info) siguen arriba a la derecha.
+   En la 6 el título queda junto al número si entra; si no, el título baja a su propio renglón. */
 @media (max-width: 30rem) {
- .metrica-notebook.campo #resultados-title,
- .metrica-notebook.campo #cuaderno-title { display: grid; grid-template-columns: 1fr; grid-auto-columns: auto; align-items: center; row-gap: .5rem; column-gap: .5rem; }
- .metrica-notebook.campo #resultados-title > *,
- .metrica-notebook.campo #cuaderno-title > * { grid-row: 1; margin: 0; }
- .metrica-notebook.campo #resultados-title .campo-num,
- .metrica-notebook.campo #cuaderno-title .campo-num { grid-column: 1; justify-self: start; }
- .metrica-notebook.campo #resultados-title .campo-title-text,
- .metrica-notebook.campo #cuaderno-title .campo-title-text { grid-row: 2; grid-column: 1 / -1; }
+ .metrica-notebook.campo #resultados-title { display: grid; grid-template-columns: 1fr; grid-auto-columns: auto; align-items: center; row-gap: .5rem; column-gap: .5rem; }
+ .metrica-notebook.campo #resultados-title > * { grid-row: 1; margin: 0; }
+ .metrica-notebook.campo #resultados-title .campo-num { grid-column: 1; justify-self: start; }
+ .metrica-notebook.campo #resultados-title .campo-title-text { grid-row: 2; grid-column: 1 / -1; }
+ .metrica-notebook.campo #cuaderno-title { flex-wrap: wrap; align-items: center; }
+ .metrica-notebook.campo #cuaderno-title .campo-num { margin-top: 0; }
  .metrica-notebook.campo #cuaderno-title .campo-title-text { white-space: nowrap; }
 }
+
+.metrica-notebook.campo .campo-optional-icon { display: flex; justify-content: center; margin-top: .75rem; color: var(--muted); }
+.metrica-notebook.campo .campo-optional-icon svg { width: 1.5rem; height: 1.5rem; }
 
 /* Campo semántico de la canción: título alineado con el chevron y más aire debajo. */
 .metrica-notebook.campo .campo-field-head { align-items: center; margin-bottom: 1rem; }
@@ -329,3 +331,10 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .campo-optional-note p { margin: 0; font-size: 1rem; line-height: 1.7; }
 .metrica-notebook.campo .campo-optional-note a { display: inline-flex; align-items: center; gap: .25rem; color: var(--campo-blue); font-weight: 600; }
 .metrica-notebook.campo .campo-optional-note a svg { width: 1rem; height: 1rem; }
+
+/* Palabras elegidas (recién tocadas o ya agregadas): mismo azul en el renglón completo, sin un segundo fondo en el botón. */
+.metrica-notebook.campo .campo-chips li:has(> .chip[aria-pressed=true]),
+.metrica-notebook.campo .campo-chips li.own,
+.metrica-notebook.campo .campo-chips li.own.used { background: #dcebf6; border: 1px solid #5b8bb0; }
+.metrica-notebook.campo .campo-chips .chip[aria-pressed=true],
+.metrica-notebook.campo .campo-chips .chip[aria-pressed=true]:hover { background: transparent; color: var(--ink); }

@@ -1,5 +1,5 @@
 import {
-  Check, ChevronLeft, ChevronRight, RotateCcw, ArrowRight, ChevronDown, CircleAlert, CircleCheck, CircleHelp, Copy, ExternalLink, Info,
+  BicepsFlexed, Check, ChevronLeft, ChevronRight, RotateCcw, ArrowRight, ChevronDown, CircleAlert, CircleCheck, CircleHelp, Copy, ExternalLink, Info,
   Lightbulb, Plus, Settings, Trash2, TriangleAlert, X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -17,6 +17,7 @@ export const notebookIconComponents: Record<string, LucideIcon> = {
   "circle-help": CircleHelp,
   copy: Copy,
   "external-link": ExternalLink,
+  "biceps-flexed": BicepsFlexed,
   info: Info,
   lightbulb: Lightbulb,
   plus: Plus,
