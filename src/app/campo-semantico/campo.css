@@ -325,3 +325,7 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .campo-free-summary { display: flex; align-items: flex-start; gap: .5rem; }
 .metrica-notebook.campo .campo-free-summary [data-metrica-icon] { flex: none; margin-top: .2em; }
 .metrica-notebook.campo .campo-free-summary [data-metrica-icon] svg { display: block; width: 1.125rem; height: 1.125rem; }
+
+.metrica-notebook.campo .campo-optional-note p { margin: 0; font-size: 1rem; line-height: 1.7; }
+.metrica-notebook.campo .campo-optional-note a { display: inline-flex; align-items: center; gap: .25rem; color: var(--campo-blue); font-weight: 600; }
+.metrica-notebook.campo .campo-optional-note a svg { width: 1rem; height: 1rem; }
