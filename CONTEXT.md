@@ -27,3 +27,15 @@ _Avoid_: comment, annotation (that is what the tracks hold)
 **Chord line**:
 A line of a song whose text is only chords (e.g. `A   D   E7`), such as an intro or an ending without lyrics. Kept as text in the lyrics, shown in chord typography, with no syllables, underline or annotation slots; transposed and toggled with the chords. In the UI it is a "línea de acordes".
 _Avoid_: instrumental line, chord row (that is the chords track above a lyric line)
+
+**Reharmonization**:
+The admin-only tool that lets an admin choose chords for a syllable from suggestions derived from its vocal note, instead of typing them. It writes to the same chord track as the chord tool; the two tools are mutually exclusive as editing modes, but both show the chords already set, however they were written. Chords can be added, replaced and removed in either. Available for any song that has vocal notes, with no need to enter edit mode. In the UI it is "rearmonización", with a triangle icon.
+_Avoid_: harmonization (alone), chord assistant
+
+**Chord suggestion**:
+A chord offered by the reharmonization popup for the selected syllable. Always diatonic to the song's key. Choosing one writes it to that syllable's chords.
+_Avoid_: recommendation, proposal
+
+**Reharmonization popup**:
+The popup opened by clicking a syllable that has a vocal note while reharmonization is active. Its header holds four numbered round radio buttons (modes 1 to 4; 1 by default).
+_Avoid_: harmonization panel
