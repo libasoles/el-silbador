@@ -39,3 +39,15 @@ _Avoid_: recommendation, proposal
 **Reharmonization popup**:
 The popup opened by clicking a syllable that has a vocal note while reharmonization is active. Its header holds four numbered round radio buttons (modes 1 to 4; 1 by default).
 _Avoid_: harmonization panel
+
+**Metric syllable**:
+A sung syllable as the singer counts it, where adjacent vowels across words (a synalepha) fuse into one. Each one corresponds to a single annotation slot, so it takes at most one vocal note and one chord.
+_Avoid_: grammatical syllable (the unfused kind)
+
+**Song key**:
+The tonality a song is read in (e.g. Do mayor), inferred from its vocal notes and chords, and fixed by an admin when the inference is wrong. Reharmonization suggestions are diatonic to it. A song has one key; detecting a modulation is not supported.
+_Avoid_: scale, tone
+
+**Out-of-key note**:
+A vocal note that does not belong to the song key. It is still harmonized: the popup offers chords that contain it, flagged as outside the key and listed after the diatonic ones.
+_Avoid_: wrong note, accidental
