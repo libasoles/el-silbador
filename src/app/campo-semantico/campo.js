@@ -264,6 +264,8 @@ for(const details of infoDetails){
  trigger.setAttribute('aria-expanded','false');
  listen(details,'toggle',()=>{trigger.setAttribute('aria-expanded',String(details.open));if(details.open)placeInfo(popup,trigger);});
 }
+// Un clic fuera de un tooltip de info lo cierra (el <details> nativo sólo se cierra con su propio ícono).
+listen(document,'click',e=>{for(const open of page.querySelectorAll('.composer-info[open]'))if(!e.composedPath().includes(open))open.open=false;});
 function positionOpenInfo(){
  const visible=trigger=>{const rect=trigger.getBoundingClientRect();return rect.bottom>=0&&rect.top<=window.innerHeight;};
  for(const details of infoDetails)if(details.open){
