@@ -663,7 +663,7 @@ function learnWords(){
 const X_SVG=icons["x"];
 const RESET_SVG=icons["rotate-ccw"];
 function makeSpellCheck({btn,panel,store,sources,hidden,place,fix}){
- let ignored=new Set(load(store,[])),issues=[],ignoredCount=0;
+ let ignored=new Set(load(store,[])),issues=[],ignoredCount=0,shown=[];
  const id=panel.id,saveIgnored=()=>save(store,[...ignored]);
  panel.setAttribute('aria-labelledby',`${id}-title`);
  function check(){
@@ -676,20 +676,33 @@ function makeSpellCheck({btn,panel,store,sources,hidden,place,fix}){
   btn.innerHTML=issues.length?`${icons["circle-alert"]} Ortografía · ${issues.length}`:`${icons["circle-check"]} Ortografía`;
   btn.classList.toggle('has-issues',issues.length>0);
   btn.setAttribute('aria-label',issues.length?`Revisar ortografía: ${issues.length} ${issues.length===1?'palabra dudosa':'palabras dudosas'}`:'Revisar ortografía: nada para corregir');
-  if(!panel.hidden)render();
+  if(!panel.hidden){syncShown();render();}
  }
+ // Mientras el panel está abierto, lo corregido o ignorado sigue en la lista como resuelto; se descarta al cerrarlo.
+ function syncShown(){
+  for(const entry of shown)if(!entry.resolved&&!issues.some(i=>i.word===entry.word)){entry.resolved=true;entry.how=how.get(entry.word)||'corregida';}
+  issues.forEach(it=>{
+   const entry=shown.find(x=>x.word===it.word&&!x.resolved);
+   if(entry)Object.assign(entry,it);else shown.push({...it,resolved:false});
+  });
+ }
+ const how=new Map();
  function render(){
-  const list=issues.length?`<ul>${issues.map((it,i)=>`<li data-issue="${i}"><p><b>${esc(it.word)}</b> <span class="spell-kind">${it.kind==='tilde'?'¿falta la tilde?':it.kind==='dieresis'?'¿falta la diéresis?':'¿error de tipeo?'}</span>${it.where?` <span class="spell-where">${it.where}</span>`:''}</p><div class="spell-fix"><label class="sr-only" for="${id}-in-${i}">Corrección para ${esc(it.word)}</label><input id="${id}-in-${i}" type="text" value="${esc(it.suggestions[0])}" spellcheck="false" autocomplete="off"><button type="button" class="primary" data-fix="${i}">Corregir</button><button type="button" class="outline" data-ignore="${i}">Ignorar</button></div>${it.suggestions.length>1?`<p class="spell-alt">Otras: ${it.suggestions.slice(1).map(w=>`<button type="button" class="link" data-use="${i}" data-word="${esc(w)}">${esc(w)}</button>`).join(' ')}</p>`:''}</li>`).join('')}</ul>`:'<p class="campo-empty">No encontré palabras dudosas.</p>';
+  const pending=shown.some(x=>!x.resolved);
+  const item=(it,i)=>it.resolved
+   ?`<li class="spell-resolved" data-issue="${i}"><p>${icons["circle-check"]} <b>${esc(it.word)}</b> <span class="spell-kind">${it.how==='ignorada'?'ignorada':'corregida'}</span></p></li>`
+   :`<li data-issue="${i}"><p><b>${esc(it.word)}</b> <span class="spell-kind">${it.kind==='tilde'?'¿falta la tilde?':it.kind==='dieresis'?'¿falta la diéresis?':'¿error de tipeo?'}</span>${it.where?` <span class="spell-where">${it.where}</span>`:''}</p><div class="spell-fix"><label class="sr-only" for="${id}-in-${i}">Corrección para ${esc(it.word)}</label><input id="${id}-in-${i}" type="text" value="${esc(it.suggestions[0])}" spellcheck="false" autocomplete="off"><button type="button" class="primary" data-fix="${i}">Corregir</button><button type="button" class="outline" data-ignore="${i}">Ignorar</button></div>${it.suggestions.length>1?`<p class="spell-alt">Otras: ${it.suggestions.slice(1).map(w=>`<button type="button" class="link" data-use="${i}" data-word="${esc(w)}">${esc(w)}</button>`).join(' ')}</p>`:''}</li>`;
+  const list=(shown.length?`<ul>${shown.map(item).join('')}</ul>`:'')+(pending?'':'<div class="spell-happy"><img src="/04-happy.svg" alt="" width="64" height="64"><p class="campo-empty">No encontré palabras dudosas.</p></div>');
   panel.innerHTML=`<div class="spell-head"><h2 id="${id}-title">Revisión ortográfica</h2><button type="button" class="spell-icon" data-close aria-label="Cerrar">${X_SVG}</button></div>${list}${ignoredCount?`<button type="button" class="spell-reset" data-reset>${RESET_SVG} Volver a revisar las ignoradas</button>`:''}`;
  }
- function setOpen(open){panel.hidden=!open;btn.setAttribute('aria-expanded',String(open));if(open){render();panel.querySelector('input,button')?.focus();}}
+ function setOpen(open){panel.hidden=!open;btn.setAttribute('aria-expanded',String(open));shown=[];if(open){syncShown();render();panel.querySelector('input,button')?.focus();}}
  panel.addEventListener('click',e=>{
   const t=e.target.closest('button');if(!t)return;
   if('close' in t.dataset){setOpen(false);btn.focus();return;}
   if('reset' in t.dataset){ignored=new Set();saveIgnored();check();return;}
   if(t.dataset.use!==undefined){const input=panel.querySelector(`#${id}-in-${t.dataset.use}`);input.value=t.dataset.word;input.focus();return;}
-  if(t.dataset.fix!==undefined){const it=issues[+t.dataset.fix];fix(it.word,panel.querySelector(`#${id}-in-${t.dataset.fix}`).value);}
-  if(t.dataset.ignore!==undefined){ignored.add(issues[+t.dataset.ignore].word);saveIgnored();check();}
+  if(t.dataset.fix!==undefined){const it=shown[+t.dataset.fix];if(it.resolved)return;how.set(it.word,'corregida');fix(it.word,panel.querySelector(`#${id}-in-${t.dataset.fix}`).value);}
+  if(t.dataset.ignore!==undefined){const it=shown[+t.dataset.ignore];how.set(it.word,'ignorada');ignored.add(it.word);saveIgnored();check();}
  });
  panel.addEventListener('keydown',e=>{if(e.key==='Escape'){setOpen(false);btn.focus();}else if(e.key==='Enter'&&e.target.matches('.spell-fix input')){e.preventDefault();e.target.closest('li').querySelector('[data-fix]').click();}});
  btn.addEventListener('click',()=>setOpen(panel.hidden));

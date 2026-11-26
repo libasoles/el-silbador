@@ -350,3 +350,10 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 /* La bombilla encabeza la primera línea de los consejos de los pasos 1 y 5, dentro del tooltip. */
 .metrica-notebook.campo .campo-tip-bulb { display: inline-block; vertical-align: -.2em; margin-right: .4rem; color: var(--muted); }
 .metrica-notebook.campo .campo-tip-bulb svg { width: 1.1rem; height: 1.1rem; }
+
+/* Revisión ortográfica: carita cuando no queda nada y filas resueltas que siguen visibles hasta cerrar el panel. */
+.metrica-notebook.campo .spell-happy { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 1rem 0 .5rem; text-align: center; }
+.metrica-notebook.campo .spell-happy .campo-empty { margin: 0; }
+.metrica-notebook.campo .spell-panel li.spell-resolved { color: var(--muted); }
+.metrica-notebook.campo .spell-panel li.spell-resolved p { display: flex; align-items: center; gap: .4rem; }
+.metrica-notebook.campo .spell-panel li.spell-resolved svg { width: 1rem; height: 1rem; color: var(--campo-blue); flex: none; }

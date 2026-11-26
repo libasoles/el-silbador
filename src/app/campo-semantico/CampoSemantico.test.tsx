@@ -185,6 +185,24 @@ it("closes an info tooltip when clicking outside and puts a lightbulb inside the
   expect(icon.nextElementSibling?.tagName).toBe("P");
 });
 
+it("keeps a corrected word listed as resolved until the spelling panel closes, then shows the happy face", async () => {
+  const view = render(<MetricaEditor mode="campo" />);
+  add("cancion, tierra");
+  const open = () => fireEvent.click(screen.getByRole("button", { name: /Revisar ortografía/ }));
+  await waitFor(() => expect(screen.getByRole("button", { name: /Revisar ortografía: 1/ })).toBeInTheDocument());
+  open();
+  const panel = view.container.querySelector<HTMLElement>("#spell-panel")!;
+  fireEvent.click(within(panel).getByRole("button", { name: "Corregir" }));
+  const row = within(panel).getByText("cancion").closest("li")!;
+  expect(row).toHaveClass("spell-resolved");
+  expect(within(row as HTMLElement).getByText("corregida")).toBeInTheDocument();
+  expect(panel.querySelector(".spell-happy img")).toHaveAttribute("src", "/04-happy.svg");
+  fireEvent.click(within(panel).getByRole("button", { name: "Cerrar" }));
+  open();
+  expect(within(panel).queryByText("cancion")).not.toBeInTheDocument();
+  expect(panel.querySelector(".spell-happy")).not.toBeNull();
+});
+
 it("checks spelling only in the free-field text and fixes it in place", async () => {
   const view = render(<MetricaEditor mode="campo" />);
   const button = view.container.querySelector<HTMLButtonElement>("#spell-btn-libre")!;
