@@ -29,7 +29,7 @@ export function notebookMetadata(mode: NotebookMode): Metadata {
     url: "/og-metrica.png",
     width: 1200,
     height: 630,
-    alt: "El Silbador: una copla con conteo de sílabas y rima, en los cuadernos para escribir canciones.",
+    alt: "El Silbador: una décima con conteo de sílabas y rima, en los cuadernos para escribir canciones.",
   };
   // Next replaces nested objects; each route needs complete social metadata.
   return {
