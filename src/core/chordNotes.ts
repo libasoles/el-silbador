@@ -8,7 +8,7 @@ const CHROMATIC_SOLFEGE = ["do", "do#", "re", "re#", "mi", "fa", "fa#", "sol", "
 
 const LETTER_INDEX: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
-const ROOT_RE = /^([A-G])(#|b)?/;
+const ROOT_RE = /^([A-G])(#|b|♯|♭)?/;
 
 type Quality = "major" | "minor" | "diminished" | "augmented";
 
@@ -38,7 +38,7 @@ function chordQuality(rest: string): Quality {
 function seventhOffset(rest: string, quality: Quality): number | null {
   if (!/7/.test(rest)) return null;
   if (quality === "diminished") return 9;
-  if (/maj7/i.test(rest) || /^M7/.test(rest)) return 11;
+  if (/maj/i.test(rest) || /^M\d/.test(rest)) return 11;
   return 10;
 }
 
@@ -52,15 +52,23 @@ export function chordToNoteNames(chord: string): string[] | null {
 
   const [full, letter, accidental] = match;
   let rootIndex = LETTER_INDEX[letter]!;
-  if (accidental === "#") rootIndex += 1;
-  if (accidental === "b") rootIndex -= 1;
+  if (accidental === "#" || accidental === "♯") rootIndex += 1;
+  if (accidental === "b" || accidental === "♭") rootIndex -= 1;
 
-  const rest = trimmed.slice(full.length);
+  const rest = trimmed.slice(full.length).replace(/♭/g, "b").replace(/♯/g, "#");
   const quality = chordQuality(rest);
-  const { third, fifth } = TRIAD_OFFSETS[quality];
-  const seventh = seventhOffset(rest, quality);
+  const { third } = TRIAD_OFFSETS[quality];
+  const fifth = /b5/.test(rest) ? 6 : TRIAD_OFFSETS[quality].fifth;
+  const isAdd = /add/i.test(rest);
+  const extension = isAdd ? undefined : /(13|11|9)/.exec(rest)?.[1];
+  // A 9th, 11th or 13th implies the seventh below it (dominant unless written "maj").
+  const seventh = seventhOffset(extension ? `${rest}7` : rest, quality);
 
   const offsets = seventh === null ? [0, third, fifth] : [0, third, fifth, seventh];
+  if (extension) offsets.push(2);
+  if (extension === "11") offsets.push(5);
+  if (extension === "13") offsets.push(9);
+  if (isAdd && /9/.test(rest)) offsets.push(2);
   return offsets.map((offset) => CHROMATIC_SOLFEGE[((rootIndex + offset) % 12 + 12) % 12]!);
 }
 

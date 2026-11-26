@@ -75,3 +75,26 @@ describe("previousChordNotesBySlot", () => {
     expect(result.get("c")).toEqual(["do", "mi", "sol"]);
   });
 });
+
+describe("chordToNoteNames: extensions and catalog symbols", () => {
+  it("adds the ninth, eleventh and thirteenth after the seventh", () => {
+    expect(chordToNoteNames("Cmaj9")).toEqual(["do", "mi", "sol", "si", "re"]);
+    expect(chordToNoteNames("C9")).toEqual(["do", "mi", "sol", "la#", "re"]);
+    expect(chordToNoteNames("Cm11")).toEqual(["do", "re#", "sol", "la#", "re", "fa"]);
+    expect(chordToNoteNames("C13")).toEqual(["do", "mi", "sol", "la#", "re", "la"]);
+  });
+
+  it("reads ♭ and ♯ like b and #", () => {
+    expect(chordToNoteNames("B♭")).toEqual(chordToNoteNames("Bb"));
+    expect(chordToNoteNames("F♯m7")).toEqual(chordToNoteNames("F#m7"));
+    expect(chordToNoteNames("Bm7♭5")).toEqual(chordToNoteNames("Bm7b5"));
+  });
+
+  it("flattens the fifth of a half-diminished chord", () => {
+    expect(chordToNoteNames("Bm7b5")).toEqual(["si", "re", "fa", "la"]);
+  });
+
+  it("does not add a seventh for add9", () => {
+    expect(chordToNoteNames("Cadd9")).toEqual(["do", "mi", "sol", "re"]);
+  });
+});
