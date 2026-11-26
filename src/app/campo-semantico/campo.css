@@ -357,3 +357,7 @@ body:has(.campo-semantico-page) { background: #fffcf6; }
 .metrica-notebook.campo .spell-panel li.spell-resolved { color: var(--muted); }
 .metrica-notebook.campo .spell-panel li.spell-resolved p { display: flex; align-items: center; gap: .4rem; }
 .metrica-notebook.campo .spell-panel li.spell-resolved svg { width: 1rem; height: 1rem; color: var(--campo-blue); flex: none; }
+
+/* Card 4: las palabras sugeridas van con fondo blanco; sólo al elegirlas toman el azul de selección. */
+.metrica-notebook.campo .campo-card .campo-chips li:not(.own, .more, :has(> .chip[aria-pressed=true])) { background: #fff; border: 1px solid var(--line); }
+.metrica-notebook.campo .campo-card .campo-chips li:not(.own, .more) > .chip[aria-pressed=false]:hover { background: #f3f1e8; }
