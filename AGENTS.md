@@ -30,6 +30,11 @@ Not allowed on mobile, even for the song's owner:
 - Deleting a song from the library index (`Library.tsx`)
 - Inserting, editing or deleting tab blocks (the `TAB` trigger, frets, spacing, add/delete Tab)
 
+Deliberate exception — reharmonization (`ReharmonizationPopup`, admins only): an admin may write,
+replace and remove chords on mobile through the popup, because it writes to the chords track
+without the song's edit mode. Everything else above stays blocked. The button is rendered only for
+admins (`isAdmin` in `App.tsx`), never for other users.
+
 Allowed on mobile (do not gate these):
 - Adding/removing favorites
 - Chord track and underline toggles

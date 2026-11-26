@@ -1,5 +1,7 @@
 import { SongChordDiagrams } from "./SongChordDiagrams";
-import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { inferKey, parseMelodyNote } from "../../core/reharmonization";
+import { ReharmonizationPopup } from "./ReharmonizationPopup";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { parseChordSheet, type ChordPlacement } from "../../core/chordSheet";
 import { previousChordNotesBySlot } from "../../core/chordNotes";
@@ -56,6 +58,9 @@ interface SongViewProps {
    *  it) — the whole document becomes non-editable, and every track cell and syllable-join
    *  toggle underneath it follows suit. */
   canEdit: boolean;
+  /** Reharmonization is on (admins only; decided by the app): syllables with a vocal note open
+   *  the chord-suggestion popup, which writes to the chords track. */
+  reharmonization?: boolean;
   /** Puts the caret in the document as soon as it mounts. Only for the editor page itself: on a
    *  page that merely embeds an editor (an article), focusing it would open a phone's keyboard
    *  on arrival. */
@@ -602,6 +607,7 @@ export function SongView({
   showHelp = true,
   placeholder,
   canEdit,
+  reharmonization = false,
   autoFocus = false,
   onSetCellText,
   onSetChordVariant,
@@ -788,6 +794,39 @@ export function SongView({
     chordSlotOrder,
     (slotId) => getCell(cells, "chords", slotId),
   );
+
+  // Reharmonization: the slot whose popup is open, and what the popup needs about its neighbours.
+  const [reharmonizationSlot, setReharmonizationSlot] = useState<string | null>(null);
+  const reharmonizationContext = useMemo(() => {
+    const chordOf = (slotId: string) => getCell(cells, "chords", slotId).trim();
+    const noteOf = (slotId: string) => getCell(cells, "vocalNotes", slotId).trim();
+    const written = chordSlotOrder.map(chordOf).filter((text) => text !== "");
+    const melody = chordSlotOrder.map(noteOf).filter((text) => text !== "");
+    const inferred = inferKey(melody, written);
+    const index = reharmonizationSlot ? chordSlotOrder.indexOf(reharmonizationSlot) : -1;
+    if (index === -1 || !inferred) return null;
+    const before = chordSlotOrder.slice(0, index).reverse().findIndex((id) => chordOf(id) !== "");
+    const after = chordSlotOrder.slice(index + 1).findIndex((id) => chordOf(id) !== "");
+    const previousIndex = before === -1 ? -1 : index - 1 - before;
+    const nextIndex = after === -1 ? -1 : index + 1 + after;
+    const from = previousIndex + 1;
+    const to = nextIndex === -1 ? chordSlotOrder.length : nextIndex;
+    const syllablesBetween = chordSlotOrder
+      .slice(from, to)
+      .filter((id) => parseMelodyNote(noteOf(id)) !== null).length;
+    return {
+      key: inferred.key,
+      written,
+      previous: previousIndex === -1 ? null : chordOf(chordSlotOrder[previousIndex]!),
+      next: nextIndex === -1 ? null : chordOf(chordSlotOrder[nextIndex]!),
+      syllablesBetween,
+      noteText: noteOf(reharmonizationSlot!),
+      current: chordOf(reharmonizationSlot!),
+    };
+  }, [cells, chordSlotOrder, reharmonizationSlot]);
+  const reharmonizationNote = reharmonizationContext
+    ? parseMelodyNote(reharmonizationContext.noteText)
+    : null;
 
   // Drag state lives here, above every line, so a chord chip can be dragged from one line's
   // track row and dropped onto a slot in a different line — not just within the same line.
@@ -1683,6 +1722,7 @@ export function SongView({
             onSetChordVariant={onSetChordVariant}
             onToggleMerge={onToggleMerge}
             readOnly={!canEdit}
+            onSelectReharmonizationSlot={reharmonization ? setReharmonizationSlot : undefined}
             showEmptyCaret={isFocused && caretLineIndex === index}
             dragSource={dragSource}
             dropTarget={dropTarget}
@@ -1700,6 +1740,21 @@ export function SongView({
         <div className="song-placeholder" aria-hidden="true">
           {placeholder}
         </div>
+      ) : null}
+      {reharmonization && reharmonizationContext && reharmonizationNote !== null ? (
+        <ReharmonizationPopup
+          open
+          onClose={() => setReharmonizationSlot(null)}
+          noteText={reharmonizationContext.noteText}
+          notePitchClass={reharmonizationNote}
+          songKey={reharmonizationContext.key}
+          previous={reharmonizationContext.previous}
+          next={reharmonizationContext.next}
+          syllablesBetween={reharmonizationContext.syllablesBetween}
+          writtenChords={reharmonizationContext.written}
+          currentChord={reharmonizationContext.current}
+          onWriteChord={(text) => onSetCellText("chords", reharmonizationSlot!, text)}
+        />
       ) : null}
       {youtubeUrl ? <YoutubeEmbed url={youtubeUrl} /> : null}
       {footer}

@@ -1,0 +1,90 @@
+.reharmonization__header {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.reharmonization__mode {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  cursor: pointer;
+}
+
+.reharmonization__mode input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  appearance: none;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  cursor: inherit;
+}
+
+.reharmonization__mode input:checked {
+  background: currentColor;
+}
+
+.reharmonization__mode input:checked + span {
+  color: var(--background, #fff);
+}
+
+.reharmonization__mode input:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.reharmonization__mode input:disabled + span {
+  opacity: 0.35;
+}
+
+.reharmonization__mode span {
+  position: relative;
+  pointer-events: none;
+}
+
+.reharmonization__key,
+.reharmonization__empty {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.reharmonization__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.reharmonization__chord {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.5rem 0.25rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reharmonization__chord[aria-current="true"] {
+  font-weight: 700;
+}
+
+.reharmonization__degree,
+.reharmonization__outside {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.reharmonization__actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+}

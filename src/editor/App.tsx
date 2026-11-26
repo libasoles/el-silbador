@@ -36,6 +36,8 @@ import { trackEvent } from "./analytics";
 import { useAuthRequired } from "./authRequiredContext";
 import type { ConfirmDialog as ConfirmDialogComponent } from "./components/ConfirmDialog";
 import { IconButtonTooltip } from "./components/IconButtonTooltip";
+import { ReharmonizationToggleButton } from "./components/ReharmonizationToggleButton";
+import { parseMelodyNote } from "../core/reharmonization";
 import type { IconTooltipSide } from "./components/iconTooltipPlacement";
 import { ChordDragTutorialExample } from "./components/ChordDragTutorialExample";
 import { MelodyTutorialExample } from "./components/MelodyTutorialExample";
@@ -327,6 +329,7 @@ function App({
   const mobileSidebarMenuRef = useRef<HTMLElement>(null);
   const [forking, setForking] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [reharmonizationOn, setReharmonizationOn] = useState(false);
   const [songIsPublic, setSongIsPublic] = useState(
     () => initialSong?.isPublic ?? false,
   );
@@ -999,9 +1002,30 @@ function App({
     retrySave();
   };
 
+  // Reharmonization (admins only) and the chords track are mutually exclusive tools: turning one
+  // on turns the other off. Both show the chords already written.
+  const hasMelodyNotes = Object.values(state.cells.vocalNotes ?? {}).some(
+    (text) => parseMelodyNote(text) !== null,
+  );
+  const reharmonizationActive = isAdmin && reharmonizationOn && hasMelodyNotes;
+  const handleReharmonizationToggle = () => {
+    const next = !reharmonizationOn;
+    setReharmonizationOn(next);
+    // Chord suggestions are only useful with the chords visible.
+    if (next) showChords();
+  };
+  const reharmonizationButton = isAdmin ? (
+    <ReharmonizationToggleButton
+      pressed={reharmonizationActive}
+      disabled={!hasMelodyNotes}
+      onToggle={handleReharmonizationToggle}
+    />
+  ) : null;
+
   const handleTrackToggle = (track: TrackDef) => {
     const nextVisible = !track.visible;
     actions.setTrackVisibility(track.id, nextVisible);
+    if (track.id === "chords" && reharmonizationOn) setReharmonizationOn(false);
     if (track.id === "chordNotes" && nextVisible) {
       showTutorial({
         tutorialId: "chord-notes-shared",
@@ -1211,6 +1235,7 @@ function App({
                       disabled={state.lyricsText.trim() === ""}
                       onToggle={handleUnderlineToggle}
                     />
+                    {reharmonizationButton}
                     <IconButtonTooltip
                       tooltip={
                         state.lyricsText.trim() === ""
@@ -1256,6 +1281,7 @@ function App({
                 disabled={state.lyricsText.trim() === ""}
                 onToggle={handleUnderlineToggle}
               />
+              {reharmonizationButton}
               {!readOnly && (isAdmin || (songDbId && isAuthoring)) && !isMobile && (
                 <IconButtonTooltip
                   tooltip={
@@ -1319,6 +1345,7 @@ function App({
                 }
                 placeholder={SONG_PLACEHOLDER}
                 canEdit={canEditOnThisDevice}
+                reharmonization={reharmonizationActive}
                 autoFocus
                 onSetCellText={actions.setCellText}
                 onSetChordVariant={actions.setChordVariant}

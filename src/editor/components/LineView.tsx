@@ -14,6 +14,7 @@ import {
   mergeKey,
   startSlotIds,
 } from "../../core/model";
+import { parseMelodyNote } from "../../core/reharmonization";
 import { getCell } from "../../core/state";
 import type { CellsByTrack, Line, PitchDirection, TrackDef, TrackId } from "../../core/types";
 import type { DragDelta } from "../pitchDragGesture";
@@ -163,6 +164,9 @@ interface LineViewProps {
   /** True while the viewer isn't allowed to edit this song. Disables syllable-join toggling and
    *  every track cell, without hiding any of the annotations themselves. */
   readOnly?: boolean;
+  /** Present while reharmonization is on: a syllable with a vocal note becomes clickable and
+   *  reports its annotation slot. Syllables without a note stay inert. */
+  onSelectReharmonizationSlot?: (slotId: string) => void;
   /** True while the document caret sits on this (empty) line. Chrome does not reliably paint its
       own caret there, so this line should render an explicit blinking indicator instead. */
   showEmptyCaret: boolean;
@@ -194,6 +198,7 @@ function LyricLineView({
   onSetChordVariant,
   onToggleMerge,
   readOnly = false,
+  onSelectReharmonizationSlot,
   showEmptyCaret,
   dragSource,
   dropTarget,
@@ -655,6 +660,25 @@ function LyricLineView({
     return !bisSlots.has(slotId) && (trackId !== "vocalNotes" || !chordOnlySlotIds.has(slotId));
   }
 
+  /** Only a syllable whose slot holds a recognizable vocal note opens the reharmonization popup. */
+  function reharmonizationProps(syllableId: string) {
+    const slotId = syllableSlotId.get(syllableId);
+    if (!onSelectReharmonizationSlot || slotId === undefined) return undefined;
+    if (parseMelodyNote(getCell(cells, "vocalNotes", slotId)) === null) return undefined;
+    return {
+      role: "button",
+      tabIndex: 0,
+      "data-reharmonizable": "",
+      onClick: () => onSelectReharmonizationSlot(slotId),
+      onKeyDown: (event: React.KeyboardEvent) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelectReharmonizationSlot(slotId);
+        }
+      },
+    };
+  }
+
   function syllableDragProps(syllableId: string) {
     const slotId = syllableSlotId.get(syllableId);
     return slotId === undefined ? undefined : slotDragProps(slotId);
@@ -823,6 +847,7 @@ function LyricLineView({
               (dropTargetSyllableIds.has(syllable.id) ? " syllable--drop-target" : "")
             }
             {...syllableDragProps(syllable.id)}
+            {...reharmonizationProps(syllable.id)}
           >
             {freeText ? <FreeTextMarks text={syllable.text} /> : syllable.text}
           </span>
