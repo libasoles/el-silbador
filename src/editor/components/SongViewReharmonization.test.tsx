@@ -152,13 +152,13 @@ describe("SongView reharmonization", () => {
     expect(slot).not.toHaveClass("track-cell--hovered");
   });
 
-  it("names the selected scope in the suggestions heading", () => {
+  it("names the selected scope under the numbers", () => {
     mockMatchMedia(false);
     renderSong({ reharmonization: true });
     openPopup();
     const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByText("Acordes sugeridos: Triadas")).toBeInTheDocument();
+    expect(within(dialog).getByText("Triadas")).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("radio", { name: /^2\./ }));
-    expect(within(dialog).getByText("Acordes sugeridos: Extensión armónica por melodía")).toBeInTheDocument();
+    expect(within(dialog).getByText("Extensión armónica por melodía")).toBeInTheDocument();
   });
 });

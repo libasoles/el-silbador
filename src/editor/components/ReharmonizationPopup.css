@@ -35,17 +35,17 @@
   margin-bottom: 0.6rem;
 }
 
-.reharmonization__note {
+.reharmonization__scope {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.reharmonization__label {
   margin: 0 0 0.3rem;
   font-size: 0.8rem;
   color: var(--muted);
-}
-
-.reharmonization__scope {
-  margin: 0 0 0.3rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.25;
 }
 
 .reharmonization__modes {
@@ -133,19 +133,20 @@
   justify-content: space-between;
   gap: 0.5rem;
   min-width: 9rem;
+  margin-bottom: 0.15rem;
   padding: 0.35rem 0.55rem;
   font-family: var(--sans);
   font-size: 0.85rem;
   color: var(--fg);
   background: transparent;
-  border: 1px solid var(--border-strong);
-  border-radius: 0.3rem;
+  border: 0;
+  border-radius: 0;
   cursor: pointer;
 }
 
 .reharmonization__select:hover,
 .reharmonization__select[data-state="open"] {
-  border-color: var(--fg);
+  background: var(--border);
 }
 
 .reharmonization__select-menu {
@@ -181,6 +182,9 @@
 }
 
 .reharmonization__list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -191,7 +195,8 @@
 /* The degree sits in a fixed-width column so every chord name starts at the same x. */
 .reharmonization__chord {
   display: grid;
-  grid-template-columns: 1.5rem 1fr auto;
+  grid-template-columns: 1.5rem auto auto;
+  justify-content: center;
   align-items: baseline;
   gap: 0.6rem;
   width: 100%;
