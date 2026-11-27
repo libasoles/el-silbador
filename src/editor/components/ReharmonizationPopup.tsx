@@ -72,6 +72,26 @@ export function ReharmonizationPopup({
     onClose();
   };
 
+  const note = <strong>{noteText}</strong>;
+  const suggestionsLabel =
+    mode === 1 ? (
+      <>Acordes que contienen {note}</>
+    ) : mode === 2 ? (
+      "Acordes extendibles con la nota de la melodía"
+    ) : mode === 3 ? (
+      <>Acordes no triádicos que contienen {note}</>
+    ) : (
+      "Acordes sugeridos"
+    );
+  const hintOf = (suggestion: (typeof suggestions)[number]): string =>
+    [
+      suggestion.chordTone ? `Contiene ${noteText} en la ${suggestion.chordTone}` : null,
+      suggestion.extendedForm ? `forma ${suggestion.extendedForm}` : null,
+      suggestion.outOfKey ? "fuera de la tonalidad" : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
   const modeLabel = MODES.find((entry) => entry.mode === mode)!.label;
   const AUTO = "auto";
 
@@ -177,27 +197,31 @@ export function ReharmonizationPopup({
           <p className="reharmonization__label">
             Nota de la melodía: <strong>{noteText}</strong>
           </p>
-          <p className="reharmonization__label">Acordes sugeridos:</p>
+          <p className="reharmonization__label">{suggestionsLabel}</p>
           {mode === 4 && !modeAvailable(base, 4) ? (
             <p className="reharmonization__empty">Escribe al menos un acorde</p>
           ) : (
-            <ul className="reharmonization__list" aria-label="Sugerencias">
-              {suggestions.map((suggestion) => (
-                <li key={suggestion.chord + (suggestion.degree ?? "")}>
-                  <button
-                    type="button"
-                    className="reharmonization__chord"
-                    aria-current={suggestion.chord === currentChord ? "true" : undefined}
-                    onClick={() => write(suggestion.chord)}
-                  >
-                    <span className="reharmonization__degree">{suggestion.degree ?? ""}</span>
-                    <span className="reharmonization__name">{suggestion.chord}</span>
-                    {suggestion.outOfKey ? (
-                      <span className="reharmonization__outside">fuera de la tonalidad</span>
-                    ) : null}
-                  </button>
-                </li>
-              ))}
+            <ul
+              className={`reharmonization__list${mode === 4 ? " reharmonization__list--progression" : ""}`}
+              aria-label="Sugerencias"
+            >
+              {suggestions.map((suggestion) => {
+                const hint = mode === 4 ? "" : hintOf(suggestion);
+                return (
+                  <li key={suggestion.chord + (suggestion.degree ?? "")}>
+                    <button
+                      type="button"
+                      className="reharmonization__chord"
+                      aria-current={suggestion.chord === currentChord ? "true" : undefined}
+                      onClick={() => write(suggestion.chord)}
+                    >
+                      <span className="reharmonization__degree">{suggestion.degree ?? ""}</span>
+                      <span className="reharmonization__name">{suggestion.chord}</span>
+                      {hint ? <span className="reharmonization__outside">{hint}</span> : null}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
           <div className="reharmonization__actions">

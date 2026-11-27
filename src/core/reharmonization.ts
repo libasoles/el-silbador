@@ -188,6 +188,10 @@ export interface Suggestion {
   outOfKey: boolean;
   /** Roman numeral of its degree, when it has one. */
   degree?: string;
+  /** Mode 1: the role the melody note plays in the chord: "I" (root), "III" or "V". */
+  chordTone?: "I" | "III" | "V";
+  /** Mode 2: the extended chord the melody note turns the triad into (e.g. "C7"). */
+  extendedForm?: string;
 }
 
 export interface SuggestInput {
@@ -308,6 +312,22 @@ function extendsTriad(triadPcs: number[], root: number, note: number): boolean {
   return !triadPcs.some((pc) => mod12(note - pc) === 1);
 }
 
+function chordToneOf(chord: string, note: number): Suggestion["chordTone"] {
+  const interval = mod12(note - chordRoot(chord)!);
+  return interval === 0 ? "I" : interval === 7 ? "V" : "III";
+}
+
+/** The triad plus the melody note, named as one chord: C + Bb = C7, Am + G = Am7. */
+function extendedFormOf(chord: string, note: number): string | undefined {
+  const minor = chord.endsWith("m");
+  const rootText = minor ? chord.slice(0, -1) : chord;
+  const interval = mod12(note - chordRoot(chord)!);
+  const suffix = { 9: minor ? "m6" : "6", 10: minor ? "m7" : "7", 11: minor ? "m(maj7)" : "maj7", 2: minor ? "madd9" : "add9" }[
+    interval
+  ];
+  return suffix === undefined ? undefined : `${rootText}${suffix}`;
+}
+
 function mode1(input: SuggestInput, notation: KeyedNotation): Suggestion[] {
   const { key, note } = input;
   const out: Suggestion[] = [];
@@ -315,11 +335,13 @@ function mode1(input: SuggestInput, notation: KeyedNotation): Suggestion[] {
     for (const degree of degreesOf(key)) {
       if (degree.triad === "dim") continue;
       const chord = catalogChord(degree.root, triadSuffix(degree.triad), notation);
-      if (chord && containsPc(chord, note)) out.push({ chord, outOfKey: false, degree: degree.roman });
+      if (chord && containsPc(chord, note)) {
+        out.push({ chord, outOfKey: false, degree: degree.roman, chordTone: chordToneOf(chord, note) });
+      }
     }
   } else {
     for (const { chord } of allTriads(notation)) {
-      if (containsPc(chord, note)) out.push({ chord, outOfKey: true });
+      if (containsPc(chord, note)) out.push({ chord, outOfKey: true, chordTone: chordToneOf(chord, note) });
     }
   }
   return out;
@@ -333,12 +355,14 @@ function mode2(input: SuggestInput, notation: KeyedNotation): Suggestion[] {
       if (degree.triad === "dim") continue;
       const chord = catalogChord(degree.root, triadSuffix(degree.triad), notation);
       if (chord && extendsTriad(chordPitchClasses(chord)!, degree.root, note)) {
-        out.push({ chord, outOfKey: false, degree: degree.roman });
+        out.push({ chord, outOfKey: false, degree: degree.roman, extendedForm: extendedFormOf(chord, note) });
       }
     }
   } else {
     for (const { chord, root } of allTriads(notation)) {
-      if (extendsTriad(chordPitchClasses(chord)!, root, note)) out.push({ chord, outOfKey: true });
+      if (extendsTriad(chordPitchClasses(chord)!, root, note)) {
+        out.push({ chord, outOfKey: true, extendedForm: extendedFormOf(chord, note) });
+      }
     }
   }
   return out;

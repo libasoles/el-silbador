@@ -122,3 +122,20 @@ describe("out-of-key notes", () => {
     expect(modeAvailable({ key: C, note: note("fa#") }, 3)).toBe(true);
   });
 });
+
+describe("suggestion hints", () => {
+  it("mode 1 says which chord tone the note is", () => {
+    const tones = Object.fromEntries(
+      suggestChords({ key: C, note: note("do"), mode: 1 }).map((s) => [s.chord, s.chordTone]),
+    );
+    expect(tones).toEqual({ C: "I", F: "V", Am: "III" });
+  });
+
+  it("mode 2 names the extended chord", () => {
+    const forms = Object.fromEntries(
+      suggestChords({ key: C, note: note("la"), mode: 2 }).map((s) => [s.chord, s.extendedForm]),
+    );
+    expect(forms["C"]).toBe("C6");
+    expect(forms["G"]).toBe("Gadd9");
+  });
+});
