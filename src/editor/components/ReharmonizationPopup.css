@@ -32,20 +32,26 @@
 
 .reharmonization__header {
   display: flex;
-  margin-bottom: 0.6rem;
+  margin: 1rem 0 0.6rem;
 }
 
 .reharmonization__scope {
-  margin: 0 0 0.5rem;
+  margin: 0 0 1rem;
   font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.25;
 }
 
 .reharmonization__label {
-  margin: 0 0 0.3rem;
+  margin: 0 0 0.35rem;
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+.reharmonization__label strong {
+  color: var(--fg);
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .reharmonization__modes {
@@ -112,7 +118,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   margin: 0 0 0.6rem;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   color: var(--muted);
 }
 
@@ -136,7 +142,7 @@
   margin-bottom: 0.15rem;
   padding: 0.35rem 0.55rem;
   font-family: var(--sans);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: var(--fg);
   background: transparent;
   border: 0;
@@ -182,9 +188,11 @@
 }
 
 .reharmonization__list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  /* One grid for every row, so degrees and chord names line up in clear columns. */
+  display: grid;
+  grid-template-columns: auto auto auto;
+  justify-content: center;
+  column-gap: 0.6rem;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -193,12 +201,17 @@
 }
 
 /* The degree sits in a fixed-width column so every chord name starts at the same x. */
+.reharmonization__list > li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
 .reharmonization__chord {
   display: grid;
-  grid-template-columns: 1.5rem auto auto;
-  justify-content: center;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: baseline;
-  gap: 0.6rem;
   width: 100%;
   padding: 0.45rem 0.5rem;
   border: 0;
@@ -228,6 +241,10 @@
 
 .reharmonization__degree {
   text-align: right;
+}
+
+.reharmonization__name {
+  text-align: left;
 }
 
 .reharmonization__name {

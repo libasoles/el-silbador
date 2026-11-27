@@ -174,7 +174,9 @@ export function ReharmonizationPopup({
             </div>
           </div>
           <h3 className="reharmonization__scope">{modeLabel}</h3>
-          <p className="reharmonization__label">{`Nota de la melodía: ${noteText}`}</p>
+          <p className="reharmonization__label">
+            Nota de la melodía: <strong>{noteText}</strong>
+          </p>
           <p className="reharmonization__label">Acordes sugeridos:</p>
           {mode === 4 && !modeAvailable(base, 4) ? (
             <p className="reharmonization__empty">Escribe al menos un acorde</p>
