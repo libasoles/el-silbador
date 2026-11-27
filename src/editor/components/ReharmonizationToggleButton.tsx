@@ -20,7 +20,7 @@ export function ReharmonizationToggleButton({
   return (
     <IconButtonTooltip
       side={tooltipSide}
-      tooltip={`Armonización · ${disabled ? "La canción no tiene notas de melodía" : "Rearmonización"}`}
+      tooltip={disabled ? "Armonización · La canción no tiene notas de melodía" : "Armonización"}
     >
       <button
         type="button"
