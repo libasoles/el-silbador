@@ -164,9 +164,10 @@ interface LineViewProps {
   /** True while the viewer isn't allowed to edit this song. Disables syllable-join toggling and
    *  every track cell, without hiding any of the annotations themselves. */
   readOnly?: boolean;
-  /** Present while reharmonization is on: a syllable with a vocal note becomes clickable and
-   *  reports its annotation slot. Syllables without a note stay inert. */
-  onSelectReharmonizationSlot?: (slotId: string) => void;
+  /** Present while reharmonization is on: the chord slot over a syllable with a vocal note becomes
+   *  clickable and reports itself, with the element the popup anchors to. Hovering the syllable
+   *  highlights that slot. Syllables without a note stay inert. */
+  onSelectReharmonizationSlot?: (slotId: string, anchor: HTMLElement) => void;
   /** True while the document caret sits on this (empty) line. Chrome does not reliably paint its
       own caret there, so this line should render an explicit blinking indicator instead. */
   showEmptyCaret: boolean;
@@ -660,22 +661,25 @@ function LyricLineView({
     return !bisSlots.has(slotId) && (trackId !== "vocalNotes" || !chordOnlySlotIds.has(slotId));
   }
 
-  /** Only a syllable whose slot holds a recognizable vocal note opens the reharmonization popup. */
+  // The chord slot whose syllable the pointer is over, while reharmonization is on.
+  const [hoveredReharmonizationSlot, setHoveredReharmonizationSlot] = useState<string | null>(null);
+  /** Only a slot whose vocal note is recognizable can be reharmonized. */
+  const reharmonizableSlotIds = useMemo(
+    () =>
+      new Set(
+        onSelectReharmonizationSlot
+          ? slotIds.filter((slotId) => parseMelodyNote(getCell(cells, "vocalNotes", slotId)) !== null)
+          : [],
+      ),
+    [onSelectReharmonizationSlot, slotIds, cells],
+  );
   function reharmonizationProps(syllableId: string) {
     const slotId = syllableSlotId.get(syllableId);
-    if (!onSelectReharmonizationSlot || slotId === undefined) return undefined;
-    if (parseMelodyNote(getCell(cells, "vocalNotes", slotId)) === null) return undefined;
+    if (slotId === undefined || !reharmonizableSlotIds.has(slotId)) return undefined;
     return {
-      role: "button",
-      tabIndex: 0,
       "data-reharmonizable": "",
-      onClick: () => onSelectReharmonizationSlot(slotId),
-      onKeyDown: (event: React.KeyboardEvent) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelectReharmonizationSlot(slotId);
-        }
-      },
+      onMouseEnter: () => setHoveredReharmonizationSlot(slotId),
+      onMouseLeave: () => setHoveredReharmonizationSlot(null),
     };
   }
 
@@ -788,6 +792,15 @@ function LyricLineView({
           slotPositions={slotPositions}
           readOnly={readOnly}
           annotationsReady={annotationsReady}
+          reharmonization={
+            onSelectReharmonizationSlot && track.id === "chords"
+              ? {
+                  slotIds: reharmonizableSlotIds,
+                  hoveredSlotId: hoveredReharmonizationSlot,
+                  onSelect: onSelectReharmonizationSlot,
+                }
+              : undefined
+          }
         />
       </div>
     );
@@ -798,6 +811,8 @@ function LyricLineView({
   // so it has content only when a chord can actually be described.
   function hasTrackContent(track: TrackDef) {
     if (!readOnly) return true;
+    // Reharmonization clicks the chord slots, so the row is there even with no chord written.
+    if (onSelectReharmonizationSlot && track.id === "chords") return true;
     const trackSlotIds = slotIds.filter(
       (slotId) => !bisSlots.has(slotId) && (track.id !== "vocalNotes" || !chordOnlySlotIds.has(slotId)),
     );

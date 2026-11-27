@@ -803,6 +803,8 @@ export function SongView({
 
   // Reharmonization: the slot whose popup is open, and what the popup needs about its neighbours.
   const [reharmonizationSlot, setReharmonizationSlot] = useState<string | null>(null);
+  // The chord cell the popup is anchored to.
+  const [reharmonizationAnchor, setReharmonizationAnchor] = useState<HTMLElement | null>(null);
   const reharmonizationContext = useMemo(() => {
     const chordOf = (slotId: string) => getCell(cells, "chords", slotId).trim();
     const noteOf = (slotId: string) => getCell(cells, "vocalNotes", slotId).trim();
@@ -1731,7 +1733,14 @@ export function SongView({
             onSetChordVariant={onSetChordVariant}
             onToggleMerge={onToggleMerge}
             readOnly={!canEdit}
-            onSelectReharmonizationSlot={reharmonization ? setReharmonizationSlot : undefined}
+            onSelectReharmonizationSlot={
+              reharmonization
+                ? (slotId, anchor) => {
+                    setReharmonizationSlot(slotId);
+                    setReharmonizationAnchor(anchor);
+                  }
+                : undefined
+            }
             showEmptyCaret={isFocused && caretLineIndex === index}
             dragSource={dragSource}
             dropTarget={dropTarget}
@@ -1750,9 +1759,9 @@ export function SongView({
           {placeholder}
         </div>
       ) : null}
-      {reharmonization && reharmonizationContext && reharmonizationNote !== null ? (
+      {reharmonization && reharmonizationContext && reharmonizationNote !== null && reharmonizationAnchor ? (
         <ReharmonizationPopup
-          open
+          anchor={reharmonizationAnchor}
           onClose={() => setReharmonizationSlot(null)}
           noteText={reharmonizationContext.noteText}
           notePitchClass={reharmonizationNote}

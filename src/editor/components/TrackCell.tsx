@@ -55,6 +55,11 @@ interface TrackCellProps {
   /** For the melody notes, always lowercase: keeps phone keyboards from capitalizing the first
    *  letter they type. */
   lowercase?: boolean;
+  /** Reharmonization: clicking the cell opens its popup (anchored to `anchor`) instead of showing
+   *  a diagram or editing. */
+  onActivate?: (anchor: HTMLElement) => void;
+  /** Highlighted as if hovered, because the syllable under it is. */
+  hovered?: boolean;
 }
 
 /**
@@ -89,6 +94,8 @@ export function TrackCell({
   revealIndex,
   acceptDropAnywhere = false,
   lowercase = false,
+  onActivate,
+  hovered = false,
 }: TrackCellProps) {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -155,6 +162,10 @@ export function TrackCell({
   // A click on a known chord shows its diagram rather than jumping straight to editing;
   // double-clicking (or clicking a chip with no known chord) edits it directly.
   function handleChipClick() {
+    if (onActivate && chipRef.current) {
+      onActivate(chipRef.current);
+      return;
+    }
     const now = Date.now();
     const secondTap = !readOnly && now - lastChipClickRef.current < DOUBLE_TAP_MS;
     lastChipClickRef.current = secondTap ? 0 : now;
@@ -279,7 +290,7 @@ export function TrackCell({
 
   // Where tapping does nothing (a read-only empty cell, a note, a chord with no known diagram),
   // the cell is plain text rather than a button that announces itself as pressable.
-  if (!editing && readOnly && !chordShape) {
+  if (!editing && readOnly && !chordShape && !onActivate) {
     return (
       <span
         className={"track-cell track-cell--chip track-cell--static" + dragClassName}
@@ -298,7 +309,10 @@ export function TrackCell({
         <button
           type="button"
           aria-label={label}
-          className={"track-cell track-cell--chip" + (tapReach ? " track-cell--tap-area" : "") + dragClassName}
+          className={"track-cell track-cell--chip" + (tapReach ? " track-cell--tap-area" : "") +
+            (onActivate ? " track-cell--activatable" : "") +
+            (hovered ? " track-cell--hovered" : "") +
+            dragClassName}
           data-slot-id={slotId}
           style={chipStyle}
           ref={(el) => {

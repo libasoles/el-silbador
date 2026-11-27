@@ -37,11 +37,19 @@ interface TrackRowProps {
   readOnly?: boolean;
   /** Annotation rows must not be visible until their absolutely-positioned slots are measured. */
   annotationsReady?: boolean;
+  /** Chords track while reharmonization is on: the listed slots open the popup when clicked, and
+   *  `hoveredSlotId` (the slot whose syllable is under the pointer) is highlighted. */
+  reharmonization?: {
+    slotIds: ReadonlySet<string>;
+    hoveredSlotId: string | null;
+    onSelect: (slotId: string, anchor: HTMLElement) => void;
+  };
 }
 
 /** The accessible name of a cell: its track, what it holds (or the action it offers when empty)
  *  and where it sits on the line. */
-function cellLabel(trackId: TrackId, value: string, position: string): string {
+function cellLabel(trackId: TrackId, value: string, position: string, reharmonizable = false): string {
+  if (reharmonizable) return `Rearmonizar ${position}`;
   const noun = trackId === "chords" ? "acorde" : "nota";
   const text = value.trim();
   if (text === "") return `Agregar ${noun} ${position}`;
@@ -63,6 +71,7 @@ export function TrackRow({
   slotPositions,
   readOnly = false,
   annotationsReady = true,
+  reharmonization,
 }: TrackRowProps) {
   const cellRefs = useRef<Array<HTMLElement | null>>([]);
   const rects = slotIds.map((slotId) => slotRects[slotId]);
@@ -123,7 +132,18 @@ export function TrackRow({
             key={slotId}
             slotId={slotId}
             value={value}
-            label={cellLabel(trackId, value, slotPositions.get(slotId) ?? "")}
+            label={cellLabel(
+              trackId,
+              value,
+              slotPositions.get(slotId) ?? "",
+              reharmonization?.slotIds.has(slotId),
+            )}
+            onActivate={
+              reharmonization?.slotIds.has(slotId)
+                ? (anchor) => reharmonization.onSelect(slotId, anchor)
+                : undefined
+            }
+            hovered={reharmonization?.hoveredSlotId === slotId}
             left={left}
             width={rect?.width}
             tapReach={tapReaches.get(slotId)}

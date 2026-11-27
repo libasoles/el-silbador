@@ -22,6 +22,12 @@ describe("parseMelodyNote", () => {
 });
 
 describe("inferKey", () => {
+  it("hears C in a song built on C, G, Dm and F that ends on C", () => {
+    const melody = ["mi", "sol", "do", "re", "fa", "sol", "la", "la"];
+    const chords = ["C", "G", "Dm", "C", "G", "G7", "C", "C7", "F", "G", "C"];
+    expect(inferKey(melody, chords)!.key).toEqual({ tonic: 0, minor: false });
+  });
+
   it("finds do mayor from a melody and chords", () => {
     const result = inferKey(["do", "re", "mi", "fa", "sol", "mi", "do"], ["C", "F", "G", "C"]);
     expect(keyName(result!.key)).toBe("Do mayor");

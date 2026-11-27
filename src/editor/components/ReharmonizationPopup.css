@@ -1,15 +1,63 @@
+/* A popup hanging from the chord slot it reharmonizes (Radix Popover), not a modal. */
+.reharmonization {
+  z-index: 21;
+  width: min(20rem, calc(100vw - 1.5rem));
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 1px solid var(--fg);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.22);
+  padding: 1rem 1rem 0.9rem;
+  font-family: var(--sans);
+  color: var(--fg);
+  outline: none;
+  animation: dialog-fade-in 120ms ease;
+}
+
+.reharmonization__title {
+  margin: 0 0 0.8rem;
+  padding-right: 1.75rem;
+  font-size: 1rem;
+}
+
+.reharmonization__close {
+  top: 0.4rem;
+  right: 0.4rem;
+  border-radius: 0.3rem;
+}
+
+.reharmonization__close:hover {
+  background: var(--border);
+}
+
 .reharmonization__header {
   display: flex;
-  gap: 0.6rem;
-  margin-bottom: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+
+.reharmonization__scope {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.reharmonization__modes {
+  display: flex;
+  flex: none;
+  gap: 0.3rem;
+  margin-left: auto;
 }
 
 .reharmonization__mode {
   position: relative;
   display: grid;
   place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.75rem;
   cursor: pointer;
 }
 
@@ -18,17 +66,27 @@
   inset: 0;
   margin: 0;
   appearance: none;
-  border: 1px solid currentColor;
+  border: 1px solid var(--border-strong);
   border-radius: 50%;
   cursor: inherit;
 }
 
+.reharmonization__mode input:hover:not(:disabled) {
+  border-color: var(--fg);
+}
+
 .reharmonization__mode input:checked {
-  background: currentColor;
+  background: var(--fg);
+  border-color: var(--fg);
 }
 
 .reharmonization__mode input:checked + span {
-  color: var(--background, #fff);
+  color: var(--bg);
+}
+
+.reharmonization__mode input:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
 }
 
 .reharmonization__mode input:disabled {
@@ -45,46 +103,138 @@
   pointer-events: none;
 }
 
-.reharmonization__key,
+.reharmonization__key {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.reharmonization__key strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
 .reharmonization__empty {
   margin: 0 0 0.5rem;
-  font-size: 0.9rem;
-  opacity: 0.8;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.reharmonization__select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 9rem;
+  padding: 0.35rem 0.55rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+
+.reharmonization__select:hover,
+.reharmonization__select[data-state="open"] {
+  border-color: var(--fg);
+}
+
+.reharmonization__select-menu {
+  z-index: 30;
+  max-height: min(18rem, var(--radix-select-content-available-height));
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--fg);
+  border-radius: 0.4rem;
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.22);
+  padding: 0.25rem;
+  min-width: var(--radix-select-trigger-width);
+}
+
+.reharmonization__select-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.55rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--fg);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+.reharmonization__select-item[data-highlighted] {
+  background: var(--border);
 }
 
 .reharmonization__list {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 16rem;
+  max-height: 14rem;
   overflow-y: auto;
+  border-top: 1px solid var(--border);
 }
 
+/* The degree sits in a fixed-width column so every chord name starts at the same x. */
 .reharmonization__chord {
-  display: flex;
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
   align-items: baseline;
   gap: 0.6rem;
   width: 100%;
-  padding: 0.5rem 0.25rem;
+  padding: 0.45rem 0.5rem;
   border: 0;
+  border-radius: 0.3rem;
   background: none;
-  font: inherit;
+  color: var(--chord);
+  font-family: var(--sans);
+  font-size: 1.05rem;
   text-align: left;
   cursor: pointer;
 }
 
+.reharmonization__chord:hover {
+  background: var(--border);
+}
+
 .reharmonization__chord[aria-current="true"] {
   font-weight: 700;
+  background: var(--border);
 }
 
 .reharmonization__degree,
 .reharmonization__outside {
-  font-size: 0.8rem;
-  opacity: 0.65;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.reharmonization__degree {
+  text-align: right;
+}
+
+.reharmonization__name {
+  color: var(--chord);
 }
 
 .reharmonization__actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.reharmonization__actions .dialog__button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

@@ -91,6 +91,26 @@ export interface InferredKey {
   confidence: number;
 }
 
+/** What the written chords say about a key, on top of the pitch-class profile: how many of them
+ *  belong to its scale, and whether the song ends (and, less so, starts) on its tonic chord. The
+ *  profile alone can't tell C from G in a song that lives on C, G and F, because both keys share
+ *  most of their notes; the chords' own functions can. */
+function harmonicEvidence(key: SongKey, chords: readonly string[]): number {
+  if (chords.length === 0) return 0;
+  const scale = new Set((key.minor ? MINOR_SCALE : MAJOR_SCALE).map((degree) => mod12(key.tonic + degree)));
+  if (key.minor) scale.add(mod12(key.tonic + 11)); // the leading tone of a minor key's V
+  const diatonic = chords.filter((chord) => chordPitchClasses(chord)!.every((pc) => scale.has(pc)));
+  const isTonicChord = (chord: string) => {
+    const pcs = chordPitchClasses(chord)!;
+    return pcs[0] === key.tonic && pcs.includes(mod12(key.tonic + (key.minor ? 3 : 4)));
+  };
+  return (
+    0.2 * (diatonic.length / chords.length) +
+    (isTonicChord(chords[chords.length - 1]!) ? 0.12 : 0) +
+    (isTonicChord(chords[0]!) ? 0.04 : 0)
+  );
+}
+
 /** Krumhansl-Schmuckler key finding over the melody notes and the written chords. A relative
  *  major/minor pair that scores nearly the same is settled by the first and last chord. */
 export function inferKey(melodyNotes: readonly string[], chords: readonly string[]): InferredKey | null {
@@ -110,7 +130,8 @@ export function inferKey(melodyNotes: readonly string[], chords: readonly string
     for (const minor of [false, true]) {
       const profile = minor ? KS_MINOR : KS_MAJOR;
       const rotated = histogram.map((_, pc) => profile[mod12(pc - tonic)]!);
-      scored.push({ key: { tonic, minor }, score: correlation(histogram, rotated) });
+      const key = { tonic, minor };
+      scored.push({ key, score: correlation(histogram, rotated) + harmonicEvidence(key, parsedChords) });
     }
   }
   scored.sort((a, b) => b.score - a.score);

@@ -1,3 +1,6 @@
+import * as Popover from "@radix-ui/react-popover";
+import * as Select from "@radix-ui/react-select";
+import { Check, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import {
   ALL_KEYS,
@@ -9,7 +12,7 @@ import {
   type SongKey,
   type SuggestionMode,
 } from "../../core/reharmonization";
-import { Dialog } from "./Dialog";
+import { XIcon } from "./icons";
 import "./ReharmonizationPopup.css";
 
 const MODES: { mode: SuggestionMode; label: string }[] = [
@@ -20,7 +23,8 @@ const MODES: { mode: SuggestionMode; label: string }[] = [
 ];
 
 export interface ReharmonizationPopupProps {
-  open: boolean;
+  /** The chord cell the popup hangs from. */
+  anchor: HTMLElement;
   onClose: () => void;
   /** The vocal note of the selected syllable, as written (e.g. "fa#"), and its pitch class. */
   noteText: string;
@@ -41,9 +45,9 @@ export interface ReharmonizationPopupProps {
   onChangeKey?: (key: SongKey | null) => void;
 }
 
-/** The popup opened by clicking a syllable that has a vocal note while reharmonization is on. */
+/** The popup opened by clicking the chord slot of a syllable that has a vocal note while reharmonization is on, anchored to that slot. */
 export function ReharmonizationPopup({
-  open,
+  anchor,
   onClose,
   noteText,
   notePitchClass,
@@ -58,103 +62,152 @@ export function ReharmonizationPopup({
   onChangeKey,
 }: ReharmonizationPopupProps) {
   const [mode, setMode] = useState<SuggestionMode>(1);
-  // The text the syllable held before this popup's last change, so it can be undone.
-  const [undoText, setUndoText] = useState<string | null>(null);
 
   const base = { key: songKey, note: notePitchClass, previous, next, syllablesBetween, writtenChords };
   const suggestions = suggestChords({ ...base, mode });
 
+  // Choosing a chord applies it and closes the popup.
   const write = (text: string) => {
-    setUndoText(currentChord);
     onWriteChord(text);
+    onClose();
   };
 
+  const modeLabel = MODES.find((entry) => entry.mode === mode)!.label;
+  const AUTO = "auto";
+
   return (
-    <Dialog
-      open={open}
+    <Popover.Root
+      open
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
-      title={`Rearmonización · ${noteText}`}
-      className="reharmonization"
     >
-      <div className="reharmonization__header" role="radiogroup" aria-label="Modo de sugerencia">
-        {MODES.map(({ mode: value, label }) => {
-          const available = modeAvailable(base, value);
-          return (
-            <label
-              key={value}
-              className="reharmonization__mode"
-              title={available ? label : value === 4 ? "Escribe al menos un acorde" : `${label} (sin sugerencias)`}
-            >
-              <input
-                type="radio"
-                name="reharmonization-mode"
-                value={value}
-                checked={mode === value}
-                disabled={!available}
-                aria-label={`${value}. ${label}`}
-                onChange={() => setMode(value)}
-              />
-              <span aria-hidden="true">{value}</span>
-            </label>
-          );
-        })}
-      </div>
-      {onChangeKey ? (
-        <label className="reharmonization__key">
-          Tonalidad:{" "}
-          <select
-            value={keyIsFixed ? serializeKey(songKey) : ""}
-            onChange={(event) => onChangeKey(parseKey(event.target.value))}
-          >
-            <option value="">{`Automática (${keyName(songKey)})`}</option>
-            {ALL_KEYS.map((key) => (
-              <option key={serializeKey(key)} value={serializeKey(key)}>
-                {keyName(key)}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : (
-        <p className="reharmonization__key">Tonalidad: {keyName(songKey)}</p>
-      )}
-      {mode === 4 && !modeAvailable(base, 4) ? (
-        <p className="reharmonization__empty">Escribe al menos un acorde</p>
-      ) : (
-        <ul className="reharmonization__list" aria-label="Sugerencias">
-          {suggestions.map((suggestion) => (
-            <li key={suggestion.chord + (suggestion.degree ?? "")}>
-              <button
-                type="button"
-                className="reharmonization__chord"
-                aria-current={suggestion.chord === currentChord ? "true" : undefined}
-                onClick={() => write(suggestion.chord)}
+      <Popover.Anchor virtualRef={{ current: anchor }} />
+      <Popover.Portal>
+        <Popover.Content
+          className="reharmonization"
+          side="bottom"
+          align="start"
+          sideOffset={6}
+          collisionPadding={12}
+          aria-label={`Rearmonización · ${noteText}`}
+          // Clicking the slot the popup hangs from keeps it open instead of closing and reopening.
+          onInteractOutside={(event) => {
+            if (event.target instanceof Node && anchor.contains(event.target)) event.preventDefault();
+          }}
+          onOpenAutoFocus={(event) => event.preventDefault()}
+        >
+          <Popover.Close className="dialog__close reharmonization__close" aria-label="Cerrar">
+            <XIcon size={16} />
+          </Popover.Close>
+          <h2 className="dialog__title reharmonization__title">{`Rearmonización · ${noteText}`}</h2>
+          <div className="reharmonization__header">
+            <span className="reharmonization__scope">{modeLabel}</span>
+            <div className="reharmonization__modes" role="radiogroup" aria-label="Modo de sugerencia">
+              {MODES.map(({ mode: value, label }) => {
+                const available = modeAvailable(base, value);
+                return (
+                  <label
+                    key={value}
+                    className="reharmonization__mode"
+                    title={
+                      available ? label : value === 4 ? "Escribe al menos un acorde" : `${label} (sin sugerencias)`
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="reharmonization-mode"
+                      value={value}
+                      checked={mode === value}
+                      disabled={!available}
+                      aria-label={`${value}. ${label}`}
+                      onChange={() => setMode(value)}
+                    />
+                    <span aria-hidden="true">{value}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+          {onChangeKey ? (
+            <div className="reharmonization__key">
+              <span id="reharmonization-key-label">Tonalidad</span>
+              <Select.Root
+                value={keyIsFixed ? serializeKey(songKey) : AUTO}
+                onValueChange={(value) => onChangeKey(value === AUTO ? null : parseKey(value))}
               >
-                <span>{suggestion.chord}</span>
-                {suggestion.degree ? (
-                  <span className="reharmonization__degree">{suggestion.degree}</span>
-                ) : null}
-                {suggestion.outOfKey ? (
-                  <span className="reharmonization__outside">fuera de la tonalidad</span>
-                ) : null}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="reharmonization__actions">
-        <button type="button" disabled={undoText === null} onClick={() => {
-          if (undoText === null) return;
-          onWriteChord(undoText);
-          setUndoText(null);
-        }}>
-          Deshacer
-        </button>
-        <button type="button" disabled={currentChord === ""} onClick={() => write("")}>
-          Eliminar acorde
-        </button>
-      </div>
-    </Dialog>
+                <Select.Trigger className="reharmonization__select" aria-labelledby="reharmonization-key-label">
+                  <Select.Value />
+                  <Select.Icon>
+                    <ChevronDown size={14} aria-hidden="true" />
+                  </Select.Icon>
+                </Select.Trigger>
+                <Select.Portal>
+                  <Select.Content className="reharmonization__select-menu" position="popper" sideOffset={4}>
+                    <Select.Viewport>
+                      <Select.Item value={AUTO} className="reharmonization__select-item">
+                        <Select.ItemText>{`Automática (${keyName(songKey)})`}</Select.ItemText>
+                        <Select.ItemIndicator>
+                          <Check size={14} aria-hidden="true" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                      {ALL_KEYS.map((key) => (
+                        <Select.Item
+                          key={serializeKey(key)}
+                          value={serializeKey(key)}
+                          className="reharmonization__select-item"
+                        >
+                          <Select.ItemText>{keyName(key)}</Select.ItemText>
+                          <Select.ItemIndicator>
+                            <Check size={14} aria-hidden="true" />
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select.Portal>
+              </Select.Root>
+            </div>
+          ) : (
+            <p className="reharmonization__key">
+              <span>Tonalidad</span>
+              <strong>{keyName(songKey)}</strong>
+            </p>
+          )}
+          {mode === 4 && !modeAvailable(base, 4) ? (
+            <p className="reharmonization__empty">Escribe al menos un acorde</p>
+          ) : (
+            <ul className="reharmonization__list" aria-label="Sugerencias">
+              {suggestions.map((suggestion) => (
+                <li key={suggestion.chord + (suggestion.degree ?? "")}>
+                  <button
+                    type="button"
+                    className="reharmonization__chord"
+                    aria-current={suggestion.chord === currentChord ? "true" : undefined}
+                    onClick={() => write(suggestion.chord)}
+                  >
+                    <span className="reharmonization__degree">{suggestion.degree ?? ""}</span>
+                    <span className="reharmonization__name">{suggestion.chord}</span>
+                    {suggestion.outOfKey ? (
+                      <span className="reharmonization__outside">fuera de la tonalidad</span>
+                    ) : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="reharmonization__actions">
+            <button
+              type="button"
+              className="dialog__button dialog__button--secondary"
+              disabled={currentChord === ""}
+              onClick={() => write("")}
+            >
+              Eliminar acorde
+            </button>
+          </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }

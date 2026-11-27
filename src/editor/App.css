@@ -1483,3 +1483,16 @@
   background: #fff;
   border-radius: 0.25rem;
 }
+
+/* Reharmonization: a chord slot over a syllable with a note is a button. Hovering either the slot
+   or its syllable lights it up, which is what says "click here". */
+.track-cell--activatable {
+  cursor: pointer;
+}
+
+.track-cell--activatable:hover,
+.track-cell--activatable.track-cell--hovered {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-bottom-color: var(--accent);
+  border-radius: 0.2rem 0.2rem 0 0;
+}
