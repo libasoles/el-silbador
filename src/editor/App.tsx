@@ -235,6 +235,9 @@ interface AppProps {
 }
 
 interface TrackToggleButtonProps {
+  /** Overrides `track.visible` as the pressed state, e.g. the chords tool is off while
+   *  reharmonization is on even though the written chords are still shown. */
+  pressed?: boolean;
   track: TrackDef;
   cells: CellsByTrack;
   onToggle: () => void;
@@ -246,6 +249,7 @@ export function TrackToggleButton({
   cells,
   onToggle,
   tooltipSide,
+  pressed = track.visible,
 }: TrackToggleButtonProps) {
   const hasContent =
     track.id === "chordNotes"
@@ -268,7 +272,7 @@ export function TrackToggleButton({
       <button
         type="button"
         className="track-toolbar__toggle"
-        aria-pressed={track.visible}
+        aria-pressed={pressed}
         aria-label={track.label}
         disabled={disabled}
         onClick={onToggle}
@@ -1070,12 +1074,13 @@ function App({
     (text) => parseMelodyNote(text) !== null,
   );
   const reharmonizationActive = isAdmin && reharmonizationOn && hasMelodyNotes;
-  const handleReharmonizationToggle = () => {
-    const next = !reharmonizationOn;
-    setReharmonizationOn(next);
-    // Chord suggestions are only useful with the chords visible.
-    if (next) showChords();
-  };
+  const handleReharmonizationToggle = () => setReharmonizationOn(!reharmonizationOn);
+  // While reharmonization is on, the chords tool is off (its button unpressed, its cells not
+  // editable) but the chords already written stay visible: see `viewTracks`.
+  const chordToolOff = (track: TrackDef) => track.id === "chords" && reharmonizationActive;
+  const viewTracks = reharmonizationActive
+    ? state.tracks.map((track) => (track.id === "chords" ? { ...track, visible: true } : track))
+    : state.tracks;
   const reharmonizationButton = isAdmin ? (
     <ReharmonizationToggleButton
       pressed={reharmonizationActive}
@@ -1085,9 +1090,14 @@ function App({
   ) : null;
 
   const handleTrackToggle = (track: TrackDef) => {
+    if (chordToolOff(track)) {
+      // Turning the chords tool on turns reharmonization off; the chords stay shown.
+      setReharmonizationOn(false);
+      showChords();
+      return;
+    }
     const nextVisible = !track.visible;
     actions.setTrackVisibility(track.id, nextVisible);
-    if (track.id === "chords" && reharmonizationOn) setReharmonizationOn(false);
     if (track.id === "chordNotes" && nextVisible) {
       showTutorial({
         tutorialId: "chord-notes-shared",
@@ -1289,6 +1299,7 @@ function App({
                           key={track.id}
                           track={track}
                           cells={state.cells}
+                          pressed={chordToolOff(track) ? false : track.visible}
                           onToggle={() => handleTrackToggle(track)}
                         />
                       ))}
@@ -1335,6 +1346,7 @@ function App({
                     key={track.id}
                     track={track}
                     cells={state.cells}
+                    pressed={chordToolOff(track) ? false : track.visible}
                     onToggle={() => handleTrackToggle(track)}
                   />
                 ))}
@@ -1391,7 +1403,7 @@ function App({
                 lyricsText={state.lyricsText}
                 bisGroups={state.bisGroups}
                 merges={state.merges}
-                tracks={state.tracks}
+                tracks={viewTracks}
                 cells={displayedCells}
                 chordVariants={state.chordVariants}
                 pitchDirections={state.pitchDirections}
@@ -1406,7 +1418,9 @@ function App({
                   />
                 }
                 placeholder={SONG_PLACEHOLDER}
-                canEdit={canEditOnThisDevice}
+                // The chords tool and reharmonization are exclusive: no typing chords while the
+                // popup is how they are written.
+                canEdit={canEditOnThisDevice && !reharmonizationActive}
                 reharmonization={reharmonizationActive}
                 songKey={reharmonizationIsLocal && localSongKey !== undefined ? localSongKey : songKey}
                 onChangeSongKey={isAdmin ? handleChangeSongKey : undefined}
