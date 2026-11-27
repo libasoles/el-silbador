@@ -81,6 +81,8 @@ import { songEditPath } from "./songPaths";
 import { useIsMobile } from "./useIsMobile";
 import {
   readLocalReharmonization,
+  readReharmonizationToggle,
+  saveReharmonizationToggle,
   saveLocalReharmonizationKey,
   saveLocalReharmonizedChord,
 } from "./reharmonizationStorage";
@@ -339,7 +341,15 @@ function App({
   const mobileSidebarMenuRef = useRef<HTMLElement>(null);
   const [forking, setForking] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [reharmonizationOn, setReharmonizationOn] = useState(false);
+  const [reharmonizationOn, setReharmonizationOnState] = useState(false);
+  const setReharmonizationOn = (on: boolean) => {
+    setReharmonizationOnState(on);
+    saveReharmonizationToggle(on);
+  };
+  // localStorage is client-only: restore the saved state after hydration.
+  useEffect(() => {
+    setReharmonizationOnState(readReharmonizationToggle());
+  }, []);
   // The key an admin fixed for this song; null = reharmonization infers it.
   const [songKey, setSongKeyState] = useState<string | null>(
     () => initialSong?.songKey ?? null,

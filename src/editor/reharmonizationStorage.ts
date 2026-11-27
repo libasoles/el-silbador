@@ -54,3 +54,24 @@ export function saveLocalReharmonizedChord(songId: string, slotId: string, text:
 export function saveLocalReharmonizationKey(songId: string, key: string | null): void {
   write(songId, { ...readLocalReharmonization(songId), key });
 }
+
+const TOGGLE_KEY = "el-silbador:reharmonization-toggle";
+
+/** Whether the admin left the reharmonization tool on; off when absent or unreadable. */
+export function readReharmonizationToggle(): boolean {
+  try {
+    return window.localStorage.getItem(TOGGLE_KEY) === "true";
+  } catch {
+    // Storage can be denied; the tool then starts off.
+    return false;
+  }
+}
+
+export function saveReharmonizationToggle(on: boolean): void {
+  try {
+    window.localStorage.setItem(TOGGLE_KEY, String(on));
+  } catch (error) {
+    // A failed write must never prevent the toggle from changing for the current visit.
+    console.error("No se pudo guardar el estado de la rearmonización.", error);
+  }
+}

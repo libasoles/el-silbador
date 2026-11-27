@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   readLocalReharmonization,
+  readReharmonizationToggle,
+  saveReharmonizationToggle,
   saveLocalReharmonizationKey,
   saveLocalReharmonizedChord,
 } from "./reharmonizationStorage";
@@ -39,5 +41,17 @@ describe("reharmonizationStorage", () => {
   it("ignores corrupt data", () => {
     window.localStorage.setItem("el-silbador:reharmonization:s1", "{nope");
     expect(readLocalReharmonization("s1")).toEqual({ chords: {} });
+  });
+});
+
+describe("reharmonization toggle", () => {
+  beforeEach(installFakeLocalStorage);
+
+  it("starts off and remembers the saved state", () => {
+    expect(readReharmonizationToggle()).toBe(false);
+    saveReharmonizationToggle(true);
+    expect(readReharmonizationToggle()).toBe(true);
+    saveReharmonizationToggle(false);
+    expect(readReharmonizationToggle()).toBe(false);
   });
 });

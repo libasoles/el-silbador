@@ -12,7 +12,7 @@ import {
   type SongKey,
   type SuggestionMode,
 } from "../../core/reharmonization";
-import { XIcon } from "./icons";
+import { TrashIcon, XIcon } from "./icons";
 import "./ReharmonizationPopup.css";
 
 const MODES: { mode: SuggestionMode; label: string }[] = [
@@ -90,7 +90,7 @@ export function ReharmonizationPopup({
           align="start"
           sideOffset={6}
           collisionPadding={12}
-          aria-label={`Rearmonización · ${noteText}`}
+          aria-label="Rearmonización"
           // Clicking the slot the popup hangs from keeps it open instead of closing and reopening.
           onInteractOutside={(event) => {
             if (event.target instanceof Node && anchor.contains(event.target)) event.preventDefault();
@@ -100,35 +100,7 @@ export function ReharmonizationPopup({
           <Popover.Close className="dialog__close reharmonization__close" aria-label="Cerrar">
             <XIcon size={16} />
           </Popover.Close>
-          <h2 className="dialog__title reharmonization__title">{`Rearmonización · ${noteText}`}</h2>
-          <div className="reharmonization__header">
-            <span className="reharmonization__scope">{modeLabel}</span>
-            <div className="reharmonization__modes" role="radiogroup" aria-label="Modo de sugerencia">
-              {MODES.map(({ mode: value, label }) => {
-                const available = modeAvailable(base, value);
-                return (
-                  <label
-                    key={value}
-                    className="reharmonization__mode"
-                    title={
-                      available ? label : value === 4 ? "Escribe al menos un acorde" : `${label} (sin sugerencias)`
-                    }
-                  >
-                    <input
-                      type="radio"
-                      name="reharmonization-mode"
-                      value={value}
-                      checked={mode === value}
-                      disabled={!available}
-                      aria-label={`${value}. ${label}`}
-                      onChange={() => setMode(value)}
-                    />
-                    <span aria-hidden="true">{value}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+          <h2 className="dialog__title reharmonization__title">Rearmonización</h2>
           {onChangeKey ? (
             <div className="reharmonization__key">
               <span id="reharmonization-key-label">Tonalidad</span>
@@ -174,6 +146,35 @@ export function ReharmonizationPopup({
               <strong>{keyName(songKey)}</strong>
             </p>
           )}
+          <div className="reharmonization__header">
+            <div className="reharmonization__modes" role="radiogroup" aria-label="Modo de sugerencia">
+              {MODES.map(({ mode: value, label }) => {
+                const available = modeAvailable(base, value);
+                return (
+                  <label
+                    key={value}
+                    className="reharmonization__mode"
+                    title={
+                      available ? label : value === 4 ? "Escribe al menos un acorde" : `${label} (sin sugerencias)`
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="reharmonization-mode"
+                      value={value}
+                      checked={mode === value}
+                      disabled={!available}
+                      aria-label={`${value}. ${label}`}
+                      onChange={() => setMode(value)}
+                    />
+                    <span aria-hidden="true">{value}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+          <p className="reharmonization__note">{`Nota de la melodía: ${noteText}`}</p>
+          <h3 className="reharmonization__scope">{`Acordes sugeridos: ${modeLabel}`}</h3>
           {mode === 4 && !modeAvailable(base, 4) ? (
             <p className="reharmonization__empty">Escribe al menos un acorde</p>
           ) : (
@@ -199,10 +200,11 @@ export function ReharmonizationPopup({
           <div className="reharmonization__actions">
             <button
               type="button"
-              className="dialog__button dialog__button--secondary"
+              className="reharmonization__delete"
               disabled={currentChord === ""}
               onClick={() => write("")}
             >
+              <TrashIcon size={16} aria-hidden="true" />
               Eliminar acorde
             </button>
           </div>

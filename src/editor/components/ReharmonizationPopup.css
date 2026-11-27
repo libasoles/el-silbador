@@ -32,13 +32,17 @@
 
 .reharmonization__header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.6rem;
+}
+
+.reharmonization__note {
+  margin: 0 0 0.3rem;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .reharmonization__scope {
+  margin: 0 0 0.3rem;
   font-size: 0.85rem;
   font-weight: 600;
   line-height: 1.25;
@@ -48,16 +52,15 @@
   display: flex;
   flex: none;
   gap: 0.3rem;
-  margin-left: auto;
 }
 
 .reharmonization__mode {
   position: relative;
   display: grid;
   place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  font-size: 0.75rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  font-size: 0.7rem;
   cursor: pointer;
 }
 
@@ -166,7 +169,8 @@
   font-family: var(--sans);
   font-size: 0.85rem;
   color: var(--fg);
-  border-radius: 0.25rem;
+  margin-bottom: 0.15rem;
+  border-radius: 0;
   cursor: pointer;
   outline: none;
   user-select: none;
@@ -182,13 +186,12 @@
   padding: 0;
   max-height: 14rem;
   overflow-y: auto;
-  border-top: 1px solid var(--border);
 }
 
 /* The degree sits in a fixed-width column so every chord name starts at the same x. */
 .reharmonization__chord {
   display: grid;
-  grid-template-columns: 3rem 1fr auto;
+  grid-template-columns: 1.5rem 1fr auto;
   align-items: baseline;
   gap: 0.6rem;
   width: 100%;
@@ -229,12 +232,28 @@
 .reharmonization__actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border);
+  margin-top: 0.5rem;
 }
 
-.reharmonization__actions .dialog__button:disabled {
+.reharmonization__delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 0.3rem;
+  background: none;
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.reharmonization__delete:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.reharmonization__delete:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
