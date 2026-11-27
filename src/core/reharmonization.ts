@@ -105,9 +105,9 @@ function harmonicEvidence(key: SongKey, chords: readonly string[]): number {
     return pcs[0] === key.tonic && pcs.includes(mod12(key.tonic + (key.minor ? 3 : 4)));
   };
   return (
-    0.2 * (diatonic.length / chords.length) +
-    (isTonicChord(chords[chords.length - 1]!) ? 0.12 : 0) +
-    (isTonicChord(chords[0]!) ? 0.04 : 0)
+    0.35 * (diatonic.length / chords.length) +
+    (isTonicChord(chords[chords.length - 1]!) ? 0.2 : 0) +
+    (isTonicChord(chords[0]!) ? 0.08 : 0)
   );
 }
 
@@ -121,7 +121,9 @@ export function inferKey(melodyNotes: readonly string[], chords: readonly string
   }
   const parsedChords = chords.filter((chord) => chordPitchClasses(chord) !== null);
   for (const chord of parsedChords) {
-    for (const pc of chordPitchClasses(chord)!) histogram[pc]! += 1;
+    // A written chord says more about the key than one sung note: its tones weigh double and
+    // its root triple.
+    chordPitchClasses(chord)!.forEach((pc, index) => (histogram[pc]! += index === 0 ? 3 : 2));
   }
   if (histogram.every((v) => v === 0)) return null;
 
