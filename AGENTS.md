@@ -32,7 +32,11 @@ Not allowed on mobile, even for the song's owner:
 
 Deliberate exception — reharmonization (`ReharmonizationPopup`, admins only): an admin may write,
 replace and remove chords on mobile through the popup, because it writes to the chords track
-without the song's edit mode. Everything else above stays blocked. The button is rendered only for
+without the song's edit mode. Where those changes go depends on the mode: in edit mode (desktop,
+`canEditOnThisDevice`) chords and the song key are saved to the database; in reading mode, and
+always on mobile (which has no edit mode), they are kept only in this browser's localStorage
+(`src/editor/reharmonizationStorage.ts`) and re-applied when the song opens. Everything else above
+stays blocked. The button is rendered only for
 admins (`isAdmin` in `App.tsx`), never for other users.
 
 Allowed on mobile (do not gate these):

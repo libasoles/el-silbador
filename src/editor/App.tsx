@@ -17,7 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import "./App.css";
 const neutralIllustration = "/03-neutral.svg";
 import { chordToNoteNames } from "../core/chordNotes";
-import type { CellsByTrack, TrackDef } from "../core/types";
+import type { CellsByTrack, TrackDef, TrackId } from "../core/types";
 import {
   deleteSong,
   forkSong,
@@ -79,6 +79,11 @@ import { pdfDocumentTitle } from "./pdfFilename";
 import { useToast } from "./toastContext";
 import { songEditPath } from "./songPaths";
 import { useIsMobile } from "./useIsMobile";
+import {
+  readLocalReharmonization,
+  saveLocalReharmonizationKey,
+  saveLocalReharmonizedChord,
+} from "./reharmonizationStorage";
 import {
   readMelodyTogglePreference,
   saveMelodyTogglePreference,
@@ -335,6 +340,8 @@ function App({
   const [songKey, setSongKeyState] = useState<string | null>(
     () => initialSong?.songKey ?? null,
   );
+  // The key an admin chose outside edit mode (kept in localStorage); undefined = no local choice.
+  const [localSongKey, setLocalSongKey] = useState<string | null | undefined>(undefined);
   const [songIsPublic, setSongIsPublic] = useState(
     () => initialSong?.isPublic ?? false,
   );
@@ -685,6 +692,20 @@ function App({
     ownerId !== undefined &&
     !canEditOnThisDevice;
 
+  // Re-apply an admin's local reharmonization once the song is loaded, outside edit mode only: in
+  // edit mode the song's own content is what gets saved, so local changes must never leak into it.
+  const appliedLocalReharmonizationRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isAdmin || !contentLoaded || !songDbId || canEditOnThisDevice) return;
+    if (appliedLocalReharmonizationRef.current === songDbId) return;
+    appliedLocalReharmonizationRef.current = songDbId;
+    const local = readLocalReharmonization(songDbId);
+    for (const [slotId, text] of Object.entries(local.chords)) {
+      actions.setCellText("chords", slotId, text);
+    }
+    setLocalSongKey(local.key);
+  }, [isAdmin, contentLoaded, songDbId, canEditOnThisDevice, actions]);
+
   const tabsToggle = useTabsToggle(state.song, canEditOnThisDevice);
   const showChords = useCallback(() => actions.setTrackVisibility("chords", true), [actions]);
   const chordDiagramsToggle = useChordDiagramsToggle(songDbId, showChords);
@@ -917,7 +938,23 @@ function App({
     actions.reconcileLyricsText(lines.join("\n"));
   };
 
+  // An admin's reharmonization goes to the database only in edit mode. Anywhere else (reading
+  // mode, and always on mobile, which has no edit mode) it stays in this browser's localStorage.
+  const reharmonizationIsLocal = !canEditOnThisDevice;
+  const handleSetCellText = (trackId: TrackId, slotId: string, text: string) => {
+    actions.setCellText(trackId, slotId, text);
+    // Outside edit mode the only chord writes come from the reharmonization popup.
+    if (reharmonizationIsLocal && trackId === "chords" && songDbId) {
+      saveLocalReharmonizedChord(songDbId, slotId, text);
+    }
+  };
+
   const handleChangeSongKey = (next: string | null) => {
+    if (reharmonizationIsLocal) {
+      setLocalSongKey(next);
+      if (songDbId) saveLocalReharmonizationKey(songDbId, next);
+      return;
+    }
     const previous = songKey;
     setSongKeyState(next);
     // A song that isn't saved yet has no row to write to; the choice lasts for this session.
@@ -1371,10 +1408,10 @@ function App({
                 placeholder={SONG_PLACEHOLDER}
                 canEdit={canEditOnThisDevice}
                 reharmonization={reharmonizationActive}
-                songKey={songKey}
+                songKey={reharmonizationIsLocal && localSongKey !== undefined ? localSongKey : songKey}
                 onChangeSongKey={isAdmin ? handleChangeSongKey : undefined}
                 autoFocus
-                onSetCellText={actions.setCellText}
+                onSetCellText={handleSetCellText}
                 onSetChordVariant={actions.setChordVariant}
                 onToggleMerge={actions.toggleSyllableMerge}
                 onMoveCellText={actions.moveCellText}
