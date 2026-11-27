@@ -89,9 +89,25 @@ export function TrackRow({
     cellRefs.current[clamped]?.focus();
   }
 
+  /** Tab walks the cells of this track only, continuing onto the next verse's row of the same
+   *  track, instead of falling through to whatever focusable element comes next in the page. */
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Tab" || readOnly || event.metaKey || event.ctrlKey || event.altKey) return;
+    const cells = Array.from(
+      document.querySelectorAll<HTMLElement>(`[data-track="${trackId}"] [data-slot-id]`),
+    );
+    const current = cells.indexOf(event.target as HTMLElement);
+    if (current === -1) return;
+    const next = cells[current + (event.shiftKey ? -1 : 1)];
+    if (!next) return;
+    event.preventDefault();
+    next.focus();
+  }
+
   return (
     <>
     <div
+      onKeyDown={handleKeyDown}
       className={"track-row" + (annotationsReady ? " track-row--annotations-ready" : "")}
       data-track={trackId}
       data-empty={!hasContent}
